@@ -1,9 +1,17 @@
 #pragma once
 
-enum ControllerSource {
+enum class ControllerSource {
     RawKeyboard,
     RawTouch,
     IntegratedSliders,
+    IntegratedAir,
+};
+
+enum class AirControlSource {
+    AirUp,
+    AirDown,
+    AirHold,
+    AirAction,
 };
 
 struct ControllerFingerState {
@@ -19,10 +27,12 @@ private:
     char KeyboardCurrent[256];
     char KeyboardLast[256];
     char KeyboardTrigger[256];
-    char IntegratedCurrent[16];
-    char IntegratedLast[16];
-    char IntegratedTrigger[16];
-    char SliderKeyboardNumbers[16];
+    char IntegratedSliderCurrent[16];
+    char IntegratedSliderLast[16];
+    char IntegratedSliderTrigger[16];
+    uint8_t SliderKeyboardNumbers[16];
+    uint8_t AirStringKeyboardNumbers[4];
+    char IntegratedAir[4];
 
     bool IsWacomDeviceAvailable = false;
     int *WacomDeviceIds = nullptr;

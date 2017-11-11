@@ -131,7 +131,7 @@ void ScenePlayer::CalculateCurves(std::shared_ptr<SusDrawableNoteData> note)
             controlPoints.push_back(cpi);
             continue;
         }
-        // End‚©Step
+        // End‚©Step‚©Invisible
         controlPoints.push_back(make_tuple(slideElement->StartTime - lastStep->StartTime, (slideElement->StartLane + slideElement->Length / 2.0) / 16.0));
         int segmentPoints = segmentsPerSecond * (slideElement->StartTime - lastStep->StartTime) + 2;
         vector<tuple<double, double>> segmentPositions;

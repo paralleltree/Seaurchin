@@ -10,9 +10,10 @@ void ControlState::Initialize()
     ZeroMemory(KeyboardCurrent, sizeof(char) * 256);
     ZeroMemory(KeyboardLast, sizeof(char) * 256);
     ZeroMemory(KeyboardTrigger, sizeof(char) * 256);
-    ZeroMemory(IntegratedCurrent, sizeof(char) * 16);
-    ZeroMemory(IntegratedLast, sizeof(char) * 16);
-    ZeroMemory(IntegratedTrigger, sizeof(char) * 16);
+    ZeroMemory(IntegratedSliderCurrent, sizeof(char) * 16);
+    ZeroMemory(IntegratedSliderLast, sizeof(char) * 16);
+    ZeroMemory(IntegratedSliderTrigger, sizeof(char) * 16);
+    ZeroMemory(IntegratedAir, sizeof(char) * 4);
 
     SliderKeyboardNumbers[0] = KEY_INPUT_A;
     SliderKeyboardNumbers[1] = KEY_INPUT_Z;
@@ -30,6 +31,10 @@ void ControlState::Initialize()
     SliderKeyboardNumbers[13] = KEY_INPUT_M;
     SliderKeyboardNumbers[14] = KEY_INPUT_K;
     SliderKeyboardNumbers[15] = KEY_INPUT_COMMA;
+    AirStringKeyboardNumbers[(size_t)AirControlSource::AirUp] = KEY_INPUT_PGUP;
+    AirStringKeyboardNumbers[(size_t)AirControlSource::AirDown] = KEY_INPUT_PGDN;
+    AirStringKeyboardNumbers[(size_t)AirControlSource::AirHold] = KEY_INPUT_HOME;
+    AirStringKeyboardNumbers[(size_t)AirControlSource::AirAction] = KEY_INPUT_END;
 
     InitializeWacomTouchDevice();
 }
@@ -51,15 +56,19 @@ void ControlState::Update()
     GetHitKeyStateAll(KeyboardCurrent);
     for (int i = 0; i < 256; i++) KeyboardTrigger[i] = !KeyboardLast[i] && KeyboardCurrent[i];
 
-    for (int i = 0; i < 16; i++) IntegratedLast[i] = IntegratedCurrent[i];
-    for (int i = 0; i < 16; i++) IntegratedCurrent[i] = KeyboardCurrent[SliderKeyboardNumbers[i]];
+    for (int i = 0; i < 16; i++) IntegratedSliderLast[i] = IntegratedSliderCurrent[i];
+    for (int i = 0; i < 16; i++) IntegratedSliderCurrent[i] = KeyboardCurrent[SliderKeyboardNumbers[i]];
+    IntegratedAir[(size_t)AirControlSource::AirUp] = KeyboardTrigger[AirStringKeyboardNumbers[(size_t)AirControlSource::AirUp]];
+    IntegratedAir[(size_t)AirControlSource::AirDown] = KeyboardTrigger[AirStringKeyboardNumbers[(size_t)AirControlSource::AirDown]];
+    IntegratedAir[(size_t)AirControlSource::AirHold] = KeyboardCurrent[AirStringKeyboardNumbers[(size_t)AirControlSource::AirHold]];
+    IntegratedAir[(size_t)AirControlSource::AirAction] = KeyboardTrigger[AirStringKeyboardNumbers[(size_t)AirControlSource::AirAction]];
 
     {
         lock_guard<mutex> lock(FingerMutex);
-        for (auto &finger : CurrentFingers) IntegratedCurrent[finger.second->SliderPosition] = 1;
+        for (auto &finger : CurrentFingers) IntegratedSliderCurrent[finger.second->SliderPosition] = 1;
     }
 
-    for (int i = 0; i < 16; i++) IntegratedTrigger[i] = !IntegratedLast[i] && IntegratedCurrent[i];
+    for (int i = 0; i < 16; i++) IntegratedSliderTrigger[i] = !IntegratedSliderLast[i] && IntegratedSliderCurrent[i];
 }
 
 bool ControlState::GetTriggerState(ControllerSource source, int number)
@@ -70,9 +79,12 @@ bool ControlState::GetTriggerState(ControllerSource source, int number)
             return KeyboardTrigger[number];
         case ControllerSource::IntegratedSliders:
             if (number < 0 || number >= 16) return false;
-            return IntegratedTrigger[number];
+            return IntegratedSliderTrigger[number];
         case ControllerSource::RawTouch:
             return false;
+        case ControllerSource::IntegratedAir:
+            if (number < 0 || number >= 4) return false;
+            return IntegratedAir[number];
     }
     return false;
 }
@@ -85,9 +97,12 @@ bool ControlState::GetCurrentState(ControllerSource source, int number)
             return KeyboardCurrent[number];
         case ControllerSource::IntegratedSliders:
             if (number < 0 || number >= 16) return false;
-            return IntegratedCurrent[number];
+            return IntegratedSliderCurrent[number];
         case ControllerSource::RawTouch:
             return false;
+        case ControllerSource::IntegratedAir:
+            if (number < 0 || number >= 4) return false;
+            return IntegratedAir[number];
     }
     return false;
 }

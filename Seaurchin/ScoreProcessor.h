@@ -24,6 +24,7 @@ enum class NoteAttribute {
     Invisible = 0,
     Finished,
     HellChecking,
+    Completed,
 };
 
 class ScenePlayer;
@@ -50,7 +51,13 @@ protected:
     void ProcessScore(std::shared_ptr<SusDrawableNoteData> notes);
     bool CheckJudgement(std::shared_ptr<SusDrawableNoteData> note);
     bool CheckHellJudgement(std::shared_ptr<SusDrawableNoteData> note);
+    bool CheckAirJudgement(std::shared_ptr<SusDrawableNoteData> note);
+    bool CheckAirActionJudgement(std::shared_ptr<SusDrawableNoteData> note);
+    bool CheckHoldJudgement(std::shared_ptr<SusDrawableNoteData> note);
+    bool CheckSlideJudgement(std::shared_ptr<SusDrawableNoteData> note);
     void IncrementCombo();
+    void IncrementCombo(std::shared_ptr<SusDrawableNoteData> note, double reltime);
+    void ResetCombo(std::shared_ptr<SusDrawableNoteData> note);
 
 public:
     PlayableProcessor(ScenePlayer *player);
