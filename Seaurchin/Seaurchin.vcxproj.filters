@@ -138,9 +138,6 @@
     <ClCompile Include="ScenePlayer.cpp">
       <Filter>プレーヤー</Filter>
     </ClCompile>
-    <ClCompile Include="ScoreProcessor.cpp">
-      <Filter>プレーヤー</Filter>
-    </ClCompile>
     <ClCompile Include="Controller.cpp">
       <Filter>コントローラー</Filter>
     </ClCompile>
@@ -152,6 +149,12 @@
     </ClCompile>
     <ClCompile Include="wscriptbuilder.cpp">
       <Filter>インターフェース\AngelScript</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayableProcessor.cpp">
+      <Filter>プレーヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="AutoPlayerProcessor.cpp">
+      <Filter>プレーヤー</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

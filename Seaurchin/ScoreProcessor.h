@@ -47,6 +47,10 @@ protected:
     std::vector<std::shared_ptr<SusDrawableNoteData>> &data = DefaultDataValue;
     bool isInHold = false, isInSlide = false, wasInHold = false, wasInSlide = false;
     SImage *imageHoldLight;
+    double judgeWidthAttack;
+    double judgeWidthJustice;
+    double judgeWidthJusticeCritical;
+    double judgeAdjust;
 
     void ProcessScore(std::shared_ptr<SusDrawableNoteData> notes);
     bool CheckJudgement(std::shared_ptr<SusDrawableNoteData> note);
@@ -55,7 +59,6 @@ protected:
     bool CheckAirActionJudgement(std::shared_ptr<SusDrawableNoteData> note);
     bool CheckHoldJudgement(std::shared_ptr<SusDrawableNoteData> note);
     bool CheckSlideJudgement(std::shared_ptr<SusDrawableNoteData> note);
-    void IncrementCombo();
     void IncrementCombo(std::shared_ptr<SusDrawableNoteData> note, double reltime);
     void ResetCombo(std::shared_ptr<SusDrawableNoteData> note);
 
