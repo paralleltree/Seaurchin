@@ -394,16 +394,6 @@ bool PlayableProcessor::CheckAirActionJudgement(shared_ptr<SusDrawableNoteData> 
     if (note->OnTheFlyData[(size_t)NoteAttribute::Completed]) return false;
 
     bool judged = CurrentState->GetCurrentState(ControllerSource::IntegratedAir, (int)AirControlSource::AirHold);
-    if (!note->OnTheFlyData[(size_t)NoteAttribute::Finished]) {
-        if (reltime >= judgeWidthAttack) {
-            ResetCombo(note);
-            return false;
-        }
-        if ((isAutoAir && reltime > 0) || judged) {
-            IncrementCombo(note, reltime);
-            return true;
-        }
-    }
     for (const auto &extra : note->ExtraData) {
         reltime = Player->CurrentSoundTime - extra->StartTime + judgeAdjust;
         if (extra->OnTheFlyData[(size_t)NoteAttribute::Finished]) continue;
