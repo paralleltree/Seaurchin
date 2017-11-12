@@ -86,10 +86,10 @@ void ExecutionManager::RegisterGlobalManagementFunction()
     engine->RegisterGlobalFunction("void SetData(const string &in, const int &in)", asMETHOD(ExecutionManager, SetData<int>), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("void SetData(const string &in, const double &in)", asMETHOD(ExecutionManager, SetData<double>), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("void SetData(const string &in, const string &in)", asMETHOD(ExecutionManager, SetData<string>), asCALL_THISCALL_ASGLOBAL, this);
-    engine->RegisterGlobalFunction("bool GetBoolData(const string &in)", asMETHOD(ExecutionManager, GetData<bool>), asCALL_THISCALL_ASGLOBAL, this);
-    engine->RegisterGlobalFunction("int GetIntData(const string &in)", asMETHOD(ExecutionManager, GetData<int>), asCALL_THISCALL_ASGLOBAL, this);
-    engine->RegisterGlobalFunction("double GetDoubleData(const string &in)", asMETHOD(ExecutionManager, GetData<double>), asCALL_THISCALL_ASGLOBAL, this);
-    engine->RegisterGlobalFunction("string GetStringData(const string &in)", asMETHOD(ExecutionManager, GetData<string>), asCALL_THISCALL_ASGLOBAL, this);
+    engine->RegisterGlobalFunction("bool GetBoolData(const string &in)", asMETHODPR(ExecutionManager, GetData<bool>, (const string&), bool), asCALL_THISCALL_ASGLOBAL, this);
+    engine->RegisterGlobalFunction("int GetIntData(const string &in)", asMETHODPR(ExecutionManager, GetData<int>, (const string&), int), asCALL_THISCALL_ASGLOBAL, this);
+    engine->RegisterGlobalFunction("double GetDoubleData(const string &in)", asMETHODPR(ExecutionManager, GetData<double>, (const string&), double), asCALL_THISCALL_ASGLOBAL, this);
+    engine->RegisterGlobalFunction("string GetStringData(const string &in)", asMETHODPR(ExecutionManager, GetData<string>, (const string&), string), asCALL_THISCALL_ASGLOBAL, this);
 
     engine->RegisterGlobalFunction("bool Execute(const string &in)", asMETHODPR(ExecutionManager, ExecuteSkin, (const string&), bool), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("void ReloadMusic()", asMETHOD(ExecutionManager, ReloadMusic), asCALL_THISCALL_ASGLOBAL, this);

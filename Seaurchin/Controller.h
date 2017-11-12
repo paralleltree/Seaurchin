@@ -49,5 +49,6 @@ public:
 
     bool GetTriggerState(ControllerSource source, int number);
     bool GetCurrentState(ControllerSource source, int number);
+    bool GetLastState(ControllerSource source, int number);
     void SetSliderKey(int sliderNumber, int keyboardNumber);
 };

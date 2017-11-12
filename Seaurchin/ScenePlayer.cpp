@@ -59,10 +59,16 @@ void ScenePlayer::Initialize()
     analyzer = make_unique<SusAnalyzer>(192);
     isLoadCompleted = false;
 
-    if (manager->ExistsData("AutoPlay") ? manager->GetData<int>("AutoPlay") : 1) {
-        processor = new AutoPlayerProcessor(this);
-    } else {
-        processor = new PlayableProcessor(this);
+    switch (manager->GetData<int>("AutoPlay", 1)) {
+        case 0:
+            processor = new PlayableProcessor(this);
+            break;
+        case 1:
+            processor = new AutoPlayerProcessor(this);
+            break;
+        case 2:
+            processor = new PlayableProcessor(this, true);
+            break;
     }
 
     auto setting = manager->GetSettingInstanceSafe();

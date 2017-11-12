@@ -107,6 +107,24 @@ bool ControlState::GetCurrentState(ControllerSource source, int number)
     return false;
 }
 
+bool ControlState::GetLastState(ControllerSource source, int number)
+{
+    switch (source) {
+        case ControllerSource::RawKeyboard:
+            if (number < 0 || number >= 256) return false;
+            return KeyboardLast[number];
+        case ControllerSource::IntegratedSliders:
+            if (number < 0 || number >= 16) return false;
+            return IntegratedSliderLast[number];
+        case ControllerSource::RawTouch:
+            return false;
+        case ControllerSource::IntegratedAir:
+            if (number < 0 || number >= 4) return false;
+            return IntegratedAir[number];
+    }
+    return false;
+}
+
 void ControlState::SetSliderKey(int sliderNumber, int keyboardNumber)
 {
     if (sliderNumber < 0 || sliderNumber >= 16) return;

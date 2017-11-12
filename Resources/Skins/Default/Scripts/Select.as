@@ -140,6 +140,10 @@ class Title : CoroutineScene {
         SetData("AutoPlay", 0);
         ShowMessage("オートプレイ: OFF");
       }
+      if (IsKeyTriggered(Key::INPUT_S)) {
+        SetData("AutoPlay", 2);
+        ShowMessage("オートプレイ: Air/Air-Actionのみ");
+      }
       
       YieldFrame(1);
     }
@@ -147,9 +151,10 @@ class Title : CoroutineScene {
   
   void ShowMessage(string mes) {
     TextSprite@ spmes = TextSprite(font32, mes);
-    spmes.Apply("y:-32, z:20, r:0, g:0, b:0");
-    spmes.AddMove("move_by(y:32, time:0.5, ease:out_sine)");
-    spmes.AddMove("move_by(y:-32, time:0.5, wait:1.0, ease:in_sine)");
+    spmes.Apply("y:720, z:20, r:0, g:0, b:0");
+    spmes.AddMove("move_by(y:-32, time:0.5, ease:out_sine)");
+    spmes.AddMove("move_by(y:32, time:0.5, wait:1.0, ease:in_sine)");
+    spmes.AddMove("death(wait:2.0)");
     AddSprite(spmes);
   }
 }

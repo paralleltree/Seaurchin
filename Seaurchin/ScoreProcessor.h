@@ -25,6 +25,7 @@ enum class NoteAttribute {
     Finished,
     HellChecking,
     Completed,
+    Activated,
 };
 
 class ScenePlayer;
@@ -51,6 +52,7 @@ protected:
     double judgeWidthJustice;
     double judgeWidthJusticeCritical;
     double judgeAdjust;
+    bool isAutoAir = false;
 
     void ProcessScore(std::shared_ptr<SusDrawableNoteData> notes);
     bool CheckJudgement(std::shared_ptr<SusDrawableNoteData> note);
@@ -64,7 +66,9 @@ protected:
 
 public:
     PlayableProcessor(ScenePlayer *player);
+    PlayableProcessor(ScenePlayer *player, bool autoAir);
 
+    void SetAutoAir(bool flag);
     void Reset() override;
     void Update(std::vector<std::shared_ptr<SusDrawableNoteData>> &notes) override;
     void MovePosition(double relative) override;
