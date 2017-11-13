@@ -51,7 +51,9 @@ protected:
     double judgeWidthAttack;
     double judgeWidthJustice;
     double judgeWidthJusticeCritical;
-    double judgeAdjust;
+    double judgeAdjustSlider;
+    double judgeAdjustAirString;
+    double judgeMultiplierAir;
     bool isAutoAir = false;
 
     void ProcessScore(std::shared_ptr<SusDrawableNoteData> notes);
@@ -62,6 +64,9 @@ protected:
     bool CheckHoldJudgement(std::shared_ptr<SusDrawableNoteData> note);
     bool CheckSlideJudgement(std::shared_ptr<SusDrawableNoteData> note);
     void IncrementCombo(std::shared_ptr<SusDrawableNoteData> note, double reltime);
+    void IncrementComboEx(std::shared_ptr<SusDrawableNoteData> note);
+    void IncrementComboHell(std::shared_ptr<SusDrawableNoteData> note, int state);
+    void IncrementComboAir(std::shared_ptr<SusDrawableNoteData> note, double reltime);
     void ResetCombo(std::shared_ptr<SusDrawableNoteData> note);
 
 public:
@@ -69,6 +74,8 @@ public:
     PlayableProcessor(ScenePlayer *player, bool autoAir);
 
     void SetAutoAir(bool flag);
+    void SetJudgeWidths(double jc, double j, double a);
+    void SetJudgeAdjusts(double jas, double jaa, double jma);
     void Reset() override;
     void Update(std::vector<std::shared_ptr<SusDrawableNoteData>> &notes) override;
     void MovePosition(double relative) override;

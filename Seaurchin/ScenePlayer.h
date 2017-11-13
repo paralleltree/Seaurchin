@@ -105,7 +105,7 @@ protected:
     double CurrentSoundTime = 0;
     double SeenDuration = 0.8;
     double HispeedMultiplier = 6;
-    double PreloadingTime = 0.2;
+    double PreloadingTime = 0.5;
     double BackingTime = 0.0;
     double NextMetronomeTime = 0.0;
     double SoundBufferingLatency = 0.030;   //TODO: ŠÂ‹«‚ÉŽáŠ±Šñ‚è“Y‚¤
@@ -113,6 +113,7 @@ protected:
     bool AirActionShown = false;
 
     void AddSprite(SSprite *sprite);
+    void SetProcessorOptions(PlayableProcessor *processor);
     void LoadResources();
     void LoadWorker();
     void RemoveSlideEffect();

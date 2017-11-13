@@ -60,22 +60,38 @@ void ScenePlayer::Initialize()
     isLoadCompleted = false;
 
     switch (manager->GetData<int>("AutoPlay", 1)) {
-        case 0:
-            processor = new PlayableProcessor(this);
+        case 0: {
+            auto pp = new PlayableProcessor(this);
+            SetProcessorOptions(pp);
+            processor = pp;
             break;
+        }
         case 1:
             processor = new AutoPlayerProcessor(this);
             break;
-        case 2:
-            processor = new PlayableProcessor(this, true);
+        case 2: {
+            auto pp = new PlayableProcessor(this, true);
+            SetProcessorOptions(pp);
+            processor = pp;
             break;
+        }   
     }
 
     auto setting = manager->GetSettingInstanceSafe();
     HispeedMultiplier = setting->ReadValue<double>("Play", "Hispeed", 6);
-    SoundBufferingLatency = setting->ReadValue<double>("Sound", "BufferLatency", 0.03);
+    SoundBufferingLatency = setting->ReadValue<int>("Sound", "BufferLatency", 30) / 1000.0;
+    PreloadingTime = 0.5;
 
     LoadResources();
+}
+
+void ScenePlayer::SetProcessorOptions(PlayableProcessor *processor)
+{
+    auto setting = manager->GetSettingInstanceSafe();
+    double jas = setting->ReadValue<int>("Play", "JudgeAdjustSlider", 0) / 1000.0;
+    double jaa = setting->ReadValue<int>("Play", "JudgeAdjustAirString", 200) / 1000.0;
+    double jma = setting->ReadValue<double>("Play", "JudgeMultiplierAirString", 4);
+    processor->SetJudgeAdjusts(jas, jaa, jma);
 }
 
 void ScenePlayer::Finalize()
