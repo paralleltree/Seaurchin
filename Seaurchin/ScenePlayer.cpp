@@ -89,9 +89,10 @@ void ScenePlayer::SetProcessorOptions(PlayableProcessor *processor)
 {
     auto setting = manager->GetSettingInstanceSafe();
     double jas = setting->ReadValue<int>("Play", "JudgeAdjustSlider", 0) / 1000.0;
+    double jms = setting->ReadValue<double>("Play", "JudgeMultiplierSlider", 1);
     double jaa = setting->ReadValue<int>("Play", "JudgeAdjustAirString", 200) / 1000.0;
     double jma = setting->ReadValue<double>("Play", "JudgeMultiplierAirString", 4);
-    processor->SetJudgeAdjusts(jas, jaa, jma);
+    processor->SetJudgeAdjusts(jas, jms, jaa, jma);
 }
 
 void ScenePlayer::Finalize()
@@ -181,16 +182,7 @@ void ScenePlayer::CalculateNotes(double time, double duration, double preced)
 {
     judgeData.clear();
     copy_if(data.begin(), data.end(), back_inserter(judgeData), [&](shared_ptr<SusDrawableNoteData> n) {
-        double ptime = time - preced;
-        if (n->Type.to_ulong() & SU_NOTE_LONG_MASK) {
-            // ロング
-            return (ptime <= n->StartTime && n->StartTime <= time + preced)
-                || (ptime <= n->StartTime + n->Duration && n->StartTime + n->Duration <= time + preced)
-                || (n->StartTime <= ptime && time + preced <= n->StartTime + n->Duration);
-        } else {
-            // ショート
-            return (ptime <= n->StartTime && n->StartTime <= time + preced);
-        }
+        return this->processor->ShouldJudge(n);
     });
 
     seenData.clear();

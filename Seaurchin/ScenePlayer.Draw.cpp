@@ -289,7 +289,7 @@ void ScenePlayer::DrawAirNotes(shared_ptr<SusDrawableNoteData> note)
     auto left = lerp(slane / 16.0, SU_LANE_X_MIN, SU_LANE_X_MAX);
     auto right = lerp((slane + length) / 16.0, SU_LANE_X_MIN, SU_LANE_X_MAX);
     auto xadjust = note->Type.test((size_t)SusNoteType::Left) ? -80.0 : (note->Type.test((size_t)SusNoteType::Right) ? 80.0 : 0);
-    auto role = note->Type.test((size_t)SusNoteType::Up) ? fmod(CurrentTime* 2.0, 0.5) : 0.5 - fmod(CurrentTime* 2.0, 0.5);
+    auto role = note->Type.test((size_t)SusNoteType::Up) ? fmod(CurrentTime * 2.0, 0.5) : 0.5 - fmod(CurrentTime * 2.0, 0.5);
     auto handle = note->Type.test((size_t)SusNoteType::Up) ? imageAirUp->GetHandle() : imageAirDown->GetHandle();
 
     VERTEX3D vertices[] = {

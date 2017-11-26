@@ -37,6 +37,7 @@ public:
     virtual void Update(std::vector<std::shared_ptr<SusDrawableNoteData>> &notes) = 0;
     virtual void MovePosition(double relative) = 0;
     virtual void Draw() = 0;
+    virtual bool ShouldJudge(std::shared_ptr<SusDrawableNoteData> note) = 0;
     virtual PlayStatus *GetPlayStatus() = 0;
 };
 
@@ -53,6 +54,7 @@ protected:
     double judgeWidthJusticeCritical;
     double judgeAdjustSlider;
     double judgeAdjustAirString;
+    double judgeMultiplierSlider;
     double judgeMultiplierAir;
     bool isAutoAir = false;
 
@@ -75,8 +77,9 @@ public:
 
     void SetAutoAir(bool flag);
     void SetJudgeWidths(double jc, double j, double a);
-    void SetJudgeAdjusts(double jas, double jaa, double jma);
+    void SetJudgeAdjusts(double jas, double jms, double jaa, double jma);
     void Reset() override;
+    bool ShouldJudge(std::shared_ptr<SusDrawableNoteData> note) override;
     void Update(std::vector<std::shared_ptr<SusDrawableNoteData>> &notes) override;
     void MovePosition(double relative) override;
     void Draw() override;
@@ -97,6 +100,7 @@ public:
     AutoPlayerProcessor(ScenePlayer *player);
 
     void Reset() override;
+    bool ShouldJudge(std::shared_ptr<SusDrawableNoteData> note) override;
     void Update(std::vector<std::shared_ptr<SusDrawableNoteData>> &notes) override;
     void MovePosition(double relative) override;
     void Draw() override;

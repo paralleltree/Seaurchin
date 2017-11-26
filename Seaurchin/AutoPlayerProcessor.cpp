@@ -60,6 +60,18 @@ void AutoPlayerProcessor::Reset()
     }
 }
 
+bool AutoPlayerProcessor::ShouldJudge(std::shared_ptr<SusDrawableNoteData> note)
+{
+    double current = Player->CurrentSoundTime - note->StartTime;
+    double extra = 0.033;
+    if (note->Type.to_ulong() & SU_NOTE_LONG_MASK) {
+        return current >= -extra && current - note->Duration <= extra;
+    } else {
+        return current >= -extra && current <= extra;
+    }
+    return false;
+}
+
 void AutoPlayerProcessor::Update(vector<shared_ptr<SusDrawableNoteData>> &notes)
 {
     bool SlideCheck = false;

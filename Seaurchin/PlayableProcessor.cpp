@@ -11,7 +11,7 @@ PlayableProcessor::PlayableProcessor(ScenePlayer * player)
     Player = player;
     CurrentState = Player->manager->GetControlStateSafe();
     SetJudgeWidths(0.033, 0.066, 0.084);
-    SetJudgeAdjusts(0, 0, 1);
+    SetJudgeAdjusts(0, 1, 0, 1);
 }
 
 PlayableProcessor::PlayableProcessor(ScenePlayer * player, bool autoAir) : PlayableProcessor(player)
@@ -19,7 +19,7 @@ PlayableProcessor::PlayableProcessor(ScenePlayer * player, bool autoAir) : Playa
     Player = player;
     CurrentState = Player->manager->GetControlStateSafe();
     SetJudgeWidths(0.033, 0.066, 0.084);
-    SetJudgeAdjusts(0, 0, 1);
+    SetJudgeAdjusts(0, 1, 0, 1);
     isAutoAir = autoAir;
 }
 
@@ -35,9 +35,10 @@ void PlayableProcessor::SetJudgeWidths(double jc, double j, double a)
     judgeWidthJusticeCritical = jc;
 }
 
-void PlayableProcessor::SetJudgeAdjusts(double jas, double jaa, double jma)
+void PlayableProcessor::SetJudgeAdjusts(double jas, double jms, double jaa, double jma)
 {
     judgeAdjustSlider = jas;
+    judgeMultiplierSlider = jms;
     judgeAdjustAirString = jaa;
     judgeMultiplierAir = jma;
 }
@@ -63,6 +64,32 @@ void PlayableProcessor::Reset()
     }
 
     imageHoldLight = dynamic_cast<SImage*>(Player->resources["LaneHoldLight"]);
+}
+
+bool PlayableProcessor::ShouldJudge(std::shared_ptr<SusDrawableNoteData> note)
+{
+    double current = Player->CurrentTime - note->StartTime;;
+    double extra = 0.033;
+    double leastWidth = judgeWidthAttack + extra;
+    if (note->Type.to_ulong() & SU_NOTE_LONG_MASK) {
+        if (note->Type[(size_t)SusNoteType::AirAction]) {
+            current -= judgeAdjustAirString;
+            current /= judgeMultiplierAir;
+        } else {
+            current -= judgeAdjustSlider;
+            current /= judgeMultiplierSlider;
+        }
+        return current >= -leastWidth && current - note->Duration <= leastWidth;
+    } else if (note->Type[(size_t)SusNoteType::Air]) {
+        current -= judgeAdjustAirString;
+        current /= judgeMultiplierAir;
+        return current >= -leastWidth && current <= leastWidth;
+    } else {
+        current -= judgeAdjustSlider;
+        current /= judgeMultiplierSlider;
+        return current >= -leastWidth && current <= leastWidth;
+    }
+    return false;
 }
 
 void PlayableProcessor::Update(vector<shared_ptr<SusDrawableNoteData>>& notes)
@@ -183,6 +210,7 @@ void PlayableProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
 bool PlayableProcessor::CheckJudgement(shared_ptr<SusDrawableNoteData> note)
 {
     double reltime = Player->CurrentTime - note->StartTime - judgeAdjustSlider;
+    reltime /= judgeMultiplierSlider;
     if (note->OnTheFlyData.test((size_t)NoteAttribute::Finished)) return false;
     if (reltime < -judgeWidthAttack) return false;
     if (reltime > judgeWidthAttack) {
@@ -204,6 +232,7 @@ bool PlayableProcessor::CheckJudgement(shared_ptr<SusDrawableNoteData> note)
 bool PlayableProcessor::CheckHellJudgement(shared_ptr<SusDrawableNoteData> note)
 {
     double reltime = Player->CurrentTime - note->StartTime - judgeAdjustSlider;
+    reltime *= judgeMultiplierSlider;  // Hell‚¾‚©‚ç‚Ë
     if (note->OnTheFlyData.test((size_t)NoteAttribute::Finished)) return false;
     if (reltime < -judgeWidthAttack) return false;
     if (reltime > judgeWidthAttack) {
@@ -238,14 +267,21 @@ bool PlayableProcessor::CheckAirJudgement(shared_ptr<SusDrawableNoteData> note)
         return false;
     }
 
-    if (isAutoAir && reltime < 0) return false;
-    bool judged = CurrentState->GetTriggerState(
-        ControllerSource::IntegratedAir,
-        note->Type[(size_t)SusNoteType::Up] ? (int)AirControlSource::AirUp : (int)AirControlSource::AirDown);
-    if (!isAutoAir && !judged) return false;
-
-    IncrementComboAir(note, reltime);
-    return true;
+    if (isAutoAir) {
+        if (reltime >= 0) {
+            IncrementComboAir(note, reltime);
+            return true;
+        }
+    } else {
+        bool judged = CurrentState->GetTriggerState(
+            ControllerSource::IntegratedAir,
+            note->Type[(size_t)SusNoteType::Up] ? (int)AirControlSource::AirUp : (int)AirControlSource::AirDown);
+        if (judged || (isAutoAir && reltime >= 0)) {
+            IncrementComboAir(note, reltime);
+            return true;
+        }
+    }
+    return false;
 }
 
 bool PlayableProcessor::CheckHoldJudgement(shared_ptr<SusDrawableNoteData> note)
@@ -260,16 +296,17 @@ bool PlayableProcessor::CheckHoldJudgement(shared_ptr<SusDrawableNoteData> note)
     int right = left + note->Length;
     // left <= i < right ‚Å”»’è
     bool held = false, trigger = false, release = false;
-    for (int i = note->StartLane; i < (note->StartLane + note->Length); i++) {
+    for (int i = left; i < right; i++) {
         held |= CurrentState->GetCurrentState(ControllerSource::IntegratedSliders, i);
         trigger |= CurrentState->GetTriggerState(ControllerSource::IntegratedSliders, i);
         release |= CurrentState->GetLastState(ControllerSource::IntegratedSliders, i) && !CurrentState->GetCurrentState(ControllerSource::IntegratedSliders, i);
     }
     double judgeTime = Player->CurrentTime - note->StartTime - judgeAdjustSlider;
+    judgeTime /= judgeMultiplierSlider;
 
     // Start”»’è
     if (!note->OnTheFlyData[(size_t)NoteAttribute::Finished]) {
-        if (reltime >= judgeWidthAttack) {
+        if (judgeTime >= judgeWidthAttack) {
             ResetCombo(note);
         } else if (trigger) {
             IncrementCombo(note, judgeTime);
@@ -282,6 +319,7 @@ bool PlayableProcessor::CheckHoldJudgement(shared_ptr<SusDrawableNoteData> note)
     // Step~End”»’è
     for (const auto &extra : note->ExtraData) {
         judgeTime = Player->CurrentSoundTime - extra->StartTime - judgeAdjustSlider;
+        judgeTime /= judgeMultiplierSlider;
         if (extra->OnTheFlyData[(size_t)NoteAttribute::Finished]) continue;
         if (extra->Type[(size_t)SusNoteType::Control]) continue;
         if (extra->Type[(size_t)SusNoteType::Invisible]) continue;
@@ -362,19 +400,23 @@ bool PlayableProcessor::CheckSlideJudgement(shared_ptr<SusDrawableNoteData> note
         auto width = lerp(timeInBlock / (refNote->StartTime - lastStep->StartTime), lastStep->Length, refNote->Length);
         left = floor(center - width / 2.0);
         right = ceil(center + width / 2.0);
+        ostringstream ss;
+        ss << "Curve: " << left << ", " << right << endl;
+        WriteDebugConsole(ss.str().c_str());
     }
     // left <= i < right ‚Å”»’è
     bool held = false, trigger = false, release = false;
-    for (int i = note->StartLane; i < (note->StartLane + note->Length); i++) {
+    for (int i = left; i < right; i++) {
         held |= CurrentState->GetCurrentState(ControllerSource::IntegratedSliders, i);
         trigger |= CurrentState->GetTriggerState(ControllerSource::IntegratedSliders, i);
         release |= CurrentState->GetLastState(ControllerSource::IntegratedSliders, i) && !CurrentState->GetCurrentState(ControllerSource::IntegratedSliders, i);
     }
     double judgeTime = Player->CurrentTime - note->StartTime - judgeAdjustSlider;
+    judgeTime /= judgeMultiplierSlider;
 
     // Start”»’è
     if (!note->OnTheFlyData[(size_t)NoteAttribute::Finished]) {
-        if (reltime >= judgeWidthAttack) {
+        if (judgeTime >= judgeWidthAttack) {
             ResetCombo(note);
         } else if (trigger) {
             IncrementCombo(note, judgeTime);
@@ -387,6 +429,7 @@ bool PlayableProcessor::CheckSlideJudgement(shared_ptr<SusDrawableNoteData> note
     // Step~End”»’è
     for (const auto &extra : note->ExtraData) {
         judgeTime = Player->CurrentSoundTime - extra->StartTime - judgeAdjustSlider;
+        judgeTime /= judgeMultiplierSlider;
         if (extra->OnTheFlyData[(size_t)NoteAttribute::Finished]) continue;
         if (extra->Type[(size_t)SusNoteType::Control]) continue;
         if (extra->Type[(size_t)SusNoteType::Invisible]) continue;
@@ -425,35 +468,49 @@ bool PlayableProcessor::CheckSlideJudgement(shared_ptr<SusDrawableNoteData> note
 bool PlayableProcessor::CheckAirActionJudgement(shared_ptr<SusDrawableNoteData> note)
 {
     double reltime = Player->CurrentTime - note->StartTime - judgeAdjustAirString;
+    if (reltime < -judgeWidthAttack * judgeMultiplierAir) return false;
+    if (reltime >= note->Duration + judgeWidthAttack * judgeMultiplierAir) return false;
     if (note->OnTheFlyData[(size_t)NoteAttribute::Completed]) return false;
 
-    bool judged = CurrentState->GetCurrentState(ControllerSource::IntegratedAir, (int)AirControlSource::AirHold);
+    bool held = false, trigger = false;
+    held = CurrentState->GetCurrentState(ControllerSource::IntegratedAir, (int)AirControlSource::AirHold) || isAutoAir;
+    trigger = CurrentState->GetTriggerState(ControllerSource::IntegratedAir, (int)AirControlSource::AirAction);
+
+    double judgeTime = Player->CurrentTime - note->StartTime - judgeAdjustAirString;
+    judgeTime /= judgeMultiplierAir;
+
+    // Start”»’è
+    // ‚È‚µ
+
+    // Step~End”»’è
     for (const auto &extra : note->ExtraData) {
-        reltime = Player->CurrentSoundTime - extra->StartTime - judgeAdjustAirString;
+        judgeTime = Player->CurrentSoundTime - extra->StartTime - judgeAdjustAirString;
+        judgeTime /= judgeMultiplierAir;
+
         if (extra->OnTheFlyData[(size_t)NoteAttribute::Finished]) continue;
         if (extra->Type[(size_t)SusNoteType::Control]) continue;
         if (extra->Type[(size_t)SusNoteType::Invisible]) continue;
-        if (extra->Type[(size_t)SusNoteType::Injection] && reltime >= 0) {
-            if (isAutoAir || judged) {
-                IncrementCombo(extra, reltime);
-                return true;
+
+        if (judgeTime < -judgeWidthAttack) {
+            return held;
+        } else if (judgeTime >= judgeWidthAttack) {
+            ResetCombo(extra);
+            return held;
+        } else if (extra->Type[(size_t)SusNoteType::Injection]) {
+            if (judgeTime >= 0 && held) {
+                IncrementCombo(extra, judgeTime);
+            }
+        } else {
+            if (trigger || (isAutoAir && judgeTime >= 0)) {
+                IncrementCombo(extra, judgeTime);
+                Player->PlaySoundAirAction();
+                Player->SpawnJudgeEffect(extra, JudgeType::Action);
+                if (extra->Type[(size_t)SusNoteType::End]) note->OnTheFlyData.set((size_t)NoteAttribute::Completed);
             }
         }
-        if (reltime < -judgeWidthAttack) return false;
-        if (reltime >= judgeWidthAttack) {
-            ResetCombo(extra);
-            return false;
-        }
-        bool aajudged = CurrentState->GetTriggerState(ControllerSource::IntegratedAir, (int)AirControlSource::AirAction);
-
-        if ((isAutoAir && reltime < 0) && !aajudged) continue;
-        IncrementCombo(extra, reltime);
-        Player->PlaySoundAirAction();
-        Player->SpawnJudgeEffect(extra, JudgeType::Action);
-        if (extra->Type[(size_t)SusNoteType::End]) note->OnTheFlyData.set((size_t)NoteAttribute::Completed);
-        return true;
+        return held;
     }
-    return false;
+    return held;
 }
 
 void PlayableProcessor::IncrementCombo(shared_ptr<SusDrawableNoteData> note, double reltime)
@@ -464,19 +521,16 @@ void PlayableProcessor::IncrementCombo(shared_ptr<SusDrawableNoteData> note, dou
         Status.JusticeCritical++;
         Status.Combo++;
         Status.CurrentGauge += Status.GaugeDefaultMax / Status.AllNotes;
-        WriteDebugConsole("JC\n");
     } else if (reltime <= judgeWidthJustice) {
         note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
         Status.Justice++;
         Status.Combo++;
         Status.CurrentGauge += (Status.GaugeDefaultMax / Status.AllNotes) / 1.01;
-        WriteDebugConsole("J\n");
     } else {
         note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
         Status.Attack++;
         Status.Combo++;
         Status.CurrentGauge += (Status.GaugeDefaultMax / Status.AllNotes) / 1.01 * 0.5;
-        WriteDebugConsole("A\n");
     }
 }
 
