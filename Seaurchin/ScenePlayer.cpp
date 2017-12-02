@@ -135,6 +135,9 @@ void ScenePlayer::LoadWorker()
 
     {
         lock_guard<mutex> lock(asyncMutex);
+        manager->SetData("Player:Title", analyzer->SharedMetaData.UTitle);
+        manager->SetData("Player:Artist", analyzer->SharedMetaData.UArtist);
+        manager->SetData<int>("Player:Level", analyzer->SharedMetaData.Level);
         isLoadCompleted = true;
     }
 }

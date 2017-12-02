@@ -34,15 +34,16 @@ enum class JudgeType {
 
 enum class PlayingState {
     
-    ScoreNotLoaded,     //何も始まっていない
-    BgmNotLoaded,       //譜面だけ読み込んだ
-    ReadyToStart,       //読み込みが終わったので始められる
-    ReadyCounting,      //BGM読み終わって前カウントしてる
-    BgmPreceding,       //前カウント中だけどBGM始まってる
-    OnlyScoreOngoing,   //譜面始まったけどBGMまだ
-    BothOngoing,        //両方再生してる
-    ScoreLasting,       //譜面残ってる
-    BgmLasting,         //曲残ってる
+    ScoreNotLoaded,     // 何も始まっていない
+    BgmNotLoaded,       // 譜面だけ読み込んだ
+    Paused,             // ポーズ中
+    ReadyToStart,       // 読み込みが終わったので始められる
+    ReadyCounting,      // BGM読み終わって前カウントしてる
+    BgmPreceding,       // 前カウント中だけどBGM始まってる
+    OnlyScoreOngoing,   // 譜面始まったけどBGMまだ
+    BothOngoing,        // 両方再生してる
+    ScoreLasting,       // 譜面残ってる
+    BgmLasting,         // 曲残ってる
 };
 
 class ExecutionManager;

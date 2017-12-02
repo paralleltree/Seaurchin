@@ -224,6 +224,7 @@ MusicSelectionState MusicSelectionCursor::Enter()
             Manager->Manager->SetData<int>("Selected:Category", CategoryIndex);
             Manager->Manager->SetData<int>("Selected:Music", MusicIndex);
             Manager->Manager->SetData<int>("Selected:Variant", VariantIndex);
+            Manager->Manager->SetData("Player:Jacket", GetMusicJacketFileName(0));
             return MusicSelectionState::Confirmed;
         default:
             return MusicSelectionState::Success;

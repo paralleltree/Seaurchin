@@ -28,6 +28,7 @@ class SettingScene : CoroutineScene {
       GetSettingItem("Play", "EnableAutoPlay"),
       GetSettingItem("Play", "Hispeed"),
       GetSettingItem("Play", "JudgeAdjustSlider"),
+      GetSettingItem("Play", "JudgeMultiplierSlider"),
       GetSettingItem("Play", "JudgeAdjustAirString"),
       GetSettingItem("Play", "JudgeMultiplierAirString")
     }
