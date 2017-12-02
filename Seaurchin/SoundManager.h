@@ -48,6 +48,9 @@ public:
     DWORD GetSoundHandle() override;
     void StopSound() override;
     void SetVolume(float vol) override;
+    // “K“–‚Él‚¦‚½‚ñ‚Å‚·‚ª‘½•ªPause/Resume‚Í“Æ©‚É‚â‚Á‚¿‚á‚Á‚Äok‚Å‚·‚Ë
+    void Pause();
+    void Resume();
 
     static SoundStream *CreateFromFile(const std::wstring &fileNameW);
     double GetPlayingPosition();

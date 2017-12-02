@@ -37,6 +37,8 @@ void RegisterPlayerScene(ExecutionManager * manager)
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void Load()", asMETHOD(ScenePlayer, Load), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "bool IsLoadCompleted()", asMETHOD(ScenePlayer, IsLoadCompleted), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void Play()", asMETHOD(ScenePlayer, Play), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void Pause()", asMETHOD(ScenePlayer, Pause), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void Resume()", asMETHOD(ScenePlayer, Resume), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "double GetCurrentTime()", asMETHOD(ScenePlayer, GetPlayingTime), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void GetPlayStatus(" SU_IF_PLAY_STATUS " &out)", asMETHOD(ScenePlayer, GetPlayStatus), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void MovePositionBySecond(double)", asMETHOD(ScenePlayer, MovePositionBySecond), asCALL_THISCALL);
@@ -237,10 +239,12 @@ void ScenePlayer::Tick(double delta)
         }
     }
 
-    if (State >= PlayingState::ReadyCounting) CurrentTime += delta;
-    CurrentSoundTime = CurrentTime + SoundBufferingLatency;
+    if (State != PlayingState::Paused) {
+        if (State >= PlayingState::ReadyCounting) CurrentTime += delta;
+        CurrentSoundTime = CurrentTime + SoundBufferingLatency;
+    }
 
-    if (State >= PlayingState::ReadyCounting) {
+    if (State >= PlayingState::Paused) {
         // ----------------------
         // (HSx1000)px / 4beats
         double referenceBpm = 120.0;
@@ -260,7 +264,7 @@ void ScenePlayer::Tick(double delta)
     }
 
     int pCombo = Status.Combo;
-    processor->Update(judgeData);
+    if (State != PlayingState::Paused) processor->Update(judgeData);
     Status = *processor->GetPlayStatus();
     if (Status.Combo > pCombo) {
         textCombo->AbortMove(true);
@@ -372,6 +376,24 @@ void ScenePlayer::MovePositionByMeasure(int meas)
     CurrentTime = newBgmPos + gap;
     processor->MovePosition(CurrentTime - oldTime);
 }
+
+void ScenePlayer::Pause()
+{
+    if (State <= PlayingState::Paused) return;
+    LastState = State;
+    State = PlayingState::Paused;
+    bgmStream->Pause();
+}
+
+void ScenePlayer::Resume()
+{
+    if (State != PlayingState::Paused) return;
+    State = LastState;
+    bgmStream->Resume();
+}
+
+void ScenePlayer::Reload()
+{}
 
 void ScenePlayer::AdjustCamera(double cy, double cz, double ctz)
 {

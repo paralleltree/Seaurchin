@@ -84,6 +84,16 @@ void SoundStream::SetVolume(float vol)
     BASS_ChannelSetAttribute(hStream, BASS_ATTRIB_VOL, clamp(vol, 0.0f, 1.0f));
 }
 
+void SoundStream::Pause()
+{
+    BASS_ChannelPause(hStream);
+}
+
+void SoundStream::Resume()
+{
+    BASS_ChannelPlay(hStream, FALSE);
+}
+
 SoundStream *SoundStream::CreateFromFile(const wstring & fileNameW)
 {
     auto handle = BASS_StreamCreateFile(FALSE, fileNameW.c_str(), 0, 0, BASS_UNICODE);

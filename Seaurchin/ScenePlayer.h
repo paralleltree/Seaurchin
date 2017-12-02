@@ -36,8 +36,8 @@ enum class PlayingState {
     
     ScoreNotLoaded,     // 何も始まっていない
     BgmNotLoaded,       // 譜面だけ読み込んだ
-    Paused,             // ポーズ中
     ReadyToStart,       // 読み込みが終わったので始められる
+    Paused,             // ポーズ中
     ReadyCounting,      // BGM読み終わって前カウントしてる
     BgmPreceding,       // 前カウント中だけどBGM始まってる
     OnlyScoreOngoing,   // 譜面始まったけどBGMまだ
@@ -111,6 +111,7 @@ protected:
     double NextMetronomeTime = 0.0;
     double SoundBufferingLatency = 0.030;   //TODO: 環境に若干寄り添う
     PlayingState State = PlayingState::ScoreNotLoaded;
+    PlayingState LastState;
     bool AirActionShown = false;
 
     void AddSprite(SSprite *sprite);
@@ -162,6 +163,9 @@ public:
     void GetPlayStatus(PlayStatus *status);
     void MovePositionBySecond(double sec);
     void MovePositionByMeasure(int meas);
+    void Pause();
+    void Resume();
+    void Reload();
 };
 
 void RegisterPlayerScene(ExecutionManager *exm);
