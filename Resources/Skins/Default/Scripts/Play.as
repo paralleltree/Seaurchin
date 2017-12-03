@@ -200,6 +200,7 @@ class Play : CoroutineScene {
     txtLevel.SetText("" + GetIntData("Player:Level"));
   }
   
+  bool isPausing;
   void KeyInput() {
     while(true) {
       if (IsKeyTriggered(Key::INPUT_ESCAPE)) {
@@ -210,6 +211,14 @@ class Play : CoroutineScene {
       }
       if (IsKeyTriggered(Key::INPUT_RIGHT)) {
         player.MovePositionByMeasure(1);
+      }
+      if (IsKeyTriggered(Key::INPUT_SPACE)) {
+        if (isPausing) {
+          player.Resume();
+        } else {
+          player.Pause();
+        }
+        isPausing = !isPausing;
       }
       
       YieldFrame(1);
