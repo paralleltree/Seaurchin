@@ -3,7 +3,7 @@
 
 SceneDebug::~SceneDebug()
 {
-    WriteDebugConsole("SceneDebug Destructed.\n");
+    
 }
 
 void SceneDebug::Tick(double delta)

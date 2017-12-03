@@ -67,6 +67,7 @@ void ExecutionManager::Initialize()
 
 void ExecutionManager::Shutdown()
 {
+    if (Skin) Skin->Terminate();
     SettingManager->SaveAllValues();
     SharedControlState->Terminate();
     MixerBGM->Release();
@@ -104,6 +105,7 @@ void ExecutionManager::EnumerateSkins()
     using namespace boost;
     using namespace boost::filesystem;
     using namespace boost::xpressive;
+    auto log = spdlog::get("main");
 
     path sepath = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SKIN_DIR;
 
@@ -112,9 +114,7 @@ void ExecutionManager::EnumerateSkins()
         if (!CheckSkinStructure(fdata.path())) continue;
         SkinNames.push_back(fdata.path().filename().wstring());
     }
-    ostringstream ss;
-    ss << "Found " << SkinNames.size() << " Skins" << endl;
-    WriteDebugConsole(ss.str().c_str());
+    log->info(u8"スキン総数: {0:d}", SkinNames.size());
 }
 
 bool ExecutionManager::CheckSkinStructure(boost::filesystem::path name)
@@ -132,26 +132,29 @@ bool ExecutionManager::CheckSkinStructure(boost::filesystem::path name)
 
 void ExecutionManager::ExecuteSkin()
 {
+    auto log = spdlog::get("main");
     auto sn = SharedSetting->ReadValue<string>(SU_SETTING_GENERAL, SU_SETTING_SKIN, "Default");
     if (find(SkinNames.begin(), SkinNames.end(), ConvertUTF8ToUnicode(sn)) == SkinNames.end()) {
-        WriteDebugConsoleU("Can't Find Skin " + sn + "!\n");
+        log->error(u8"スキン \"{0}\"が見つかりませんでした", sn);
         return;
     }
     Skin = unique_ptr<SkinHolder>(new SkinHolder(ConvertUTF8ToUnicode(sn), ScriptInterface, Sound));
     Skin->Initialize();
+    log->info(u8"スキン読み込み完了");
     ExecuteSkin(ConvertUnicodeToUTF8(SU_SKIN_TITLE_FILE));
 }
 
 bool ExecutionManager::ExecuteSkin(const string &file)
 {
+    auto log = spdlog::get("main");
     auto obj = Skin->ExecuteSkinScript(ConvertUTF8ToUnicode(file));
     if (!obj) {
-        WriteDebugConsole("Can't Compile The Script!\n");
+        log->error(u8"スクリプトをコンパイルできませんでした");
         return false;
     }
     auto s = CreateSceneFromScriptObject(obj);
     if (!s) {
-        WriteDebugConsole("Entry Point Not Found!\n");
+        log->error(u8"{0}にEntryPointが見つかりませんでした", file);
         return false;
     }
     AddScene(s);
@@ -163,17 +166,18 @@ void ExecutionManager::ExecuteSystemMenu()
 {
     using namespace boost;
     using namespace boost::filesystem;
+    auto log = spdlog::get("main");
 
     path sysmf = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SCRIPT_DIR / SU_SYSTEM_MENU_FILE;
     if (!exists(sysmf)) {
-        WriteDebugConsole("System Menu Script Not Found!\n");
+        log->error(u8"システムメニュースクリプトが見つかりませんでした");
         return;
     }
 
     ScriptInterface->StartBuildModule("SystemMenu", [](auto inc, auto from, auto sb) { return true; });
     ScriptInterface->LoadFile(sysmf.wstring());
     if (!ScriptInterface->FinishBuildModule()) {
-        WriteDebugConsole("Can't Comple System Menu!\n");
+        log->error(u8"システムメニュースクリプトをコンパイルできませんでした");
         return;
     }
     auto mod = ScriptInterface->GetLastModule();
@@ -189,7 +193,7 @@ void ExecutionManager::ExecuteSystemMenu()
         break;
     }
     if (!type) {
-        WriteDebugConsole("Entry Point Not Found!\n");
+        log->error(u8"システムメニュースクリプトにEntryPointが見つかりませんでした");
         return;
     }
 
@@ -246,6 +250,7 @@ void ExecutionManager::AddScene(shared_ptr<Scene> scene)
 
 shared_ptr<ScriptScene> ExecutionManager::CreateSceneFromScriptType(asITypeInfo *type)
 {
+    auto log = spdlog::get("main");
     shared_ptr<ScriptScene> ret;
     if (ScriptInterface->CheckImplementation(type, SU_IF_COSCENE)) {
         auto obj = ScriptInterface->InstantiateObject(type);
@@ -255,15 +260,14 @@ shared_ptr<ScriptScene> ExecutionManager::CreateSceneFromScriptType(asITypeInfo 
         auto obj = ScriptInterface->InstantiateObject(type);
         return shared_ptr<ScriptScene>(new ScriptScene(obj));
     } else {
-        ostringstream err;
-        err << "Type '" << type->GetName() << "' Doesn't Implement any Scene Interface!\n" << endl;
-        WriteDebugConsole(err.str().c_str());
+        log->error("{0}クラスにScene系インターフェースが実装されていません", type->GetName());
         return nullptr;
     }
 }
 
 shared_ptr<ScriptScene> ExecutionManager::CreateSceneFromScriptObject(asIScriptObject *obj)
 {
+    auto log = spdlog::get("main");
     shared_ptr<ScriptScene> ret;
     auto type = obj->GetObjectType();
     if (ScriptInterface->CheckImplementation(type, SU_IF_COSCENE)) {
@@ -272,9 +276,7 @@ shared_ptr<ScriptScene> ExecutionManager::CreateSceneFromScriptObject(asIScriptO
     {
         return shared_ptr<ScriptScene>(new ScriptScene(obj));
     } else {
-        ostringstream err;
-        err << "Type '" << type->GetName() << "' Doesn't Implement any Scene Interface!\n" << endl;
-        WriteDebugConsole(err.str().c_str());
+        log->error("{0}クラスにScene系インターフェースが実装されていません", type->GetName());
         return nullptr;
     }
 }

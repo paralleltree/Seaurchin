@@ -54,7 +54,7 @@ void PreInitialize(HINSTANCE hInstance)
 void Initialize()
 {
     if (DxLib_Init() == -1) abort();
-    WriteDebugConsole(TEXT("DxLib_Init\n"));
+    logger->LogInfo(u8"DxLib‰Šú‰»OK");
     
     //WndProc·‚µ‘Ö‚¦
     hDxlibWnd = GetMainWindowHandle();
@@ -98,9 +98,11 @@ void Run()
 void Terminate()
 {
     manager->Shutdown();
-    logger->Terminate();
+    manager = nullptr;
     setting->Save();
+    setting = nullptr;
     DxLib_End();
+    logger->Terminate();
 }
 
 LRESULT CALLBACK CustomWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)

@@ -116,7 +116,7 @@ void ScriptScene::TickCoroutine(double delta)
                 }
                 break;
             default:
-                WriteDebugConsole("Broken Wait Data!\n");
+                spdlog::get("main")->critical(u8"コルーチンのWaitステータスが不正です");
                 abort();
                 break;
         }
@@ -129,13 +129,12 @@ void ScriptScene::TickCoroutine(double delta)
             delete c;
             i = coroutines.erase(i);
         } else if (result == asEXECUTION_EXCEPTION) {
+            auto log = spdlog::get("main");
             int col, row;
             const char *at;
             row = c->context->GetExceptionLineNumber(&col, &at);
             ostringstream str;
-            str << col << ", " << row << ": " << at << endl;
-            WriteDebugConsole(str.str().c_str());
-            WriteDebugConsole(c->context->GetExceptionString());
+            log->error(u8"{0} ({1:d}行{2:d}列): {3}", at, row, col, c->context->GetExceptionString());
             abort();
         } else {
             i++;

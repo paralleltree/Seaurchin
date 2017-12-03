@@ -51,7 +51,7 @@ bool EffectBuilder::ParseSource(const string &source)
     }
     catch (exception e)
     {
-        WriteDebugConsole(e.what());
+        // WriteDebugConsole(e.what());
         return false;
     }
 
@@ -143,7 +143,7 @@ void EffectBuilder::ParseEmitterParameter(EffectEmitter *emitter, const EffectPa
     case hashstr("velocity"):
         if (param.values.size() != 2)
         {
-            WriteDebugConsole("'velocity' Parameter Doesn't Match!\n");
+            // WriteDebugConsole("'velocity' Parameter Doesn't Match!\n");
             return;
         }
         emitter->InitVelX = GetDistribution(param.values[0]);
@@ -152,7 +152,7 @@ void EffectBuilder::ParseEmitterParameter(EffectEmitter *emitter, const EffectPa
     case hashstr("accel"):
         if (param.values.size() != 2)
         {
-            WriteDebugConsole("'accel' Parameter Doesn't Match!\n");
+            // WriteDebugConsole("'accel' Parameter Doesn't Match!\n");
             return;
         }
         emitter->InitAccX = GetDistribution(param.values[0]);
@@ -161,7 +161,7 @@ void EffectBuilder::ParseEmitterParameter(EffectEmitter *emitter, const EffectPa
     case hashstr("location"):
         if (param.values.size() != 2)
         {
-            WriteDebugConsole("'location' Parameter Doesn't Match!\n");
+            // WriteDebugConsole("'location' Parameter Doesn't Match!\n");
             return;
         }
         emitter->InitX = GetDistribution(param.values[0]);

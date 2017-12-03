@@ -134,20 +134,21 @@ void ControlState::SetSliderKey(int sliderNumber, int keyboardNumber)
 
 void ControlState::InitializeWacomTouchDevice()
 {
+    auto log = spdlog::get("main");
     IsWacomDeviceAvailable = false;
     if (!LoadWacomMTLib()) {
-        WriteDebugConsole("Wacom Touch Library Unavailable.\n");
+        log->info(u8"Wacomドライバがありませんでした");
         return;
     }
     if (WacomMTInitialize(WACOM_MULTI_TOUCH_API_VERSION)) {
-        WriteDebugConsole("Failed to Initialize Wacom Touch Library.\n");
+        log->warn(u8"Wacomドライバの初期化に失敗しました");
         return;
     }
-    WriteDebugConsole("Wacom Touch Device Available.\n");
+    log->info(u8"Wacomドライバ利用可能");
 
     int devices = WacomMTGetAttachedDeviceIDs(nullptr, 0);
     if (devices <= 0) {
-        WriteDebugConsole("Attached Device Not Found.\n");
+        log->info(u8"Wacomデバイスがありませんでした");
         return;
     }
     WacomDeviceIds = new int[devices];
@@ -158,9 +159,7 @@ void ControlState::InitializeWacomTouchDevice()
         WacomMTGetDeviceCapabilities(WacomDeviceIds[i], &cap);
         WacomDeviceCapabilities[i] = cap;
 
-        ostringstream ss;
-        ss << "Device Id " << WacomDeviceIds[i] << ": " << WacomDeviceCapabilities[i].CapabilityFlags << endl;
-        WriteDebugConsole(ss.str().c_str());
+        log->info(u8"デバイスID {0:2d}: {1:d}", WacomDeviceIds[i], WacomDeviceCapabilities[i].CapabilityFlags);
     }
 
     WacomMTRegisterFingerReadCallback(WacomDeviceIds[0], nullptr, WacomMTProcessingMode::WMTProcessingModeNone, WacomFingerCallback, this);
@@ -183,10 +182,6 @@ void ControlState::UpdateWacomTouchDeviceFinger(WacomMTFingerCollection *fingers
                 data->State = WacomMTFingerState::WMTFingerStateDown;
                 data->SliderPosition = floor(finger.X / cap.LogicalWidth * 16);
                 CurrentFingers[finger.FingerID] = data;
-
-                //ostringstream ss;
-                //ss << "Touched #" << finger.FingerID << " at " << data->SliderPosition << endl;
-                //WriteDebugConsole(ss.str().c_str());
                 break;
             }
             case WacomMTFingerState::WMTFingerStateHold: {

@@ -26,11 +26,15 @@ Setting::Setting()
 
 void Setting::Load(const wstring &filename)
 {
+    auto log = spdlog::get("main");
     file = filename;
-    if (!exists(RootDirectory / file)) Save();
+    if (!exists(RootDirectory / file)) {
+        log->info(u8"設定ファイルを作成しました");
+        Save();
+    }
     std::ifstream ifs((RootDirectory / file).wstring(), ios::in);
     read_json(ifs, SettingTree);
-    WriteDebugConsole("Setting File Loaded.\n");
+    log->info(u8"設定ファイルを読み込みました");
     ifs.close();
 }
 
@@ -41,9 +45,10 @@ const std::wstring Setting::GetRootDirectory()
 
 void Setting::Save() const
 {
+    auto log = spdlog::get("main");
     std::ofstream ofs((RootDirectory / file).wstring(), ios::out);
     write_json(ofs, SettingTree);
-    WriteDebugConsole("Setting File Saved.\n");
+    log->info(u8"設定ファイルを保存しました");
     ofs.close();
 }
 

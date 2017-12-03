@@ -166,9 +166,13 @@ void SoundMixerStream::SetVolume(float vol)
 // SoundManager -----------------------------
 SoundManager::SoundManager()
 {
+    auto log = spdlog::get("main");
     //‚æ‚ë‚µ‚­‚È‚¢
-    if (!BASS_Init(-1, 44100, 0, GetMainWindowHandle(), NULL)) abort();
-    WriteDebugConsole(TEXT("BASS_Init\n"));
+    if (!BASS_Init(-1, 44100, 0, GetMainWindowHandle(), NULL)) {
+        log->critical(u8"BASS Library‚Ì‰Šú‰»‚É¸”s‚µ‚Ü‚µ‚½");
+        abort();
+    }
+    spdlog::get("main")->info(u8"BASS Library‰Šú‰»I—¹");
 }
 
 SoundManager::~SoundManager()

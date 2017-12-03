@@ -1,26 +1,52 @@
 #include "Debug.h"
+#include "Misc.h"
 
 using namespace std;
 
 Logger::Logger()
 {
-    
+
 }
 
 void Logger::Initialize()
 {
     using namespace spdlog;
-    sinks.push_back(make_shared<sinks::wincolor_stdout_sink_mt>("console"));
-    sinks.push_back(make_shared<sinks::simple_file_sink_mt>("Seaurchin.log"));
-
-    loggerMain = make_shared<logger>("main", begin(sinks), end(sinks));
-    register_logger(loggerMain);
 
     AllocConsole();
+    sinks.push_back(make_shared<StandardOutputUnicodeSink>());
+    sinks.push_back(make_shared<sinks::simple_file_sink_mt>("Seaurchin.log", true));
+    loggerMain = make_shared<logger>("main", begin(sinks), end(sinks));
+    register_logger(loggerMain);
 }
 
 void Logger::Terminate()
 {
     spdlog::drop_all();
     FreeConsole();
+}
+
+StandardOutputUnicodeSink::StandardOutputUnicodeSink()
+{
+    using namespace spdlog::level;
+    colors[level_enum::trace] = FOREGROUND_INTENSITY;   // 灰色
+    colors[level_enum::debug] = FOREGROUND_INTENSITY;   // 灰色
+    colors[level_enum::info] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;  // 白
+    colors[level_enum::warn] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;    // 黄色
+    colors[level_enum::err] = FOREGROUND_RED | FOREGROUND_INTENSITY;    // 赤
+    colors[level_enum::critical] =
+        FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY
+        | BACKGROUND_RED | BACKGROUND_INTENSITY;    // 赤地に白
+    colors[level_enum::off] = 0;
+
+    hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+}
+
+void StandardOutputUnicodeSink::_sink_it(const spdlog::details::log_msg & msg)
+{
+    auto color = colors[msg.level];
+    auto u16msg = ConvertUTF8ToUnicode(msg.formatted.str());
+    DWORD written;
+    SetConsoleTextAttribute(hStdout, color);
+    WriteConsoleW(hStdout, u16msg.c_str(), u16msg.length(), &written, nullptr);
+    SetConsoleTextAttribute(hStdout, 0);
 }

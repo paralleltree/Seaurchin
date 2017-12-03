@@ -83,3 +83,4 @@
 
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/wincolor_sink.h>
+#include <spdlog/sinks/sink.h>

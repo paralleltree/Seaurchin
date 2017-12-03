@@ -28,6 +28,7 @@ public:
     void Release();
 
     void Initialize();
+    void Terminate();
     asIScriptObject* ExecuteSkinScript(const std::wstring &file);
     void LoadSkinImage(const std::string &key, const std::string &filename);
     void LoadSkinFont(const std::string &key, const std::string &filename);

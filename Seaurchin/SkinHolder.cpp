@@ -33,6 +33,7 @@ void SkinHolder::Release()
 
 void SkinHolder::Initialize()
 {
+    auto log = spdlog::get("main");
     ScriptInterface->StartBuildModule("SkinLoader",
         [this](wstring inc, wstring from, CWScriptBuilder *b)
     {
@@ -55,7 +56,7 @@ void SkinHolder::Initialize()
     }
     if (!ep)
     {
-        WriteDebugConsole("Entry Point Not Found!\n");
+        log->critical(u8"スキンにEntryPointがありません");
         mod->Discard();
         return;
     }
@@ -68,8 +69,17 @@ void SkinHolder::Initialize()
     mod->Discard();
 }
 
+void SkinHolder::Terminate()
+{
+    for (const auto &it : Images) it.second->Release();
+    for (const auto &it : Sounds) it.second->Release();
+    for (const auto &it : Fonts) it.second->Release();
+    for (const auto &it : AnimatedImages) it.second->Release();
+}
+
 asIScriptObject* SkinHolder::ExecuteSkinScript(const wstring &file)
 {
+    auto log = spdlog::get("main");
     //お茶を濁せ
     auto modulename = ConvertUnicodeToUTF8(file);
     auto mod = ScriptInterface->GetExistModule(modulename);
@@ -106,7 +116,7 @@ asIScriptObject* SkinHolder::ExecuteSkinScript(const wstring &file)
     }
     if (!type)
     {
-        WriteDebugConsole("Entry Point Not Found!\n");
+        log->critical(u8"スキンにEntryPointがありません");
         return nullptr;
     }
 

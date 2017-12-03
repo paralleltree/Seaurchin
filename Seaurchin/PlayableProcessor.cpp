@@ -401,8 +401,8 @@ bool PlayableProcessor::CheckSlideJudgement(shared_ptr<SusDrawableNoteData> note
         left = floor(center - width / 2.0);
         right = ceil(center + width / 2.0);
         ostringstream ss;
-        ss << "Curve: " << left << ", " << right << endl;
-        WriteDebugConsole(ss.str().c_str());
+        // ss << "Curve: " << left << ", " << right << endl;
+        // WriteDebugConsole(ss.str().c_str());
     }
     // left <= i < right ‚Å”»’è
     bool held = false, trigger = false, release = false;

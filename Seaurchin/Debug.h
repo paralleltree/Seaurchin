@@ -22,3 +22,15 @@ public:
     void LogCritical(const std::string &message) { loggerMain->critical(message); }
 };
 
+class StandardOutputUnicodeSink : public spdlog::sinks::base_sink<std::mutex> {
+private:
+    HANDLE hStdout;
+    std::map<spdlog::level::level_enum, WORD> colors;
+
+protected:
+    void _sink_it(const spdlog::details::log_msg& msg) override;
+    virtual void _flush() override {}
+
+public:
+    StandardOutputUnicodeSink();
+};
