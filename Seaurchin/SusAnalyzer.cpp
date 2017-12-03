@@ -46,7 +46,7 @@ static auto ConvertRawString = [](const string &input) -> string {
                     }
                     wchar_t r = stoi(cp, 0, 16);
                     //でも突っ込むのめんどくさいので🙅で代用します
-                    result << u8"xx";
+                    result << u8"🙅";
                     break;
                 }
                 default:
@@ -67,6 +67,10 @@ SusAnalyzer::SusAnalyzer(uint32_t tpb)
     TicksPerBeat = tpb;
     LongInjectionPerBeat = 2;
     TimelineResolver = [=](uint32_t number) { return HispeedDefinitions[number]; };
+    ErrorCallbacks.push_back([this](auto line, auto type, auto message) {
+        auto log = spdlog::get("main");
+        log->error(u8"{0:d}行目: {1}", line, message);
+    });
 }
 
 SusAnalyzer::~SusAnalyzer()
@@ -97,34 +101,42 @@ void SusAnalyzer::Reset()
     HispeedToApply = defhs;
 }
 
+void SusAnalyzer::SetMessageCallBack(function<void(uint32_t, string, string)> func)
+{
+    ErrorCallbacks.push_back(func);
+}
+
 //一応UTF-8として処理することにしますがどうせ変わらないだろうなぁ
 //あと列挙済みファイルを流し込む前提でエラーチェックしない
 void SusAnalyzer::LoadFromFile(const wstring &fileName, bool analyzeOnlyMetaData)
 {
+    auto log = spdlog::get("main");
     ifstream file;
     string rawline;
     xp::smatch match;
     uint32_t line = 0;
 
     Reset();
-
+    if (!analyzeOnlyMetaData) log->info(u8"{0}の解析を開始…", ConvertUnicodeToUTF8(fileName));
 
     file.open(fileName, ios::in);
     char bom[3];
     file.read(bom, 3);
     if (bom[0] != (char)0xEF || bom[1] != (char)0xBB || bom[2] != (char)0xBF) file.seekg(0);
     while (getline(file, rawline)) {
+        line++;
         if (!rawline.length()) continue;
         if (rawline[0] != '#') continue;
         if (xp::regex_match(rawline, match, RegexSusCommand)) {
-            ProcessCommand(match, analyzeOnlyMetaData);
+            ProcessCommand(match, analyzeOnlyMetaData, line);
         } else if (xp::regex_match(rawline, match, RegexSusData)) {
-            if (!analyzeOnlyMetaData) ProcessData(match);
+            if (!analyzeOnlyMetaData) ProcessData(match, line);
         } else {
-            if (ErrorCallback) ErrorCallback(0, "Error", "SUS有効行ですが解析できませんでした。");
+            MakeMessage(line, u8"SUS有効行ですが解析できませんでした。");
         }
     }
     file.close();
+    if (!analyzeOnlyMetaData) log->info(u8"…終了");
     if (!analyzeOnlyMetaData) {
         stable_sort(Notes.begin(), Notes.end(), [](tuple<SusRelativeNoteTime, SusRawNoteData> a, tuple<SusRelativeNoteTime, SusRawNoteData> b) {
             return get<1>(a).Type.to_ulong() > get<1>(b).Type.to_ulong();
@@ -150,7 +162,7 @@ void SusAnalyzer::LoadFromFile(const wstring &fileName, bool analyzeOnlyMetaData
     }
 }
 
-void SusAnalyzer::ProcessCommand(const xp::smatch &result, bool onlyMeta)
+void SusAnalyzer::ProcessCommand(const xp::smatch &result, bool onlyMeta, uint32_t line)
 {
     auto name = result[1].str();
     transform(name.cbegin(), name.cend(), name.begin(), toupper);
@@ -215,7 +227,7 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, bool onlyMeta)
             SharedMetaData.UJacketFileName = ConvertRawString(result[2]);
             break;
         case hashstr("REQUEST"):
-            ProcessRequest(ConvertRawString(result[2]));
+            ProcessRequest(ConvertRawString(result[2]), line);
             break;
         case hashstr("BASEBPM"):
             SharedMetaData.BaseBpm = ConvertFloat(result[2]);
@@ -223,19 +235,25 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, bool onlyMeta)
 
             //此処から先はデータ内で使う用
         case hashstr("HISPEED"):
-            if (!onlyMeta) HispeedToApply = HispeedDefinitions[ConvertHexatridecimal(result[2])];
+            if (onlyMeta) break;
+            auto hsn = ConvertHexatridecimal(result[2]);
+            if (HispeedDefinitions.find(hsn) == HispeedDefinitions.end()) {
+                MakeMessage(line, u8"指定されたタイムラインが存在しません");
+                break;
+            }
+            HispeedToApply = HispeedDefinitions[ConvertHexatridecimal(result[2])];
             break;
         case hashstr("NOSPEED"):
             if (!onlyMeta) HispeedToApply = HispeedDefinitions[DefaultHispeedNumber];
             break;
         default:
-            if (ErrorCallback) ErrorCallback(0, "Error", "SUSコマンドが無効です。");
+            MakeMessage(line, u8"SUSコマンドが無効です");
             break;
     }
 
 }
 
-void SusAnalyzer::ProcessRequest(const string &cmd)
+void SusAnalyzer::ProcessRequest(const string &cmd, uint32_t line)
 {
     auto str = cmd;
     b::trim_if(str, ba::is_any_of(" "));
@@ -255,7 +273,7 @@ void SusAnalyzer::ProcessRequest(const string &cmd)
     }
 }
 
-void SusAnalyzer::ProcessData(const xp::smatch &result)
+void SusAnalyzer::ProcessData(const xp::smatch &result, uint32_t line)
 {
     auto meas = result[1].str();
     auto lane = result[2].str();
@@ -291,7 +309,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result)
                 it->second->AddKeysByString(ConvertRawString(pattern), TimelineResolver);
             }
         } else {
-            if (ErrorCallback) ErrorCallback(0, "Error", "不正なデータコマンドです");
+            MakeMessage(line, u8"不正なデータコマンドです");
         }
     } else if (lane[0] == '0') {
         switch (lane[1]) {
@@ -312,7 +330,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result)
                 break;
             }
             default:
-                if (ErrorCallback) ErrorCallback(0, "Error", "不正なデータコマンドです");
+                MakeMessage(line, u8"不正なデータコマンドです");
                 break;
         }
     } else if (lane[0] == '1') {
@@ -341,7 +359,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result)
                     break;
                 default:
                     if (note[1] == '0') continue;
-                    if (ErrorCallback) ErrorCallback(0, "Error", "ショートレーンの指定が不正です。");
+                    MakeMessage(line, u8"ショートレーンの指定が不正です。");
                     break;
             }
             Notes.push_back(make_tuple(time, noteData));
@@ -387,7 +405,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result)
                     break;
                 default:
                     if (note[1] == '0') continue;
-                    if (ErrorCallback) ErrorCallback(0, "Error", "Airレーンの指定が不正です。");
+                    MakeMessage(line, u8"Airレーンの指定が不正です。");
                     break;
             }
             Notes.push_back(make_tuple(time, noteData));
@@ -414,7 +432,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result)
                     noteData.Type.set((size_t)SusNoteType::AirAction);
                     break;
                 default:
-                    if (ErrorCallback) ErrorCallback(0, "Error", "ロングレーンの指定が不正です。");
+                    MakeMessage(line, u8"ロングレーンの指定が不正です。");
                     break;
             }
             switch (note[0]) {
@@ -435,15 +453,20 @@ void SusAnalyzer::ProcessData(const xp::smatch &result)
                     break;
                 default:
                     if (note[1] == '0') continue;
-                    if (ErrorCallback) ErrorCallback(0, "Error", "ノーツ種類の指定が不正です。");
+                    MakeMessage(line, u8"ノーツ種類の指定が不正です。");
                     break;
             }
             Notes.push_back(make_tuple(time, noteData));
         }
     } else {
         // 不正
-        if (ErrorCallback) ErrorCallback(0, "Error", "不正なデータ定義です。");
+        MakeMessage(line, u8"不正なデータ定義です。");
     }
+}
+
+void SusAnalyzer::MakeMessage(uint32_t line, const std::string & message)
+{
+    for (const auto &cb : ErrorCallbacks) cb(line, "Error", message);
 }
 
 float SusAnalyzer::GetBeatsAt(uint32_t measure)
@@ -583,9 +606,9 @@ void SusAnalyzer::RenderScoreData(vector<shared_ptr<SusDrawableNoteData>> &data)
                 switch (ltype) {
                     case SusNoteType::Hold: {
                         if (curNo.Type.test((size_t)SusNoteType::Control) || curNo.Type.test((size_t)SusNoteType::Invisible))
-                            if (ErrorCallback) ErrorCallback(0, "Error", "HoldでControl/Invisibleは指定できません。");
+                            MakeMessage(0, u8"HoldでControl/Invisibleは指定できません。");
                         if (curNo.NotePosition.StartLane != info.NotePosition.StartLane || curNo.NotePosition.Length != info.NotePosition.Length)
-                            if (ErrorCallback) ErrorCallback(0, "Error", "Holdの長さ/位置が始点と一致していません。");
+                            MakeMessage(0, u8"Holdの長さ/位置が始点と一致していません。");
                     }
                                             /* ホールドだけ追加チェックしてフォールスルー */
                     case SusNoteType::Slide:
@@ -626,14 +649,14 @@ void SusAnalyzer::RenderScoreData(vector<shared_ptr<SusDrawableNoteData>> &data)
                 if (completed) break;
             }
             if (!completed) {
-                if (ErrorCallback) ErrorCallback(0, "Error", "ロングノーツに終点がありません。");
+                MakeMessage(0, u8"ロングノーツに終点がありません。");
             } else {
                 data.push_back(noteData);
             }
         } else if (bits & SU_NOTE_SHORT_MASK) {
             // ショート
             if (info.NotePosition.StartLane + info.NotePosition.Length > 16) {
-                if (ErrorCallback) ErrorCallback(0, "Error", "ショートノーツがはみ出しています。");
+                MakeMessage(0, u8"ショートノーツがはみ出しています。");
             }
             noteData->Type = info.Type;
             noteData->StartTime = GetAbsoluteTime(time.Measure, time.Tick);
@@ -645,7 +668,7 @@ void SusAnalyzer::RenderScoreData(vector<shared_ptr<SusDrawableNoteData>> &data)
             data.push_back(noteData);
 
         } else {
-            if (ErrorCallback) ErrorCallback(0, "Error", "致命的なノーツエラー(不正な内部表現です)。");
+            MakeMessage(0, u8"致命的なノーツエラー(不正な内部表現です)。");
         }
         auto test = GetRelativeTime(GetAbsoluteTime(2, 200));
     }
