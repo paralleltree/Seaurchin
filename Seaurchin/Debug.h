@@ -3,37 +3,22 @@
 
 #include "Config.h"
 
-#ifdef _DEBUG
-#ifdef UNICODE
+class Logger {
+private:
+    std::vector<spdlog::sink_ptr> sinks;
+    std::shared_ptr<spdlog::logger> loggerMain;
 
-#define WriteDebugConsole _WriteDebugConsoleW
+public:
+    Logger();
 
-#else // UNICODE、↓はマルチバイト時
+    void Initialize();
+    void Terminate();
 
-#define WriteDebugConsole _WriteDebugConsoleA
+    void LogTrace(const std::string &message) { loggerMain->trace(message); }
+    void LogDebug(const std::string &message) { loggerMain->debug(message); }
+    void LogInfo(const std::string &message) { loggerMain->info(message); }
+    void LogWarn(const std::string &message) { loggerMain->warn(message); }
+    void LogError(const std::string &message) { loggerMain->error(message); }
+    void LogCritical(const std::string &message) { loggerMain->critical(message); }
+};
 
-#endif // UNICODE
-
-#define InitializeDebugFeature _InitializeDebugFeature
-#define TerminateDebugFeature _TerminateDebugFeature
-#define WriteDebugConsoleU _WriteDebugConsoleU
-
-#define ASSERT_CALL WriteDebugConsole((string(__func__) + " Called!\n").c_str())
-
-#else // _DEBUG、↓はRelease時
-
-#define WriteDebugConsole Debug_ReleaseFunction
-#define InitializeDebugFeature Debug_ReleaseFunction
-#define TerminateDebugFeature Debug_ReleaseFunction
-#define WriteDebugConsoleU Debug_ReleaseFunction
-#define ASSERT_CALL
-
-#endif // _DEBUG
-
-void _InitializeDebugFeature();
-void _TerminateDebugFeature();
-
-void _WriteDebugConsoleA(LPCSTR string);
-void _WriteDebugConsoleW(LPCWSTR string);
-void _WriteDebugConsoleU(const std::string& message);
-void Debug_ReleaseFunction(...);

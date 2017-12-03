@@ -39,6 +39,7 @@
 #include <thread>
 
 //Boost
+#include <boost/config.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/filesystem.hpp>
@@ -79,3 +80,6 @@
 #include <bass_fx.h>
 
 #include <msgpack.hpp>
+
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/wincolor_sink.h>

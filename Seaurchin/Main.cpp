@@ -15,6 +15,7 @@ void Terminate();
 LRESULT CALLBACK CustomWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 shared_ptr<Setting> setting;
+shared_ptr<Logger> logger;
 unique_ptr<ExecutionManager> manager;
 WNDPROC dxlibWndProc;
 HWND hDxlibWnd;
@@ -32,10 +33,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 void PreInitialize(HINSTANCE hInstance)
 {
-    setting = shared_ptr<Setting>(new Setting(hInstance));
+    logger = make_shared<Logger>();
+    logger->Initialize();
+
+    setting = make_shared<Setting>(hInstance);
     setting->Load(SU_SETTING_FILE);
 
-    InitializeDebugFeature();
     SetUseCharCodeFormat(DX_CHARCODEFORMAT_UTF16LE);
     ChangeWindowMode(TRUE);
     SetMainWindowText(reinterpret_cast<const char*>(ConvertUTF8ToUnicode(SU_APP_NAME " " SU_APP_VERSION).c_str()));
@@ -95,7 +98,7 @@ void Run()
 void Terminate()
 {
     manager->Shutdown();
-    TerminateDebugFeature();
+    logger->Terminate();
     setting->Save();
     DxLib_End();
 }
