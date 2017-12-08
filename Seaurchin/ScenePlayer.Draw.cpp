@@ -94,15 +94,17 @@ void ScenePlayer::Draw()
     textCombo->Draw();
 
     DrawMeasureLines();
+
     for (auto& note : seenData) {
         auto &type = note->Type;
         if (type.test((size_t)SusNoteType::Hold)) DrawHoldNotes(note);
         if (type.test((size_t)SusNoteType::Slide)) DrawSlideNotes(note);
-        if (type.test((size_t)SusNoteType::Tap)) DrawShortNotes(note);
-        if (type.test((size_t)SusNoteType::ExTap)) DrawShortNotes(note);
-        if (type.test((size_t)SusNoteType::Flick)) DrawShortNotes(note);
-        if (type.test((size_t)SusNoteType::HellTap)) DrawShortNotes(note);
     }
+    for (auto& note : seenData) if (note->Type[(size_t)SusNoteType::Tap]) DrawShortNotes(note);
+    for (auto& note : seenData) if (note->Type[(size_t)SusNoteType::ExTap]) DrawShortNotes(note);
+    for (auto& note : seenData) if (note->Type[(size_t)SusNoteType::Flick]) DrawShortNotes(note);
+    for (auto& note : seenData) if (note->Type[(size_t)SusNoteType::HellTap]) DrawShortNotes(note);
+
     FINISH_DRAW_TRANSACTION;
     Prepare3DDrawCall();
     DrawPolygonIndexed3D(GroundVertices, 4, RectVertexIndices, 2, hGroundBuffer, TRUE);
@@ -282,14 +284,16 @@ void ScenePlayer::DrawAirNotes(shared_ptr<SusDrawableNoteData> note)
 {
     double relpos = 1.0 - note->ModifiedPosition / SeenDuration;
     double z = lerp(relpos, SU_LANE_Z_MAX, SU_LANE_Z_MIN);
-    if (relpos >= 1.0 || relpos < 0) return;
 
     auto length = note->Length;
     auto slane = note->StartLane;
     auto left = lerp(slane / 16.0, SU_LANE_X_MIN, SU_LANE_X_MAX);
     auto right = lerp((slane + length) / 16.0, SU_LANE_X_MIN, SU_LANE_X_MAX);
+    auto speed = note->Timeline->GetSpeedAt(CurrentTime);
+    auto reftime = CurrentTime * speed;
+    if (reftime < 0) reftime += ((int)(reftime / -0.5) + 1) * 0.5;
     auto xadjust = note->Type.test((size_t)SusNoteType::Left) ? -80.0 : (note->Type.test((size_t)SusNoteType::Right) ? 80.0 : 0);
-    auto role = note->Type.test((size_t)SusNoteType::Up) ? fmod(CurrentTime * 2.0, 0.5) : 0.5 - fmod(CurrentTime * 2.0, 0.5);
+    auto role = note->Type.test((size_t)SusNoteType::Up) ? fmod(CurrentTime * speed * 2.0, 0.5) : 0.5 - fmod(CurrentTime * 2.0, 0.5);
     auto handle = note->Type.test((size_t)SusNoteType::Up) ? imageAirUp->GetHandle() : imageAirDown->GetHandle();
 
     VERTEX3D vertices[] = {
@@ -426,7 +430,7 @@ void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
 
             if (currentSegmentRelativeY < cullingLimit && lastSegmentRelativeY < cullingLimit) {
                 SetUseZBuffer3D(TRUE);
-                double back = lerp(currentSegmentRelativeY, SU_LANE_Z_MAX,  SU_LANE_Z_MIN);
+                double back = lerp(currentSegmentRelativeY, SU_LANE_Z_MAX, SU_LANE_Z_MIN);
                 double front = lerp(lastSegmentRelativeY, SU_LANE_Z_MAX, SU_LANE_Z_MIN);
                 double backLeft = get<1>(segmentPosition) - lastSegmentLength / 32.0;
                 double backRight = get<1>(segmentPosition) + lastSegmentLength / 32.0;

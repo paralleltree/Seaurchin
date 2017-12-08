@@ -2,11 +2,11 @@
 #include "Misc.h"
 
 using namespace std;
+using namespace crc32_constexpr;
 namespace b = boost;
 namespace ba = boost::algorithm;
 namespace fsys = boost::filesystem;
 namespace xp = boost::xpressive;
-static constexpr auto hashstr = &crc_ccitt::checksum;
 
 xp::sregex SusAnalyzer::RegexSusCommand = "#" >> (xp::s1 = +xp::alnum) >> !(+xp::space >> (xp::s2 = +(~xp::_n)));
 xp::sregex SusAnalyzer::RegexSusData = "#" >> (xp::s1 = xp::repeat<3, 3>(xp::alnum)) >> (xp::s2 = xp::repeat<2, 3>(xp::alnum)) >> ":" >> *xp::space >> (xp::s3 = +(~xp::_n));
@@ -171,24 +171,25 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, bool onlyMeta, uint32
         BpmDefinitions[ConvertHexatridecimal(name.substr(3))] = ConvertFloat(result[2].str());
         return;
     }
-    switch (hashstr(name.c_str())) {
+    switch (crc32_rec(0xffffffff,name.c_str())) {
         //TODO:このへんはBMSに合わせる必要あり
-        case hashstr("TITLE"):
+        case "TITLE"_crc32:
             SharedMetaData.UTitle = ConvertRawString(result[2]);
             break;
-        case hashstr("SUBTITLE"):
+        case "SUBTITLE"_crc32:
             SharedMetaData.USubTitle = ConvertRawString(result[2]);
-        case hashstr("ARTIST"):
+            break;
+        case "ARTIST"_crc32:
             SharedMetaData.UArtist = ConvertRawString(result[2]);
             break;
-        case hashstr("GENRE"):
+        case "GENRE"_crc32:
             //SharedMetaData.UGenre = ConvertRawString(result[2]);
             break;
-        case hashstr("DESIGNER"):
-        case hashstr("SUBARTIST"):  //BMS互換
+        case "DESIGNER"_crc32:
+        case "SUBARTIST"_crc32:  //BMS互換
             SharedMetaData.UDesigner = ConvertRawString(result[2]);
             break;
-        case hashstr("PLAYLEVEL"): {
+        case "PLAYLEVEL"_crc32: {
             string lstr = result[2];
             auto pluspos = lstr.find("+");
             if (pluspos != string::npos) {
@@ -199,7 +200,7 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, bool onlyMeta, uint32
             }
             break;
         }
-        case hashstr("DIFFICULTY"): {
+        case "DIFFICULTY"_crc32: {
             if (xp::regex_match(result[2], AllNumeric)) {
                 //通常記法
                 SharedMetaData.DifficultyType = ConvertInteger(result[2]);
@@ -214,27 +215,27 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, bool onlyMeta, uint32
             }
             break;
         }
-        case hashstr("SONGID"):
+        case "SONGID"_crc32:
             SharedMetaData.USongId = ConvertRawString(result[2]);
             break;
-        case hashstr("WAVE"):
+        case "WAVE"_crc32:
             SharedMetaData.UWaveFileName = ConvertRawString(result[2]);
             break;
-        case hashstr("WAVEOFFSET"):
+        case "WAVEOFFSET"_crc32:
             SharedMetaData.WaveOffset = ConvertFloat(result[2]);
             break;
-        case hashstr("JACKET"):
+        case "JACKET"_crc32:
             SharedMetaData.UJacketFileName = ConvertRawString(result[2]);
             break;
-        case hashstr("REQUEST"):
+        case "REQUEST"_crc32:
             ProcessRequest(ConvertRawString(result[2]), line);
             break;
-        case hashstr("BASEBPM"):
+        case "BASEBPM"_crc32:
             SharedMetaData.BaseBpm = ConvertFloat(result[2]);
             break;
 
             //此処から先はデータ内で使う用
-        case hashstr("HISPEED"):
+        case "HISPEED"_crc32: {
             if (onlyMeta) break;
             auto hsn = ConvertHexatridecimal(result[2]);
             if (HispeedDefinitions.find(hsn) == HispeedDefinitions.end()) {
@@ -243,7 +244,8 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, bool onlyMeta, uint32
             }
             HispeedToApply = HispeedDefinitions[ConvertHexatridecimal(result[2])];
             break;
-        case hashstr("NOSPEED"):
+        }
+        case "NOSPEED"_crc32:
             if (!onlyMeta) HispeedToApply = HispeedDefinitions[DefaultHispeedNumber];
             break;
         default:
@@ -261,13 +263,13 @@ void SusAnalyzer::ProcessRequest(const string &cmd, uint32_t line)
     ba::split(params, str, ba::is_any_of(" "), b::token_compress_on);
 
     if (params.size() < 1) return;
-    switch (hashstr(params[0].c_str())) {
-        case hashstr("mertonome"):
+    switch (crc32_rec(0xffffffff,params[0].c_str())) {
+        case "mertonome"_crc32:
             if (!ConvertBoolean(params[1])) {
                 SharedMetaData.ExtraFlags.set((size_t)SusMetaDataFlags::DisableMetronome);
             }
             break;
-        case hashstr("ticks_per_beat"):
+        case "ticks_per_beat"_crc32:
             TicksPerBeat = ConvertInteger(params[1]);
             break;
     }
@@ -360,7 +362,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, uint32_t line)
                 default:
                     if (note[1] == '0') continue;
                     MakeMessage(line, u8"ショートレーンの指定が不正です。");
-                    break;
+                    continue;
             }
             Notes.push_back(make_tuple(time, noteData));
         }
@@ -406,7 +408,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, uint32_t line)
                 default:
                     if (note[1] == '0') continue;
                     MakeMessage(line, u8"Airレーンの指定が不正です。");
-                    break;
+                    continue;
             }
             Notes.push_back(make_tuple(time, noteData));
         }
@@ -433,7 +435,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, uint32_t line)
                     break;
                 default:
                     MakeMessage(line, u8"ロングレーンの指定が不正です。");
-                    break;
+                    continue;
             }
             switch (note[0]) {
                 case '1':
@@ -454,7 +456,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, uint32_t line)
                 default:
                     if (note[1] == '0') continue;
                     MakeMessage(line, u8"ノーツ種類の指定が不正です。");
-                    break;
+                    continue;
             }
             Notes.push_back(make_tuple(time, noteData));
         }
@@ -804,6 +806,19 @@ tuple<bool, double> SusHispeedTimeline::GetRawDrawStateAt(double time)
     }
     double lastDifference = time - get<0>(lastData);
     return make_tuple(get<2>(lastData).VisibilityState == SusHispeedData::Visibility::Visible, get<1>(lastData) + lastDifference * get<2>(lastData).Speed);
+}
+
+double SusHispeedTimeline::GetSpeedAt(double time)
+{
+    auto lastData = Data[0];
+    int check = 0;
+    for (auto &d : Data) {
+        if (!check++) continue;
+        double keyTime = get<0>(d);
+        if (keyTime >= time) break;
+        lastData = d;
+    }
+    return get<2>(lastData).Speed;
 }
 
 tuple<bool, double> SusDrawableNoteData::GetStateAt(double time)

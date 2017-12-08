@@ -79,6 +79,7 @@ public:
     void AddKeyByData(uint32_t meas, uint32_t tick, bool vis);
     void Finialize();
     std::tuple<bool, double> GetRawDrawStateAt(double time);
+    double GetSpeedAt(double time);
 };
 
 enum class SusMetaDataFlags : uint16_t {

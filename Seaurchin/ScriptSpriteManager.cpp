@@ -76,7 +76,7 @@ bool ScriptSpriteMover::CheckPattern(std::string move)
 string ScriptSpriteMover::ParseMover(Mover * mover, std::string move)
 {
     using namespace boost::algorithm;
-    constexpr auto hash = &crc_ccitt::checksum;
+    using namespace crc32_constexpr;
     smatch match;
     move.erase(remove(move.begin(), move.end(), ' '), move.end());
 
@@ -91,26 +91,26 @@ string ScriptSpriteMover::ParseMover(Mover * mover, std::string move)
         regex_match(s, match, srparam);
         auto pname = match[s1].str();
         auto pval = match[s2].str();
-        switch (hash(pname.c_str())) {
-            case hash("x"):
-            case hash("r"):
+        switch (crc32_rec(0xffffffff, pname.c_str())) {
+            case "x"_crc32:
+            case "r"_crc32:
                 mover->X = atof(pval.c_str());
                 break;
-            case hash("y"):
-            case hash("g"):
+            case "y"_crc32:
+            case "g"_crc32:
                 mover->Y = atof(pval.c_str());
                 break;
-            case hash("z"):
-            case hash("b"):
+            case "z"_crc32:
+            case "b"_crc32:
                 mover->Z = atof(pval.c_str());
                 break;
-            case hash("time"):
+            case "time"_crc32:
                 mover->Duration = atof(pval.c_str());
                 break;
-            case hash("wait"):
+            case "wait"_crc32:
                 mover->Wait = atof(pval.c_str());
                 break;
-            case hash("ease"):
+            case "ease"_crc32:
                 mover->Function = easings[pval];
                 break;
         }
@@ -122,7 +122,7 @@ string ScriptSpriteMover::ParseMover(Mover * mover, std::string move)
 tuple<string, vector<tuple<string, string>>> ScriptSpriteMover::ParseRaw(const string & move)
 {
     using namespace boost::algorithm;
-    constexpr auto hash = &crc_ccitt::checksum;
+    using namespace crc32_constexpr;
     smatch match;
     auto fmtm = move;
     fmtm.erase(remove(fmtm.begin(), fmtm.end(), ' '), fmtm.end());

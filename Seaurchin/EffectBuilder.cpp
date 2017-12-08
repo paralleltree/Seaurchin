@@ -5,7 +5,7 @@
 using namespace std;
 using namespace sefx;
 
-static constexpr auto hashstr = &crc_ccitt::checksum;
+using namespace crc32_constexpr;
 
 EffectBuilder::EffectBuilder(std::shared_ptr<std::mt19937> rnd)
 {
@@ -65,7 +65,7 @@ bool EffectBuilder::ParseSource(const string &source)
             if (get<0>(eel))
             {
                 auto ep = get<0>(eel).get();
-                switch (hashstr(ep.name.c_str()))
+                switch (crc32_rec(0xffffffff,ep.name.c_str()))
                 {
 
                 }
@@ -74,9 +74,9 @@ bool EffectBuilder::ParseSource(const string &source)
             if (get<1>(eel))
             {
                 auto ep = get<1>(eel).get();
-                switch (hashstr(ep.name.c_str()))
+                switch (crc32_rec(0xffffffff,ep.name.c_str()))
                 {
-                case hashstr("type"):
+                case "type"_crc32:
                     if (ep.values[0] == "loop") nfx->Type = EffectType::LoopEffect;
                     if (ep.values[0] == "oneshot") nfx->Type = EffectType::OneshotEffect;
                     break;
@@ -86,9 +86,9 @@ bool EffectBuilder::ParseSource(const string &source)
             if (get<2>(eel))
             {
                 auto ep = get<2>(eel).get();
-                switch (hashstr(ep.name.c_str()))
+                switch (crc32_rec(0xffffffff,ep.name.c_str()))
                 {
-                case hashstr("looptime"):
+                case "looptime"_crc32:
                     nfx->LoopTime = ep.values[0];
                     break;
                 }
@@ -123,24 +123,24 @@ void EffectBuilder::ParseEmitter(EffectEmitter *emitter, const vector<sefx::Effe
 
 void EffectBuilder::ParseEmitterParameter(EffectEmitter *emitter, const EffectParameter<EffectDistribution> &param)
 {
-    switch (hashstr(param.name.c_str()))
+    switch (crc32_rec(0xffffffff,param.name.c_str()))
     {
-    case hashstr("size"):
+    case "size"_crc32:
         break;
-    case hashstr("color"):
+    case "color"_crc32:
         break;
-    case hashstr("alpha"):
+    case "alpha"_crc32:
         break;
 
-    case hashstr("burst"):
+    case "burst"_crc32:
         emitter->Type = EmitterRateType::BurstEmission;
         emitter->Rate = GetDistribution(param.values[0]);
         break;
-    case hashstr("rate"):
+    case "rate"_crc32:
         emitter->Type = EmitterRateType::RateEmission;
         emitter->Rate = GetDistribution(param.values[0]);
         break;
-    case hashstr("velocity"):
+    case "velocity"_crc32:
         if (param.values.size() != 2)
         {
             // WriteDebugConsole("'velocity' Parameter Doesn't Match!\n");
@@ -149,7 +149,7 @@ void EffectBuilder::ParseEmitterParameter(EffectEmitter *emitter, const EffectPa
         emitter->InitVelX = GetDistribution(param.values[0]);
         emitter->InitVelY = GetDistribution(param.values[1]);
         break;
-    case hashstr("accel"):
+    case "accel"_crc32:
         if (param.values.size() != 2)
         {
             // WriteDebugConsole("'accel' Parameter Doesn't Match!\n");
@@ -158,7 +158,7 @@ void EffectBuilder::ParseEmitterParameter(EffectEmitter *emitter, const EffectPa
         emitter->InitAccX = GetDistribution(param.values[0]);
         emitter->InitAccY = GetDistribution(param.values[1]);
         break;
-    case hashstr("location"):
+    case "location"_crc32:
         if (param.values.size() != 2)
         {
             // WriteDebugConsole("'location' Parameter Doesn't Match!\n");
@@ -167,7 +167,7 @@ void EffectBuilder::ParseEmitterParameter(EffectEmitter *emitter, const EffectPa
         emitter->InitX = GetDistribution(param.values[0]);
         emitter->InitY = GetDistribution(param.values[1]);
         break;
-    case hashstr("lifetime"):
+    case "lifetime"_crc32:
         emitter->LifeTime = GetDistribution(param.values[0]);
         break;
 
@@ -176,9 +176,9 @@ void EffectBuilder::ParseEmitterParameter(EffectEmitter *emitter, const EffectPa
 
 void EffectBuilder::ParseEmitterParameter(EffectEmitter *emitter, const EffectParameter<string> &param)
 {
-    switch (hashstr(param.name.c_str()))
+    switch (crc32_rec(0xffffffff,param.name.c_str()))
     {
-    case hashstr("texture"):
+    case "texture"_crc32:
         emitter->Name = param.values[0];
         break;
     }
@@ -186,12 +186,12 @@ void EffectBuilder::ParseEmitterParameter(EffectEmitter *emitter, const EffectPa
 
 void EffectBuilder::ParseEmitterParameter(EffectEmitter *emitter, const EffectParameter<double> &param)
 {
-    switch (hashstr(param.name.c_str()))
+    switch (crc32_rec(0xffffffff,param.name.c_str()))
     {
-    case hashstr("wait"):
+    case "wait"_crc32:
         emitter->Wait = param.values[0];
         break;
-    case hashstr("index"):
+    case "index"_crc32:
         emitter->ZIndex = (int)param.values[0];
         break;
     }
@@ -199,13 +199,13 @@ void EffectBuilder::ParseEmitterParameter(EffectEmitter *emitter, const EffectPa
 
 DistributionBase* EffectBuilder::GetDistribution(const sefx::EffectDistribution& dist)
 {
-    switch (hashstr(dist.name.c_str()))
+    switch (crc32_rec(0xffffffff,dist.name.c_str()))
     {
-    case hashstr("fix"):
+    case "fix"_crc32:
         return new DistributionFix(dist.parameters[0]);
-    case hashstr("uniform"):
+    case "uniform"_crc32:
         return new DistributionUniform(Random, dist.parameters[0], dist.parameters[1]);
-    case hashstr("normal"):
+    case "normal"_crc32:
         return new DistributionNormal(Random, dist.parameters[0], dist.parameters[1]);
     }
     return nullptr;

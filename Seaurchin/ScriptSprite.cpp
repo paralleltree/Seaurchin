@@ -4,7 +4,7 @@
 #include "Misc.h"
 
 using namespace std;
-static constexpr auto hashstr = &crc_ccitt::checksum;
+using namespace crc32_constexpr;
 // ˆê”Ê
 
 void RegisterScriptSprite(ExecutionManager *exm)
@@ -74,11 +74,12 @@ function<bool(SSprite*, Mover&, double)> SSprite::GetCustomAction(const string &
 
 void SSprite::ParseCustomMover(Mover *mover, const vector<tuple<string, string>>& params)
 {
+    using namespace crc32_constexpr;
     for (auto& t : params)
     {
-        switch (hashstr(get<0>(t).c_str()))
+        switch (crc32_rec(0xffffffff,get<0>(t).c_str()))
         {
-        case hashstr(""):
+        case ""_crc32:
             break;
         }
     }
@@ -108,42 +109,42 @@ void SSprite::Apply(const string & dict)
         pr.clear();
         split(pr, p, is_any_of(":"));
         if (pr.size() != 2) continue;
-        switch (hashstr(pr[0].c_str()))
+        switch (crc32_rec(0xffffffff,pr[0].c_str()))
         {
-        case hashstr("x"):
+        case "x"_crc32:
             Transform.X = atof(pr[1].c_str());
             break;
-        case hashstr("y"):
+        case "y"_crc32:
             Transform.Y = atof(pr[1].c_str());
             break;
-        case hashstr("z"):
+        case "z"_crc32:
             ZIndex = atoi(pr[1].c_str());
             break;
-        case hashstr("origX"):
+        case "origX"_crc32:
             Transform.OriginX = atof(pr[1].c_str());
             break;
-        case hashstr("origY"):
+        case "origY"_crc32:
             Transform.OriginY = atof(pr[1].c_str());
             break;
-        case hashstr("scaleX"):
+        case "scaleX"_crc32:
             Transform.ScaleX = atof(pr[1].c_str());
             break;
-        case hashstr("scaleY"):
+        case "scaleY"_crc32:
             Transform.ScaleY = atof(pr[1].c_str());
             break;
-        case hashstr("angle"):
+        case "angle"_crc32:
             Transform.Angle = atof(pr[1].c_str());
             break;
-        case hashstr("alpha"):
+        case "alpha"_crc32:
             Color.A = (unsigned char)(atof(pr[1].c_str()) * 255.0);
             break;
-        case hashstr("r"):
+        case "r"_crc32:
             Color.R = (unsigned char)atoi(pr[1].c_str());
             break;
-        case hashstr("g"):
+        case "g"_crc32:
             Color.G = (unsigned char)atoi(pr[1].c_str());
             break;
-        case hashstr("b"):
+        case "b"_crc32:
             Color.B = (unsigned char)atoi(pr[1].c_str());
             break;
         }
@@ -152,7 +153,7 @@ void SSprite::Apply(const string & dict)
 
 void SSprite::Apply(const CScriptDictionary & dict)
 {
-    constexpr auto hash = &crc_ccitt::checksum;
+    using namespace crc32_constexpr;
     ostringstream aps;
 
     auto i = dict.begin();
@@ -609,9 +610,9 @@ SClippingSprite::SClippingSprite(int w, int h) : SSynthSprite(w, h)
 
 function<bool(SSprite*, Mover&, double)> SClippingSprite::GetCustomAction(const string & name)
 {
-    switch (hashstr(name.c_str()))
+    switch (crc32_rec(0xffffffff,name.c_str()))
     {
-    case hashstr("range_size"):
+    case "range_size"_crc32:
         return ActionMoveRangeTo;
     }
     return nullptr;
@@ -621,12 +622,12 @@ void SClippingSprite::ParseCustomMover(Mover * mover, const vector<tuple<string,
 {
     for (auto &p : params)
     {
-        switch (hashstr(get<0>(p).c_str()))
+        switch (crc32_rec(0xffffffff,get<0>(p).c_str()))
         {
-        case hashstr("width"):
+        case "width"_crc32:
             mover->X = ToDouble(get<1>(p).c_str());
             break;
-        case hashstr("height"):
+        case "height"_crc32:
             mover->Y = ToDouble(get<1>(p).c_str());
             break;
         }
