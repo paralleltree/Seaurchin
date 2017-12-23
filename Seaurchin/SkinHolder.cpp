@@ -138,7 +138,7 @@ void SkinHolder::LoadSkinFont(const string &key, const string &filename)
 
 void SkinHolder::LoadSkinSound(const std::string & key, const std::string & filename)
 {
-	Sounds[key] = SSound::CreateSoundFromFile(SoundInterface.get(), ConvertUnicodeToUTF8((SkinRoot / SU_SOUND_DIR / ConvertUTF8ToUnicode(filename)).wstring()), 8);
+	Sounds[key] = SSound::CreateSoundFromFile(SoundInterface.get(), ConvertUnicodeToUTF8((SkinRoot / SU_SOUND_DIR / ConvertUTF8ToUnicode(filename)).wstring()), 1);
 }
 
 void SkinHolder::LoadSkinAnime(const std::string & key, const std::string & filename, int x, int y, int w, int h, int c, double time)
