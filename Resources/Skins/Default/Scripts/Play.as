@@ -220,6 +220,9 @@ class Play : CoroutineScene {
         }
         isPausing = !isPausing;
       }
+      if (IsKeyTriggered(Key::INPUT_R) && IsKeyHeld(Key::INPUT_LCONTROL)) {
+        player.Reload();
+      }
       
       YieldFrame(1);
     }
