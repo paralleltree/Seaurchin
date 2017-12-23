@@ -39,6 +39,7 @@ void RegisterPlayerScene(ExecutionManager * manager)
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void Play()", asMETHOD(ScenePlayer, Play), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void Pause()", asMETHOD(ScenePlayer, Pause), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void Resume()", asMETHOD(ScenePlayer, Resume), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void Reload()", asMETHOD(ScenePlayer, Reload), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "double GetCurrentTime()", asMETHOD(ScenePlayer, GetPlayingTime), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void GetPlayStatus(" SU_IF_PLAY_STATUS " &out)", asMETHOD(ScenePlayer, GetPlayStatus), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void MovePositionBySecond(double)", asMETHOD(ScenePlayer, MovePositionBySecond), asCALL_THISCALL);
@@ -113,6 +114,11 @@ void ScenePlayer::Finalize()
 
 void ScenePlayer::LoadWorker()
 {
+    {
+        lock_guard<mutex> lock(asyncMutex);
+        isLoadCompleted = false;
+    }
+
     auto mm = manager->GetMusicsManager();
     auto scorefile = mm->GetSelectedScorePath();
 
@@ -398,7 +404,24 @@ void ScenePlayer::Resume()
 }
 
 void ScenePlayer::Reload()
-{}
+{
+    // TODO: 非同期ローディングに対応する方法を考える
+    // TODO: 再生中リロードに対応
+    if (State != PlayingState::Paused) return;
+    // LoadWorker()で破壊される情報をとっておく
+    auto prevCurrentTime = CurrentTime;
+    auto prevOffset = analyzer->SharedMetaData.WaveOffset;
+    auto prevBgmPos = bgmStream->GetPlayingPosition();
+    soundManager->StopGlobal(bgmStream);
+    delete bgmStream;
+    
+    LoadWorker();
+
+    auto bgmMeantToBePlayedAt = prevBgmPos - (analyzer->SharedMetaData.WaveOffset - prevOffset);
+    bgmStream->SetPlayingPosition(bgmMeantToBePlayedAt);
+    CurrentTime = prevCurrentTime;
+    State = PlayingState::Paused;
+}
 
 void ScenePlayer::AdjustCamera(double cy, double cz, double ctz)
 {
