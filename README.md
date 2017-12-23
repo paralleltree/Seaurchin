@@ -1,21 +1,29 @@
 # Seaurchin
 某スライドして手を跳ね上げる音ゲーシミュレーター
 
-## 仕様ライブラリとか
+## ダウンロード
+[Releases](https://github.com/kb10uy/Seaurchin/releases)
+
+## ドキュメント
+* [公式Wiki](https://seaurchin.kb10uy.org) - メインストリームドキュメント
+* [GitHub Wiki](https://github.com/kb10uy/Seaurchin/wiki) - 2018年以降更新されません
+* [非公式Wiki](https://www65.atwiki.jp/seaurchin-fan/) - 創作譜面などはこちらに
+
+## 使用ライブラリとか
 * [DXライブラリ](http://dxlib.o.oo7.jp/)
 * [AngelScript](http://www.angelcode.com/angelscript/)
 * [Boost](https://www.boost.org/)
 * [FreeType](https://www.freetype.org/)
 * [libpng](http://www.libpng.org/pub/png/libpng.html)
-* [LZMA SDK](https://sevenzip.osdn.jp/sdk.html)
 * [BASS Audio Library](https://www.un4seen.com/)
 * [msgpack-c](https://github.com/msgpack/msgpack-c)
 * [Wacom feel™ Multi-Touch SDK](http://wdnet.jp/library/feelmulti-touch)
+* [spdlog](https://github.com/gabime/spdlog)
 
 
 # ライセンス
 本体はMIT License
-その他ライブラリは下を見ろ
+その他ライブラリは以下参照
 
 # 使用ライブラリ ライセンス
 > ### libjpeg
