@@ -296,7 +296,8 @@ void SusAnalyzer::ProcessRequest(const string &cmd, uint32_t line)
             TicksPerBeat = ConvertInteger(params[1]);
             break;
         case "enable_priority"_crc32:
-            if (!ConvertBoolean(params[1])) {
+            MakeMessage(line, u8"優先度つきノーツ描画が設定されます");
+            if (ConvertBoolean(params[1])) {
                 SharedMetaData.ExtraFlags.set((size_t)SusMetaDataFlags::EnableDrawPriority);
             }
             break;

@@ -76,7 +76,7 @@ void ScenePlayer::Initialize()
             SetProcessorOptions(pp);
             processor = pp;
             break;
-        }   
+        }
     }
 
     auto setting = manager->GetSettingInstanceSafe();
@@ -221,11 +221,9 @@ void ScenePlayer::CalculateNotes(double time, double duration, double preced)
             return get<0>(st);
         }
     });
-    if (usePrioritySort) {
-        stable_sort(seenData.begin(), seenData.end(), [](shared_ptr<SusDrawableNoteData> a, shared_ptr<SusDrawableNoteData> b) {
-            return a->ExtraAttribute->Priority < a->ExtraAttribute->Priority;
-        });
-    }
+    if (usePrioritySort) sort(seenData.begin(), seenData.end(), [](shared_ptr<SusDrawableNoteData> a, shared_ptr<SusDrawableNoteData> b) {
+        return a->ExtraAttribute->Priority < b->ExtraAttribute->Priority;
+    });
 }
 
 void ScenePlayer::Tick(double delta)
@@ -262,7 +260,7 @@ void ScenePlayer::Tick(double delta)
             cbpm = get<1>(bc);
         }
         double bpmMultiplier = (cbpm / analyzer->SharedMetaData.BaseBpm);
-        double sizeFor4Beats = bpmMultiplier *  HispeedMultiplier * 1000.0;
+        double sizeFor4Beats = bpmMultiplier * HispeedMultiplier * 1000.0;
         double seenRatio = (SU_LANE_Z_MAX - SU_LANE_Z_MIN) / sizeFor4Beats;
         SeenDuration = 60.0 * 4.0 * seenRatio / referenceBpm;
 
