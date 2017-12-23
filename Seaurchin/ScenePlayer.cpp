@@ -415,7 +415,9 @@ void ScenePlayer::Reload()
     soundManager->StopGlobal(bgmStream);
     delete bgmStream;
     
+    SetMainWindowText(reinterpret_cast<const char*>(L"ƒŠƒ[ƒh’†c"));
     LoadWorker();
+    SetMainWindowText(reinterpret_cast<const char*>(ConvertUTF8ToUnicode(SU_APP_NAME " " SU_APP_VERSION).c_str()));
 
     auto bgmMeantToBePlayedAt = prevBgmPos - (analyzer->SharedMetaData.WaveOffset - prevOffset);
     bgmStream->SetPlayingPosition(bgmMeantToBePlayedAt);
