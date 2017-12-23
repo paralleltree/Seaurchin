@@ -67,6 +67,7 @@ protected:
     SoundStream *bgmStream;
     ScoreProcessor *processor;
     bool isLoadCompleted = false;
+    bool usePrioritySort = false;
 
     double cameraZ = -340, cameraY = 620, cameraTargetZ = 580; // スクショから計測
     double laneBufferX = 1024;

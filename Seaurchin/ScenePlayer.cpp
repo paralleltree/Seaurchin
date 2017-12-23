@@ -121,6 +121,7 @@ void ScenePlayer::LoadWorker()
     for (auto &note : data) {
         if (note->Type.test((size_t)SusNoteType::Slide) || note->Type.test((size_t)SusNoteType::AirAction)) CalculateCurves(note);
     }
+    usePrioritySort = analyzer->SharedMetaData.ExtraFlags[(size_t)SusMetaDataFlags::EnableDrawPriority];
     processor->Reset();
     State = PlayingState::BgmNotLoaded;
 
@@ -220,6 +221,11 @@ void ScenePlayer::CalculateNotes(double time, double duration, double preced)
             return get<0>(st);
         }
     });
+    if (usePrioritySort) {
+        stable_sort(seenData.begin(), seenData.end(), [](shared_ptr<SusDrawableNoteData> a, shared_ptr<SusDrawableNoteData> b) {
+            return a->ExtraAttribute->Priority < a->ExtraAttribute->Priority;
+        });
+    }
 }
 
 void ScenePlayer::Tick(double delta)

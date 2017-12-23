@@ -83,6 +83,8 @@ void SusAnalyzer::Reset()
     Notes.clear();
     BpmDefinitions.clear();
     BeatsDefinitions.clear();
+    HispeedDefinitions.clear();
+    ExtraAttributes.clear();
     // TicksPerBeat = ;
     SharedMetaData.UTitle = u8"";
     SharedMetaData.UArtist = u8"";
@@ -95,10 +97,16 @@ void SusAnalyzer::Reset()
 
     BpmDefinitions[0] = 120.0;
     BeatsDefinitions[0] = 4.0;
+
     auto defhs = make_shared<SusHispeedTimeline>([&](uint32_t m, uint32_t t) { return GetAbsoluteTime(m, t); });
     defhs->AddKeysByString("0'0:1.0:v", TimelineResolver);
     HispeedDefinitions[DefaultHispeedNumber] = defhs;
     HispeedToApply = defhs;
+
+    auto defea = make_shared<SusNoteExtraAttribute>();
+    defea->Priority = 0;
+    ExtraAttributes[DefaultExtraAttributeNumber] = defea;
+    ExtraAttributeToApply = defea;
 }
 
 void SusAnalyzer::SetMessageCallBack(function<void(uint32_t, string, string)> func)
@@ -171,7 +179,7 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, bool onlyMeta, uint32
         BpmDefinitions[ConvertHexatridecimal(name.substr(3))] = ConvertFloat(result[2].str());
         return;
     }
-    switch (crc32_rec(0xffffffff,name.c_str())) {
+    switch (crc32_rec(0xffffffff, name.c_str())) {
         //TODO:このへんはBMSに合わせる必要あり
         case "TITLE"_crc32:
             SharedMetaData.UTitle = ConvertRawString(result[2]);
@@ -242,12 +250,27 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, bool onlyMeta, uint32
                 MakeMessage(line, u8"指定されたタイムラインが存在しません");
                 break;
             }
-            HispeedToApply = HispeedDefinitions[ConvertHexatridecimal(result[2])];
+            HispeedToApply = HispeedDefinitions[hsn];
             break;
         }
         case "NOSPEED"_crc32:
             if (!onlyMeta) HispeedToApply = HispeedDefinitions[DefaultHispeedNumber];
             break;
+
+        case "ATTRIBUTE"_crc32: {
+            if (onlyMeta) break;
+            auto ean = ConvertHexatridecimal(result[2]);
+            if (ExtraAttributes.find(ean) == ExtraAttributes.end()) {
+                MakeMessage(line, u8"指定されたアトリビュートが存在しません");
+                break;
+            }
+            ExtraAttributeToApply = ExtraAttributes[ean];
+            break;
+        }
+        case "NOATTRIBUTE"_crc32:
+            if (!onlyMeta) ExtraAttributeToApply = ExtraAttributes[DefaultExtraAttributeNumber];
+            break;
+
         default:
             MakeMessage(line, u8"SUSコマンドが無効です");
             break;
@@ -263,7 +286,7 @@ void SusAnalyzer::ProcessRequest(const string &cmd, uint32_t line)
     ba::split(params, str, ba::is_any_of(" "), b::token_compress_on);
 
     if (params.size() < 1) return;
-    switch (crc32_rec(0xffffffff,params[0].c_str())) {
+    switch (crc32_rec(0xffffffff, params[0].c_str())) {
         case "mertonome"_crc32:
             if (!ConvertBoolean(params[1])) {
                 SharedMetaData.ExtraFlags.set((size_t)SusMetaDataFlags::DisableMetronome);
@@ -271,6 +294,11 @@ void SusAnalyzer::ProcessRequest(const string &cmd, uint32_t line)
             break;
         case "ticks_per_beat"_crc32:
             TicksPerBeat = ConvertInteger(params[1]);
+            break;
+        case "enable_priority"_crc32:
+            if (!ConvertBoolean(params[1])) {
+                SharedMetaData.ExtraFlags.set((size_t)SusMetaDataFlags::EnableDrawPriority);
+            }
             break;
     }
 }
@@ -310,6 +338,16 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, uint32_t line)
             } else {
                 it->second->AddKeysByString(ConvertRawString(pattern), TimelineResolver);
             }
+        } else if (meas == "ATR") {
+            auto number = ConvertHexatridecimal(lane);
+            auto it = ExtraAttributes.find(number);
+            if (it == ExtraAttributes.end()) {
+                auto ea = make_shared<SusNoteExtraAttribute>();
+                ea->Apply(ConvertRawString(pattern));
+                ExtraAttributes[number] = ea;
+            } else {
+                it->second->Apply(ConvertRawString(pattern));
+            }
         } else {
             MakeMessage(line, u8"不正なデータコマンドです");
         }
@@ -344,6 +382,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, uint32_t line)
             noteData.NotePosition.StartLane = ConvertHexatridecimal(lane.substr(1, 1));
             noteData.NotePosition.Length = ConvertHexatridecimal(note.substr(1, 1));
             noteData.Timeline = HispeedToApply;
+            noteData.ExtraAttribute = ExtraAttributeToApply;
 
             switch (note[0]) {
                 case '1':
@@ -375,6 +414,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, uint32_t line)
             noteData.NotePosition.StartLane = ConvertHexatridecimal(lane.substr(1, 1));
             noteData.NotePosition.Length = ConvertHexatridecimal(note.substr(1, 1));
             noteData.Timeline = HispeedToApply;
+            noteData.ExtraAttribute = ExtraAttributeToApply;
 
             switch (note[0]) {
                 case '1':
@@ -422,6 +462,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, uint32_t line)
             noteData.NotePosition.Length = ConvertHexatridecimal(note.substr(1, 1));
             noteData.Extra = ConvertHexatridecimal(lane.substr(2, 1));
             noteData.Timeline = HispeedToApply;
+            noteData.ExtraAttribute = ExtraAttributeToApply;
 
             switch (lane[0]) {
                 case '2':
@@ -582,6 +623,7 @@ void SusAnalyzer::RenderScoreData(vector<shared_ptr<SusDrawableNoteData>> &data)
             noteData->StartLane = info.NotePosition.StartLane;
             noteData->Length = info.NotePosition.Length;
             noteData->Timeline = info.Timeline;
+            noteData->ExtraAttribute = info.ExtraAttribute;
             noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
 
             SusNoteType ltype;
@@ -666,6 +708,7 @@ void SusAnalyzer::RenderScoreData(vector<shared_ptr<SusDrawableNoteData>> &data)
             noteData->StartLane = info.NotePosition.StartLane;
             noteData->Length = info.NotePosition.Length;
             noteData->Timeline = info.Timeline;
+            noteData->ExtraAttribute = info.ExtraAttribute;
             noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
             data.push_back(noteData);
 
@@ -834,4 +877,26 @@ tuple<bool, double> SusDrawableNoteData::GetStateAt(double time)
         ex->ModifiedPosition = ex->StartTimeEx - get<1>(eres);
     }
     return make_tuple(get<0>(result), StartTimeEx - get<1>(result));
+}
+
+void SusNoteExtraAttribute::Apply(const string &props)
+{
+    using namespace boost::algorithm;
+    string list = props;
+    list.erase(remove(list.begin(), list.end(), ' '), list.end());
+    vector<string> params;
+    split(params, list, is_any_of(","));
+
+    vector<string> pr;
+    for (auto& p : params) {
+        pr.clear();
+        split(pr, p, is_any_of(":"));
+        if (pr.size() != 2) continue;
+        switch (crc32_rec(0xffffffff, pr[0].c_str())) {
+            case "priority"_crc32:
+            case "pr"_crc32:
+                Priority = (uint32_t)atoi(pr[1].c_str());
+                break;
+        }
+    }
 }

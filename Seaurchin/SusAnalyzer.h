@@ -82,8 +82,16 @@ public:
     double GetSpeedAt(double time);
 };
 
+class SusNoteExtraAttribute final {
+public:
+    uint32_t Priority;
+
+    void Apply(const std::string &props);
+};
+
 enum class SusMetaDataFlags : uint16_t {
-    DisableMetronome
+    DisableMetronome,
+    EnableDrawPriority,
 };
 
 struct SusMetaData {
@@ -114,12 +122,14 @@ struct SusRawNoteData {
         } NotePosition;
     };
     uint8_t Extra;
+    std::shared_ptr<SusNoteExtraAttribute> ExtraAttribute;
 };
 
 struct SusDrawableNoteData {
     std::bitset<20> Type;
     std::bitset<8> OnTheFlyData;
     std::shared_ptr<SusHispeedTimeline> Timeline;
+    std::shared_ptr<SusNoteExtraAttribute> ExtraAttribute;
     uint8_t StartLane;
     uint8_t Length;
 
@@ -147,6 +157,7 @@ private:
     double DefaultBeats = 4.0;
     double DefaultBpm = 120.0;
     uint32_t DefaultHispeedNumber = std::numeric_limits<uint32_t>::max();
+    uint32_t DefaultExtraAttributeNumber = std::numeric_limits<uint32_t>::max();
     uint32_t TicksPerBeat;
     double LongInjectionPerBeat;
     std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)> TimelineResolver = nullptr;
@@ -157,6 +168,8 @@ private:
 	std::unordered_map<uint32_t, float> BeatsDefinitions;
     std::unordered_map<uint32_t, std::shared_ptr<SusHispeedTimeline>> HispeedDefinitions;
     std::shared_ptr<SusHispeedTimeline> HispeedToApply;
+    std::unordered_map<uint32_t, std::shared_ptr<SusNoteExtraAttribute>> ExtraAttributes;
+    std::shared_ptr<SusNoteExtraAttribute> ExtraAttributeToApply;
 
     void ProcessCommand(const boost::xpressive::smatch &result, bool onlyMeta, uint32_t line);
     void ProcessRequest(const std::string &cmd, uint32_t line);

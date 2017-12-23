@@ -97,13 +97,13 @@ void ScenePlayer::Draw()
 
     for (auto& note : seenData) {
         auto &type = note->Type;
-        if (type.test((size_t)SusNoteType::Hold)) DrawHoldNotes(note);
-        if (type.test((size_t)SusNoteType::Slide)) DrawSlideNotes(note);
+        if (type[(size_t)SusNoteType::Hold]) DrawHoldNotes(note);
+        if (type[(size_t)SusNoteType::Slide]) DrawSlideNotes(note);
+        if (type[(size_t)SusNoteType::Tap]) DrawShortNotes(note);
+        if (type[(size_t)SusNoteType::ExTap]) DrawShortNotes(note);
+        if (type[(size_t)SusNoteType::Flick]) DrawShortNotes(note);
+        if (type[(size_t)SusNoteType::HellTap]) DrawShortNotes(note);
     }
-    for (auto& note : seenData) if (note->Type[(size_t)SusNoteType::Tap]) DrawShortNotes(note);
-    for (auto& note : seenData) if (note->Type[(size_t)SusNoteType::ExTap]) DrawShortNotes(note);
-    for (auto& note : seenData) if (note->Type[(size_t)SusNoteType::Flick]) DrawShortNotes(note);
-    for (auto& note : seenData) if (note->Type[(size_t)SusNoteType::HellTap]) DrawShortNotes(note);
 
     FINISH_DRAW_TRANSACTION;
     Prepare3DDrawCall();
