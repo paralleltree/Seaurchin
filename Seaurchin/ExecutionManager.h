@@ -46,6 +46,7 @@ public:
     inline std::shared_ptr<MusicsManager> GetMusicsManager() { return Musics; }
     inline std::shared_ptr<ControlState> GetControlStateSafe() { return SharedControlState; }
     inline std::shared_ptr<Setting> GetSettingInstanceSafe() { return SharedSetting; }
+    inline std::shared_ptr<AngelScript> GetScriptInterfaceSafe() { return ScriptInterface; }
     inline ControlState* GetControlStateUnsafe() { return SharedControlState.get(); }
     inline AngelScript* GetScriptInterfaceUnsafe() { return ScriptInterface.get(); }
     inline SoundManager* GetSoundManagerUnsafe() { return Sound.get(); }
@@ -56,6 +57,7 @@ public:
     void ExecuteSystemMenu();
     void ReloadMusic();
     void Fire(const std::string &message);
+    void WriteLog(const std::string &message);
     ScenePlayer *CreatePlayer();
     SSoundMixer *GetDefaultMixer(const std::string &name);
     SSettingItem *GetSettingItem(const std::string &group, const std::string &key);

@@ -223,4 +223,5 @@ void AutoPlayerProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
 void AutoPlayerProcessor::IncrementCombo()
 {
     Player->CurrentResult->PerformJusticeCritical();
+    Player->CurrentCharacter->OnJusticeCritical();
 }

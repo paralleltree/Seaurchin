@@ -9,6 +9,7 @@
 #include "ScriptScene.h"
 #include "ScriptSprite.h"
 #include "ScenePlayer.h"
+#include "Character.h"
 #include "Result.h"
 
 using namespace boost::filesystem;
@@ -38,6 +39,7 @@ void ExecutionManager::Initialize()
     RegisterScriptScene(this);
     RegisterScriptSkin(this);
     RegisterResultTypes(ScriptInterface->GetEngine());
+    RegisterCharacterTypes(this);
     RegisterPlayerScene(this);
     InterfacesRegisterSceneFunction(this);
     InterfacesRegisterGlobalFunction(this);
@@ -82,6 +84,7 @@ void ExecutionManager::RegisterGlobalManagementFunction()
     MusicSelectionCursor::RegisterScriptInterface(engine);
 
     engine->RegisterGlobalFunction("void ExitApplication()", asFUNCTION(InterfacesExitApplication), asCALL_CDECL);
+    engine->RegisterGlobalFunction("void WriteLog(const string &in)", asMETHOD(ExecutionManager, WriteLog), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("void Fire(const string &in)", asMETHOD(ExecutionManager, Fire), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction(SU_IF_SETTING_ITEM "@ GetSettingItem(const string &in, const string &in)", asMETHOD(ExecutionManager, GetSettingItem), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("bool ExistsData(const string &in)", asMETHOD(ExecutionManager, ExistsData), asCALL_THISCALL_ASGLOBAL, this);
@@ -291,6 +294,12 @@ void ExecutionManager::ReloadMusic()
 void ExecutionManager::Fire(const string & message)
 {
     for (auto &scene : Scenes) scene->OnEvent(message);
+}
+
+void ExecutionManager::WriteLog(const string &message)
+{
+    auto log = spdlog::get("main");
+    log->info(message);
 }
 
 ScenePlayer *ExecutionManager::CreatePlayer()

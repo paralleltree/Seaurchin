@@ -9,6 +9,7 @@
 #include "SoundManager.h"
 #include "MusicsManager.h"
 #include "Result.h"
+#include "Character.h"
 
 #define SU_IF_SCENE_PLAYER "ScenePlayer"
 
@@ -97,6 +98,8 @@ protected:
     //Slide‚Ìd‚İ‚ªáŠ±ˆá‚¤‚ç‚µ‚¢‚¯‚Ç‚»‚Ì‚Ö‚ñ‹–‚µ‚Ä‚Ë
     std::shared_ptr<Result> CurrentResult;
     DrawableResult PreviousStatus, Status;
+
+    std::unique_ptr<Character> CurrentCharacter;
 
     // ‹È‚Ì“r’†‚Å•Ï‰»‚·‚é‚â‚Â‚ç
     std::vector<std::shared_ptr<SusDrawableNoteData>> data;

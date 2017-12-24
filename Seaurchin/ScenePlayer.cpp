@@ -2,6 +2,7 @@
 #include "ScriptSprite.h"
 #include "ExecutionManager.h"
 #include "Result.h"
+#include "Character.h"
 #include "Setting.h"
 #include "Misc.h"
 
@@ -75,6 +76,15 @@ void ScenePlayer::Initialize()
     PreloadingTime = 0.5;
 
     LoadResources();
+
+    shared_ptr<CharacterInfo> testinfo = make_shared<CharacterInfo>();
+    testinfo->Name = u8"“K“–‚È–¼‘O";
+    testinfo->Description = u8"“K“–‚Èà–¾";
+    testinfo->Abilities.push_back("Boost 1.6");
+
+    CurrentCharacter = make_unique<Character>(manager->GetScriptInterfaceSafe(), CurrentResult, testinfo);
+    CurrentCharacter->Initialize();
+    CurrentCharacter->OnStart();
 }
 
 void ScenePlayer::SetProcessorOptions(PlayableProcessor *processor)

@@ -52,6 +52,29 @@ void Result::PerformMiss()
     CurrentCombo = 0;
 }
 
+void Result::BoostGaugeByValue(int value)
+{
+    GaugeValue += value;
+}
+
+void Result::BoostGaugeJusticeCritical(double ratio)
+{
+    GaugeValue += GaugePerJusticeCritical * ratio;
+}
+
+void Result::BoostGaugeJustice(double ratio)
+{
+    GaugeValue += GaugePerJusticeCritical * ratio * 0.5;
+}
+
+void Result::BoostGaugeAttack(double ratio)
+{
+    GaugeValue += GaugePerJusticeCritical * ratio * 0.1;
+}
+
+void Result::BoostGaugeMiss(double ratio)
+{}
+
 void Result::GetCurrentResult(DrawableResult *result)
 {
     if (!result) return;
@@ -94,5 +117,10 @@ void RegisterResultTypes(asIScriptEngine *engine)
     engine->RegisterObjectMethod(SU_IF_RESULT, "void PerformJustice()", asMETHOD(Result, PerformJustice), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_RESULT, "void PerformAttack()", asMETHOD(Result, PerformAttack), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_RESULT, "void PerformMiss()", asMETHOD(Result, PerformMiss), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_RESULT, "void BoostGaugeByValue(int)", asMETHOD(Result, BoostGaugeByValue), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_RESULT, "void BoostGaugeJusticeCritical(double)", asMETHOD(Result, BoostGaugeJusticeCritical), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_RESULT, "void BoostGaugeJustice(double)", asMETHOD(Result, BoostGaugeJustice), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_RESULT, "void BoostGaugeAttack(double)", asMETHOD(Result, BoostGaugeAttack), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_RESULT, "void BoostGaugeMiss(double)", asMETHOD(Result, BoostGaugeMiss), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_RESULT, "void GetCurrentResult(" SU_IF_DRESULT " &out)", asMETHOD(Result, GetCurrentResult), asCALL_THISCALL);
 }

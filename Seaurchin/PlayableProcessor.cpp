@@ -515,12 +515,15 @@ void PlayableProcessor::IncrementCombo(shared_ptr<SusDrawableNoteData> note, dou
     if (reltime <= judgeWidthJusticeCritical) {
         note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
         Player->CurrentResult->PerformJusticeCritical();
+        Player->CurrentCharacter->OnJusticeCritical();
     } else if (reltime <= judgeWidthJustice) {
         note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
         Player->CurrentResult->PerformJustice();
+        Player->CurrentCharacter->OnJustice();
     } else {
         note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
         Player->CurrentResult->PerformAttack();
+        Player->CurrentCharacter->OnAttack();
     }
 }
 
@@ -528,6 +531,7 @@ void PlayableProcessor::IncrementComboEx(std::shared_ptr<SusDrawableNoteData> no
 {
     note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
     Player->CurrentResult->PerformJusticeCritical();
+    Player->CurrentCharacter->OnJusticeCritical();
 }
 
 void PlayableProcessor::IncrementComboHell(std::shared_ptr<SusDrawableNoteData> note, int state)
@@ -542,16 +546,19 @@ void PlayableProcessor::IncrementComboHell(std::shared_ptr<SusDrawableNoteData> 
             // ‚Æ‚è‚ ‚¦‚¸’Ê‰ß‚µ‚½‚Ì‚ÅJC
             note->OnTheFlyData.set((size_t)NoteAttribute::HellChecking);
             Player->CurrentResult->PerformJusticeCritical();
+            Player->CurrentCharacter->OnJusticeCritical();
             break;
         case 1:
             // •’Ê‚É”»’èŽ¸”s
             Player->CurrentResult->PerformMiss();
+            Player->CurrentCharacter->OnMiss();
             note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
             break;
         case 2:
             // Œã‚©‚ç“ü‚Á‚Ä”»’èŽ¸”s
             // TODO: JC‚Ì”Œ¸‚ç‚¹
             Player->CurrentResult->PerformMiss();
+            Player->CurrentCharacter->OnMiss();
             note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
     }
 }
@@ -562,12 +569,15 @@ void PlayableProcessor::IncrementComboAir(std::shared_ptr<SusDrawableNoteData> n
     if (reltime <= judgeWidthJusticeCritical) {
         note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
         Player->CurrentResult->PerformJusticeCritical();
+        Player->CurrentCharacter->OnJusticeCritical();
     } else if (reltime <= judgeWidthJustice) {
         note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
         Player->CurrentResult->PerformJustice();
+        Player->CurrentCharacter->OnJustice();
     } else {
         note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
         Player->CurrentResult->PerformAttack();
+        Player->CurrentCharacter->OnAttack();
     }
 }
 
@@ -575,4 +585,5 @@ void PlayableProcessor::ResetCombo(shared_ptr<SusDrawableNoteData> note)
 {
     note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
     Player->CurrentResult->PerformMiss();
+    Player->CurrentCharacter->OnMiss();
 }

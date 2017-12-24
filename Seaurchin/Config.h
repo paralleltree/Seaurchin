@@ -14,6 +14,7 @@
 #define SU_SKIN_DIR L"Skins"
 #define SU_FONT_DIR L"Fonts"
 #define SU_CACHE_DIR L"Cache"
+#define SU_CHARACTER_DIR L"Characters"
 #define SU_MUSIC_DIR L"Music"
 #define SU_SOUND_DIR L"Sounds"
 #define SU_SCRIPT_DIR L"Scripts"

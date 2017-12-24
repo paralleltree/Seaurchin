@@ -41,6 +41,11 @@ public:
     void PerformJustice();
     void PerformAttack();
     void PerformMiss();
+    void BoostGaugeByValue(int value);
+    void BoostGaugeJusticeCritical(double ratio);
+    void BoostGaugeJustice(double ratio);
+    void BoostGaugeAttack(double ratio);
+    void BoostGaugeMiss(double ratio);
     void GetCurrentResult(DrawableResult *result);
 };
 
