@@ -1,10 +1,11 @@
 #include "Result.h"
 
-Result::Result(uint32_t notes)
+void Result::SetAllNotes(uint32_t notes)
 {
     Notes = notes ? notes : 1;
     GaugePerJusticeCritical = 60000.0 / Notes;
     ScorePerJusticeCritical = 1010000.0 / Notes;
+    Reset();
 }
 
 void Result::Reset()
@@ -93,5 +94,5 @@ void RegisterResultTypes(asIScriptEngine *engine)
     engine->RegisterObjectMethod(SU_IF_RESULT, "void PerformJustice()", asMETHOD(Result, PerformJustice), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_RESULT, "void PerformAttack()", asMETHOD(Result, PerformAttack), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_RESULT, "void PerformMiss()", asMETHOD(Result, PerformMiss), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_RESULT, "void GetCurrentResult(" SU_IF_DRESULT "@)", asMETHOD(Result, GetCurrentResult), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_RESULT, "void GetCurrentResult(" SU_IF_DRESULT " &out)", asMETHOD(Result, GetCurrentResult), asCALL_THISCALL);
 }

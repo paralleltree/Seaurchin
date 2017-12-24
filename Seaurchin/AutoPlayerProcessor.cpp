@@ -4,32 +4,6 @@
 
 using namespace std;
 
-// PlayStatus -------------------------------------------------
-
-void PlayStatus::GetGaugeValue(int &fulfilled, double &rest)
-{
-    fulfilled = 0;
-    rest = 0;
-    double calc = round(CurrentGauge);
-    double currentMax = 12000;
-    while (calc >= currentMax) {
-        fulfilled += 1;
-        calc -= currentMax;
-        currentMax += 2000;
-    }
-    rest = calc / currentMax;
-}
-
-uint32_t PlayStatus::GetScore()
-{
-    double result = 0;
-    double base = 1000000.0 / AllNotes;
-    result += JusticeCritical * base * 1.01;
-    result += Justice * base * 1.00;
-    result += Attack * base * 0.50;
-    return (uint32_t)round(result);
-}
-
 // ScoreProcessor-s -------------------------------------------
 
 vector<shared_ptr<SusDrawableNoteData>> ScoreProcessor::DefaultDataValue;
@@ -41,23 +15,24 @@ AutoPlayerProcessor::AutoPlayerProcessor(ScenePlayer *player)
 
 void AutoPlayerProcessor::Reset()
 {
+    Player->CurrentResult->Reset();
     data = Player->data;
-    Status.JusticeCritical = Status.Justice = Status.Attack = Status.Miss = Status.Combo = Status.CurrentGauge = 0;
-    Status.AllNotes = 0;
+    int an = 0;
     for (auto &note : data) {
         auto type = note->Type.to_ulong();
         if (type & SU_NOTE_LONG_MASK) {
-            if (!note->Type.test((size_t)SusNoteType::AirAction)) Status.AllNotes++;
+            if (!note->Type.test((size_t)SusNoteType::AirAction)) an++;
             for (auto &ex : note->ExtraData)
                 if (
                     ex->Type.test((size_t)SusNoteType::End)
                     || ex->Type.test((size_t)SusNoteType::Step)
                     || ex->Type.test((size_t)SusNoteType::Injection))
-                    Status.AllNotes++;
+                    an++;
         } else if (type & SU_NOTE_SHORT_MASK) {
-            Status.AllNotes++;
+            an++;
         }
     }
+    Player->CurrentResult->SetAllNotes(an);
 }
 
 bool AutoPlayerProcessor::ShouldJudge(std::shared_ptr<SusDrawableNoteData> note)
@@ -98,7 +73,7 @@ void AutoPlayerProcessor::Update(vector<shared_ptr<SusDrawableNoteData>> &notes)
 void AutoPlayerProcessor::MovePosition(double relative)
 {
     double newTime = Player->CurrentSoundTime + relative;
-    Status.JusticeCritical = Status.Justice = Status.Attack = Status.Miss = Status.Combo = Status.CurrentGauge = 0;
+    Player->CurrentResult->Reset();
 
     wasInHold = isInHold = false;
     wasInSlide = isInSlide = false;
@@ -134,11 +109,6 @@ void AutoPlayerProcessor::MovePosition(double relative)
 
 void AutoPlayerProcessor::Draw()
 {}
-
-PlayStatus *AutoPlayerProcessor::GetPlayStatus()
-{
-    return &Status;
-}
 
 void AutoPlayerProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
 {
@@ -252,7 +222,5 @@ void AutoPlayerProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
 
 void AutoPlayerProcessor::IncrementCombo()
 {
-    Status.Combo++;
-    Status.JusticeCritical++;
-    Status.CurrentGauge += Status.GaugeDefaultMax / Status.AllNotes;
+    Player->CurrentResult->PerformJusticeCritical();
 }

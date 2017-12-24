@@ -8,9 +8,9 @@
 #include "ScoreProcessor.h"
 #include "SoundManager.h"
 #include "MusicsManager.h"
+#include "Result.h"
 
 #define SU_IF_SCENE_PLAYER "ScenePlayer"
-#define SU_IF_PLAY_STATUS "PlayStatus"
 
 #define SU_LANE_X_MIN -400.0
 #define SU_LANE_X_MAX 400.0
@@ -95,7 +95,8 @@ protected:
     unsigned int airActionJudgeColor = GetColor(128, 255, 160);
 
     //Slide‚Ìd‚İ‚ªáŠ±ˆá‚¤‚ç‚µ‚¢‚¯‚Ç‚»‚Ì‚Ö‚ñ‹–‚µ‚Ä‚Ë
-    PlayStatus Status;
+    std::shared_ptr<Result> CurrentResult;
+    DrawableResult PreviousStatus, Status;
 
     // ‹È‚Ì“r’†‚Å•Ï‰»‚·‚é‚â‚Â‚ç
     std::vector<std::shared_ptr<SusDrawableNoteData>> data;
@@ -161,7 +162,7 @@ public:
     bool IsLoadCompleted();
     void Play();
     double GetPlayingTime();
-    void GetPlayStatus(PlayStatus *status);
+    void GetCurrentResult(DrawableResult *result);
     void MovePositionBySecond(double sec);
     void MovePositionByMeasure(int meas);
     void Pause();

@@ -1,6 +1,7 @@
 #include "ScenePlayer.h"
 #include "ScriptSprite.h"
 #include "ExecutionManager.h"
+#include "Result.h"
 #include "Setting.h"
 #include "Misc.h"
 
@@ -9,18 +10,6 @@ using namespace std;
 void RegisterPlayerScene(ExecutionManager * manager)
 {
     auto engine = manager->GetScriptInterfaceUnsafe()->GetEngine();
-
-    engine->RegisterObjectType(SU_IF_PLAY_STATUS, sizeof(PlayStatus), asOBJ_VALUE | asOBJ_POD);
-    engine->RegisterObjectProperty(SU_IF_PLAY_STATUS, "uint32 JusticeCritical", asOFFSET(PlayStatus, JusticeCritical));
-    engine->RegisterObjectProperty(SU_IF_PLAY_STATUS, "uint32 Justice", asOFFSET(PlayStatus, Justice));
-    engine->RegisterObjectProperty(SU_IF_PLAY_STATUS, "uint32 Attack", asOFFSET(PlayStatus, Attack));
-    engine->RegisterObjectProperty(SU_IF_PLAY_STATUS, "uint32 Miss", asOFFSET(PlayStatus, Miss));
-    engine->RegisterObjectProperty(SU_IF_PLAY_STATUS, "uint32 AllNotes", asOFFSET(PlayStatus, AllNotes));
-    engine->RegisterObjectProperty(SU_IF_PLAY_STATUS, "uint32 Combo", asOFFSET(PlayStatus, Combo));
-    engine->RegisterObjectProperty(SU_IF_PLAY_STATUS, "double CurrentGauge", asOFFSET(PlayStatus, CurrentGauge));
-    engine->RegisterObjectProperty(SU_IF_PLAY_STATUS, "double GaugeDefaultMax", asOFFSET(PlayStatus, GaugeDefaultMax));
-    engine->RegisterObjectMethod(SU_IF_PLAY_STATUS, "void GetGaugeValue(int &out, double &out)", asMETHOD(PlayStatus, GetGaugeValue), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_PLAY_STATUS, "uint32 GetScore()", asMETHOD(PlayStatus, GetScore), asCALL_THISCALL);
 
     engine->RegisterObjectType(SU_IF_SCENE_PLAYER, 0, asOBJ_REF);
     engine->RegisterObjectBehaviour(SU_IF_SCENE_PLAYER, asBEHAVE_ADDREF, "void f()", asMETHOD(ScenePlayer, AddRef), asCALL_THISCALL);
@@ -41,7 +30,7 @@ void RegisterPlayerScene(ExecutionManager * manager)
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void Resume()", asMETHOD(ScenePlayer, Resume), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void Reload()", asMETHOD(ScenePlayer, Reload), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "double GetCurrentTime()", asMETHOD(ScenePlayer, GetPlayingTime), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void GetPlayStatus(" SU_IF_PLAY_STATUS " &out)", asMETHOD(ScenePlayer, GetPlayStatus), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void GetCurrentResult(" SU_IF_DRESULT " &out)", asMETHOD(ScenePlayer, GetCurrentResult), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void MovePositionBySecond(double)", asMETHOD(ScenePlayer, MovePositionBySecond), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void MovePositionByMeasure(int)", asMETHOD(ScenePlayer, MovePositionByMeasure), asCALL_THISCALL);
 }
@@ -61,7 +50,7 @@ void ScenePlayer::Initialize()
 {
     analyzer = make_unique<SusAnalyzer>(192);
     isLoadCompleted = false;
-
+    CurrentResult = make_shared<Result>();
     switch (manager->GetData<int>("AutoPlay", 1)) {
         case 0: {
             auto pp = new PlayableProcessor(this);
@@ -273,10 +262,10 @@ void ScenePlayer::Tick(double delta)
         CalculateNotes(CurrentTime, SeenDuration, PreloadingTime);
     }
 
-    int pCombo = Status.Combo;
+    PreviousStatus = Status;
     if (State != PlayingState::Paused) processor->Update(judgeData);
-    Status = *processor->GetPlayStatus();
-    if (Status.Combo > pCombo) {
+    CurrentResult->GetCurrentResult(&Status);
+    if (Status.Combo > PreviousStatus.Combo) {
         textCombo->AbortMove(true);
         textCombo->Apply("scaleY:8.4, scaleX:8.4");
         textCombo->AddMove("scale_to(x:8, y:8, time:0.2, ease:out_quad)");
@@ -351,9 +340,9 @@ double ScenePlayer::GetPlayingTime()
     return CurrentTime;
 }
 
-void ScenePlayer::GetPlayStatus(PlayStatus *status)
+void ScenePlayer::GetCurrentResult(DrawableResult *result)
 {
-    *status = Status;
+    CurrentResult->GetCurrentResult(result);
 }
 
 void ScenePlayer::MovePositionBySecond(double sec)

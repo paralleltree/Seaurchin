@@ -9,6 +9,7 @@
 #include "ScriptScene.h"
 #include "ScriptSprite.h"
 #include "ScenePlayer.h"
+#include "Result.h"
 
 using namespace boost::filesystem;
 using namespace std;
@@ -36,6 +37,7 @@ void ExecutionManager::Initialize()
     RegisterScriptSprite(this);
     RegisterScriptScene(this);
     RegisterScriptSkin(this);
+    RegisterResultTypes(ScriptInterface->GetEngine());
     RegisterPlayerScene(this);
     InterfacesRegisterSceneFunction(this);
     InterfacesRegisterGlobalFunction(this);
