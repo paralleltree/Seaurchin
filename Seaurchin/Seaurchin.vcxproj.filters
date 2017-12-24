@@ -156,6 +156,12 @@
     <ClCompile Include="AutoPlayerProcessor.cpp">
       <Filter>プレーヤー</Filter>
     </ClCompile>
+    <ClCompile Include="Character.cpp">
+      <Filter>インターフェース\AngelScript</Filter>
+    </ClCompile>
+    <ClCompile Include="Result.cpp">
+      <Filter>インターフェース\AngelScript</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">
@@ -285,6 +291,12 @@
       <Filter>コントローラー</Filter>
     </ClInclude>
     <ClInclude Include="wscriptbuilder.h">
+      <Filter>インターフェース\AngelScript</Filter>
+    </ClInclude>
+    <ClInclude Include="Character.h">
+      <Filter>インターフェース\AngelScript</Filter>
+    </ClInclude>
+    <ClInclude Include="Result.h">
       <Filter>インターフェース\AngelScript</Filter>
     </ClInclude>
   </ItemGroup>

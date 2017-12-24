@@ -23,14 +23,6 @@ SkinHolder::~SkinHolder()
 
 }
 
-void SkinHolder::AddRef()
-{
-}
-
-void SkinHolder::Release()
-{
-}
-
 void SkinHolder::Initialize()
 {
     auto log = spdlog::get("main");
@@ -182,9 +174,7 @@ void RegisterScriptSkin(ExecutionManager *exm)
 {
 	auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
 
-    engine->RegisterObjectType(SU_IF_SKIN, 0, asOBJ_REF);
-    engine->RegisterObjectBehaviour(SU_IF_SKIN, asBEHAVE_ADDREF, "void f()", asMETHOD(SkinHolder, AddRef), asCALL_THISCALL);
-    engine->RegisterObjectBehaviour(SU_IF_SKIN, asBEHAVE_RELEASE, "void f()", asMETHOD(SkinHolder, Release), asCALL_THISCALL);
+    engine->RegisterObjectType(SU_IF_SKIN, 0, asOBJ_REF | asOBJ_NOCOUNT);
     engine->RegisterObjectMethod(SU_IF_SKIN, "void LoadImage(const string &in, const string &in)", asMETHOD(SkinHolder, LoadSkinImage), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SKIN, "void LoadFont(const string &in, const string &in)", asMETHOD(SkinHolder, LoadSkinFont), asCALL_THISCALL);
 	engine->RegisterObjectMethod(SU_IF_SKIN, "void LoadSound(const string &in, const string &in)", asMETHOD(SkinHolder, LoadSkinSound), asCALL_THISCALL);

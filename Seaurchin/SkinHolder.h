@@ -24,8 +24,6 @@ private:
 public:
     SkinHolder(const std::wstring &name, std::shared_ptr<AngelScript> script, std::shared_ptr<SoundManager> sound);
     ~SkinHolder();
-    void AddRef();
-    void Release();
 
     void Initialize();
     void Terminate();
