@@ -5,10 +5,17 @@
 
 #define SU_IF_ABILITY "Ability"
 
+struct AbilityInfo final {
+    std::string Name;
+    std::unordered_map<std::string, boost::any> Arguments;
+};
+
 struct CharacterInfo final {
     std::string Name;
     std::string Description;
-    std::vector<std::string> Abilities;
+    std::vector<AbilityInfo> Abilities;
+
+    static std::shared_ptr<CharacterInfo> LoadFromToml(const boost::filesystem::path &path);
 };
 
 class Character final {

@@ -9,6 +9,7 @@
 #include "SoundManager.h"
 #include "ScenePlayer.h"
 #include "Controller.h"
+#include "Character.h"
 
 class ExecutionManager final {
 private:
@@ -23,6 +24,7 @@ private:
     std::shared_ptr<std::mt19937> Random;
     std::shared_ptr<SoundManager> Sound;
     std::shared_ptr<MusicsManager> Musics;
+    std::vector<std::shared_ptr<CharacterInfo>> Characters;
     std::unordered_map<std::string, boost::any> optionalData;
     HIMC hImc;
     DWORD ImmConversion, ImmSentence;
@@ -71,6 +73,7 @@ public:
 private:
     bool CheckSkinStructure(boost::filesystem::path name);
     void RegisterGlobalManagementFunction();
+    void LoadCharacters();
 };
 
 template<typename T>

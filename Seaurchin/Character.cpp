@@ -10,7 +10,7 @@ void RegisterCharacterTypes(ExecutionManager *exm)
     auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
 
     engine->RegisterInterface(SU_IF_ABILITY);
-    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void Initialize(array<string>@)");
+    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void Initialize(dictionary@)");
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnStart(" SU_IF_RESULT "@)");
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnFinish(" SU_IF_RESULT "@)");
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnJusticeCritical(" SU_IF_RESULT "@)");
@@ -87,8 +87,7 @@ void Character::Initialize()
 
     for (const auto &def : Info->Abilities) {
         vector<string> params;
-        split(params, def, is_any_of(" "));
-        auto scrpath = abroot / (params[0] + ".as");
+        auto scrpath = abroot / (def.Name + ".as");
 
         auto abo = LoadAbility(scrpath);
         if (!abo) continue;
@@ -97,12 +96,16 @@ void Character::Initialize()
         Abilities.push_back(abo);
         AbilityTypes.push_back(abt);
 
-        auto init = abt->GetMethodByDecl("void Initialize(array<string>@)");
+        auto init = abt->GetMethodByDecl("void Initialize(dictionary@)");
         if (!init) continue;
         
         auto at = ScriptInterface->GetEngine()->GetTypeInfoByDecl("array<string>");
-        auto args = CScriptArray::Create(at, params.size() - 1);
-        for (int i = 0; i < params.size() - 1; ++i) args->SetValue(i, &(params[i + 1]));
+        auto args = CScriptDictionary::Create(ScriptInterface->GetEngine());
+        for (const auto &arg : def.Arguments) {
+            auto key = arg.first;
+            auto value = arg.second;
+            auto &vid = value.type();
+        }
 
         context->Prepare(init);
         context->SetObject(abo);
@@ -152,4 +155,49 @@ void Character::OnAttack()
 void Character::OnMiss()
 {
     CallOnEvent("void OnMiss(" SU_IF_RESULT "@)");
+}
+
+shared_ptr<CharacterInfo> CharacterInfo::LoadFromToml(const boost::filesystem::path &path)
+{
+    auto log = spdlog::get("main");
+    auto result = make_shared<CharacterInfo>();
+    
+    ifstream ifs(path.wstring(), ios::in);
+    auto pr = toml::parse(ifs);
+    ifs.close();
+    
+    if (!pr.valid()) return nullptr;
+    auto &ci = pr.value;
+    try {
+        result->Name = ci.get<string>("Name");
+        result->Description = ci.get<string>("Description");
+
+        auto abilities = ci.get<vector<toml::Table>>("Abilities");
+        for (const auto &ability : abilities) {
+            AbilityInfo ai;
+            ai.Name = ability.at("Type").as<string>();
+            auto args = ability.at("Arguments").as<toml::Table>();
+            for (const auto &p : args) {
+                switch (p.second.type()) {
+                    case toml::Value::INT_TYPE:
+                        ai.Arguments[p.first] = p.second.as<int>();
+                        break;
+                    case toml::Value::DOUBLE_TYPE:
+                        ai.Arguments[p.first] = p.second.as<double>();
+                        break;
+                    case toml::Value::STRING_TYPE:
+                        ai.Arguments[p.first] = p.second.as<string>();
+                        break;
+                    default:
+                        break;
+                }
+            }
+            result->Abilities.push_back(ai);
+        }
+
+    } catch (exception) {
+        log->error(u8"キャラクター {0} の読み込みに失敗しました", ConvertUnicodeToUTF8(path.wstring()));
+        return nullptr;
+    }
+    return result;
 }

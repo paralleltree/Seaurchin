@@ -60,6 +60,8 @@ void ExecutionManager::Initialize()
     slfile.close();
     SettingManager->RetrieveAllValues();
 
+    LoadCharacters();
+
     /*
     hImc = ImmGetContext(GetMainWindowHandle());
     if (!ImmGetOpenStatus(hImc)) ImmSetOpenStatus(hImc, TRUE);
@@ -75,6 +77,24 @@ void ExecutionManager::Shutdown()
     SharedControlState->Terminate();
     MixerBGM->Release();
     MixerSE->Release();
+}
+
+void ExecutionManager::LoadCharacters()
+{
+    using namespace boost;
+    using namespace boost::filesystem;
+    using namespace boost::xpressive;
+    auto log = spdlog::get("main");
+
+    path sepath = Setting::GetRootDirectory() / SU_DATA_DIR / SU_CHARACTER_DIR;
+
+    for (const auto& fdata : make_iterator_range(directory_iterator(sepath), {})) {
+        if (is_directory(fdata)) continue;
+        auto filename = ConvertUnicodeToUTF8(fdata.path().wstring());
+        if (!ends_with(filename, ".toml")) continue;
+        Characters.push_back(CharacterInfo::LoadFromToml(fdata.path()));
+    }
+    log->info(u8"キャラクター総数: {0:d}", Characters.size());
 }
 
 void ExecutionManager::RegisterGlobalManagementFunction()
