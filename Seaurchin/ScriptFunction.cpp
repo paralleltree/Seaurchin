@@ -2,6 +2,7 @@
 
 #include "Setting.h"
 #include "Config.h"
+#include "Font.h"
 #include "Misc.h"
 
 using namespace std;
@@ -58,6 +59,19 @@ SFont* LoadSystemFont(const std::string & file)
 SSound *LoadSystemSound(SoundManager *smng, const std::string & file) {
 	path p = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SOUND_DIR / ConvertUTF8ToUnicode(file);
 	return SSound::CreateSoundFromFile(smng, ConvertUnicodeToUTF8(p.wstring()), 4);
+}
+
+void CreateImageFont(const string &fileName, const string &saveName, int size)
+{
+    Sif2CreatorOption option;
+    option.FontPath = fileName;
+    option.Size = size;
+    option.ImageSize = 1024;
+    option.TextSource = "";
+    boost::filesystem::path op = Setting::GetRootDirectory() / SU_DATA_DIR / SU_FONT_DIR / (ConvertUTF8ToUnicode(saveName) + L".sif");
+
+    Sif2Creator creator;
+    creator.CreateSif2(option, op);
 }
 
 void EnumerateInstalledFonts()

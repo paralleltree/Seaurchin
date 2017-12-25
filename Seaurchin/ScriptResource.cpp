@@ -138,16 +138,16 @@ SAnimatedImage * SAnimatedImage::CreateLoadedImageFromFile(const std::string & f
 
 SFont::SFont()
 {
-	for (int i = 0; i < 0x10000; i++) Chars.push_back(nullptr);
+	
 }
 
 SFont::~SFont()
 {
-	for (auto &i : Chars) if (i) delete i;
+	for (auto &i : Glyphs) if (i.second) delete i.second;
 	for (auto &i : Images) i->Release();
 }
 
-tuple<double, double, int> SFont::RenderRaw(SRenderTarget * rt, const std::wstring & str)
+tuple<double, double, int> SFont::RenderRaw(SRenderTarget *rt, const string &utf8str)
 {
 	double cx = 0, cy = 0;
 	double mx = 0, my = 0;
@@ -158,28 +158,43 @@ tuple<double, double, int> SFont::RenderRaw(SRenderTarget * rt, const std::wstri
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
 		SetDrawBright(255, 255, 255);
 	}
-	for (auto &c : str) {
-		if (c == L'\n') {
-			line++;
-			cx = 0;
-			cy += Size;
-			mx = max(mx, cx);
-			my = line * Size;
-			continue;
-		}
-		auto gi = Chars[c];
-		if (!gi) continue;
-		if (rt)DrawRectGraph(
-			cx + gi->bearX, cy + gi->bearY,
-			gi->x, gi->y,
-			gi->width, gi->height,
-			Images[gi->texture]->GetHandle(),
-			TRUE, FALSE);
-		cx += gi->wholeAdvance;
-	}
-	if (rt) {
-		FINISH_DRAW_TRANSACTION;
-	}
+    const uint8_t *ccp = (const uint8_t*)utf8str.c_str();
+    while (*ccp) {
+        uint32_t gi = 0;
+        if (*ccp >= 0xF0) {
+            gi = (*ccp & 0x07) << 18 | (*(ccp + 1) & 0x3F) << 12 | (*(ccp + 2) & 0x3F) << 6 | (*(ccp + 3) & 0x3F);
+            ccp += 4;
+        } else if (*ccp >= 0xE0) {
+            gi = (*ccp & 0x0F) << 12 | (*(ccp + 1) & 0x3F) << 6 | (*(ccp + 2) & 0x3F);
+            ccp += 3;
+        } else if (*ccp >= 0xC2) {
+            gi = (*ccp & 0x1F) << 6 | (*(ccp + 1) & 0x3F);
+            ccp += 2;
+        } else {
+            gi = *ccp & 0x7F;
+            ccp++;
+        }
+        if (gi == 0x0A) {
+            line++;
+            cx = 0;
+            cy += Size;
+            mx = max(mx, cx);
+            my = line * Size;
+            continue;
+        }
+        auto sg = Glyphs[gi];
+        if (!sg) continue;
+        if (rt) DrawRectGraph(
+            cx + sg->BearX, cy + sg->BearY,
+            sg->GlyphX, sg->GlyphY,
+            sg->GlyphWidth, sg->GlyphHeight,
+            Images[sg->ImageNumber]->GetHandle(),
+            TRUE, FALSE);
+        cx += sg->WholeAdvance;
+    }
+    if (rt) {
+        FINISH_DRAW_TRANSACTION;
+    }
 	mx = max(mx, cx);
 	my = line * Size;
 	return make_tuple(mx, my, line);
@@ -197,19 +212,18 @@ SFont * SFont::CreateLoadedFontFromFile(const string & file)
 	auto result = new SFont();
 	ifstream font(ConvertUTF8ToUnicode(file), ios::in | ios::binary);
 
-	FontDataHeader header;
-	font.read((char*)&header, sizeof(FontDataHeader));
-	result->Size = header.Size;
+	Sif2Header header;
+	font.read((char*)&header, sizeof(Sif2Header));
+	result->Size = header.FontSize;
 
-	for (int i = 0; i < header.GlyphCount; i++) {
-		GlyphInfo *info = new GlyphInfo();
-		font.read((char*)info, sizeof(GlyphInfo));
-        if (result->Chars[info->letter]) continue; //TODO:wchar_t”ÍˆÍŠO‚Ì•¶Žš‚Ì‘Î‰ž
-		result->Chars[info->letter] = info;
+	for (int i = 0; i < header.Glyphs; i++) {
+		Sif2Glyph *info = new Sif2Glyph();
+		font.read((char*)info, sizeof(Sif2Glyph));
+		result->Glyphs[info->Codepoint] = info;
 	}
-	int size;
-	for (int i = 0; i < header.ImageCount; i++) {
-		font.read((char*)&size, sizeof(int));
+	uint32_t size;
+	for (int i = 0; i < header.Images; i++) {
+		font.read((char*)&size, sizeof(uint32_t));
 		uint8_t *pngdata = new uint8_t[size];
 		font.read((char*)pngdata, size);
 		result->Images.push_back(SImage::CreateLoadedImageFromMemory(pngdata, size));

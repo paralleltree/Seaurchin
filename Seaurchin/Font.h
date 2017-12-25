@@ -1,26 +1,5 @@
 #pragma once
 
-typedef struct
-{
-    uint16_t texture;
-    uint16_t width;
-    uint16_t height;
-    uint16_t x;
-    uint16_t y;
-    int16_t bearX;
-    int16_t bearY;
-    uint16_t wholeAdvance;
-    wchar_t letter;
-} GlyphInfo;
-
-typedef struct
-{
-    //ÉCÉÅÅ[ÉWñºÇÕ64byteÇ∏Ç¬
-    uint16_t ImageCount;
-    uint32_t GlyphCount;
-    int Size;
-} FontDataHeader;
-
 class RectPacker final
 {
 private:
@@ -69,7 +48,7 @@ enum class FontCreationStyle {
     Oblique = 2,
 };
 
-struct FontCreationOption {
+struct Sif2CreatorOption {
     std::string FontPath;
     std::string TextSource;
     float Size;
@@ -116,5 +95,5 @@ public:
     Sif2Creator();
     ~Sif2Creator();
 
-    void CreateSif2(const FontCreationOption &option, boost::filesystem::path outputPath);
+    void CreateSif2(const Sif2CreatorOption &option, boost::filesystem::path outputPath);
 };

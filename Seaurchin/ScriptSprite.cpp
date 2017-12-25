@@ -327,10 +327,9 @@ void STextSprite::Refresh()
 {
     if (!Font) return;
     if (Target) delete Target;
-    wstring cs = ConvertUTF8ToUnicode(Text);
-    auto size = Font->RenderRaw(nullptr, cs);
+    auto size = Font->RenderRaw(nullptr, Text);
     Target = new SRenderTarget((int)get<0>(size), (int)get<1>(size));
-    Font->RenderRaw(Target, cs);
+    Font->RenderRaw(Target, Text);
 }
 
 void STextSprite::set_Font(SFont * font)

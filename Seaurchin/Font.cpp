@@ -36,17 +36,18 @@ RectPacker::Rect RectPacker::Insert(int w, int h)
 
 void Sif2Creator::InitializeFace(string fontpath)
 {
+    // boost::filesystem::path up = ConvertUTF8ToUnicode(fontpath);
     auto log = spdlog::get("main");
     if (faceMemory) return;
-    ifstream fontfile(ConvertUTF8ToUnicode(fontpath));
+    ifstream fontfile(ConvertUTF8ToUnicode(fontpath), ios::in | ios::binary);
     fontfile.seekg(0, ios_base::end);
     faceMemorySize = fontfile.tellg();
-    fontfile.clear();
-    fontfile.seekg(0, ios_base::beg);
+    fontfile.seekg(ios_base::beg);
     faceMemory = new uint8_t[faceMemorySize];
     fontfile.read((char*)faceMemory, faceMemorySize);
     fontfile.close();
-
+    
+    // error = FT_New_Face(freetype, up.string().c_str(), 0, &face);
     error = FT_New_Memory_Face(freetype, faceMemory, faceMemorySize, 0, &face);
     if (error) {
         log->error(u8"フォント {0} を読み込めませんでした", fontpath);
@@ -114,7 +115,7 @@ void Sif2Creator::PackImageSif2()
         delete[] file;
     }
 
-    sif2stream.seekp(0);
+    sif2stream.seekp(0, ios::beg);
     sif2stream.write((const char*)&header, sizeof(header));
 }
 
@@ -129,6 +130,7 @@ void Sif2Creator::NewBitmap(uint16_t width, uint16_t height)
     bitmapHeight = height;
     if (bitmapMemory) delete[] bitmapMemory;
     bitmapMemory = new uint8_t[width * height * 2];
+    memset(bitmapMemory, 0, width * height * 2);
     packer.Init(width, height, 0);
 }
 
@@ -172,7 +174,7 @@ bool Sif2Creator::RenderGlyph(uint32_t cp)
 
     if (ginfo.GlyphWidth * ginfo.GlyphWidth == 0) {
         //まさか' 'がグリフを持たないとは思わなかった(いや当たり前でしょ)
-        sif2stream.write((const char*)&ginfo, sizeof(GlyphInfo));
+        sif2stream.write((const char*)&ginfo, sizeof(Sif2Glyph));
         writtenGlyphs++;
         return true;
     }
@@ -194,6 +196,7 @@ bool Sif2Creator::RenderGlyph(uint32_t cp)
     }
     delete[] buffer;
 
+    sif2stream.write((const char*)&ginfo, sizeof(Sif2Glyph));
     writtenGlyphs++;
     return true;
 }
@@ -210,7 +213,7 @@ Sif2Creator::~Sif2Creator()
     FT_Done_FreeType(freetype);
 }
 
-void Sif2Creator::CreateSif2(const FontCreationOption &option, boost::filesystem::path outputPath)
+void Sif2Creator::CreateSif2(const Sif2CreatorOption &option, boost::filesystem::path outputPath)
 {
     using namespace boost::filesystem;
     auto log = spdlog::get("main");
@@ -218,8 +221,9 @@ void Sif2Creator::CreateSif2(const FontCreationOption &option, boost::filesystem
 
     InitializeFace(option.FontPath);
     RequestFace(option.Size);
-    log->info(u8"フォント\"{0}\"内に{1}グリフあります", face->family_name, face->num_glyphs);
+    log->info(u8"フォント\"{0:s}\"内に{1:d}グリフあります", face->family_name, face->num_glyphs);
 
+    currentSize = option.Size;
     OpenSif2(outputPath);
     NewBitmap(option.ImageSize, option.ImageSize);
 
@@ -250,4 +254,5 @@ void Sif2Creator::CreateSif2(const FontCreationOption &option, boost::filesystem
 
     PackImageSif2();
     CloseSif2();
+    FinalizeFace();
 }

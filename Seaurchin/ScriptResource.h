@@ -99,7 +99,7 @@ public:
 class SFont : public SResource {
 protected:
     int Size = 0;
-    std::vector<GlyphInfo*> Chars;
+    std::unordered_map<uint32_t, Sif2Glyph*> Glyphs;
 
 public:
     std::vector<SImage*> Images;
@@ -107,7 +107,7 @@ public:
     ~SFont() override;
 
     inline int get_Size() { return Size; }
-    std::tuple<double, double, int> RenderRaw(SRenderTarget *rt, const std::wstring& str);
+    std::tuple<double, double, int> RenderRaw(SRenderTarget *rt, const std::string& utf8str);
 
     static SFont* CreateBlankFont();
     static SFont* CreateLoadedFontFromFile(const std::string &file);
