@@ -2,6 +2,7 @@
 #include "ExecutionManager.h"
 #include "Result.h"
 #include "Misc.h"
+#include "Setting.h"
 
 using namespace std;
 
@@ -17,6 +18,13 @@ void RegisterCharacterTypes(ExecutionManager *exm)
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnJustice(" SU_IF_RESULT "@)");
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnAttack(" SU_IF_RESULT "@)");
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnMiss(" SU_IF_RESULT "@)");
+
+    engine->RegisterObjectType(SU_IF_CHARACTER_MANAGER, 0, asOBJ_REF | asOBJ_NOCOUNT);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "void Next()", asMETHOD(CharacterManager, Next), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "void Previous()", asMETHOD(CharacterManager, Previous), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "string GetName()", asMETHOD(CharacterManager, GetName), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "string GetDescription()", asMETHOD(CharacterManager, GetDescription), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "string GetImagePath()", asMETHOD(CharacterManager, GetImagePath), asCALL_THISCALL);
 }
 
 asIScriptObject* Character::LoadAbility(boost::filesystem::path spath)
@@ -171,7 +179,7 @@ shared_ptr<CharacterInfo> CharacterInfo::LoadFromToml(const boost::filesystem::p
     try {
         result->Name = ci.get<string>("Name");
         result->Description = ci.get<string>("Description");
-
+        result->ImagePath = path.parent_path() / ConvertUTF8ToUnicode(ci.get<string>("Image"));
         auto abilities = ci.get<vector<toml::Table>>("Abilities");
         for (const auto &ability : abilities) {
             AbilityInfo ai;
@@ -200,4 +208,63 @@ shared_ptr<CharacterInfo> CharacterInfo::LoadFromToml(const boost::filesystem::p
         return nullptr;
     }
     return result;
+}
+
+CharacterManager::CharacterManager(ExecutionManager *exm)
+{
+    manager = exm;
+}
+
+void CharacterManager::Load()
+{
+    using namespace boost;
+    using namespace boost::filesystem;
+    using namespace boost::xpressive;
+    auto log = spdlog::get("main");
+
+    path sepath = Setting::GetRootDirectory() / SU_DATA_DIR / SU_CHARACTER_DIR;
+
+    for (const auto& fdata : make_iterator_range(directory_iterator(sepath), {})) {
+        if (is_directory(fdata)) continue;
+        auto filename = ConvertUnicodeToUTF8(fdata.path().wstring());
+        if (!ends_with(filename, ".toml")) continue;
+        Characters.push_back(CharacterInfo::LoadFromToml(fdata.path()));
+    }
+    log->info(u8"キャラクター総数: {0:d}", Characters.size());
+}
+
+shared_ptr<Character> CharacterManager::CreateCharacterInstance(shared_ptr<Result> result)
+{
+    return make_shared<Character>(manager->GetScriptInterfaceSafe(), result, Characters[Selected]);
+}
+
+void CharacterManager::Next()
+{
+    Selected = (Selected + Characters.size() + 1) % Characters.size();
+}
+
+void CharacterManager::Previous()
+{
+    Selected = (Selected + Characters.size() - 1) % Characters.size();
+}
+
+string CharacterManager::GetName(int relative)
+{
+    int ri = Selected + relative;
+    while (ri < 0) ri += Characters.size();
+    return Characters[ri % Characters.size()]->Name;
+}
+
+string CharacterManager::GetDescription(int relative)
+{
+    int ri = Selected + relative;
+    while (ri < 0) ri += Characters.size();
+    return Characters[ri % Characters.size()]->Description;
+}
+
+string CharacterManager::GetImagePath(int relative)
+{
+    int ri = Selected + relative;
+    while (ri < 0) ri += Characters.size();
+    return ConvertUnicodeToUTF8(Characters[ri % Characters.size()]->ImagePath.wstring());
 }

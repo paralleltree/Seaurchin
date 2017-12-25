@@ -27,7 +27,7 @@ ExecutionManager::ExecutionManager(std::shared_ptr<Setting> setting)
     Random = make_shared<mt19937>(seed());
     SharedControlState = make_shared<ControlState>();
     Musics = make_shared<MusicsManager>(this);
-
+    Characters = make_shared<CharacterManager>(this);
 }
 
 void ExecutionManager::Initialize()
@@ -60,7 +60,7 @@ void ExecutionManager::Initialize()
     slfile.close();
     SettingManager->RetrieveAllValues();
 
-    LoadCharacters();
+    Characters->Load();
 
     /*
     hImc = ImmGetContext(GetMainWindowHandle());
@@ -77,24 +77,6 @@ void ExecutionManager::Shutdown()
     SharedControlState->Terminate();
     MixerBGM->Release();
     MixerSE->Release();
-}
-
-void ExecutionManager::LoadCharacters()
-{
-    using namespace boost;
-    using namespace boost::filesystem;
-    using namespace boost::xpressive;
-    auto log = spdlog::get("main");
-
-    path sepath = Setting::GetRootDirectory() / SU_DATA_DIR / SU_CHARACTER_DIR;
-
-    for (const auto& fdata : make_iterator_range(directory_iterator(sepath), {})) {
-        if (is_directory(fdata)) continue;
-        auto filename = ConvertUnicodeToUTF8(fdata.path().wstring());
-        if (!ends_with(filename, ".toml")) continue;
-        Characters.push_back(CharacterInfo::LoadFromToml(fdata.path()));
-    }
-    log->info(u8"キャラクター総数: {0:d}", Characters.size());
 }
 
 void ExecutionManager::RegisterGlobalManagementFunction()
@@ -116,6 +98,7 @@ void ExecutionManager::RegisterGlobalManagementFunction()
     engine->RegisterGlobalFunction("double GetDoubleData(const string &in)", asMETHODPR(ExecutionManager, GetData<double>, (const string&), double), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("string GetStringData(const string &in)", asMETHODPR(ExecutionManager, GetData<string>, (const string&), string), asCALL_THISCALL_ASGLOBAL, this);
 
+    engine->RegisterGlobalFunction(SU_IF_CHARACTER_MANAGER "@ GetCharacterManager()", asMETHOD(ExecutionManager, GetCharacterManager), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("bool Execute(const string &in)", asMETHODPR(ExecutionManager, ExecuteSkin, (const string&), bool), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("void ReloadMusic()", asMETHOD(ExecutionManager, ReloadMusic), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction(SU_IF_SOUNDMIXER "@ GetDefaultMixer(const string &in)", asMETHOD(ExecutionManager, GetDefaultMixer), asCALL_THISCALL_ASGLOBAL, this);

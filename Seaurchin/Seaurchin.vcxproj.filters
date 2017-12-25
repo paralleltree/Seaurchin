@@ -153,6 +153,9 @@
     <ClCompile Include="Result.cpp">
       <Filter>インターフェース\AngelScript</Filter>
     </ClCompile>
+    <ClCompile Include="Font.cpp">
+      <Filter>インターフェース\C++</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">
