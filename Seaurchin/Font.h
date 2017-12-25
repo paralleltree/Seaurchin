@@ -89,7 +89,7 @@ private:
     size_t faceMemorySize = 0;
 
     RectPacker packer;
-    ofstream sif2stream;
+    std::ofstream sif2stream;
 
     uint8_t *bitmapMemory = nullptr;
     uint16_t bitmapWidth = 0;
@@ -104,6 +104,7 @@ private:
     void RequestFace(float size);
 
     void OpenSif2(boost::filesystem::path sif2path);
+    void PackImageSif2();
     void CloseSif2();
 
     void NewBitmap(uint16_t width, uint16_t height);

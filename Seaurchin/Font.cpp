@@ -1,5 +1,7 @@
 #include "Font.h"
+#include "Config.h"
 #include "Misc.h"
+#include "Setting.h"
 
 using namespace std;
 
@@ -79,6 +81,41 @@ void Sif2Creator::OpenSif2(boost::filesystem::path sif2path)
 {
     sif2stream.open(sif2path.wstring(), ios::out | ios::trunc | ios::binary);
     sif2stream.seekp(sizeof(Sif2Header));
+    imageIndex = 0;
+    writtenGlyphs = 0;
+}
+
+void Sif2Creator::PackImageSif2()
+{
+    using namespace boost::filesystem;
+
+    Sif2Header header;
+    header.Magic = Sif2Magic;
+    header.FontSize = currentSize;
+    header.Images = imageIndex;
+    header.Glyphs = writtenGlyphs;
+
+    for (int i = 0; i < imageIndex; ++i) {
+        ostringstream fss;
+        fss << "FontCache" << i << ".png";
+        auto path = Setting::GetRootDirectory() / SU_DATA_DIR / SU_CACHE_DIR / fss.str();
+
+        std::ifstream fif;
+        fif.open(path.wstring(), ios::binary | ios::in);
+        uint32_t fsize = fif.seekg(0, ios::end).tellg();
+
+        uint8_t *file = new uint8_t[fsize];
+        fif.seekg(ios::beg);
+        fif.read((char*)file, fsize);
+        fif.close();
+
+        sif2stream.write((const char*)&fsize, sizeof(uint32_t));
+        sif2stream.write((const char*)file, fsize);
+        delete[] file;
+    }
+
+    sif2stream.seekp(0);
+    sif2stream.write((const char*)&header, sizeof(header));
 }
 
 void Sif2Creator::CloseSif2()
@@ -168,27 +205,49 @@ Sif2Creator::Sif2Creator()
 
 Sif2Creator::~Sif2Creator()
 {
+    if (bitmapMemory) delete[] bitmapMemory;
     FinalizeFace();
     FT_Done_FreeType(freetype);
 }
 
 void Sif2Creator::CreateSif2(const FontCreationOption &option, boost::filesystem::path outputPath)
 {
-    // using namespace boost::filesystem;
+    using namespace boost::filesystem;
     auto log = spdlog::get("main");
-
-    ofstream sifstream;
-    Sif2Header header;
-    header.Magic = Sif2Magic;
-    header.FontSize = option.Size;
+    auto cachepath = Setting::GetRootDirectory() / SU_DATA_DIR / SU_CACHE_DIR;
 
     InitializeFace(option.FontPath);
     RequestFace(option.Size);
     log->info(u8"フォント\"{0}\"内に{1}グリフあります", face->family_name, face->num_glyphs);
 
-    imageIndex = 0;
-    writtenGlyphs = 0;
     OpenSif2(outputPath);
+    NewBitmap(option.ImageSize, option.ImageSize);
 
+    if (option.TextSource == "") {
+        // render all
+        FT_ULong code;
+        FT_UInt gidx;
+        code = FT_Get_First_Char(face, &gidx);
+        while (gidx) {
+            if (!RenderGlyph(code)) {
+                ostringstream fss;
+                fss << "FontCache" << imageIndex << ".png";
+                SaveBitmapCache(cachepath / fss.str());
+                imageIndex++;
+                NewBitmap(bitmapWidth, bitmapHeight);
+                continue;
+            }
+            code = FT_Get_Next_Char(face, code, &gidx);
+        }
+    } else {
+        // render in text(utf8)
+    }
+
+    ostringstream fss;
+    fss << "FontCache" << imageIndex << ".png";
+    SaveBitmapCache(cachepath / fss.str());
+    imageIndex++;
+
+    PackImageSif2();
     CloseSif2();
 }
