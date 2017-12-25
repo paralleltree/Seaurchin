@@ -160,34 +160,25 @@ class Play : CoroutineScene {
     AddSprite(spBarFill);
     AddSprite(spBarFront);
     
-    PlayStatus psNow, psPrev;
-    int maxCombo = 0;
-    int gMax = 0;
-    double gCurrent = 0;
+    DrawableResult dsNow, dsPrev;
     while(true) {
-      int pgm = gMax;
-      double pgc = gCurrent;
-      player.GetPlayStatus(psNow);
-      psNow.GetGaugeValue(gMax, gCurrent);
-      if (gMax > pgm) for(int i = pgm; i < gMax; i++) {
+      player.GetCurrentResult(dsNow);
+      if (dsNow.FulfilledGauges > dsPrev.FulfilledGauges) for(int i = dsPrev.FulfilledGauges; i < dsNow.FulfilledGauges; i++) {
          spGaugeCounts[i].SetImage(imgGCFull);
          spGaugeCounts[i].Apply("scaleX:0.8");
          spGaugeCounts[i].AddMove("scale_to(x:0.5, y:0.3, time:0.3)");
       }
-      if (gCurrent != pgc) {
-        spBarFill.AddMove("range_size(width:" + formatFloat(gCurrent, '', 1, 4) + ", height:1, time:0.1, ease:out_sine)");
-        txtScore.SetText(formatInt(psNow.GetScore(), "", 8));
+      if (dsNow.CurrentGaugeRatio != dsPrev.CurrentGaugeRatio) {
+        spBarFill.AddMove("range_size(width:" + formatFloat(dsNow.CurrentGaugeRatio, '', 1, 4) + ", height:1, time:0.1, ease:out_sine)");
+        txtScore.SetText(formatInt(dsNow.Score, "", 8));
       }
-      if (psNow.Combo > maxCombo) {
-        maxCombo = psNow.Combo;
-        txtMaxCombo.SetText(formatInt(maxCombo, "", 5));
-      }
+      if (dsNow.MaxCombo != dsPrev.MaxCombo) txtMaxCombo.SetText(formatInt(dsNow.MaxCombo, "", 5));
       
-      spCounts[0].SetText("" + psNow.JusticeCritical);
-      spCounts[1].SetText("" + psNow.Justice);
-      spCounts[2].SetText("" + psNow.Attack);
-      spCounts[3].SetText("" + psNow.Miss);
-      psPrev = psNow;
+      spCounts[0].SetText("" + dsNow.JusticeCritical);
+      spCounts[1].SetText("" + dsNow.Justice);
+      spCounts[2].SetText("" + dsNow.Attack);
+      spCounts[3].SetText("" + dsNow.Miss);
+      dsPrev = dsNow;
       YieldFrame(1);
     }
   }
