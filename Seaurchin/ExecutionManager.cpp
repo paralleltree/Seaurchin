@@ -25,7 +25,6 @@ ExecutionManager::ExecutionManager(std::shared_ptr<Setting> setting)
     ScriptInterface = make_shared<AngelScript>();
     Sound = make_shared<SoundManager>();
     Random = make_shared<mt19937>(seed());
-    SuEffect = unique_ptr<EffectBuilder>(new EffectBuilder(Random));
     SharedControlState = make_shared<ControlState>();
     Musics = make_shared<MusicsManager>(this);
 

@@ -51,7 +51,7 @@ void Setting::Save() const
 {
     auto log = spdlog::get("main");
     std::ofstream ofs((RootDirectory / file).wstring(), ios::out);
-    SettingTree.write(&ofs);
+    if (SettingTree.valid()) SettingTree.write(&ofs);
     log->info(u8"Ý’èƒtƒ@ƒCƒ‹‚ð•Û‘¶‚µ‚Ü‚µ‚½");
     ofs.close();
 }

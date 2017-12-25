@@ -2,7 +2,6 @@
 
 #include "Debug.h"
 #include "Font.h"
-#include "EffectData.h"
 #include "SoundManager.h"
 #include "Misc.h"
 #include "Setting.h"
@@ -12,8 +11,6 @@
 #define SU_IF_RENDER "RenderTarget"
 #define SU_IF_SOUNDMIXER "SoundMixer"
 #define SU_IF_SOUND "Sound"
-#define SU_IF_EFXDATA "EffectData"
-#define SU_IF_9IMAGE "NinePatchImage"
 #define SU_IF_ANIMEIMAGE "AnimatedImage"
 #define SU_IF_SETTING_ITEM "SettingItem"
 
@@ -114,17 +111,6 @@ public:
 
     static SFont* CreateBlankFont();
     static SFont* CreateLoadedFontFromFile(const std::string &file);
-};
-
-//エフェクト
-class SEffect : public SResource {
-protected:
-
-public:
-    EffectData *data;
-
-    SEffect(EffectData *rawdata);
-    ~SEffect() override;
 };
 
 class SSound : public SResource {

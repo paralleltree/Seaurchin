@@ -4,7 +4,6 @@
 #include "AngelScriptManager.h"
 #include "Scene.h"
 #include "ScriptScene.h"
-#include "EffectBuilder.h"
 #include "SkinHolder.h"
 #include "MusicsManager.h"
 #include "SoundManager.h"
@@ -21,7 +20,6 @@ private:
     std::shared_ptr<ControlState> SharedControlState;
     std::vector<std::wstring> SkinNames;
     std::unique_ptr<SkinHolder> Skin;
-    std::unique_ptr<EffectBuilder> SuEffect;
     std::shared_ptr<std::mt19937> Random;
     std::shared_ptr<SoundManager> Sound;
     std::shared_ptr<MusicsManager> Musics;

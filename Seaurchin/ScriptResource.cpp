@@ -219,16 +219,6 @@ SFont * SFont::CreateLoadedFontFromFile(const string & file)
 	return result;
 }
 
-// SEffect --------------------------------
-
-SEffect::SEffect(EffectData *rawdata)
-{
-	data = rawdata;
-}
-
-SEffect::~SEffect()
-{}
-
 // SSoundMixer ------------------------------
 
 SSoundMixer::SSoundMixer(SoundMixerStream * mixer)
@@ -352,11 +342,6 @@ void RegisterScriptResource(ExecutionManager *exm)
 	engine->RegisterObjectBehaviour(SU_IF_FONT, asBEHAVE_RELEASE, "void f()", asMETHOD(SFont, Release), asCALL_THISCALL);
 	engine->RegisterObjectMethod(SU_IF_FONT, "int get_Size()", asMETHOD(SFont, get_Size), asCALL_THISCALL);
 
-	engine->RegisterObjectType(SU_IF_EFXDATA, 0, asOBJ_REF);
-	//engine->RegisterObjectBehaviour(SU_IF_EFXDATA, asBEHAVE_FACTORY, SU_IF_EFXDATA "@ f()", asFUNCTION(SFont::CreateBlankFont), asCALL_CDECL);
-	engine->RegisterObjectBehaviour(SU_IF_EFXDATA, asBEHAVE_ADDREF, "void f()", asMETHOD(SEffect, AddRef), asCALL_THISCALL);
-	engine->RegisterObjectBehaviour(SU_IF_EFXDATA, asBEHAVE_RELEASE, "void f()", asMETHOD(SEffect, Release), asCALL_THISCALL);
-
 	engine->RegisterObjectType(SU_IF_SOUND, 0, asOBJ_REF);
 	engine->RegisterObjectBehaviour(SU_IF_SOUND, asBEHAVE_ADDREF, "void f()", asMETHOD(SSound, AddRef), asCALL_THISCALL);
 	engine->RegisterObjectBehaviour(SU_IF_SOUND, asBEHAVE_RELEASE, "void f()", asMETHOD(SSound, Release), asCALL_THISCALL);
@@ -367,13 +352,6 @@ void RegisterScriptResource(ExecutionManager *exm)
     engine->RegisterObjectBehaviour(SU_IF_SOUNDMIXER, asBEHAVE_RELEASE, "void f()", asMETHOD(SSoundMixer, Release), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SOUNDMIXER, "void Play(" SU_IF_SOUND "@)", asMETHOD(SSoundMixer, Play), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SOUNDMIXER, "void Stop(" SU_IF_SOUND "@)", asMETHOD(SSoundMixer, Stop), asCALL_THISCALL);
-
-	engine->RegisterObjectType(SU_IF_9IMAGE, 0, asOBJ_REF);
-	//engine->RegisterObjectBehaviour(SU_IF_9IMAGE, asBEHAVE_FACTORY, SU_IF_IMAGE "@ f()", asFUNCTION(SNinePatchImage::CreateBlankImage), asCALL_CDECL);
-	engine->RegisterObjectBehaviour(SU_IF_9IMAGE, asBEHAVE_ADDREF, "void f()", asMETHOD(SNinePatchImage, AddRef), asCALL_THISCALL);
-	engine->RegisterObjectBehaviour(SU_IF_9IMAGE, asBEHAVE_RELEASE, "void f()", asMETHOD(SNinePatchImage, Release), asCALL_THISCALL);
-	engine->RegisterObjectMethod(SU_IF_9IMAGE, "int get_Width()", asMETHOD(SNinePatchImage, get_Width), asCALL_THISCALL);
-	engine->RegisterObjectMethod(SU_IF_9IMAGE, "int get_Height()", asMETHOD(SNinePatchImage, get_Height), asCALL_THISCALL);
 
     engine->RegisterObjectType(SU_IF_ANIMEIMAGE, 0, asOBJ_REF);
     engine->RegisterObjectBehaviour(SU_IF_ANIMEIMAGE, asBEHAVE_ADDREF, "void f()", asMETHOD(SAnimatedImage, AddRef), asCALL_THISCALL);

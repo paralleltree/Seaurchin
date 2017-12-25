@@ -1,6 +1,5 @@
 #pragma once
 
-#include "EffectData.h"
 #include "ScriptSpriteMisc.h"
 #include "ScriptResource.h"
 
@@ -15,8 +14,6 @@
 #define SU_IF_TXTSPRITE "TextSprite"
 #define SU_IF_SYHSPRITE "SynthSprite"
 #define SU_IF_CLPSPRITE "ClipSprite"
-#define SU_IF_EFXSPRITE "EffectSprite"
-#define SU_IF_9SPRITE "NinePatchSprite"
 #define SU_IF_ANIMESPRITE "AnimeSprite"
 
 class ScriptSpriteMover;
@@ -222,53 +219,11 @@ public:
     static void RegisterType(asIScriptEngine *engine);
 };
 
-class SEffectSprite : public SSprite
-{
-protected:
-    EffectInstance *Instance;
-    bool IsPlaying = true;
-
-public:
-    SEffectSprite(EffectInstance *effect);
-    ~SEffectSprite();
-
-    void Draw() override;
-    void Tick(double delta) override;
-    void Play();
-    void Reset();
-    void Stop();
-
-    static SEffectSprite* Factory(SEffect *effectData);
-    static void RegisterType(asIScriptEngine *engine);
-};
-
 enum NinePatchType : uint32_t {
     StretchByRatio = 1,
     StretchByPixel,
     Repeat,
     RepeatAndStretch,
-};
-
-class SNinePatchSprite : public SSprite {
-protected:
-    SNinePatchImage *Image = nullptr;
-    NinePatchType Type;
-    float PatchScaleX = 1.0;
-    float PatchScaleY = 1.0;
-
-public:
-    SNinePatchSprite();
-    ~SNinePatchSprite();
-    SNinePatchImage *get_Image();
-    void set_Image(SNinePatchImage *image);
-
-    void SetDrawMethod(NinePatchType type, float sx, float sy);
-    void Draw() override;
-    SNinePatchSprite *Clone();
-
-    static SNinePatchSprite* Factory();
-    static SNinePatchSprite* Factory(SNinePatchImage *img);
-    static void RegisterType(asIScriptEngine *engine);
 };
 
 template<typename T>
