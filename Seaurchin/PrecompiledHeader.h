@@ -1,12 +1,14 @@
 #pragma once
 
+#define _CRT_SECURE_NO_WARNINGS
+#define _USE_MATH_DEFINES
+
 //Windows
 #include <Windows.h>
 #include <Shlwapi.h>
 #include <Imm.h>
 
 //C Runtime
-#define _USE_MATH_DEFINES
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
@@ -40,8 +42,6 @@
 
 //Boost
 #include <boost/config.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <boost/regex.hpp>
@@ -50,7 +50,6 @@
 #include <boost/algorithm/clamp.hpp>
 #include <boost/crc.hpp>
 #include <boost/any.hpp>
-#include <boost/fusion/include/std_tuple.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/optional.hpp>
 
@@ -84,3 +83,5 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/wincolor_sink.h>
 #include <spdlog/sinks/sink.h>
+
+#include <toml/toml.h>

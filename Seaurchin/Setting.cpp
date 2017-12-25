@@ -4,7 +4,6 @@
 #include "Misc.h"
 
 using namespace std;
-using namespace boost::property_tree;
 using namespace boost::filesystem;
 namespace ba = boost::algorithm;
 
@@ -33,8 +32,13 @@ void Setting::Load(const wstring &filename)
         Save();
     }
     std::ifstream ifs((RootDirectory / file).wstring(), ios::in);
-    read_json(ifs, SettingTree);
-    log->info(u8"設定ファイルを読み込みました");
+    auto pr = toml::parse(ifs);
+    if (!pr.valid()) {
+        log->error(u8"設定ファイルの記述が不正です: {0}", pr.errorReason);
+    } else {
+        SettingTree = pr.value;
+        log->info(u8"設定ファイルを読み込みました");
+    }
     ifs.close();
 }
 
@@ -47,7 +51,7 @@ void Setting::Save() const
 {
     auto log = spdlog::get("main");
     std::ofstream ofs((RootDirectory / file).wstring(), ios::out);
-    write_json(ofs, SettingTree);
+    SettingTree.write(&ofs);
     log->info(u8"設定ファイルを保存しました");
     ofs.close();
 }

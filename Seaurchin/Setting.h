@@ -7,7 +7,7 @@ class Setting final {
 private:
     static std::wstring RootDirectory;
     std::wstring file;
-    boost::property_tree::ptree SettingTree;
+    toml::Value SettingTree;
 
 public:
     Setting();
@@ -20,9 +20,9 @@ public:
     template<typename T>
     T ReadValue(const std::string &group, const std::string &key, T defValue)
     {
-        boost::optional<T> v = SettingTree.get_optional<T>(group + "." + key);
-        if (v) {
-            return v.get();
+        auto v = SettingTree.find(group + "." + key);
+        if (v && v->is<T>()) {
+            return v->as<T>();
         } else {
             WriteValue(group, key, defValue);
             return defValue;
@@ -32,7 +32,7 @@ public:
     template<typename T>
     void WriteValue(const std::string &group, const std::string &key, T value)
     {
-        SettingTree.put<T>(group + "." + key, value);
+        SettingTree.set(group + "." + key, value);
     }
 };
 
