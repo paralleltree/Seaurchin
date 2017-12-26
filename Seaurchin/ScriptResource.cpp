@@ -176,10 +176,10 @@ tuple<double, double, int> SFont::RenderRaw(SRenderTarget *rt, const string &utf
         }
         if (gi == 0x0A) {
             line++;
-            cx = 0;
-            cy += Size;
             mx = max(mx, cx);
             my = line * Size;
+            cx = 0;
+            cy += Size;
             continue;
         }
         auto sg = Glyphs[gi];

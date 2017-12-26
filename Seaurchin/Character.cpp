@@ -22,9 +22,9 @@ void RegisterCharacterTypes(ExecutionManager *exm)
     engine->RegisterObjectType(SU_IF_CHARACTER_MANAGER, 0, asOBJ_REF | asOBJ_NOCOUNT);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "void Next()", asMETHOD(CharacterManager, Next), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "void Previous()", asMETHOD(CharacterManager, Previous), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "string GetName()", asMETHOD(CharacterManager, GetName), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "string GetDescription()", asMETHOD(CharacterManager, GetDescription), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "string GetImagePath()", asMETHOD(CharacterManager, GetImagePath), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "string GetName(int)", asMETHOD(CharacterManager, GetName), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "string GetDescription(int)", asMETHOD(CharacterManager, GetDescription), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "string GetImagePath(int)", asMETHOD(CharacterManager, GetImagePath), asCALL_THISCALL);
 }
 
 asIScriptObject* Character::LoadAbility(boost::filesystem::path spath)
