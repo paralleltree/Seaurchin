@@ -107,12 +107,21 @@ void Character::Initialize()
         auto init = abt->GetMethodByDecl("void Initialize(dictionary@)");
         if (!init) continue;
         
-        auto at = ScriptInterface->GetEngine()->GetTypeInfoByDecl("array<string>");
         auto args = CScriptDictionary::Create(ScriptInterface->GetEngine());
         for (const auto &arg : def.Arguments) {
             auto key = arg.first;
             auto value = arg.second;
             auto &vid = value.type();
+            if (vid == typeid(int)) {
+                asINT64 avalue = boost::any_cast<int>(value);
+                args->Set(key, avalue);
+            } else if (vid == typeid(double)) {
+                double avalue = boost::any_cast<double>(value);
+                args->Set(key, avalue);
+            } else if (vid == typeid(string)) {
+                string avalue = boost::any_cast<string>(value);
+                args->Set(key, &avalue, ScriptInterface->GetEngine()->GetTypeIdByDecl("string"));
+            }
         }
 
         context->Prepare(init);
@@ -231,6 +240,7 @@ void CharacterManager::Load()
         Characters.push_back(CharacterInfo::LoadFromToml(fdata.path()));
     }
     log->info(u8"キャラクター総数: {0:d}", Characters.size());
+    Selected = 0;
 }
 
 shared_ptr<Character> CharacterManager::CreateCharacterInstance(shared_ptr<Result> result)

@@ -100,6 +100,8 @@ void ExecutionManager::RegisterGlobalManagementFunction()
 
     engine->RegisterGlobalFunction(SU_IF_CHARACTER_MANAGER "@ GetCharacterManager()", asMETHOD(ExecutionManager, GetCharacterManager), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("bool Execute(const string &in)", asMETHODPR(ExecutionManager, ExecuteSkin, (const string&), bool), asCALL_THISCALL_ASGLOBAL, this);
+    engine->RegisterGlobalFunction("bool ExecuteScene(" SU_IF_SCENE "@)", asMETHODPR(ExecutionManager, ExecuteScene, (asIScriptObject*), bool), asCALL_THISCALL_ASGLOBAL, this);
+    engine->RegisterGlobalFunction("bool ExecuteScene(" SU_IF_COSCENE "@)", asMETHODPR(ExecutionManager, ExecuteScene, (asIScriptObject*), bool), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("void ReloadMusic()", asMETHOD(ExecutionManager, ReloadMusic), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction(SU_IF_SOUNDMIXER "@ GetDefaultMixer(const string &in)", asMETHOD(ExecutionManager, GetDefaultMixer), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterObjectBehaviour(SU_IF_MSCURSOR, asBEHAVE_FACTORY, SU_IF_MSCURSOR "@ f()", asMETHOD(MusicsManager, CreateMusicSelectionCursor), asCALL_THISCALL_ASGLOBAL, Musics.get());
@@ -168,6 +170,17 @@ bool ExecutionManager::ExecuteSkin(const string &file)
     return true;
 }
 
+bool ExecutionManager::ExecuteScene(asIScriptObject *sceneObject)
+{
+    auto log = spdlog::get("main");
+    auto s = CreateSceneFromScriptObject(sceneObject);
+    if (!s) return false;
+    sceneObject->SetUserData(Skin.get(), SU_UDTYPE_SKIN);
+    AddScene(s);
+    // カウンタ加算が余計なので1回戻す
+    sceneObject->Release();
+    return true;
+}
 
 void ExecutionManager::ExecuteSystemMenu()
 {

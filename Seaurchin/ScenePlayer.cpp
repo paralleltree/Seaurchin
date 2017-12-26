@@ -76,13 +76,8 @@ void ScenePlayer::Initialize()
     PreloadingTime = 0.5;
 
     LoadResources();
-    
-    shared_ptr<CharacterInfo> testinfo = make_shared<CharacterInfo>();
-    testinfo->Name = u8"“K“–‚È–¼‘O";
-    testinfo->Description = u8"“K“–‚Èà–¾";
-    // testinfo->Abilities.push_back("Boost 1.6");
 
-    CurrentCharacter = make_unique<Character>(manager->GetScriptInterfaceSafe(), CurrentResult, testinfo);
+    CurrentCharacter = manager->GetCharacterManager()->CreateCharacterInstance(CurrentResult);
     CurrentCharacter->Initialize();
     CurrentCharacter->OnStart();
 }

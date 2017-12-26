@@ -99,7 +99,7 @@ protected:
     std::shared_ptr<Result> CurrentResult;
     DrawableResult PreviousStatus, Status;
 
-    std::unique_ptr<Character> CurrentCharacter;
+    std::shared_ptr<Character> CurrentCharacter;
 
     // ‹È‚Ì“r’†‚Å•Ï‰»‚·‚é‚â‚Â‚ç
     std::vector<std::shared_ptr<SusDrawableNoteData>> data;

@@ -54,6 +54,7 @@ public:
     std::tuple<bool, LRESULT> CustomWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
     void ExecuteSkin();
     bool ExecuteSkin(const std::string &file);
+    bool ExecuteScene(asIScriptObject *sceneObject);
     void ExecuteSystemMenu();
     void ReloadMusic();
     void Fire(const std::string &message);

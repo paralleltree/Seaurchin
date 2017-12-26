@@ -63,7 +63,9 @@ void ScriptScene::OnEvent(const string &message)
     if (!func) return;
     auto evc = manager->GetScriptInterfaceUnsafe()->GetEngine()->CreateContext();
     evc->Prepare(func);
+    evc->SetUserData(this, SU_UDTYPE_SCENE);
     evc->SetObject(sceneObject);
+    evc->SetArgAddress(0, (void*)&message);
     evc->Execute();
     evc->Release();
 }
