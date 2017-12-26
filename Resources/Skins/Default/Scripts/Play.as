@@ -5,15 +5,17 @@ class Play : CoroutineScene {
   Image@ imgGCEmpty, imgGCFull, imgGBBack, imgGBFill, imgGBFront;
   Font@ font32, font64, fontLatin;
   ScenePlayer@ player;
+  CharacterInfo charinfo;
   
   void Initialize() {
     LoadResources();
+    ExecuteScene(charinfo);
   }
   
   void Run() {
-    RunCoroutine(Coroutine(RunPlayer), "Play:RunPlayer");
-    RunCoroutine(Coroutine(Main), "Play:Main");
-    RunCoroutine(Coroutine(KeyInput), "Play:KeyInput");
+    RunCoroutine(Coroutine(RunPlayer), "Player:RunPlayer");
+    RunCoroutine(Coroutine(Main), "Player:Main");
+    RunCoroutine(Coroutine(KeyInput), "Player:KeyInput");
     YieldTime(1);
     while(true) YieldTime(30);
   }
@@ -74,6 +76,8 @@ class Play : CoroutineScene {
     player.Load();
     while(!player.IsLoadCompleted()) YieldFrame(1);
     SetMusicInfo();
+    Fire("Player:Ready");
+    YieldTime(5);
     player.Play();
   }
   
@@ -92,22 +96,29 @@ class Play : CoroutineScene {
     @txtMaxCombo = TextSprite(font64, "0");
     txtMaxCombo.Apply("x:630, y:8, scaleX: 0.6, scaleY: 0.6, z:15");
     txtMaxCombo.SetAlignment(TextAlign::Right, TextAlign::Top);
+    
     @txtMaxComboInfo = TextSprite(font64, "Max Combo");
     txtMaxComboInfo.Apply("x:390, y:10, scaleX: 0.5, scaleY: 0.5, z:15");
     
     @txtScore = TextSprite(font64, "0");
     txtScore.Apply("x:890, y:8, scaleX: 0.6, scaleY: 0.6, z:15");
     txtScore.SetAlignment(TextAlign::Right, TextAlign::Top);
+    
     @txtScoreInfo = TextSprite(font64, "Score");
     txtScoreInfo.Apply("x:650, y:10, scaleX: 0.5, scaleY: 0.5, z:15");
     
     @txtLevel = TextSprite(font64, "");
     txtLevel.Apply("x:1276, y: -8, z: 15");
     txtLevel.SetAlignment(TextAlign::Right, TextAlign::Top);
+    
     @txtTitle = TextSprite(font64, "");
-    txtTitle.Apply("x:1008, y: 26, z: 15, scaleX: 0.75, scaleY: 0.75");
+    txtTitle.Apply("x:1008, y: 26, z: 151");
+    txtTitle.SetRangeScroll(240, 20, 32);
+    
     @txtArtist = TextSprite(font32, "");
-    txtArtist.Apply("x: 1008, y: 70, z: 15");
+    txtArtist.Apply("x: 1008, y: 74, z: 15");
+    txtTitle.SetRangeScroll(240, 20, 32);
+    
     @spJacket = SynthSprite(640, 640);
     spJacket.Apply("x: 908, y: 4, z: 15, scaleX: 0.15, scaleY: 0.15");
     
@@ -195,7 +206,10 @@ class Play : CoroutineScene {
   void KeyInput() {
     while(true) {
       if (IsKeyTriggered(Key::INPUT_ESCAPE)) {
-        if (Execute("Select.as")) Disappear();
+        if (Execute("Select.as")) {
+          Fire("Player:End");
+          Disappear();
+        }
       }
       if (IsKeyTriggered(Key::INPUT_LEFT)) {
         player.MovePositionByMeasure(-1);
@@ -216,6 +230,86 @@ class Play : CoroutineScene {
       }
       
       YieldFrame(1);
+    }
+  }
+}
+
+class CharacterInfo : CoroutineScene {
+  Skin@ skin;
+  
+  void Initialize() {
+    @skin = GetSkin();
+    InitInfo();
+    InitReady();
+  }
+  
+  SynthSprite@ spInfo;
+  void InitInfo() {
+    CharacterManager@ cm = GetCharacterManager();
+    
+    @spInfo = SynthSprite(314, 302);
+    spInfo.Transfer(skin.GetImage("CharacterBack"), 0, 0);
+    spInfo.Transfer(Image(cm.GetImagePath(0)), 8, 6);
+    
+    TextSprite @spDescription = TextSprite(skin.GetFont("Normal32"), "");
+    spDescription.Apply("x:20, y: 166, r: 0, g: 0, b: 0");
+    spDescription.SetText(cm.GetDescription(0));
+    spDescription.SetRich(true);
+    spInfo.Transfer(spDescription);
+    
+    spInfo.Apply("x:-314, y: 110, z:30");
+    AddSprite(spInfo);
+  }
+  
+  Sprite@ spReadyBack, spReadyFront;
+  TextSprite@ spReady;
+  void InitReady() {
+    @spReadyBack = Sprite(skin.GetImage("Ready1"));
+    spReadyBack.Apply("origX:640, origY:72, x:640, y:360, z:40, scaleY:0");
+    
+    @spReadyFront = Sprite(skin.GetImage("Ready2"));
+    spReadyFront.Apply("origY:72, x:-1280, y:360, z:41");
+    
+    @spReady = TextSprite(skin.GetFont("Normal64"), "ARE YOU READY?");
+    spReady.SetAlignment(TextAlign::Center, TextAlign::Center);
+    spReady.Apply("x:640, y:360, z:41, scaleX:0");
+    
+    AddSprite(spReadyBack);
+    AddSprite(spReadyFront);
+    AddSprite(spReady);
+  }
+  
+  void ReadyString() {
+    spReady.AddMove("scale_to(x:1.4, y:1.4, time:0.3, wait:0.7, ease:out_back)");
+    spReady.AddMove("scale_to(x:1.4, y:0, time:0.1, wait:2.0, ease:out_sine)");
+    YieldTime(2.1);
+    spReady.SetText("START!");
+    spReady.AddMove("scale_to(x:1.4, y:1.4, time:0.3, wait:0.7, ease:out_back)");
+    spReady.AddMove("scale_to(x:4, y:1.4, time:0.5, wait:2, ease:out_sine)");
+    spReady.AddMove("alpha(x:1, y:0, time:0.5, wait:2)");
+    spReady.AddMove("death(wait:2.5)");
+  }
+  
+  void Run() {
+    while(true) YieldFrame(100);
+  }
+  
+  void Draw() {
+    
+  }
+  
+  void OnEvent(const string &in event) {
+    if (event == "Player:End") Disappear();
+    if (event == "Player:Ready") {
+      spInfo.AddMove("move_by(x:314, time:0.5, ease:out_quad)");
+      spReadyBack.AddMove("scale_to(x:1, y:1, time:0.3, ease:out_sine)");
+      spReadyFront.AddMove("move_by(x:1280, time:0.5, wait:0.3, ease:out_sine)");
+      RunCoroutine(Coroutine(ReadyString), "CharInfo:Ready");
+      // 4.1秒後にフェードアウト開始
+      spReadyBack.AddMove("scale_to(x:1, y:0, time:0.3, wait:4.1, ease:in_back)");
+      spReadyFront.AddMove("alpha(x:1, y:0, time:0.3, wait:4.1)");
+      spReadyBack.AddMove("death(wait:4.4)");
+      spReadyFront.AddMove("death(wait:4.4)");
     }
   }
 }

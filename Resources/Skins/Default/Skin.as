@@ -36,10 +36,14 @@ void InitializeSkin(Skin@ skin) {
   skin.LoadImage("JudgeM", "Judge-M.png");
   
   skin.LoadImage("MusicSelectFrame", "MusicSelect-Frame.png");
-  skin.LoadImage("CursorSetting", "Setting-Cursor.png"); //1024x48
-  skin.LoadImage("CursorMenu", "MenuCursor.png");         //320x64
-  skin.LoadImage("CursorCategory", "MusicSelect-Category.png");   //480x40
-  skin.LoadImage("CursorMusic", "MusicSelect-Music.png");         //480x40
+  skin.LoadImage("CursorSetting", "Setting-Cursor.png");          // 1024x48
+  skin.LoadImage("CursorMenu", "MenuCursor.png");                 // 320x64
+  skin.LoadImage("CursorCategory", "MusicSelect-Category.png");   // 480x40
+  skin.LoadImage("CursorMusic", "MusicSelect-Music.png");         // 480x40
+  
+  skin.LoadImage("CharacterBack", "CharacterBack.png");           // 314x302
+  skin.LoadImage("Ready1", "Ready1.png");                  // 1280x144
+  skin.LoadImage("Ready2", "Ready2.png");                  // 1280x144
   
   skin.LoadFont("Normal32", "Normal32.sif");
   skin.LoadFont("Normal64", "Normal64.sif");
