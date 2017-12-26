@@ -189,6 +189,7 @@ shared_ptr<CharacterInfo> CharacterInfo::LoadFromToml(const boost::filesystem::p
         result->Name = ci.get<string>("Name");
         result->Description = ci.get<string>("Description");
         result->ImagePath = path.parent_path() / ConvertUTF8ToUnicode(ci.get<string>("Image"));
+        result->SkillName = ci.get<string>("SkillName");
         auto abilities = ci.get<vector<toml::Table>>("Abilities");
         for (const auto &ability : abilities) {
             AbilityInfo ai;
@@ -277,4 +278,11 @@ string CharacterManager::GetImagePath(int relative)
     int ri = Selected + relative;
     while (ri < 0) ri += Characters.size();
     return ConvertUnicodeToUTF8(Characters[ri % Characters.size()]->ImagePath.wstring());
+}
+
+string CharacterManager::GetSkillName(int relative)
+{
+    int ri = Selected + relative;
+    while (ri < 0) ri += Characters.size();
+    return Characters[ri % Characters.size()]->SkillName;
 }

@@ -52,6 +52,7 @@
 #include <boost/any.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/optional.hpp>
+#include <boost/range/sub_range.hpp>
 
 //Libraries
 #include <DxLib.h>

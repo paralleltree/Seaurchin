@@ -5,6 +5,7 @@
 #include "SoundManager.h"
 #include "Misc.h"
 #include "Setting.h"
+#include "ScriptSpriteMisc.h"
 
 #define SU_IF_IMAGE "Image"
 #define SU_IF_FONT "Font"
@@ -108,6 +109,7 @@ public:
 
     inline int get_Size() { return Size; }
     std::tuple<double, double, int> RenderRaw(SRenderTarget *rt, const std::string& utf8str);
+    std::tuple<double, double, int> RenderRich(SRenderTarget *rt, const std::string& utf8str, const ColorTint &defcol);
 
     static SFont* CreateBlankFont();
     static SFont* CreateLoadedFontFromFile(const std::string &file);

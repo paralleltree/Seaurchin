@@ -14,6 +14,7 @@ struct AbilityInfo final {
 struct CharacterInfo final {
     std::string Name;
     std::string Description;
+    std::string SkillName;
     boost::filesystem::path ImagePath;
     std::vector<AbilityInfo> Abilities;
 
@@ -64,6 +65,7 @@ public:
     void Next();
     void Previous();
     std::string GetName(int relative);
+    std::string GetSkillName(int relative);
     std::string GetDescription(int relative);
     std::string GetImagePath(int relative);
 };

@@ -113,6 +113,7 @@ protected:
     int ScrollMargin = 0;
     double ScrollSpeed = 0;
     double ScrollPosition = 0;
+    bool IsRich = false;
 
     void Refresh();
     void DrawNormal();
@@ -124,6 +125,7 @@ public:
     void set_Text(const std::string &txt);
     void SetAlignment(STextAlign hori, STextAlign vert);
     void SetRangeScroll(int width, int margin, double pps);
+    void SetRich(bool enabled);
 
     ~STextSprite() override;
     void Tick(double delta) override;
