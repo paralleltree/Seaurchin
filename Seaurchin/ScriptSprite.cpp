@@ -327,9 +327,68 @@ void STextSprite::Refresh()
 {
     if (!Font) return;
     if (Target) delete Target;
-    auto size = Font->RenderRaw(nullptr, Text);
-    Target = new SRenderTarget((int)get<0>(size), (int)get<1>(size));
+    Size = Font->RenderRaw(nullptr, Text);
+    if (IsScrolling) {
+        // スクロール用に縦2倍確保
+        Target = new SRenderTarget((int)get<0>(Size), (int)get<1>(Size)* 2);
+    } else {
+        Target = new SRenderTarget((int)get<0>(Size), (int)get<1>(Size));
+    }
+    
     Font->RenderRaw(Target, Text);
+}
+
+void STextSprite::DrawNormal()
+{
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.A);
+    SetDrawBright(Color.R, Color.G, Color.B);
+    double tox = get<0>(Size) / 2 * (int)HorizontalAlignment;
+    double toy = get<1>(Size) / 2 * (int)VerticalAlignment;
+    DrawRectRotaGraph3F(
+        Transform.X, Transform.Y,
+        0, 0, get<0>(Size), get<1>(Size),
+        Transform.OriginX + tox, Transform.OriginY + toy,
+        Transform.ScaleX, Transform.ScaleY,
+        Transform.Angle, Target->GetHandle(), TRUE, FALSE);
+}
+
+void STextSprite::DrawScroll()
+{
+    int pds = GetDrawScreen();
+    SetDrawScreen(Target->GetHandle());
+    SetDrawBright(255, 255, 255);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+    if (ScrollSpeed >= 0) {
+        double reach = -ScrollPosition + (int)(ScrollPosition / (get<0>(Size) + ScrollMargin)) * (get<0>(Size) + ScrollMargin);
+        while (reach < ScrollWidth) {
+            DrawRectGraphF(
+                0, get<1>(Size),
+                0, 0, get<0>(Size), get<1>(Size),
+                Target->GetHandle(), TRUE, FALSE);
+            reach += get<0>(Size) + ScrollMargin;
+        }
+    } else {
+        double reach = -ScrollPosition - (int)(ScrollPosition / (get<0>(Size) + ScrollMargin)) * (get<0>(Size) + ScrollMargin);
+        while (reach > 0) {
+            DrawRectGraphF(
+                0, get<1>(Size),
+                0, 0, get<0>(Size), get<1>(Size),
+                Target->GetHandle(), TRUE, FALSE);
+            reach -= get<0>(Size) + ScrollMargin;
+        }
+    }
+    SetDrawScreen(pds);
+
+    SetDrawBright(Color.R, Color.G, Color.B);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.A);
+    double tox = ScrollWidth / 2 * (int)HorizontalAlignment;
+    double toy = get<1>(Size) / 2 * (int)VerticalAlignment;
+    DrawRectRotaGraph3F(
+        Transform.X, Transform.Y,
+        0, get<1>(Size), ScrollWidth, get<1>(Size),
+        Transform.OriginX + tox, Transform.OriginY + toy,
+        Transform.ScaleX, Transform.ScaleY,
+        Transform.Angle, Target->GetHandle(), TRUE, FALSE);
 }
 
 void STextSprite::set_Font(SFont * font)
@@ -351,25 +410,36 @@ void STextSprite::SetAlignment(STextAlign hori, STextAlign vert)
     VerticalAlignment = vert;
 }
 
+void STextSprite::SetRangeScroll(int width, int margin, double pps)
+{
+    IsScrolling = width > 0;
+    ScrollWidth = width;
+    ScrollMargin = margin;
+    ScrollSpeed = pps;
+    ScrollPosition = 0;
+    Refresh();
+}
+
 STextSprite::~STextSprite()
 {
     if (Font) Font->Release();
     if (Target) delete Target;
 }
 
+void STextSprite::Tick(double delta)
+{
+    SSprite::Tick(delta);
+    if (IsScrolling) ScrollPosition += ScrollSpeed * delta;
+}
+
 void STextSprite::Draw()
 {
     if (!Target) return;
-    SetDrawBright(Color.R, Color.G, Color.B);
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.A);
-    double tox = Target->get_Width() / 2 * (int)HorizontalAlignment;
-    double toy = Target->get_Height() / 2 * (int)VerticalAlignment;
-    DrawRotaGraph3F(
-        Transform.X, Transform.Y,
-        Transform.OriginX + tox, Transform.OriginY + toy,
-        Transform.ScaleX, Transform.ScaleY,
-        Transform.Angle, Target->GetHandle(),
-        TRUE, FALSE);
+    if (IsScrolling && Target->get_Width() >= ScrollWidth) {
+        // DrawScroll();
+    } else {
+        DrawNormal();
+    }
 }
 
 STextSprite * STextSprite::Clone()
@@ -417,6 +487,7 @@ void STextSprite::RegisterType(asIScriptEngine * engine)
     engine->RegisterObjectMethod(SU_IF_TXTSPRITE, "void SetFont(" SU_IF_FONT "@)", asMETHOD(STextSprite, set_Font), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_TXTSPRITE, "void SetText(const string &in)", asMETHOD(STextSprite, set_Text), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_TXTSPRITE, "void SetAlignment(" SU_IF_TEXTALIGN ", " SU_IF_TEXTALIGN ")", asMETHOD(STextSprite, SetAlignment), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_TXTSPRITE, "void SetRangeScroll(int, int, double)", asMETHOD(STextSprite, SetRangeScroll), asCALL_THISCALL);
 }
 
 // STextInput ---------------------------------------

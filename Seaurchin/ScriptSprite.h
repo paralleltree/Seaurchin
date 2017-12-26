@@ -104,18 +104,28 @@ class STextSprite : public SSprite
 {
 protected:
     SRenderTarget *Target = nullptr;
+    std::tuple<double, double, int> Size;
     STextAlign HorizontalAlignment = STextAlign::Left;
     STextAlign VerticalAlignment = STextAlign::Top;
+    bool IsScrolling = false;
+    int ScrollWidth = 0;
+    int ScrollMargin = 0;
+    double ScrollSpeed = 0;
+    double ScrollPosition = 0;
 
     void Refresh();
+    void DrawNormal();
+    void DrawScroll();
 public:
     SFont *Font = nullptr;
     std::string Text = "";
     void set_Font(SFont* font);
     void set_Text(const std::string &txt);
     void SetAlignment(STextAlign hori, STextAlign vert);
+    void SetRangeScroll(int width, int margin, double pps);
 
     ~STextSprite() override;
+    void Tick(double delta) override;
     void Draw() override;
     STextSprite *Clone();
 
