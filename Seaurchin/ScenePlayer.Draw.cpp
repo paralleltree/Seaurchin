@@ -137,6 +137,7 @@ void ScenePlayer::Draw()
 // position ‚Í 0 ~ 16
 void ScenePlayer::SpawnJudgeEffect(shared_ptr<SusDrawableNoteData> target, JudgeType type)
 {
+    Prepare3DDrawCall();
     auto position = target->StartLane + target->Length / 2.0;
     auto x = lerp(position / 16.0, SU_LANE_X_MIN, SU_LANE_X_MAX);
     switch (type) {
@@ -209,6 +210,7 @@ void ScenePlayer::RemoveSlideEffect()
 
 void ScenePlayer::UpdateSlideEffect()
 {
+    Prepare3DDrawCall();
     auto it = SlideEffects.begin();
     while (it != SlideEffects.end()) {
         auto note = (*it).first;

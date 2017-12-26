@@ -352,7 +352,6 @@ void STextSprite::DrawScroll()
     ClearDrawScreen();
     if (ScrollSpeed >= 0) {
         double reach = -ScrollPosition + (int)(ScrollPosition / (get<0>(Size) + ScrollMargin)) * (get<0>(Size) + ScrollMargin);
-        spdlog::get("main")->info("reach: {0}", reach);
         while (reach < ScrollWidth) {
             DrawRectGraphF(
                 reach, 0,

@@ -182,7 +182,7 @@ void SettingItemManager::AddSettingByString(const string &proc)
         si->RetrieveValue();
         Items[params[1] + "." + params[2]] = si;
     } else if (params[0] == "I") {
-        ReferredSetting->ReadValue(params[1], params[2], ConvertInteger(params[7]));
+        ReferredSetting->ReadValue<double>(params[1], params[2], ConvertInteger(params[7]));
         auto si = make_shared<NumberSettingItem>(ReferredSetting, params[1], params[2]);
         si->SetDescription(params[3]);
         si->SetFloatDigits(0);
