@@ -104,6 +104,7 @@ class STextSprite : public SSprite
 {
 protected:
     SRenderTarget *Target = nullptr;
+    SRenderTarget *ScrollBuffer = nullptr;
     std::tuple<double, double, int> Size;
     STextAlign HorizontalAlignment = STextAlign::Left;
     STextAlign VerticalAlignment = STextAlign::Top;

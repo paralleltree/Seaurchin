@@ -9,7 +9,7 @@ using namespace crc32_constexpr;
 
 void RegisterScriptSprite(ExecutionManager *exm)
 {
-	auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
+    auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
 
     SSprite::RegisterType(engine);
     SShape::RegisterType(engine);
@@ -74,12 +74,10 @@ function<bool(SSprite*, Mover&, double)> SSprite::GetCustomAction(const string &
 void SSprite::ParseCustomMover(Mover *mover, const vector<tuple<string, string>>& params)
 {
     using namespace crc32_constexpr;
-    for (auto& t : params)
-    {
-        switch (crc32_rec(0xffffffff,get<0>(t).c_str()))
-        {
-        case ""_crc32:
-            break;
+    for (auto& t : params) {
+        switch (crc32_rec(0xffffffff, get<0>(t).c_str())) {
+            case ""_crc32:
+                break;
         }
     }
 }
@@ -103,49 +101,47 @@ void SSprite::Apply(const string & dict)
     split(params, list, is_any_of(","));
 
     vector<string> pr;
-    for (auto& p : params)
-    {
+    for (auto& p : params) {
         pr.clear();
         split(pr, p, is_any_of(":"));
         if (pr.size() != 2) continue;
-        switch (crc32_rec(0xffffffff,pr[0].c_str()))
-        {
-        case "x"_crc32:
-            Transform.X = atof(pr[1].c_str());
-            break;
-        case "y"_crc32:
-            Transform.Y = atof(pr[1].c_str());
-            break;
-        case "z"_crc32:
-            ZIndex = atoi(pr[1].c_str());
-            break;
-        case "origX"_crc32:
-            Transform.OriginX = atof(pr[1].c_str());
-            break;
-        case "origY"_crc32:
-            Transform.OriginY = atof(pr[1].c_str());
-            break;
-        case "scaleX"_crc32:
-            Transform.ScaleX = atof(pr[1].c_str());
-            break;
-        case "scaleY"_crc32:
-            Transform.ScaleY = atof(pr[1].c_str());
-            break;
-        case "angle"_crc32:
-            Transform.Angle = atof(pr[1].c_str());
-            break;
-        case "alpha"_crc32:
-            Color.A = (unsigned char)(atof(pr[1].c_str()) * 255.0);
-            break;
-        case "r"_crc32:
-            Color.R = (unsigned char)atoi(pr[1].c_str());
-            break;
-        case "g"_crc32:
-            Color.G = (unsigned char)atoi(pr[1].c_str());
-            break;
-        case "b"_crc32:
-            Color.B = (unsigned char)atoi(pr[1].c_str());
-            break;
+        switch (crc32_rec(0xffffffff, pr[0].c_str())) {
+            case "x"_crc32:
+                Transform.X = atof(pr[1].c_str());
+                break;
+            case "y"_crc32:
+                Transform.Y = atof(pr[1].c_str());
+                break;
+            case "z"_crc32:
+                ZIndex = atoi(pr[1].c_str());
+                break;
+            case "origX"_crc32:
+                Transform.OriginX = atof(pr[1].c_str());
+                break;
+            case "origY"_crc32:
+                Transform.OriginY = atof(pr[1].c_str());
+                break;
+            case "scaleX"_crc32:
+                Transform.ScaleX = atof(pr[1].c_str());
+                break;
+            case "scaleY"_crc32:
+                Transform.ScaleY = atof(pr[1].c_str());
+                break;
+            case "angle"_crc32:
+                Transform.Angle = atof(pr[1].c_str());
+                break;
+            case "alpha"_crc32:
+                Color.A = (unsigned char)(atof(pr[1].c_str()) * 255.0);
+                break;
+            case "r"_crc32:
+                Color.R = (unsigned char)atoi(pr[1].c_str());
+                break;
+            case "g"_crc32:
+                Color.G = (unsigned char)atoi(pr[1].c_str());
+                break;
+            case "b"_crc32:
+                Color.B = (unsigned char)atoi(pr[1].c_str());
+                break;
         }
     }
 }
@@ -156,8 +152,7 @@ void SSprite::Apply(const CScriptDictionary & dict)
     ostringstream aps;
 
     auto i = dict.begin();
-    while (i != dict.end())
-    {
+    while (i != dict.end()) {
         auto key = i.GetKey();
         aps << key << ":";
         double dv = 0;
@@ -193,8 +188,7 @@ SSprite * SSprite::Clone()
     auto clone = new SSprite();
     clone->AddRef();
     clone->CopyParameterFrom(this);
-    if (Image)
-    {
+    if (Image) {
         Image->AddRef();
         clone->set_Image(Image);
     }
@@ -218,7 +212,7 @@ SSprite * SSprite::Factory(SImage * img)
 
 ColorTint GetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
 {
-    return ColorTint{ a, r, g, b };
+    return ColorTint { a, r, g, b };
 }
 
 void SSprite::RegisterType(asIScriptEngine * engine)
@@ -271,35 +265,34 @@ void SSprite::RegisterType(asIScriptEngine * engine)
 void SShape::Draw()
 {
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.A);
-    switch (Type)
-    {
-    case SShapeType::Pixel:
-        DrawPixel(Transform.X, Transform.Y, GetColor(Color.R, Color.G, Color.B));
-        break;
-    case SShapeType::Box:
-        DrawBoxAA(
-            Transform.X - Width / 2, Transform.Y - Height / 2,
-            Transform.X + Width / 2, Transform.Y + Height / 2,
-            GetColor(Color.R, Color.G, Color.B), FALSE);
-        break;
-    case SShapeType::BoxFill:
-        DrawBoxAA(
-            Transform.X - Width / 2, Transform.Y - Height / 2,
-            Transform.X + Width / 2, Transform.Y + Height / 2,
-            GetColor(Color.R, Color.G, Color.B), TRUE);
-        break;
-    case SShapeType::Oval:
-        DrawOvalAA(
-            Transform.X, Transform.Y,
-            Width / 2, Height / 2,
-            256, GetColor(Color.R, Color.G, Color.B), FALSE);
-        break;
-    case SShapeType::OvalFill:
-        DrawOvalAA(
-            Transform.X, Transform.Y,
-            Width / 2, Height / 2,
-            256, GetColor(Color.R, Color.G, Color.B), TRUE);
-        break;
+    switch (Type) {
+        case SShapeType::Pixel:
+            DrawPixel(Transform.X, Transform.Y, GetColor(Color.R, Color.G, Color.B));
+            break;
+        case SShapeType::Box:
+            DrawBoxAA(
+                Transform.X - Width / 2, Transform.Y - Height / 2,
+                Transform.X + Width / 2, Transform.Y + Height / 2,
+                GetColor(Color.R, Color.G, Color.B), FALSE);
+            break;
+        case SShapeType::BoxFill:
+            DrawBoxAA(
+                Transform.X - Width / 2, Transform.Y - Height / 2,
+                Transform.X + Width / 2, Transform.Y + Height / 2,
+                GetColor(Color.R, Color.G, Color.B), TRUE);
+            break;
+        case SShapeType::Oval:
+            DrawOvalAA(
+                Transform.X, Transform.Y,
+                Width / 2, Height / 2,
+                256, GetColor(Color.R, Color.G, Color.B), FALSE);
+            break;
+        case SShapeType::OvalFill:
+            DrawOvalAA(
+                Transform.X, Transform.Y,
+                Width / 2, Height / 2,
+                256, GetColor(Color.R, Color.G, Color.B), TRUE);
+            break;
     }
 }
 
@@ -327,14 +320,13 @@ void STextSprite::Refresh()
 {
     if (!Font) return;
     if (Target) delete Target;
+    if (ScrollBuffer) delete ScrollBuffer;
     Size = Font->RenderRaw(nullptr, Text);
     if (IsScrolling) {
-        // スクロール用に縦2倍確保
-        Target = new SRenderTarget((int)get<0>(Size), (int)get<1>(Size)* 2);
-    } else {
-        Target = new SRenderTarget((int)get<0>(Size), (int)get<1>(Size));
+        ScrollBuffer = new SRenderTarget(ScrollWidth, (int)get<1>(Size));
     }
-    
+    Target = new SRenderTarget((int)get<0>(Size), (int)get<1>(Size));
+
     Font->RenderRaw(Target, Text);
 }
 
@@ -344,9 +336,8 @@ void STextSprite::DrawNormal()
     SetDrawBright(Color.R, Color.G, Color.B);
     double tox = get<0>(Size) / 2 * (int)HorizontalAlignment;
     double toy = get<1>(Size) / 2 * (int)VerticalAlignment;
-    DrawRectRotaGraph3F(
+    DrawRotaGraph3F(
         Transform.X, Transform.Y,
-        0, 0, get<0>(Size), get<1>(Size),
         Transform.OriginX + tox, Transform.OriginY + toy,
         Transform.ScaleX, Transform.ScaleY,
         Transform.Angle, Target->GetHandle(), TRUE, FALSE);
@@ -355,14 +346,16 @@ void STextSprite::DrawNormal()
 void STextSprite::DrawScroll()
 {
     int pds = GetDrawScreen();
-    SetDrawScreen(Target->GetHandle());
+    SetDrawScreen(ScrollBuffer->GetHandle());
     SetDrawBright(255, 255, 255);
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+    ClearDrawScreen();
     if (ScrollSpeed >= 0) {
         double reach = -ScrollPosition + (int)(ScrollPosition / (get<0>(Size) + ScrollMargin)) * (get<0>(Size) + ScrollMargin);
+        spdlog::get("main")->info("reach: {0}", reach);
         while (reach < ScrollWidth) {
             DrawRectGraphF(
-                0, get<1>(Size),
+                reach, 0,
                 0, 0, get<0>(Size), get<1>(Size),
                 Target->GetHandle(), TRUE, FALSE);
             reach += get<0>(Size) + ScrollMargin;
@@ -371,7 +364,7 @@ void STextSprite::DrawScroll()
         double reach = -ScrollPosition - (int)(ScrollPosition / (get<0>(Size) + ScrollMargin)) * (get<0>(Size) + ScrollMargin);
         while (reach > 0) {
             DrawRectGraphF(
-                0, get<1>(Size),
+                reach, 0,
                 0, 0, get<0>(Size), get<1>(Size),
                 Target->GetHandle(), TRUE, FALSE);
             reach -= get<0>(Size) + ScrollMargin;
@@ -383,12 +376,11 @@ void STextSprite::DrawScroll()
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.A);
     double tox = ScrollWidth / 2 * (int)HorizontalAlignment;
     double toy = get<1>(Size) / 2 * (int)VerticalAlignment;
-    DrawRectRotaGraph3F(
+    DrawRotaGraph3F(
         Transform.X, Transform.Y,
-        0, get<1>(Size), ScrollWidth, get<1>(Size),
         Transform.OriginX + tox, Transform.OriginY + toy,
         Transform.ScaleX, Transform.ScaleY,
-        Transform.Angle, Target->GetHandle(), TRUE, FALSE);
+        Transform.Angle, ScrollBuffer->GetHandle(), TRUE, FALSE);
 }
 
 void STextSprite::set_Font(SFont * font)
@@ -424,6 +416,7 @@ STextSprite::~STextSprite()
 {
     if (Font) Font->Release();
     if (Target) delete Target;
+    if (ScrollBuffer) delete ScrollBuffer;
 }
 
 void STextSprite::Tick(double delta)
@@ -436,7 +429,7 @@ void STextSprite::Draw()
 {
     if (!Target) return;
     if (IsScrolling && Target->get_Width() >= ScrollWidth) {
-        // DrawScroll();
+        DrawScroll();
     } else {
         DrawNormal();
     }
@@ -448,13 +441,11 @@ STextSprite * STextSprite::Clone()
     auto clone = new STextSprite();
     clone->CopyParameterFrom(this);
     clone->AddRef();
-    if (Font)
-    {
+    if (Font) {
         Font->AddRef();
         clone->set_Font(Font);
     }
-    if (Target)
-    {
+    if (Target) {
         clone->set_Text(Text);
     }
     return clone;
@@ -529,16 +520,16 @@ void STextInput::Tick(double delta)
 {
     TCHAR buffer[1024] = { 0 };
     switch (CheckKeyInput(InputHandle)) {
-    case 0:
-        GetKeyInputString(buffer, InputHandle);
-        CurrentRawString = buffer;
-        Cursor = GetKeyInputCursorPosition(InputHandle);
-        GetKeyInputSelectArea(&SelectionStart, &SelectionEnd, InputHandle);
-        return;
-    case 1:
-    case 2:
-        SelectionStart = SelectionEnd = Cursor = -1;
-        return;
+        case 0:
+            GetKeyInputString(buffer, InputHandle);
+            CurrentRawString = buffer;
+            Cursor = GetKeyInputCursorPosition(InputHandle);
+            GetKeyInputSelectArea(&SelectionStart, &SelectionEnd, InputHandle);
+            return;
+        case 1:
+        case 2:
+            SelectionStart = SelectionEnd = Cursor = -1;
+            return;
     }
 }
 
@@ -558,8 +549,7 @@ STextInput * STextInput::Factory(SFont * img)
 }
 
 void STextInput::RegisterType(asIScriptEngine * engine)
-{
-}
+{}
 
 
 // SSynthSprite -------------------------------------
@@ -619,8 +609,7 @@ SSynthSprite * SSynthSprite::Clone()
     auto clone = new SSynthSprite(Width, Height);
     clone->CopyParameterFrom(this);
     clone->AddRef();
-    if (Target)
-    {
+    if (Target) {
         clone->Transfer(this);
     }
     return clone;
@@ -652,20 +641,15 @@ void SSynthSprite::RegisterType(asIScriptEngine * engine)
 bool SClippingSprite::ActionMoveRangeTo(SSprite * thisObj, Mover & mover, double delta)
 {
     auto target = static_cast<SClippingSprite*>(thisObj);
-    if (delta == 0)
-    {
+    if (delta == 0) {
         mover.Extra1 = target->U2;
         mover.Extra2 = target->V2;
         return false;
-    }
-    else if (delta >= 0)
-    {
+    } else if (delta >= 0) {
         target->U2 = mover.Function(mover.Now, mover.Duration, mover.Extra1, mover.X - mover.Extra1);
         target->V2 = mover.Function(mover.Now, mover.Duration, mover.Extra2, mover.Y - mover.Extra2);
         return false;
-    }
-    else
-    {
+    } else {
         target->U2 = mover.X;
         target->V2 = mover.Y;
         return true;
@@ -679,26 +663,23 @@ SClippingSprite::SClippingSprite(int w, int h) : SSynthSprite(w, h)
 
 function<bool(SSprite*, Mover&, double)> SClippingSprite::GetCustomAction(const string & name)
 {
-    switch (crc32_rec(0xffffffff,name.c_str()))
-    {
-    case "range_size"_crc32:
-        return ActionMoveRangeTo;
+    switch (crc32_rec(0xffffffff, name.c_str())) {
+        case "range_size"_crc32:
+            return ActionMoveRangeTo;
     }
     return nullptr;
 }
 
 void SClippingSprite::ParseCustomMover(Mover * mover, const vector<tuple<string, string>>& params)
 {
-    for (auto &p : params)
-    {
-        switch (crc32_rec(0xffffffff,get<0>(p).c_str()))
-        {
-        case "width"_crc32:
-            mover->X = ToDouble(get<1>(p).c_str());
-            break;
-        case "height"_crc32:
-            mover->Y = ToDouble(get<1>(p).c_str());
-            break;
+    for (auto &p : params) {
+        switch (crc32_rec(0xffffffff, get<0>(p).c_str())) {
+            case "width"_crc32:
+                mover->X = ToDouble(get<1>(p).c_str());
+                break;
+            case "height"_crc32:
+                mover->Y = ToDouble(get<1>(p).c_str());
+                break;
         }
     }
 }
@@ -731,8 +712,7 @@ SClippingSprite *SClippingSprite::Clone()
     auto clone = new SClippingSprite(Width, Height);
     clone->CopyParameterFrom(this);
     clone->AddRef();
-    if (Target)
-    {
+    if (Target) {
         clone->Transfer(this);
     }
     clone->U1 = U1;
