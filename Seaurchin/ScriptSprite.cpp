@@ -339,7 +339,7 @@ void STextSprite::set_Font(SFont * font)
     Refresh();
 }
 
-void STextSprite::set_Text(const std::string & txt)
+void STextSprite::set_Text(const string & txt)
 {
     Text = txt;
     Refresh();
@@ -390,14 +390,14 @@ STextSprite * STextSprite::Clone()
     return clone;
 }
 
-STextSprite * STextSprite::Factory()
+STextSprite *STextSprite::Factory()
 {
     auto result = new STextSprite();
     result->AddRef();
     return result;
 }
 
-STextSprite * STextSprite::Factory(SFont * img, const std::string & str)
+STextSprite *STextSprite::Factory(SFont * img, const string & str)
 {
     auto result = new STextSprite();
     result->set_Font(img);
