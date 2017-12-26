@@ -4,6 +4,7 @@
 #include "Result.h"
 
 #define SU_IF_ABILITY "Ability"
+#define SU_IF_NOTETYPE "NoteType"
 #define SU_IF_CHARACTER_MANAGER "CharacterManager"
 
 struct AbilityInfo final {
@@ -21,10 +22,22 @@ struct CharacterInfo final {
     static std::shared_ptr<CharacterInfo> LoadFromToml(const boost::filesystem::path &path);
 };
 
+enum class CharacterNoteType {
+    Tap = 1,
+    ExTap,
+    Flick,
+    Air,
+    HellTap,
+    Hold,
+    Slide,
+    AirAction,
+};
+
 class Character final {
 private:
     asIScriptObject* LoadAbility(boost::filesystem::path spath);
     void CallOnEvent(const char *decl);
+    void CallOnEvent(const char *decl, CharacterNoteType type);
 
 public:
     std::shared_ptr<CharacterInfo> Info;
@@ -39,10 +52,10 @@ public:
 
     void Initialize();
     void OnStart();
-    void OnJusticeCritical();
-    void OnJustice();
-    void OnAttack();
-    void OnMiss();
+    void OnJusticeCritical(CharacterNoteType type);
+    void OnJustice(CharacterNoteType type);
+    void OnAttack(CharacterNoteType type);
+    void OnMiss(CharacterNoteType type);
     void OnFinish();
 
 };

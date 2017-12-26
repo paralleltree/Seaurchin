@@ -10,14 +10,24 @@ void RegisterCharacterTypes(ExecutionManager *exm)
 {
     auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
 
+    engine->RegisterEnum(SU_IF_NOTETYPE);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Tap", (int)CharacterNoteType::Tap);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "ExTap", (int)CharacterNoteType::ExTap);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Flick", (int)CharacterNoteType::Flick);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "HellTap", (int)CharacterNoteType::HellTap);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Air", (int)CharacterNoteType::Air);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Hold", (int)CharacterNoteType::Hold);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Slide", (int)CharacterNoteType::Slide);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "AirAction", (int)CharacterNoteType::AirAction);
+
     engine->RegisterInterface(SU_IF_ABILITY);
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void Initialize(dictionary@)");
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnStart(" SU_IF_RESULT "@)");
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnFinish(" SU_IF_RESULT "@)");
-    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnJusticeCritical(" SU_IF_RESULT "@)");
-    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnJustice(" SU_IF_RESULT "@)");
-    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnAttack(" SU_IF_RESULT "@)");
-    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnMiss(" SU_IF_RESULT "@)");
+    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnJusticeCritical(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
+    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnJustice(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
+    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnAttack(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
+    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnMiss(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
 
     engine->RegisterObjectType(SU_IF_CHARACTER_MANAGER, 0, asOBJ_REF | asOBJ_NOCOUNT);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "void Next()", asMETHOD(CharacterManager, Next), asCALL_THISCALL);
@@ -144,6 +154,19 @@ void Character::CallOnEvent(const char *decl)
     }
 }
 
+void Character::CallOnEvent(const char *decl, CharacterNoteType type)
+{
+    for (int i = 0; i < Abilities.size(); ++i) {
+        auto func = AbilityTypes[i]->GetMethodByDecl(decl);
+        if (!func) continue;
+        context->Prepare(func);
+        context->SetObject(Abilities[i]);
+        context->SetArgAddress(0, TargetResult.get());
+        context->SetArgDWord(1, (asDWORD)type);
+        context->Execute();
+    }
+}
+
 void Character::OnStart()
 {
     CallOnEvent("void OnStart(" SU_IF_RESULT "@)");
@@ -154,24 +177,24 @@ void Character::OnFinish()
     CallOnEvent("void OnFinish(" SU_IF_RESULT "@)");
 }
 
-void Character::OnJusticeCritical()
+void Character::OnJusticeCritical(CharacterNoteType type)
 {
-    CallOnEvent("void OnJusticeCritical(" SU_IF_RESULT "@)");
+    CallOnEvent("void OnJusticeCritical(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
 }
 
-void Character::OnJustice()
+void Character::OnJustice(CharacterNoteType type)
 {
-    CallOnEvent("void OnJustice(" SU_IF_RESULT "@)");
+    CallOnEvent("void OnJustice(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
 }
 
-void Character::OnAttack()
+void Character::OnAttack(CharacterNoteType type)
 {
-    CallOnEvent("void OnAttack(" SU_IF_RESULT "@)");
+    CallOnEvent("void OnAttack(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
 }
 
-void Character::OnMiss()
+void Character::OnMiss(CharacterNoteType type)
 {
-    CallOnEvent("void OnMiss(" SU_IF_RESULT "@)");
+    CallOnEvent("void OnMiss(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
 }
 
 shared_ptr<CharacterInfo> CharacterInfo::LoadFromToml(const boost::filesystem::path &path)
