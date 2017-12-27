@@ -7,6 +7,8 @@ auto& srset = boost::xpressive::set;
 sregex ScriptSpriteMover::srparam = (s1 = +_w) >> ':' >> (s2 = +_w | (!(srset = '+', '-') >> +_d >> !('.' >> +_d)));
 sregex ScriptSpriteMover::srmove = bos >> (s1 = +_w) >> !('(' >> (s2 = ScriptSpriteMover::srparam >> *(',' >> ScriptSpriteMover::srparam)) >> ')') >> eos;
 
+static const double qNaN = numeric_limits<double>::quiet_NaN();
+
 unordered_map<string, Easing::EasingFunction> ScriptSpriteMover::easings =
 {
     { "linear", Easing::Linear },
@@ -53,6 +55,15 @@ unordered_map<string, MoverFunction> ScriptSpriteMover::actions =
     { "death", ScriptSpriteMover::ActionDeath },
 };
 
+
+Mover::Mover()
+{
+    X = Y = Z = qNaN;
+    Extra1 = Extra2 = Extra3 = qNaN;
+    Wait = Duration = Now = 0;
+    Function = nullptr;
+}
+
 ScriptSpriteMover::ScriptSpriteMover(SSprite *target)
 {
     Target = target;
@@ -73,7 +84,7 @@ bool ScriptSpriteMover::CheckPattern(std::string move)
     return m;
 }
 
-string ScriptSpriteMover::ParseMover(Mover * mover, std::string move)
+string ScriptSpriteMover::ParseMover(Mover *mover, std::string move)
 {
     using namespace boost::algorithm;
     using namespace crc32_constexpr;
@@ -145,7 +156,7 @@ tuple<string, vector<tuple<string, string>>> ScriptSpriteMover::ParseRaw(const s
 
 void ScriptSpriteMover::AddMove(std::string move)
 {
-    Mover *mover = new Mover { 0 };
+    Mover *mover = new Mover();
     auto aname = ParseMover(mover, move);
     auto action = actions[aname];
     if (!action) {
@@ -198,12 +209,12 @@ bool ScriptSpriteMover::ActionMoveTo(SSprite* target, Mover &mover, double delta
         mover.Extra2 = target->Transform.Y;
         return false;
     } else if (delta >= 0) {
-        target->Transform.X = mover.Function(mover.Now, mover.Duration, mover.Extra1, mover.X - mover.Extra1);
-        target->Transform.Y = mover.Function(mover.Now, mover.Duration, mover.Extra2, mover.Y - mover.Extra2);
+        if (!isnan(mover.X)) target->Transform.X = mover.Function(mover.Now, mover.Duration, mover.Extra1, mover.X - mover.Extra1);
+        if (!isnan(mover.Y)) target->Transform.Y = mover.Function(mover.Now, mover.Duration, mover.Extra2, mover.Y - mover.Extra2);
         return false;
     } else {
-        target->Transform.X = mover.X;
-        target->Transform.Y = mover.Y;
+        if (!isnan(mover.X)) target->Transform.X = mover.X;
+        if (!isnan(mover.Y)) target->Transform.Y = mover.Y;
         return true;
     }
 }
@@ -215,12 +226,12 @@ bool ScriptSpriteMover::ActionMoveBy(SSprite* target, Mover &mover, double delta
         mover.Extra2 = target->Transform.Y;
         return false;
     } else if (delta >= 0) {
-        target->Transform.X = mover.Function(mover.Now, mover.Duration, mover.Extra1, mover.X);
-        target->Transform.Y = mover.Function(mover.Now, mover.Duration, mover.Extra2, mover.Y);
+        if (!isnan(mover.X)) target->Transform.X = mover.Function(mover.Now, mover.Duration, mover.Extra1, mover.X);
+        if (!isnan(mover.Y)) target->Transform.Y = mover.Function(mover.Now, mover.Duration, mover.Extra2, mover.Y);
         return false;
     } else {
-        target->Transform.X = mover.Extra1 + mover.X;
-        target->Transform.Y = mover.Extra2 + mover.Y;
+        if (!isnan(mover.X)) target->Transform.X = mover.Extra1 + mover.X;
+        if (!isnan(mover.Y)) target->Transform.Y = mover.Extra2 + mover.Y;
         return true;
     }
 }
@@ -228,6 +239,7 @@ bool ScriptSpriteMover::ActionMoveBy(SSprite* target, Mover &mover, double delta
 bool ScriptSpriteMover::ActionAngleTo(SSprite * target, Mover & mover, double delta)
 {
     if (delta == 0) {
+        if (isnan(mover.X)) return true;
         mover.Extra1 = target->Transform.Angle;
         return false;
     } else if (delta >= 0) {
@@ -242,6 +254,7 @@ bool ScriptSpriteMover::ActionAngleTo(SSprite * target, Mover & mover, double de
 bool ScriptSpriteMover::ActionAngleBy(SSprite * target, Mover & mover, double delta)
 {
     if (delta == 0) {
+        if (isnan(mover.X)) return true;
         mover.Extra1 = target->Transform.Angle;
         return false;
     } else if (delta >= 0) {
@@ -260,12 +273,32 @@ bool ScriptSpriteMover::ActionScaleTo(SSprite *target, Mover &mover, double delt
         mover.Extra2 = target->Transform.ScaleY;
         return false;
     } else if (delta >= 0) {
-        target->Transform.ScaleX = mover.Function(mover.Now, mover.Duration, mover.Extra1, mover.X - mover.Extra1);
-        target->Transform.ScaleY = mover.Function(mover.Now, mover.Duration, mover.Extra2, mover.Y - mover.Extra2);
+        if (!isnan(mover.X)) target->Transform.ScaleX = mover.Function(mover.Now, mover.Duration, mover.Extra1, mover.X - mover.Extra1);
+        if (!isnan(mover.Y)) target->Transform.ScaleY = mover.Function(mover.Now, mover.Duration, mover.Extra2, mover.Y - mover.Extra2);
         return false;
     } else {
-        target->Transform.ScaleX = mover.X;
-        target->Transform.ScaleY = mover.Y;
+        if (!isnan(mover.X)) target->Transform.ScaleX = mover.X;
+        if (!isnan(mover.Y)) target->Transform.ScaleY = mover.Y;
+        return true;
+    }
+}
+
+bool ScriptSpriteMover::ActionColor(SSprite* target, Mover &mover, double delta)
+{
+    if (delta == 0) {
+        if (!isnan(mover.X)) mover.Extra1 = target->Color.R;
+        if (!isnan(mover.Y)) mover.Extra2 = target->Color.G;
+        if (!isnan(mover.Z)) mover.Extra3 = target->Color.B;
+        return false;
+    } else if (delta >= 0) {
+        if (!isnan(mover.X)) target->Color.R = (uint8_t)mover.Function(mover.Now, mover.Duration, mover.Extra1, mover.X - mover.Extra1);
+        if (!isnan(mover.Y)) target->Color.G = (uint8_t)mover.Function(mover.Now, mover.Duration, mover.Extra2, mover.Y - mover.Extra2);
+        if (!isnan(mover.Z)) target->Color.B = (uint8_t)mover.Function(mover.Now, mover.Duration, mover.Extra3, mover.Z - mover.Extra3);
+        return false;
+    } else {
+        if (!isnan(mover.X)) target->Color.R = (uint8_t)mover.X;
+        if (!isnan(mover.Y)) target->Color.G = (uint8_t)mover.Y;
+        if (!isnan(mover.Z)) target->Color.B = (uint8_t)mover.Z;
         return true;
     }
 }
@@ -273,6 +306,7 @@ bool ScriptSpriteMover::ActionScaleTo(SSprite *target, Mover &mover, double delt
 bool ScriptSpriteMover::ActionAlpha(SSprite* target, Mover &mover, double delta)
 {
     if (delta == 0) {
+        if (isnan(mover.X) || isnan(mover.Y)) return true;
         target->Color.A = (uint8_t)(mover.X * 255.0);
         return false;
     } else if (delta >= 0) {

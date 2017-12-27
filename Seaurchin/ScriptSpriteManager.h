@@ -15,6 +15,8 @@ struct Mover
     double Wait;
     double Now;
     double Duration;
+
+    Mover();
 };
 
 using MoverFunction = std::function<bool(SSprite*, Mover&, double)>;
@@ -52,6 +54,7 @@ public:
     static bool ActionAngleTo(SSprite* target, Mover &mover, double delta);
     static bool ActionAngleBy(SSprite* target, Mover &mover, double delta);
     static bool ActionScaleTo(SSprite* target, Mover &mover, double delta);
+    static bool ActionColor(SSprite* target, Mover &mover, double delta);
     static bool ActionAlpha(SSprite* target, Mover &mover, double delta);
     static bool ActionDeath(SSprite* target, Mover &mover, double delta);
 };
