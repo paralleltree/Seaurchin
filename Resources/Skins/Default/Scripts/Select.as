@@ -4,6 +4,7 @@ class Title : CoroutineScene {
   MusicCursor@ cursor;
   Font@ font32, font64, fontLatin;
   Image@ imgWhite, imgBarMusic, imgMusicFrame;
+  CharacterSelect scCharacterSelect;
   
   void Initialize() {
     LoadResources();
@@ -13,7 +14,7 @@ class Title : CoroutineScene {
   void Run() {
     ReloadMusic();
     @cursor = MusicCursor();
-    
+    ExecuteScene(scCharacterSelect);
     RunCoroutine(Coroutine(Main), "Select:Main");
     RunCoroutine(Coroutine(KeyInput), "Select:KeyInput");
     while(true) YieldTime(30);
@@ -106,11 +107,20 @@ class Title : CoroutineScene {
     for(int i = 0; i < 5; i++) musics[i].AddMove("move_by(x:" + (480 * -adjust) + ", time:0.2, ease:out_quad)");
   }
   
+  bool isEnabled = true;
   void KeyInput() {
     while(true) {
+      if (!isEnabled) {
+        YieldFrame(1);
+        continue;
+      }
+      
       if (IsKeyTriggered(Key::INPUT_RETURN)) {
         if (cursor.Enter() == CursorState::Confirmed) {
-          if (Execute("Play.as")) Disappear();
+          if (Execute("Play.as")) {
+            Fire("Select:End");
+            Disappear();
+          }
         } else {
           isCategory = cursor.GetState() == CursorState::Category;
           InitCursor();
@@ -149,6 +159,15 @@ class Title : CoroutineScene {
     }
   }
   
+  void OnEvent(const string &in event) {
+    if (event == "Select:Disable") {
+      isEnabled = false;
+    }
+    if (event == "Select:Enable") {
+      isEnabled = true;
+    }
+  }
+  
   void ShowMessage(string mes) {
     TextSprite@ spmes = TextSprite(font32, mes);
     spmes.Apply("y:720, z:20, r:0, g:0, b:0");
@@ -156,5 +175,115 @@ class Title : CoroutineScene {
     spmes.AddMove("move_by(y:32, time:0.5, wait:1.0, ease:in_sine)");
     spmes.AddMove("death(wait:2.0)");
     AddSprite(spmes);
+  }
+}
+
+class CharacterSelect : CoroutineScene {
+  bool isEnabled;
+  Skin@ skin;
+  CharacterManager@ cm;
+  
+  Sprite@ spBack, spImage;
+  TextSprite@ spTitle, spInfo, spName, spSkill, spDescription;
+  
+  void Initialize() {
+    @skin = GetSkin();
+    @cm = GetCharacterManager();
+    
+    @spBack = Sprite(skin.GetImage("White"));
+    spBack.Apply("r:0, g:0, b:0, alpha:0");
+    
+    @spTitle = TextSprite(skin.GetFont("Normal64"), "キャラクター設定");
+    spTitle.SetAlignment(TextAlign::Center, TextAlign::Top);
+    spTitle.Apply("x:-640, y:12");
+    
+    @spInfo = TextSprite(skin.GetFont("Normal32"), "カーソルキー左右で変更");
+    spInfo.SetAlignment(TextAlign::Center, TextAlign::Top);
+    spInfo.Apply("x:-640, y:688");
+    
+    @spName = TextSprite(skin.GetFont("Normal64"), cm.GetName(0));
+    spName.SetAlignment(TextAlign::Center, TextAlign::Top);
+    spName.Apply("x:-640, y:360");
+    
+    @spImage = Sprite(Image(cm.GetImagePath(0)));
+    spImage.Apply("x:-640, y:200, origX:150");
+    
+    @spDescription = TextSprite(skin.GetFont("Normal64"), cm.GetDescription(0));
+    spDescription.SetAlignment(TextAlign::Center, TextAlign::Top);
+    spDescription.SetRich(true);
+    spDescription.Apply("x:-640, y:440, scaleX:0.75, scaleY:0.75");
+    
+    AddSprite(spBack);
+    AddSprite(spTitle);
+    AddSprite(spInfo);
+    AddSprite(spName);
+    AddSprite(spImage);
+    AddSprite(spDescription);
+  }
+  
+  void Run() {
+    RunCoroutine(Coroutine(KeyInput), "Select:KeyInput");
+    while(true) YieldTime(1);
+  }
+  
+  void UpdateInfo() {
+    spName.SetText(cm.GetName(0));
+    spDescription.SetText(cm.GetDescription(0));
+    spImage.SetImage(Image(cm.GetImagePath(0)));
+  }
+  
+  void Draw() {
+    
+  }
+  
+  void KeyInput() {
+    while(true) {
+      if (IsKeyTriggered(Key::INPUT_TAB)) {
+        if (isEnabled) {
+          Fire("Select:Enable");
+          spBack.AddMove("alpha(x:0.8, y:0, time:0.5)");
+          spTitle.AddMove("move_to(x:-640, time:0.5, ease:out_sine)");
+          spInfo.AddMove("move_to(x:-640, time:0.5, ease:out_sine)");
+          spName.AddMove("move_to(x:-640, time:0.5, ease:out_sine)");
+          spImage.AddMove("move_to(x:-640, time:0.5, ease:out_sine)");
+          spDescription.AddMove("move_to(x:-640, time:0.5, ease:out_sine)");
+        } else {
+          Fire("Select:Disable");
+          spBack.AddMove("alpha(x:0, y:0.8, time:0.5)");
+          spTitle.AddMove("move_to(x:640, time:0.5, ease:out_sine)");
+          spInfo.AddMove("move_to(x:640, time:0.5, ease:out_sine)");
+          spName.AddMove("move_to(x:640, time:0.5, ease:out_sine)");
+          spImage.AddMove("move_to(x:640, time:0.5, ease:out_sine)");
+          spDescription.AddMove("move_to(x:640, time:0.5, ease:out_sine)");
+        }
+        isEnabled = !isEnabled;
+      }
+      if (isEnabled) {
+        if (IsKeyTriggered(Key::INPUT_LEFT)) {
+          cm.Previous();
+          FadeChar();
+        }
+        if (IsKeyTriggered(Key::INPUT_RIGHT)) {
+          cm.Next();
+          FadeChar();
+        }
+      }
+      YieldFrame(1);
+    }
+  }
+  
+  void FadeChar() {
+    spDescription.AddMove("alpha(x:1, y:0, time:0.2)");
+    spName.AddMove("alpha(x:1, y:0, time:0.2)");
+    spImage.AddMove("alpha(x:1, y:0, time:0.2)");
+    YieldTime(0.2);
+    UpdateInfo();
+    spDescription.AddMove("alpha(x:0, y:1, time:0.2)");
+    spName.AddMove("alpha(x:0, y:1, time:0.2)");
+    spImage.AddMove("alpha(x:0, y:1, time:0.2)");
+  }
+  
+  void OnEvent(const string &in event) {
+    if (event == "Select:End") Disappear();
   }
 }

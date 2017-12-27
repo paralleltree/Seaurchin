@@ -86,7 +86,7 @@ class Title : CoroutineScene {
   void TitleRipple() {
     @spLogo = Sprite(imgSeaurchin);
     spLogo.Apply("origX:160, origY:160, x:640, y:360, z:2, alpha:0");
-    spLogo.AddMove("alpha(y:1, time:0.5)");
+    spLogo.AddMove("alpha(x:0, y:1, time:0.5)");
     AddSprite(spLogo);
     
     @spTitle = ClipSprite(640, 128);

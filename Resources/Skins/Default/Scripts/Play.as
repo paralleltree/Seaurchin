@@ -174,10 +174,16 @@ class Play : CoroutineScene {
     DrawableResult dsNow, dsPrev;
     while(true) {
       player.GetCurrentResult(dsNow);
-      if (dsNow.FulfilledGauges > dsPrev.FulfilledGauges) for(int i = dsPrev.FulfilledGauges; i < dsNow.FulfilledGauges; i++) {
-         spGaugeCounts[i].SetImage(imgGCFull);
-         spGaugeCounts[i].Apply("scaleX:0.8");
-         spGaugeCounts[i].AddMove("scale_to(x:0.5, y:0.3, time:0.3)");
+      if (dsNow.FulfilledGauges > dsPrev.FulfilledGauges) {
+        if (dsNow.FulfilledGauges > 10) {
+          // TODO: 満杯のときの処理
+        } else {
+          for(int i = dsPrev.FulfilledGauges; i < dsNow.FulfilledGauges; i++) {
+            spGaugeCounts[i].SetImage(imgGCFull);
+            spGaugeCounts[i].Apply("scaleX:0.8");
+            spGaugeCounts[i].AddMove("scale_to(x:0.5, y:0.3, time:0.3)");
+          }
+        }
       }
       if (dsNow.CurrentGaugeRatio != dsPrev.CurrentGaugeRatio) {
         spBarFill.AddMove("range_size(width:" + formatFloat(dsNow.CurrentGaugeRatio, '', 1, 4) + ", height:1, time:0.1, ease:out_sine)");

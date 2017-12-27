@@ -1,0 +1,15 @@
+Name = "箱部なる"
+Image = "hakobenaru.jpg"
+SkillName = "お慈悲"
+Description = '''
+${reset}ゲージブースト ${blue}${bold}(160%)
+${reset}ダメージ無効化 ${green}${bold}(25回)
+'''
+
+[[Abilities]]
+Type = "Boost"
+Arguments = { bonus = 0.6 }
+
+[[Abilities]]
+Type = "DamageGuard"
+Arguments = { count = 25 }
