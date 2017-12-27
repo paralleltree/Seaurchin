@@ -41,7 +41,7 @@ class Play : CoroutineScene {
     player.SetResource("LaneGround", skin.GetImage("*Lane-Ground"));
     player.SetResource("LaneJudgeLine", skin.GetImage("*Lane-JudgeLine"));
     player.SetResource("LaneHoldLight", skin.GetImage("*Lane-HoldLight"));
-    player.SetResource("FontCombo", font64);
+    player.SetResource("FontCombo", skin.GetFont("Combo192"));
     player.SetResource("Tap", skin.GetImage("*Note-Tap"));
     player.SetResource("ExTap", skin.GetImage("*Note-ExTap"));
     player.SetResource("AirUp", skin.GetImage("*Note-AirUp"));

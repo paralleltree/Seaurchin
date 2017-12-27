@@ -48,6 +48,7 @@ void InitializeSkin(Skin@ skin) {
   skin.LoadFont("Normal32", "Normal32.sif");
   skin.LoadFont("Normal64", "Normal64.sif");
   skin.LoadFont("Latin128", "Latin128.sif");
+  skin.LoadFont("Combo192", "Combo192.sif");
   
   skin.LoadAnime("*Anime-Tap", "Effect-Tap.png", 8, 8, 256, 256, 60, 0.0166);
   skin.LoadAnime("*Anime-ExTap", "Effect-ExTap.png", 8, 4, 256, 256, 30, 0.0166);

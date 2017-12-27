@@ -59,7 +59,7 @@ void ScenePlayer::LoadResources()
     fontCombo->AddRef();
     textCombo = STextSprite::Factory(fontCombo, "0000");
     textCombo->SetAlignment(STextAlign::Center, STextAlign::Center);
-    auto size = 256.0 / fontCombo->get_Size();
+    auto size = 320.0 / fontCombo->get_Size();
     ostringstream app;
     app << setprecision(5);
     app << "x:512, y:3200, " << "scaleX:" << size << ", scaleY:" << size;
@@ -140,7 +140,7 @@ void ScenePlayer::Draw()
 
 void ScenePlayer::RefreshComboText()
 {
-    auto size = 256.0 / fontCombo->get_Size();
+    auto size = 320.0 / fontCombo->get_Size();
     ostringstream app;
     textCombo->AbortMove(true);
 
@@ -314,7 +314,7 @@ void ScenePlayer::DrawAirNotes(shared_ptr<SusDrawableNoteData> note)
     auto reftime = CurrentTime * speed;
     if (reftime < 0) reftime += ((int)(reftime / -0.5) + 1) * 0.5;
     auto xadjust = note->Type.test((size_t)SusNoteType::Left) ? -80.0 : (note->Type.test((size_t)SusNoteType::Right) ? 80.0 : 0);
-    auto role = note->Type.test((size_t)SusNoteType::Up) ? fmod(CurrentTime * speed * 2.0, 0.5) : 0.5 - fmod(CurrentTime * 2.0, 0.5);
+    auto role = note->Type.test((size_t)SusNoteType::Up) ? fmod(CurrentTime * speed * 2.0, 0.5) : 0.5 - fmod(CurrentTime * speed, 0.5);
     auto handle = note->Type.test((size_t)SusNoteType::Up) ? imageAirUp->GetHandle() : imageAirDown->GetHandle();
 
     VERTEX3D vertices[] = {
