@@ -26,6 +26,7 @@ void Result::PerformJusticeCritical()
     MaxCombo = CurrentCombo > MaxCombo ? CurrentCombo : MaxCombo;
     GaugeValue += GaugePerJusticeCritical;
     CurrentScore += ScorePerJusticeCritical;
+    GaugeValue = std::max(0.0, GaugeValue);
 }
 
 void Result::PerformJustice()
@@ -35,6 +36,7 @@ void Result::PerformJustice()
     MaxCombo = CurrentCombo > MaxCombo ? CurrentCombo : MaxCombo;
     GaugeValue += GaugePerJusticeCritical * 0.8;
     CurrentScore += ScorePerJusticeCritical / 1.01;
+    GaugeValue = std::max(0.0, GaugeValue);
 }
 
 void Result::PerformAttack()
@@ -44,6 +46,7 @@ void Result::PerformAttack()
     MaxCombo = CurrentCombo > MaxCombo ? CurrentCombo : MaxCombo;
     GaugeValue += GaugePerJusticeCritical * 0.1;
     CurrentScore += ScorePerJusticeCritical / 1.01 * 0.5;
+    GaugeValue = std::max(0.0, GaugeValue);
 }
 
 void Result::PerformMiss()
@@ -55,25 +58,31 @@ void Result::PerformMiss()
 void Result::BoostGaugeByValue(int value)
 {
     GaugeValue += value;
+    GaugeValue = std::max(0.0, GaugeValue);
 }
 
 void Result::BoostGaugeJusticeCritical(double ratio)
 {
     GaugeValue += GaugePerJusticeCritical * ratio;
+    GaugeValue = std::max(0.0, GaugeValue);
 }
 
 void Result::BoostGaugeJustice(double ratio)
 {
     GaugeValue += GaugePerJusticeCritical * ratio * 0.5;
+    GaugeValue = std::max(0.0, GaugeValue);
 }
 
 void Result::BoostGaugeAttack(double ratio)
 {
     GaugeValue += GaugePerJusticeCritical * ratio * 0.1;
+    GaugeValue = std::max(0.0, GaugeValue);
 }
 
 void Result::BoostGaugeMiss(double ratio)
-{}
+{
+    GaugeValue = std::max(0.0, GaugeValue);
+}
 
 void Result::GetCurrentResult(DrawableResult *result)
 {

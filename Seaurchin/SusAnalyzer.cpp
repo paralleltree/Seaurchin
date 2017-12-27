@@ -67,9 +67,9 @@ SusAnalyzer::SusAnalyzer(uint32_t tpb)
     TicksPerBeat = tpb;
     LongInjectionPerBeat = 2;
     TimelineResolver = [=](uint32_t number) { return HispeedDefinitions[number]; };
-    ErrorCallbacks.push_back([this](auto line, auto type, auto message) {
+    ErrorCallbacks.push_back([this](auto type, auto message) {
         auto log = spdlog::get("main");
-        log->error(u8"{0:d}行目: {1}", line, message);
+        log->error(message);
     });
 }
 
@@ -109,7 +109,7 @@ void SusAnalyzer::Reset()
     ExtraAttributeToApply = defea;
 }
 
-void SusAnalyzer::SetMessageCallBack(function<void(uint32_t, string, string)> func)
+void SusAnalyzer::SetMessageCallBack(function<void(string, string)> func)
 {
     ErrorCallbacks.push_back(func);
 }
@@ -508,9 +508,18 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, uint32_t line)
     }
 }
 
-void SusAnalyzer::MakeMessage(uint32_t line, const std::string & message)
+void SusAnalyzer::MakeMessage(uint32_t line, const string &message)
 {
-    for (const auto &cb : ErrorCallbacks) cb(line, "Error", message);
+    ostringstream ss;
+    ss << line << u8"行目: " << message;
+    for (const auto &cb : ErrorCallbacks) cb("Error", ss.str());
+}
+
+void SusAnalyzer::MakeMessage(uint32_t meas, uint32_t tick, uint32_t lane, const std::string &message)
+{
+    ostringstream ss;
+    ss << meas << u8"'" << tick << u8"@" << lane << u8": " << message;
+    for (const auto &cb : ErrorCallbacks) cb("Error", ss.str());
 }
 
 float SusAnalyzer::GetBeatsAt(uint32_t measure)
@@ -651,9 +660,9 @@ void SusAnalyzer::RenderScoreData(vector<shared_ptr<SusDrawableNoteData>> &data)
                 switch (ltype) {
                     case SusNoteType::Hold: {
                         if (curNo.Type.test((size_t)SusNoteType::Control) || curNo.Type.test((size_t)SusNoteType::Invisible))
-                            MakeMessage(0, u8"HoldでControl/Invisibleは指定できません。");
+                            MakeMessage(curPos.Measure, curPos.Tick, curNo.NotePosition.StartLane, u8"HoldでControl/Invisibleは指定できません。");
                         if (curNo.NotePosition.StartLane != info.NotePosition.StartLane || curNo.NotePosition.Length != info.NotePosition.Length)
-                            MakeMessage(0, u8"Holdの長さ/位置が始点と一致していません。");
+                            MakeMessage(curPos.Measure, curPos.Tick, curNo.NotePosition.StartLane, u8"Holdの長さ/位置が始点と一致していません。");
                     }
                                             /* ホールドだけ追加チェックしてフォールスルー */
                     case SusNoteType::Slide:
@@ -694,14 +703,14 @@ void SusAnalyzer::RenderScoreData(vector<shared_ptr<SusDrawableNoteData>> &data)
                 if (completed) break;
             }
             if (!completed) {
-                MakeMessage(0, u8"ロングノーツに終点がありません。");
+                MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"ロングノーツに終点がありません。");
             } else {
                 data.push_back(noteData);
             }
         } else if (bits & SU_NOTE_SHORT_MASK) {
             // ショート
             if (info.NotePosition.StartLane + info.NotePosition.Length > 16) {
-                MakeMessage(0, u8"ショートノーツがはみ出しています。");
+                MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"ショートノーツがはみ出しています。");
             }
             noteData->Type = info.Type;
             noteData->StartTime = GetAbsoluteTime(time.Measure, time.Tick);
@@ -714,7 +723,7 @@ void SusAnalyzer::RenderScoreData(vector<shared_ptr<SusDrawableNoteData>> &data)
             data.push_back(noteData);
 
         } else {
-            MakeMessage(0, u8"致命的なノーツエラー(不正な内部表現です)。");
+            MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"致命的なノーツエラー(不正な内部表現です)。");
         }
         auto test = GetRelativeTime(GetAbsoluteTime(2, 200));
     }

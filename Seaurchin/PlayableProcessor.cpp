@@ -115,7 +115,7 @@ void PlayableProcessor::Update(vector<shared_ptr<SusDrawableNoteData>>& notes)
 
 void PlayableProcessor::MovePosition(double relative)
 {
-    double newTime = Player->CurrentSoundTime + relative;
+    double newTime = Player->CurrentTime + relative;
     Player->CurrentResult->Reset();
 
     wasInHold = isInHold = false;
@@ -194,8 +194,7 @@ void PlayableProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
         if (!CheckJudgement(note)) return;
         Player->PlaySoundFlick();
         Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
-    } else {
-        // Hell
+    } else if (note->Type.test((size_t)SusNoteType::HellTap)) {
         if (!CheckHellJudgement(note)) return;
         Player->PlaySoundTap();
         Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
@@ -322,7 +321,7 @@ bool PlayableProcessor::CheckHoldJudgement(shared_ptr<SusDrawableNoteData> note)
 
     // Step~End”»’è
     for (const auto &extra : note->ExtraData) {
-        judgeTime = Player->CurrentSoundTime - extra->StartTime - judgeAdjustSlider;
+        judgeTime = Player->CurrentTime - extra->StartTime - judgeAdjustSlider;
         judgeTime /= judgeMultiplierSlider;
         if (extra->OnTheFlyData[(size_t)NoteAttribute::Finished]) continue;
         if (extra->Type[(size_t)SusNoteType::Control]) continue;
@@ -432,7 +431,7 @@ bool PlayableProcessor::CheckSlideJudgement(shared_ptr<SusDrawableNoteData> note
 
     // Step~End”»’è
     for (const auto &extra : note->ExtraData) {
-        judgeTime = Player->CurrentSoundTime - extra->StartTime - judgeAdjustSlider;
+        judgeTime = Player->CurrentTime - extra->StartTime - judgeAdjustSlider;
         judgeTime /= judgeMultiplierSlider;
         if (extra->OnTheFlyData[(size_t)NoteAttribute::Finished]) continue;
         if (extra->Type[(size_t)SusNoteType::Control]) continue;
@@ -488,7 +487,7 @@ bool PlayableProcessor::CheckAirActionJudgement(shared_ptr<SusDrawableNoteData> 
 
     // Step~End”»’è
     for (const auto &extra : note->ExtraData) {
-        judgeTime = Player->CurrentSoundTime - extra->StartTime - judgeAdjustAirString;
+        judgeTime = Player->CurrentTime - extra->StartTime - judgeAdjustAirString;
         judgeTime /= judgeMultiplierAir;
 
         if (extra->OnTheFlyData[(size_t)NoteAttribute::Finished]) continue;

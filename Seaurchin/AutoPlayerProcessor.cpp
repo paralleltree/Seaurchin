@@ -37,11 +37,11 @@ void AutoPlayerProcessor::Reset()
 
 bool AutoPlayerProcessor::ShouldJudge(std::shared_ptr<SusDrawableNoteData> note)
 {
-    double current = Player->CurrentSoundTime - note->StartTime;
-    double extra = 0.033;
+    double current = Player->CurrentTime - note->StartTime + Player->SoundBufferingLatency;
+    double extra = 0.5;
     if (note->Type.to_ulong() & SU_NOTE_LONG_MASK) {
         return current >= -extra && current - note->Duration <= extra;
-    } else {
+    } else if (note->Type.to_ulong() & SU_NOTE_SHORT_MASK) {
         return current >= -extra && current <= extra;
     }
     return false;
@@ -72,7 +72,7 @@ void AutoPlayerProcessor::Update(vector<shared_ptr<SusDrawableNoteData>> &notes)
 
 void AutoPlayerProcessor::MovePosition(double relative)
 {
-    double newTime = Player->CurrentSoundTime + relative;
+    double newTime = Player->CurrentTime + relative;
     Player->CurrentResult->Reset();
 
     wasInHold = isInHold = false;
@@ -112,9 +112,8 @@ void AutoPlayerProcessor::Draw()
 
 void AutoPlayerProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
 {
-    double relpos = (note->StartTime - Player->CurrentSoundTime) / Player->SeenDuration;
-    if (relpos >= 0 || (note->OnTheFlyData.test((size_t)NoteAttribute::Finished) && note->ExtraData.size() == 0)) return;
-    auto state = note->Type.to_ulong();
+    double relpos = Player->CurrentTime - note->StartTime + Player->SoundBufferingLatency;
+    if (relpos < 0 || (note->OnTheFlyData.test((size_t)NoteAttribute::Finished) && note->ExtraData.size() == 0)) return;
 
     if (note->Type.test((size_t)SusNoteType::Hold)) {
         isInHold = true;
@@ -126,8 +125,8 @@ void AutoPlayerProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
         }
 
         for (auto &extra : note->ExtraData) {
-            double pos = (extra->StartTime - Player->CurrentSoundTime) / Player->SeenDuration;
-            if (pos >= 0) continue;
+            double pos = Player->CurrentTime - extra->StartTime + Player->SoundBufferingLatency;
+            if (pos < 0) continue;
             if (extra->Type.test((size_t)SusNoteType::End)) isInHold = false;
             if (extra->OnTheFlyData.test((size_t)NoteAttribute::Finished)) continue;
             if (extra->Type[(size_t)SusNoteType::Injection]) {
@@ -152,8 +151,8 @@ void AutoPlayerProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
             return;
         }
         for (auto &extra : note->ExtraData) {
-            double pos = (extra->StartTime - Player->CurrentSoundTime) / Player->SeenDuration;
-            if (pos >= 0) continue;
+            double pos = Player->CurrentTime - extra->StartTime + Player->SoundBufferingLatency;
+            if (pos < 0) continue;
             if (extra->Type.test((size_t)SusNoteType::End)) isInSlide = false;
             if (extra->Type.test((size_t)SusNoteType::Control)) continue;
             if (extra->Type.test((size_t)SusNoteType::Invisible)) continue;
@@ -172,8 +171,8 @@ void AutoPlayerProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
     } else if (note->Type.test((size_t)SusNoteType::AirAction)) {
         isInAA = true;
         for (auto &extra : note->ExtraData) {
-            double pos = (extra->StartTime - Player->CurrentSoundTime) / Player->SeenDuration;
-            if (pos >= 0) continue;
+            double pos = Player->CurrentTime - extra->StartTime + Player->SoundBufferingLatency;
+            if (pos < 0) continue;
             if (extra->Type.test((size_t)SusNoteType::End)) isInAA = false;
             if (extra->Type.test((size_t)SusNoteType::Control)) continue;
             if (extra->Type.test((size_t)SusNoteType::Invisible)) continue;
@@ -183,7 +182,6 @@ void AutoPlayerProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
                 extra->OnTheFlyData.set((size_t)NoteAttribute::Finished);
                 return;
             }
-            if (pos >= 0) continue;
             Player->PlaySoundAirAction();
             Player->SpawnJudgeEffect(extra, JudgeType::Action);
             IncrementCombo(CharacterNoteType::AirAction);
@@ -211,8 +209,7 @@ void AutoPlayerProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
         Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
         IncrementCombo(CharacterNoteType::Flick);
         note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
-    } else {
-        //Hell
+    } else if (note->Type.test((size_t)SusNoteType::HellTap)) {
         Player->PlaySoundTap();
         Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
         IncrementCombo(CharacterNoteType::HellTap);

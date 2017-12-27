@@ -161,7 +161,7 @@ private:
     uint32_t TicksPerBeat;
     double LongInjectionPerBeat;
     std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)> TimelineResolver = nullptr;
-    std::vector<std::function<void(uint32_t, std::string, std::string)>> ErrorCallbacks;
+    std::vector<std::function<void(std::string, std::string)>> ErrorCallbacks;
     std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> Notes;
     std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> BpmChanges;
     std::unordered_map<uint32_t, double> BpmDefinitions;
@@ -175,6 +175,7 @@ private:
     void ProcessRequest(const std::string &cmd, uint32_t line);
     void ProcessData(const boost::xpressive::smatch &result, uint32_t line);
     void MakeMessage(uint32_t line, const std::string &message);
+    void MakeMessage(uint32_t meas, uint32_t tick, uint32_t lane, const std::string &message);
 
 public:
     SusMetaData SharedMetaData;
@@ -184,7 +185,7 @@ public:
     ~SusAnalyzer();
 
     void Reset();
-    void SetMessageCallBack(std::function<void(uint32_t, std::string, std::string)> func);
+    void SetMessageCallBack(std::function<void(std::string, std::string)> func);
     void LoadFromFile(const std::wstring &fileName, bool analyzeOnlyMetaData = false);
     void RenderScoreData(std::vector<std::shared_ptr<SusDrawableNoteData>> &data);
     float GetBeatsAt(uint32_t measure);
