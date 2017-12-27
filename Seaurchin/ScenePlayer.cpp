@@ -270,11 +270,7 @@ void ScenePlayer::Tick(double delta)
     PreviousStatus = Status;
     if (State != PlayingState::Paused) processor->Update(judgeData);
     CurrentResult->GetCurrentResult(&Status);
-    if (Status.Combo > PreviousStatus.Combo) {
-        textCombo->AbortMove(true);
-        textCombo->Apply("scaleY:8.4, scaleX:8.4");
-        textCombo->AddMove("scale_to(x:8, y:8, time:0.2, ease:out_quad)");
-    }
+    if (Status.Combo > PreviousStatus.Combo) RefreshComboText();
 
     UpdateSlideEffect();
 }

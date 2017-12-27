@@ -134,6 +134,7 @@ protected:
     void DrawAirActionNotes(std::shared_ptr<SusDrawableNoteData> note);
     void DrawTap(int lane, int length, double relpos, int handle);
     void DrawMeasureLines();
+    void RefreshComboText();
     void Prepare3DDrawCall();
 
     void ProcessSound();

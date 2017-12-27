@@ -59,7 +59,11 @@ void ScenePlayer::LoadResources()
     fontCombo->AddRef();
     textCombo = STextSprite::Factory(fontCombo, "0000");
     textCombo->SetAlignment(STextAlign::Center, STextAlign::Center);
-    textCombo->Apply("x:512, y:3200, scaleX:8, scaleY:8");
+    auto size = 256.0 / fontCombo->get_Size();
+    ostringstream app;
+    app << setprecision(5);
+    app << "x:512, y:3200, " << "scaleX:" << size << ", scaleY:" << size;
+    textCombo->Apply(app.str());
     soundHoldLoop->SetLoop(true);
     soundSlideLoop->SetLoop(true);
 }
@@ -132,6 +136,21 @@ void ScenePlayer::Draw()
             airActionJudgeColor, TRUE);
     }
 
+}
+
+void ScenePlayer::RefreshComboText()
+{
+    auto size = 256.0 / fontCombo->get_Size();
+    ostringstream app;
+    textCombo->AbortMove(true);
+
+    app << setprecision(5);
+    app << "scaleX:" << size * 1.05 << ", scaleY:" << size * 1.05;
+    textCombo->Apply(app.str());
+    app.str("");
+    app << setprecision(5);
+    app << "scale_to(" << "x:" << size << ", y:" << size << ", time: 0.2, ease:out_quad)";
+    textCombo->AddMove(app.str());
 }
 
 // position ‚Í 0 ~ 16
