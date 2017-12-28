@@ -218,7 +218,8 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, bool onlyMeta, uint32
                 vector<string> params;
                 ba::split(params, dd, ba::is_any_of(":"));
                 if (params.size() < 2) return;
-                SharedMetaData.DifficultyType = ConvertInteger(params[0]);
+                SharedMetaData.DifficultyType = 4;
+                SharedMetaData.Level = ConvertInteger(params[0]);
                 SharedMetaData.UExtraDifficulty = params[1];
             }
             break;

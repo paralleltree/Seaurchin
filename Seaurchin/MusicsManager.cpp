@@ -204,6 +204,12 @@ int MusicSelectionCursor::GetLevel(int32_t relativeIndex)
     return variant->Level;
 }
 
+std::string MusicSelectionCursor::GetExtraLevel(int32_t relativeIndex)
+{
+    auto variant = GetScoreVariantAt(relativeIndex);
+    return variant->DifficultyName;
+}
+
 std::string MusicSelectionCursor::GetDesignerName(int32_t relativeIndex)
 {
     auto variant = GetScoreVariantAt(relativeIndex);
@@ -341,6 +347,7 @@ void MusicSelectionCursor::RegisterScriptInterface(asIScriptEngine *engine)
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, "string GetMusicJacketFileName(int)", asMETHOD(MusicSelectionCursor, GetMusicJacketFileName), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, "int GetDifficulty(int)", asMETHOD(MusicSelectionCursor, GetDifficulty), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, "int GetLevel(int)", asMETHOD(MusicSelectionCursor, GetLevel), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_MSCURSOR, "string GetExtraLevel(int)", asMETHOD(MusicSelectionCursor, GetExtraLevel), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, "string GetDesignerName(int)", asMETHOD(MusicSelectionCursor, GetDesignerName), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, SU_IF_MSCSTATE " Next()", asMETHOD(MusicSelectionCursor, Next), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, SU_IF_MSCSTATE " Previous()", asMETHOD(MusicSelectionCursor, Previous), asCALL_THISCALL);

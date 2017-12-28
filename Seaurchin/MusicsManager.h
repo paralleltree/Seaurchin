@@ -105,6 +105,7 @@ public:
     std::string GetMusicJacketFileName(int32_t relativeIndex);
     int GetDifficulty(int32_t relativeIndex);
     int GetLevel(int32_t relativeIndex);
+    std::string GetExtraLevel(int32_t relativeIndex);
     std::string GetDesignerName(int32_t relativeIndex);
 
     MusicSelectionState Enter();

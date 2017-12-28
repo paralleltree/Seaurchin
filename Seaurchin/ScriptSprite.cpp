@@ -362,20 +362,20 @@ void STextSprite::Refresh()
 
 void STextSprite::DrawNormal(const Transform2D &tf, const ColorTint &ct)
 {
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.A);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, ct.A);
     SetDrawMode(DX_DRAWMODE_ANISOTROPIC);
     if (IsRich) {
         SetDrawBright(255, 255, 255);
     } else {
-        SetDrawBright(Color.R, Color.G, Color.B);
+        SetDrawBright(ct.R, ct.G, ct.B);
     }
     double tox = get<0>(Size) / 2 * (int)HorizontalAlignment;
     double toy = get<1>(Size) / 2 * (int)VerticalAlignment;
     DrawRotaGraph3F(
-        Transform.X, Transform.Y,
-        Transform.OriginX + tox, Transform.OriginY + toy,
-        Transform.ScaleX, Transform.ScaleY,
-        Transform.Angle, Target->GetHandle(), TRUE, FALSE);
+        tf.X, tf.Y,
+        tf.OriginX + tox, tf.OriginY + toy,
+        tf.ScaleX, tf.ScaleY,
+        tf.Angle, Target->GetHandle(), TRUE, FALSE);
 }
 
 void STextSprite::DrawScroll(const Transform2D &tf, const ColorTint &ct)
@@ -409,17 +409,17 @@ void STextSprite::DrawScroll(const Transform2D &tf, const ColorTint &ct)
     if (IsRich) {
         SetDrawBright(255, 255, 255);
     } else {
-        SetDrawBright(Color.R, Color.G, Color.B);
+        SetDrawBright(ct.R, ct.G, ct.B);
     }
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.A);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, ct.A);
     SetDrawMode(DX_DRAWMODE_ANISOTROPIC);
     double tox = ScrollWidth / 2 * (int)HorizontalAlignment;
     double toy = get<1>(Size) / 2 * (int)VerticalAlignment;
     DrawRotaGraph3F(
-        Transform.X, Transform.Y,
-        Transform.OriginX + tox, Transform.OriginY + toy,
-        Transform.ScaleX, Transform.ScaleY,
-        Transform.Angle, ScrollBuffer->GetHandle(), TRUE, FALSE);
+        tf.X, tf.Y,
+        tf.OriginX + tox, tf.OriginY + toy,
+        tf.ScaleX, tf.ScaleY,
+        tf.Angle, ScrollBuffer->GetHandle(), TRUE, FALSE);
 }
 
 void STextSprite::set_Font(SFont * font)
@@ -913,11 +913,12 @@ SContainer::~SContainer()
 void SContainer::AddChild(SSprite *child)
 {
     if (!child) return;
-    children.push_back(child);
+    children.emplace(child);
 }
 
 void SContainer::Tick(double delta)
 {
+    mover->Tick(delta);
     for (const auto &s : children) s->Tick(delta);
 }
 
@@ -926,7 +927,7 @@ void SContainer::Draw()
     for (const auto &s : children) s->Draw(Transform, Color);
 }
 
-void SContainer::Draw(const Transform2D & parent, const ColorTint & color)
+void SContainer::Draw(const Transform2D & parent, const ColorTint &color)
 {
     auto tf = Transform.ApplyFrom(parent);
     auto cl = Color.ApplyFrom(color);

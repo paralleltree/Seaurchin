@@ -36,7 +36,7 @@ void ScriptScene::Initialize()
     context->Execute();
 }
 
-void ScriptScene::AddSprite(SSprite * sprite)
+void ScriptScene::AddSprite(SSprite *sprite)
 {
     //sprite->AddRef();
     spritesPending.push_back(sprite);

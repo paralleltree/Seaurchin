@@ -42,10 +42,10 @@ struct ColorTint {
     unsigned char B;
     ColorTint ApplyFrom(const ColorTint &parent)
     {
-        double na = ((int)A * (int)parent.A) / 256.0;
-        double nr = ((int)R * (int)parent.R) / 256.0;
-        double ng = ((int)G * (int)parent.G) / 256.0;
-        double nb = ((int)B * (int)parent.B) / 256.0;
+        double na = ((int)A * (int)parent.A) / 255.0;
+        double nr = ((int)R * (int)parent.R) / 255.0;
+        double ng = ((int)G * (int)parent.G) / 255.0;
+        double nb = ((int)B * (int)parent.B) / 255.0;
         return ColorTint {
             A = (unsigned char)na,
             R = (unsigned char)nr,

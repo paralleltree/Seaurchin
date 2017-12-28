@@ -252,7 +252,7 @@ enum NinePatchType : uint32_t {
 
 class SContainer : public SSprite {
 protected:
-    std::vector<SSprite*> children;
+    std::multiset<SSprite*, SSprite::Comparator> children;
 
 public:
     SContainer();
