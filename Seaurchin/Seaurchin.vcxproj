@@ -224,6 +224,7 @@
     <ClInclude Include="..\..\..\DXLib\include\DxDataTypeWin.h" />
     <ClInclude Include="..\..\..\DXLib\include\DxFunctionWin.h" />
     <ClInclude Include="..\..\..\DXLib\include\DxLib.h" />
+    <ClInclude Include="SeaurchinExtension.h" />
     <ClInclude Include="AngelScriptManager.h" />
     <ClInclude Include="Character.h" />
     <ClInclude Include="Config.h" />

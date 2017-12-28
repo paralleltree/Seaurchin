@@ -281,6 +281,9 @@
     <ClInclude Include="Result.h">
       <Filter>インターフェース\AngelScript</Filter>
     </ClInclude>
+    <ClInclude Include="SeaurchinExtension.h">
+      <Filter>インターフェース\C++</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Seaurchin.rc">
