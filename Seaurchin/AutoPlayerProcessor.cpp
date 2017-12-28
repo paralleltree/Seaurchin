@@ -87,21 +87,26 @@ void AutoPlayerProcessor::MovePosition(double relative)
         if (note->Type.test((size_t)SusNoteType::Hold)
             || note->Type.test((size_t)SusNoteType::Slide)
             || note->Type.test((size_t)SusNoteType::AirAction)) {
-            if (note->StartTime <= newTime) note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
+            if (note->StartTime <= newTime) {
+                note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
+            } else {
+                note->OnTheFlyData.reset((size_t)NoteAttribute::Finished);
+            }
             for (auto &extra : note->ExtraData) {
-                if (extra->Type.test((size_t)SusNoteType::Invisible)) continue;
-                if (extra->Type.test((size_t)SusNoteType::Control)) continue;
-                if (relative >= 0) {
-                    if (extra->StartTime <= newTime) note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
+                if (!extra->Type.test((size_t)SusNoteType::End)
+                    && !extra->Type.test((size_t)SusNoteType::Step)
+                    && !extra->Type.test((size_t)SusNoteType::Injection)) continue;
+                if (extra->StartTime <= newTime) {
+                    extra->OnTheFlyData.set((size_t)NoteAttribute::Finished);
                 } else {
-                    if (extra->StartTime >= newTime) note->OnTheFlyData.reset((size_t)NoteAttribute::Finished);
+                    extra->OnTheFlyData.reset((size_t)NoteAttribute::Finished);
                 }
             }
         } else {
-            if (relative >= 0) {
-                if (note->StartTime <= newTime) note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
+            if (note->StartTime <= newTime) {
+                note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
             } else {
-                if (note->StartTime >= newTime) note->OnTheFlyData.reset((size_t)NoteAttribute::Finished);
+                note->OnTheFlyData.reset((size_t)NoteAttribute::Finished);
             }
         }
     }
