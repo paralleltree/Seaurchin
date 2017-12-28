@@ -3,7 +3,7 @@ class Title : CoroutineScene {
   Skin@ skin;
   MusicCursor@ cursor;
   Font@ font32, font64, fontLatin;
-  Image@ imgWhite, imgBarMusic, imgMusicFrame;
+  Image@ imgWhite, imgBarMusic, imgMusicFrame, imgLevel;
   CharacterSelect scCharacterSelect;
   
   void Initialize() {
@@ -32,52 +32,116 @@ class Title : CoroutineScene {
     @imgWhite = skin.GetImage("White");
     @imgBarMusic = skin.GetImage("CursorMusic");
     @imgMusicFrame = skin.GetImage("MusicSelectFrame");
+    @imgLevel = skin.GetImage("LevelFrame");
   }
   
   //ここからコルーチン
-  array<TextSprite@> titles(19);
-  array<SynthSprite@> musics(5);
+  array<TextSprite@> titles(5);
+  array<TextSprite@> artists(5), levelnums(5), leveltypes(5);
+  array<Container@> musics(5);
+  array<Sprite@> jackets(5), frames(5), levels(5);
   void Main() {
     for(int i = 0; i < 5; i++) {
-      @musics[i] = SynthSprite(400, 600);
-      musics[i].Apply("origX:200, origY:300, y: 360, z:2, x:" + (-320.0 + 480 * i));
+      @musics[i] = Container();
+      musics[i].Apply("y: 360, z:2, x:" + (-320.0 + 480 * i));
+      
+      @frames[i] = Sprite(imgMusicFrame);
+      frames[i].Apply("origX:200, origY:300");
+      
+      @jackets[i] = Sprite();
+      jackets[i].Apply("scaleX:0.5, scaleY:0.5, x:-160, y:-260");
+      
+      @titles[i] = TextSprite(font64, "");
+      titles[i].Apply("y:108, r:0, g:0, b:0");
+      titles[i].SetRangeScroll(300, 40, 64);
+      titles[i].SetAlignment(TextAlign::Center, TextAlign::Top);
+      
+      @artists[i] = TextSprite(font64, "");
+      artists[i].Apply("y:182, r:0, g:0, b:0");
+      artists[i].SetRangeScroll(300, 40, 64);
+      artists[i].SetAlignment(TextAlign::Center, TextAlign::Top);
+      
+      @levels[i] = Sprite(imgLevel);
+      levels[i].Apply("x:100, y:-10");
+      @levelnums[i] = TextSprite(font64, "");
+      levelnums[i].SetAlignment(TextAlign::Center, TextAlign::Top);
+      levelnums[i].Apply("x:148, y:26, r:0, g:0, b:0");
+      @leveltypes[i] = TextSprite(font32, "");
+      leveltypes[i].SetAlignment(TextAlign::Center, TextAlign::Top);
+      leveltypes[i].Apply("x:148, y:-8, scaleX:0.8");
+      
+      musics[i].AddChild(frames[i]);
+      musics[i].AddChild(jackets[i]);
+      musics[i].AddChild(titles[i]);
+      musics[i].AddChild(artists[i]);
+      musics[i].AddChild(levels[i]);
+      musics[i].AddChild(levelnums[i]);
+      musics[i].AddChild(leveltypes[i]);
+      
       AddSprite(musics[i]);
     }
     InitCursor();
-    while(true) YieldFrame(1);
+    while(true) {
+      YieldFrame(1);
+    }
   }
   
-  Sprite@ spj;
-  TextSprite@ txt;
-  bool isCategory = true;
-  void InitCursor() {
-    @spj = Sprite();
-    @txt = TextSprite(font64, "");
-    spj.Apply("scaleX:0.5, scaleY:0.5, x:40, y:40");
-    txt.SetAlignment(TextAlign::Center, TextAlign::Top);
-    for(int i = 0; i < 5; i++) {
-      int add = (7 - center) % 5;
-      musics[i].Clear();
-      musics[i].Transfer(imgMusicFrame, 0, 0);
+  void UpdateInfoAt(int obj, int index) {
+    titles[obj].SetText(cursor.GetPrimaryString(index));
+    
+    if (isCategory) {
+      jackets[obj].Apply("alpha:0");
+      artists[obj].Apply("alpha:0");
+      levels[obj].Apply("alpha:0");
+      levelnums[obj].Apply("alpha:0");
+      leveltypes[obj].Apply("alpha:0");
+    } else {
+      jackets[obj].Apply("alpha:1");
+      artists[obj].Apply("alpha:1");
+      levels[obj].Apply("alpha:1");
+      levelnums[obj].Apply("alpha:1");
+      leveltypes[obj].Apply("alpha:1");
       
-      //タイトル
-      txt.Apply("x:200, y:408, r:0, g:0, b:0");
-      txt.SetText(cursor.GetPrimaryString((i + add) % 5 - 2));
-      musics[i].Transfer(txt);
-      if (!isCategory) {
-        //ジャケ
-        Image@ jacket = Image(cursor.GetMusicJacketFileName((i + add) % 5 - 2));
-        spj.SetImage(jacket);
-        musics[i].Transfer(spj);
-        
-        //アーティスト
-        txt.Apply("x:200, y:472, r:0, g:0, b:0");
-        txt.SetText(cursor.GetArtistName((i + add) % 5 - 2));
-        musics[i].Transfer(txt);
+      jackets[obj].SetImage(Image(cursor.GetMusicJacketFileName(index)));
+      artists[obj].SetText(cursor.GetArtistName(index));
+      
+      int dt = cursor.GetDifficulty(index);
+      string st = "";
+      int stars = cursor.GetLevel(index);
+      switch(dt) {
+        case 0:
+          leveltypes[obj].SetText("BASIC");
+          levelnums[obj].SetText("" + stars);
+          break;
+        case 1:
+          leveltypes[obj].SetText("ADVANCED");
+          levelnums[obj].SetText("" + stars);
+          break;
+        case 2:
+          leveltypes[obj].SetText("EXPERT");
+          levelnums[obj].SetText("" + stars);
+          break;
+        case 3:
+          leveltypes[obj].SetText("MASTER");
+          levelnums[obj].SetText("" + stars);
+          break;
+        case 4:
+          for(int i = 0; i < stars; i++) st += "★";
+          leveltypes[obj].SetText(st);
+          levelnums[obj].SetText(cursor.GetExtraLevel(index));
+          break;
       }
     }
   }
+  
+  bool isCategory = true;
   int center = 2;
+  
+  void InitCursor() {
+    int add = (7 - center) % 5;
+    for(int i = 0; i < 5; i++) UpdateInfoAt(i, (i + add) % 5 - 2);
+  }
+  
   void UpdateCursor(int adjust) {
     for(int i = 0; i < 5; i++) {
       musics[i].AbortMove();
@@ -86,23 +150,9 @@ class Title : CoroutineScene {
     }
     int flew = (5 + center - adjust * 2) % 5;
     musics[flew].Apply("x:" + (640 + 480 * adjust * 3));
-    musics[flew].Clear();
-    musics[flew].Transfer(imgMusicFrame, 0, 0);
     
-    //タイトル
-    txt.Apply("x:200, y:408, r:0, g:0, b:0");
-    txt.SetText(cursor.GetPrimaryString(adjust * 2));
-    musics[flew].Transfer(txt);
-    if (!isCategory) {
-      //ジャケ
-      Image@ jacket = Image(cursor.GetMusicJacketFileName(adjust * 2));
-      spj.SetImage(jacket);
-      musics[flew].Transfer(spj);
-      //アーティスト
-      txt.Apply("x:200, y:472, r:0, g:0, b:0");
-      txt.SetText(cursor.GetArtistName(adjust * 2));
-      musics[flew].Transfer(txt);
-    }
+    UpdateInfoAt(flew, adjust * 2);
+    
     center = (5 + center + adjust) % 5;
     for(int i = 0; i < 5; i++) musics[i].AddMove("move_by(x:" + (480 * -adjust) + ", time:0.2, ease:out_quad)");
   }
@@ -140,6 +190,12 @@ class Title : CoroutineScene {
       } else if (IsKeyTriggered(Key::INPUT_LEFT)) {
         cursor.Previous();
         UpdateCursor(-1);
+      } else if (IsKeyTriggered(Key::INPUT_UP)) { 
+        cursor.NextVariant();
+        UpdateCursor(0);
+      } else if (IsKeyTriggered(Key::INPUT_DOWN)) {
+        cursor.PreviousVariant();
+        UpdateCursor(0);
       }
       
       if (IsKeyTriggered(Key::INPUT_A)) {

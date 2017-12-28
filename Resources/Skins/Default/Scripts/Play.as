@@ -117,7 +117,7 @@ class Play : CoroutineScene {
     
     @txtArtist = TextSprite(font32, "");
     txtArtist.Apply("x: 1008, y: 74, z: 15");
-    txtTitle.SetRangeScroll(240, 20, 32);
+    txtArtist.SetRangeScroll(240, 20, 32);
     
     @spJacket = SynthSprite(640, 640);
     spJacket.Apply("x: 908, y: 4, z: 15, scaleX: 0.15, scaleY: 0.15");
