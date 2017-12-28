@@ -156,6 +156,12 @@
     <ClCompile Include="Font.cpp">
       <Filter>インターフェース\C++</Filter>
     </ClCompile>
+    <ClCompile Include="ExecutionManager.Interface.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ExtensionManager.cpp">
+      <Filter>インターフェース\C++</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">
@@ -282,6 +288,9 @@
       <Filter>インターフェース\AngelScript</Filter>
     </ClInclude>
     <ClInclude Include="SeaurchinExtension.h">
+      <Filter>インターフェース\C++</Filter>
+    </ClInclude>
+    <ClInclude Include="ExtensionManager.h">
       <Filter>インターフェース\C++</Filter>
     </ClInclude>
   </ItemGroup>
