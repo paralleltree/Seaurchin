@@ -2,7 +2,7 @@
 
 #include <angelscript.h>
 
-#define SeaurchinExport extern "C" __declspec(dllexport) __stdcall
-#define SeaurchinImport __stdcall
+#define SeaurchinAPI __stdcall
 
-typedef void(SeaurchinImport *SeaurchinExtensionEntryPoint)(asIScriptEngine*);
+typedef void(SeaurchinAPI *SE_InitializeExtension)(asIScriptEngine*);
+typedef void(SeaurchinAPI *SE_RegisterInterfaces)(void);

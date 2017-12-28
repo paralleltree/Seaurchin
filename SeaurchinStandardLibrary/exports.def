@@ -1,0 +1,4 @@
+LIBRARY SeaurchinStandardLibrary
+EXPORTS
+	InitializeExtension
+	RegisterInterfaces
