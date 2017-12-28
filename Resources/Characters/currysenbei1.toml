@@ -1,6 +1,6 @@
-Name = "箱部なる"
-Image = "hakobenaru.jpg"
-SkillName = "お慈悲"
+Name = "カレーせんべい1"
+Image = "currysenbei.png"
+SkillName = "どう見ても〄マーク"
 Description = '''
 ${reset}ゲージブースト ${blue}${bold}(160%)
 ${reset}ダメージ無効化 ${green}${bold}(25回)

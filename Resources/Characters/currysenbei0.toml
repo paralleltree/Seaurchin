@@ -1,0 +1,10 @@
+Name = "カレーせんべい0"
+Image = "currysenbei.png"
+SkillName = "スキル無し"
+Description = '''
+効果なし
+'''
+
+[[Abilities]]
+Type = "None"
+Arguments = {}
