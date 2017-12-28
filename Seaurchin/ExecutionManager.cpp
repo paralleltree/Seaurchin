@@ -28,10 +28,29 @@ ExecutionManager::ExecutionManager(std::shared_ptr<Setting> setting)
     SharedControlState = make_shared<ControlState>();
     Musics = make_shared<MusicsManager>(this);
     Characters = make_shared<CharacterManager>(this);
+    Extensions = make_unique<ExtensionManager>();
 }
 
 void ExecutionManager::Initialize()
 {
+    std::ifstream slfile;
+    string procline;
+    path slpath = SharedSetting->GetRootDirectory() / SU_DATA_DIR / SU_SCRIPT_DIR / "SettingList.txt";
+    slfile.open(slpath.wstring(), ios::in);
+    while (getline(slfile, procline))
+        if (procline[0] != '#') SettingManager->AddSettingByString(procline);
+    slfile.close();
+    SettingManager->RetrieveAllValues();
+
+    SharedControlState->Initialize();
+    Extensions->LoadExtensions();
+    Extensions->Initialize(ScriptInterface->GetEngine());
+
+    MixerBGM = SSoundMixer::CreateMixer(Sound.get());
+    MixerSE = SSoundMixer::CreateMixer(Sound.get());
+    MixerBGM->AddRef();
+    MixerSE->AddRef();
+
     InterfacesRegisterEnum(this);
     RegisterScriptResource(this);
     RegisterScriptSprite(this);
@@ -43,22 +62,7 @@ void ExecutionManager::Initialize()
     InterfacesRegisterSceneFunction(this);
     InterfacesRegisterGlobalFunction(this);
     RegisterGlobalManagementFunction();
-
-    MixerBGM = SSoundMixer::CreateMixer(Sound.get());
-    MixerSE = SSoundMixer::CreateMixer(Sound.get());
-    MixerBGM->AddRef();
-    MixerSE->AddRef();
-
-    SharedControlState->Initialize();
-
-    std::ifstream slfile;
-    string procline;
-    path slpath = SharedSetting->GetRootDirectory() / SU_DATA_DIR / SU_SCRIPT_DIR / "SettingList.txt";
-    slfile.open(slpath.wstring(), ios::in);
-    while (getline(slfile, procline))
-        if (procline[0] != '#') SettingManager->AddSettingByString(procline);
-    slfile.close();
-    SettingManager->RetrieveAllValues();
+    Extensions->RegisterInterfaces();
 
     Characters->Load();
 

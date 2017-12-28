@@ -21,7 +21,7 @@ void ExtensionManager::LoadExtensions()
     for (const auto& fdata : make_iterator_range(directory_iterator(root), {})) {
         if (is_directory(fdata)) continue;
         auto filename = fdata.path().wstring();
-        if (!ends_with(filename, L".toml")) continue;
+        if (!ends_with(filename, L".dll")) continue;
         LoadDll(filename);
     }
     
