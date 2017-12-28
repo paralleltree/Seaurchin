@@ -260,7 +260,7 @@ MusicSelectionState MusicSelectionCursor::Next()
             auto current = Manager->Categories[CategoryIndex];
             if (current->Musics.size() == 0) return MusicSelectionState::Error;
             MusicIndex = (MusicIndex + 1) % current->Musics.size();
-            auto nm = GetMusicAt(MusicIndex);
+            auto nm = GetMusicAt(0);
             VariantIndex = min((unsigned int)VariantIndex, nm->Scores.size() - 1);
             break;
         }
@@ -279,7 +279,7 @@ MusicSelectionState MusicSelectionCursor::Previous()
             auto current = Manager->Categories[CategoryIndex];
             if (current->Musics.size() == 0) return MusicSelectionState::Error;
             MusicIndex = (MusicIndex + current->Musics.size() - 1) % current->Musics.size();
-            auto nm = GetMusicAt(MusicIndex);
+            auto nm = GetMusicAt(0);
             VariantIndex = min((unsigned int)VariantIndex, nm->Scores.size() - 1);
             break;
         }
@@ -293,7 +293,7 @@ MusicSelectionState MusicSelectionCursor::NextVariant()
         case MusicSelectionState::Category:
             return MusicSelectionState::Error;
         case MusicSelectionState::Music: {
-            auto music = GetMusicAt(MusicIndex);
+            auto music = GetMusicAt(0);
             if (!music) return MusicSelectionState::Error;
             VariantIndex = (VariantIndex + 1) % music->Scores.size();
             break;
@@ -308,7 +308,7 @@ MusicSelectionState MusicSelectionCursor::PreviousVariant()
         case MusicSelectionState::Category:
             return MusicSelectionState::Error;
         case MusicSelectionState::Music: {
-            auto music = GetMusicAt(MusicIndex);
+            auto music = GetMusicAt(0);
             if (!music) return MusicSelectionState::Error;
             VariantIndex = (VariantIndex + music->Scores.size() - 1) % music->Scores.size();
         }

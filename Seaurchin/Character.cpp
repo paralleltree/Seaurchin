@@ -33,6 +33,7 @@ void RegisterCharacterTypes(ExecutionManager *exm)
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "void Next()", asMETHOD(CharacterManager, Next), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "void Previous()", asMETHOD(CharacterManager, Previous), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "string GetName(int)", asMETHOD(CharacterManager, GetName), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "string GetSkillName(int)", asMETHOD(CharacterManager, GetSkillName), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "string GetDescription(int)", asMETHOD(CharacterManager, GetDescription), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "string GetImagePath(int)", asMETHOD(CharacterManager, GetImagePath), asCALL_THISCALL);
 }
