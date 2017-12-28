@@ -8,7 +8,22 @@ struct Transform2D {
     double OriginY = 0.0;
     double ScaleX = 1.0;
     double ScaleY = 1.0;
-
+    Transform2D ApplyFrom(const Transform2D &parent)
+    {
+        Transform2D result;
+        // Originは画像上の位置なので変更なし
+        result.OriginX = OriginX;
+        result.OriginY = OriginY;
+        // 正しくないのは百も承知だが許してくれ
+        result.ScaleX = parent.ScaleX * ScaleX;
+        result.ScaleY = parent.ScaleY * ScaleY;
+        // ここからは正しいと思う
+        result.Angle = parent.Angle + Angle;
+        double rx = X * parent.ScaleX, ry = Y * parent.ScaleY;
+        result.X = parent.X + (rx * cos(parent.Angle) - ry * sin(parent.Angle));
+        result.Y = parent.Y + (rx * sin(parent.Angle) + ry * cos(parent.Angle));
+        return result;
+    }
 };
 
 struct Transform3D {
@@ -20,12 +35,25 @@ struct Transform3D {
     double AngleZ = 0.0;
 };
 
-typedef struct {
+struct ColorTint {
     unsigned char A;
     unsigned char R;
     unsigned char G;
     unsigned char B;
-} ColorTint;
+    ColorTint ApplyFrom(const ColorTint &parent)
+    {
+        double na = ((int)A * (int)parent.A) / 256.0;
+        double nr = ((int)R * (int)parent.R) / 256.0;
+        double ng = ((int)G * (int)parent.G) / 256.0;
+        double nb = ((int)B * (int)parent.B) / 256.0;
+        return ColorTint {
+            A = (unsigned char)na,
+            R = (unsigned char)nr,
+            G = (unsigned char)ng,
+            B = (unsigned char)nb,
+        };
+    }
+} ;
 
 class Colors final {
 public:
