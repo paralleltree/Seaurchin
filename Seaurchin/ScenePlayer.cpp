@@ -79,6 +79,7 @@ void ScenePlayer::Initialize()
 
     CurrentCharacter = manager->GetCharacterManager()->CreateCharacterInstance(CurrentResult);
     CurrentCharacter->Initialize();
+    // TODO: Processer‚ÅResult#ResetŒÄ‚ñ‚Å‚é‚Ì‚Å0‚É–ß‚é
     CurrentCharacter->OnStart();
 }
 

@@ -367,7 +367,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, uint32_t line)
                     SusRelativeNoteTime time = { ConvertInteger(meas), step * i };
                     noteData.Type.set((size_t)SusNoteType::Undefined);
                     noteData.DefinitionNumber = ConvertHexatridecimal(note);
-                    Notes.push_back(make_tuple(time, noteData));
+                    if (noteData.DefinitionNumber) Notes.push_back(make_tuple(time, noteData));
                 }
                 break;
             }

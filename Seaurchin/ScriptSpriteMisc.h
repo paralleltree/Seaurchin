@@ -46,12 +46,13 @@ struct ColorTint {
         double nr = ((int)R * (int)parent.R) / 255.0;
         double ng = ((int)G * (int)parent.G) / 255.0;
         double nb = ((int)B * (int)parent.B) / 255.0;
-        return ColorTint {
-            A = (unsigned char)na,
-            R = (unsigned char)nr,
-            G = (unsigned char)ng,
-            B = (unsigned char)nb,
+        ColorTint result = {
+            (unsigned char)na,
+            (unsigned char)nr,
+            (unsigned char)ng,
+            (unsigned char)nb,
         };
+        return result;
     }
 } ;
 
