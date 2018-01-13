@@ -103,6 +103,10 @@ void ScenePlayer::Draw()
         auto &type = note->Type;
         if (type[(size_t)SusNoteType::Hold]) DrawHoldNotes(note);
         if (type[(size_t)SusNoteType::Slide]) DrawSlideNotes(note);
+    }
+
+    for (auto& note : seenData) {
+        auto &type = note->Type;
         if (type[(size_t)SusNoteType::Tap]) DrawShortNotes(note);
         if (type[(size_t)SusNoteType::ExTap]) DrawShortNotes(note);
         if (type[(size_t)SusNoteType::Flick]) DrawShortNotes(note);

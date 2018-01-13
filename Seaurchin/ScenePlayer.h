@@ -68,6 +68,7 @@ protected:
     SoundStream *bgmStream;
     ScoreProcessor *processor;
     bool isLoadCompleted = false;
+    bool isReady = false;
     bool usePrioritySort = false;
 
     double cameraZ = -340, cameraY = 620, cameraTargetZ = 580; // スクショから計測
@@ -164,6 +165,7 @@ public:
     void Initialize();
     void Load();
     bool IsLoadCompleted();
+    void GetReady();
     void Play();
     double GetPlayingTime();
     void GetCurrentResult(DrawableResult *result);
