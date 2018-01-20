@@ -13,6 +13,7 @@ struct MusicScoreInfo final {
     std::string Designer;
     boost::filesystem::path Path;
     boost::filesystem::path WavePath;
+    boost::filesystem::path BackgroundPath;
 };
 
 struct MusicMetaInfo final {
@@ -103,6 +104,7 @@ public:
     std::string GetMusicName(int32_t relativeIndex);
     std::string GetArtistName(int32_t relativeIndex);
     std::string GetMusicJacketFileName(int32_t relativeIndex);
+    std::string GetBackgroundFileName(int32_t relativeIndex);
     int GetDifficulty(int32_t relativeIndex);
     int GetLevel(int32_t relativeIndex);
     std::string GetExtraLevel(int32_t relativeIndex);

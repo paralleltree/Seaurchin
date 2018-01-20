@@ -86,14 +86,7 @@ void SusAnalyzer::Reset()
     HispeedDefinitions.clear();
     ExtraAttributes.clear();
     // TicksPerBeat = ;
-    SharedMetaData.UTitle = u8"";
-    SharedMetaData.UArtist = u8"";
-    SharedMetaData.USubTitle = u8"";
-    SharedMetaData.UDesigner = u8"";
-    SharedMetaData.UWaveFileName = u8"";
-    SharedMetaData.WaveOffset = 0.00;
-    SharedMetaData.Level = 0;
-    SharedMetaData.DifficultyType = 0;
+    SharedMetaData.Reset();
 
     BpmDefinitions[0] = 120.0;
     BeatsDefinitions[0] = 4.0;
@@ -235,6 +228,9 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, bool onlyMeta, uint32
             break;
         case "JACKET"_crc32:
             SharedMetaData.UJacketFileName = ConvertRawString(result[2]);
+            break;
+        case "BACKGROUND"_crc32:
+            SharedMetaData.UBackgroundFileName = ConvertRawString(result[2]);
             break;
         case "REQUEST"_crc32:
             ProcessRequest(ConvertRawString(result[2]), line);

@@ -82,6 +82,7 @@ void MusicsManager::CreateMusicCache()
                 }
                 auto score = make_shared<MusicScoreInfo>();
                 score->Path = mdir.path().filename() / file.path().filename();
+                score->BackgroundPath = ConvertUTF8ToUnicode(Analyzer->SharedMetaData.UBackgroundFileName);
                 score->WavePath = ConvertUTF8ToUnicode(Analyzer->SharedMetaData.UWaveFileName);
                 score->Designer = Analyzer->SharedMetaData.UDesigner;
                 score->Difficulty = Analyzer->SharedMetaData.DifficultyType;
@@ -192,6 +193,15 @@ string MusicSelectionCursor::GetMusicJacketFileName(int32_t relativeIndex)
     return ConvertUnicodeToUTF8(result);
 }
 
+string MusicSelectionCursor::GetBackgroundFileName(int32_t relativeIndex)
+{
+    auto variant = GetScoreVariantAt(relativeIndex);
+    auto current = Manager->Categories[CategoryIndex];
+    if (!variant) return "";
+    auto result = variant->Path.parent_path() / variant->BackgroundPath;
+    return ConvertUnicodeToUTF8(result.wstring());
+}
+
 int MusicSelectionCursor::GetDifficulty(int32_t relativeIndex)
 {
     auto variant = GetScoreVariantAt(relativeIndex);
@@ -231,6 +241,7 @@ MusicSelectionState MusicSelectionCursor::Enter()
             Manager->Manager->SetData<int>("Selected:Music", MusicIndex);
             Manager->Manager->SetData<int>("Selected:Variant", VariantIndex);
             Manager->Manager->SetData("Player:Jacket", GetMusicJacketFileName(0));
+            Manager->Manager->SetData("Player:Background", GetBackgroundFileName(0));
             return MusicSelectionState::Confirmed;
         default:
             return MusicSelectionState::Success;
@@ -345,6 +356,7 @@ void MusicSelectionCursor::RegisterScriptInterface(asIScriptEngine *engine)
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, "string GetMusicName(int)", asMETHOD(MusicSelectionCursor, GetMusicName), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, "string GetArtistName(int)", asMETHOD(MusicSelectionCursor, GetArtistName), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, "string GetMusicJacketFileName(int)", asMETHOD(MusicSelectionCursor, GetMusicJacketFileName), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_MSCURSOR, "string GetBackgroundFileName(int)", asMETHOD(MusicSelectionCursor, GetBackgroundFileName), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, "int GetDifficulty(int)", asMETHOD(MusicSelectionCursor, GetDifficulty), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, "int GetLevel(int)", asMETHOD(MusicSelectionCursor, GetLevel), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, "string GetExtraLevel(int)", asMETHOD(MusicSelectionCursor, GetExtraLevel), asCALL_THISCALL);

@@ -95,19 +95,34 @@ enum class SusMetaDataFlags : uint16_t {
 };
 
 struct SusMetaData {
-    std::string UTitle;
-    std::string USubTitle;
-    std::string UArtist;
-    std::string UJacketFileName;
-    std::string UDesigner;
-    std::string USongId;
-    std::string UWaveFileName;
+    std::string UTitle = u8"";
+    std::string USubTitle = u8"";
+    std::string UArtist = u8"";
+    std::string UJacketFileName = u8"";
+    std::string UDesigner = u8"";
+    std::string USongId = u8"";
+    std::string UWaveFileName = u8"";
+    std::string UBackgroundFileName = u8"";
     double WaveOffset = 0;
     double BaseBpm = 0;
-    uint32_t Level;
-    uint32_t DifficultyType;
+    uint32_t Level = 0;
+    uint32_t DifficultyType = 0;
     std::string UExtraDifficulty = "";
     std::bitset<8> ExtraFlags;
+
+    void Reset()
+    {
+        USongId = "";
+        UTitle = USubTitle = u8"";
+        UArtist = UDesigner = u8"";
+        UJacketFileName = UWaveFileName = UBackgroundFileName = "";
+        WaveOffset = 0;
+        BaseBpm = 0;
+        Level = 0;
+        DifficultyType = 0;
+        UExtraDifficulty = u8"";
+        ExtraFlags.reset();
+    }
 };
 
 

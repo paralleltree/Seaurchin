@@ -80,8 +80,6 @@ void ScenePlayer::Initialize()
 
     CurrentCharacter = manager->GetCharacterManager()->CreateCharacterInstance(CurrentResult);
     CurrentCharacter->Initialize();
-    // TODO: Processer‚ÅResult#ResetŒÄ‚ñ‚Å‚é‚Ì‚Å0‚É–ß‚é
-    CurrentCharacter->OnStart();
 }
 
 void ScenePlayer::SetProcessorOptions(PlayableProcessor *processor)
@@ -327,7 +325,11 @@ bool ScenePlayer::IsLoadCompleted()
 }
 
 void ScenePlayer::GetReady()
-{}
+{
+    if (!isLoadCompleted || isReady) return;
+    isReady = true;
+    CurrentCharacter->OnStart();
+}
 
 void ScenePlayer::SetPlayerResource(const string & name, SResource * resource)
 {
@@ -337,6 +339,7 @@ void ScenePlayer::SetPlayerResource(const string & name, SResource * resource)
 
 void ScenePlayer::Play()
 {
+    if (!isLoadCompleted || !isReady) return;
     if (State < PlayingState::ReadyToStart) return;
     State = PlayingState::ReadyCounting;
 }
