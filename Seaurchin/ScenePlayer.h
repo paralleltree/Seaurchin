@@ -74,6 +74,7 @@ protected:
     double cameraZ = -340, cameraY = 620, cameraTargetZ = 580; // スクショから計測
     double laneBufferX = 1024;
     double laneBufferY = laneBufferX * SU_LANE_ASPECT;
+    double laneBackgroundRoll = 0, laneBackgroundSpeed = 0;
     double widthPerLane = laneBufferX / 16;
     double cullingLimit = SU_LANE_ASPECT_EXT / SU_LANE_ASPECT;
     double noteImageBlockX = 64;
@@ -120,6 +121,7 @@ protected:
     PlayingState LastState;
     bool AirActionShown = false;
 
+    void TickGraphics(double delta);
     void AddSprite(SSprite *sprite);
     void SetProcessorOptions(PlayableProcessor *processor);
     void LoadResources();
@@ -135,6 +137,7 @@ protected:
     void DrawAirActionNotes(std::shared_ptr<SusDrawableNoteData> note);
     void DrawTap(int lane, int length, double relpos, int handle);
     void DrawMeasureLines();
+    void DrawLaneBackground();
     void RefreshComboText();
     void Prepare3DDrawCall();
 

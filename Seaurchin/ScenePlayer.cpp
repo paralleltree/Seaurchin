@@ -270,9 +270,8 @@ void ScenePlayer::Tick(double delta)
     PreviousStatus = Status;
     if (State != PlayingState::Paused) processor->Update(judgeData);
     CurrentResult->GetCurrentResult(&Status);
-    if (Status.Combo > PreviousStatus.Combo) RefreshComboText();
-
-    UpdateSlideEffect();
+    
+    TickGraphics(delta);
 }
 
 void ScenePlayer::ProcessSound()

@@ -73,6 +73,13 @@ void ScenePlayer::AddSprite(SSprite *sprite)
     spritesPending.push_back(sprite);
 }
 
+void ScenePlayer::TickGraphics(double delta)
+{
+    if (Status.Combo > PreviousStatus.Combo) RefreshComboText();
+    UpdateSlideEffect();
+    laneBackgroundRoll += laneBackgroundSpeed * delta;
+}
+
 void ScenePlayer::Draw()
 {
     ostringstream combo;
@@ -83,20 +90,7 @@ void ScenePlayer::Draw()
     ProcessSound();
 
     BEGIN_DRAW_TRANSACTION(hGroundBuffer);
-    ClearDrawScreen();
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    DrawGraph(0, 0, imageLaneGround->GetHandle(), TRUE);
-    SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
-    DrawRectRotaGraph3F(
-        0, laneBufferY,
-        0, 0,
-        imageLaneJudgeLine->get_Width(), imageLaneJudgeLine->get_Height(),
-        0, imageLaneJudgeLine->get_Height() / 2,
-        1, 1, 0,
-        imageLaneJudgeLine->GetHandle(), TRUE, FALSE);
-    processor->Draw();
-    textCombo->Draw();
-
+    DrawLaneBackground();
     DrawMeasureLines();
 
     for (auto& note : seenData) {
@@ -614,6 +608,34 @@ void ScenePlayer::DrawMeasureLines()
         double relpos = 1.0 - (pos - CurrentTime) / SeenDuration;
         DrawLineAA(0, relpos * laneBufferY, laneBufferX, relpos * laneBufferY, GetColor(255, 255, 255), 6);
     }
+}
+
+void ScenePlayer::DrawLaneBackground()
+{
+    ClearDrawScreen();
+    // bg
+    int exty = laneBufferX * SU_LANE_ASPECT_EXT;
+    auto bgiw = imageLaneGround->get_Width();
+    double scale = laneBufferX / bgiw;
+    double cy = laneBackgroundRoll;
+    while (cy > 0) cy -= imageLaneGround->get_Height() * scale;
+    
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+    while (cy <= exty) {
+        DrawRotaGraph2F(0, cy, 0, 0, scale, 0, imageLaneGround->GetHandle(), TRUE, FALSE);
+        cy += imageLaneGround->get_Height() * scale;
+    }
+
+    SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
+    DrawRectRotaGraph3F(
+        0, laneBufferY,
+        0, 0,
+        imageLaneJudgeLine->get_Width(), imageLaneJudgeLine->get_Height(),
+        0, imageLaneJudgeLine->get_Height() / 2,
+        1, 1, 0,
+        imageLaneJudgeLine->GetHandle(), TRUE, FALSE);
+    processor->Draw();
+    textCombo->Draw();
 }
 
 void ScenePlayer::Prepare3DDrawCall()
