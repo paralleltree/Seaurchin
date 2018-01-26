@@ -127,7 +127,6 @@ To* CastReferenceType(From *from)
     return result;
 }
 
-
 //std::string ConvertUTF8ToShiftJis(const std::string &utf8str);
 //std::string ConvertShiftJisToUTF8(const std::string &sjisstr);
 std::wstring ConvertUTF8ToUnicode(const std::string &utf8str);

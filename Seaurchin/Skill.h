@@ -1,6 +1,8 @@
 #pragma once
 
 #define SU_IF_ABILITY "Ability"
+#define SU_IF_SKILL "Skill"
+#define SU_IF_SKILL_MANAGER "SkillManager"
 #define SU_IF_NOTETYPE "NoteType"
 
 class ExecutionManager;
@@ -18,7 +20,7 @@ public:
     std::vector<AbilityParameter> Abilities;
 };
 
-enum class CharacterNoteType {
+enum class AbilityNoteType {
     Tap = 1,
     ExTap,
     Flick,
@@ -31,7 +33,7 @@ enum class CharacterNoteType {
 
 class SkillManager final {
 private:
-    ExecutionManager * manager;
+    ExecutionManager *manager;
     std::vector<std::shared_ptr<SkillParameter>> Skills;
     int Selected;
 
@@ -46,3 +48,5 @@ public:
     void Previous();
     SkillParameter* GetSkillParameter(int relative);
 };
+
+void RegisterSkillTypes(asIScriptEngine *engine);

@@ -9,6 +9,7 @@ CharacterInstance::CharacterInstance(shared_ptr<CharacterParameter> character, s
     CharacterSource = character;
     SkillSource = skill;
     ScriptInterface = script;
+    context = script->GetEngine()->CreateContext();
 }
 
 CharacterInstance::~CharacterInstance()
@@ -19,7 +20,19 @@ CharacterInstance::~CharacterInstance()
     if (ImageFull) ImageFull->Release();
     if (ImageSmall) ImageSmall->Release();
     if (ImageFace) ImageFace->Release();
+}
 
+shared_ptr<CharacterInstance> CharacterInstance::CreateInstance(shared_ptr<CharacterParameter> character, shared_ptr<SkillParameter> skill, shared_ptr<AngelScript> script)
+{
+    auto result = make_shared<CharacterInstance>(character, skill);
+    result->MakeCharacterImages();
+    result->LoadAbilities();
+    return result;
+}
+
+void CharacterInstance::SetResult(shared_ptr<Result> result)
+{
+    TargetResult = result;
 }
 
 void CharacterInstance::MakeCharacterImages()
@@ -96,7 +109,6 @@ void CharacterInstance::LoadAbilities()
         context->Execute();
         log->info(u8"アビリティー " + ConvertUnicodeToUTF8(scrpath.c_str()));
     }
-
 }
 
 asIScriptObject* CharacterInstance::LoadAbilityObject(boost::filesystem::path filepath)
@@ -143,11 +155,63 @@ asIScriptObject* CharacterInstance::LoadAbilityObject(boost::filesystem::path fi
     return obj;
 }
 
-shared_ptr<CharacterInstance> CharacterInstance::CreateInstance(shared_ptr<CharacterParameter> character, shared_ptr<SkillParameter> skill, shared_ptr<AngelScript> script)
+void CharacterInstance::OnEvent(const char *name)
 {
-    auto result = make_shared<CharacterInstance>(character, skill);
-    result->MakeCharacterImages();
-    result->LoadAbilities();
-    return result;
+    for (int i = 0; i < Abilities.size(); ++i) {
+        auto func = AbilityTypes[i]->GetMethodByDecl(name);
+        if (!func) continue;
+        context->Prepare(func);
+        context->SetObject(Abilities[i]);
+        context->SetArgAddress(0, TargetResult.get());
+        context->Execute();
+    }
 }
 
+void CharacterInstance::OnEvent(const char *name, AbilityNoteType type)
+{
+    for (int i = 0; i < Abilities.size(); ++i) {
+        auto func = AbilityTypes[i]->GetMethodByDecl(name);
+        if (!func) continue;
+        context->Prepare(func);
+        context->SetObject(Abilities[i]);
+        context->SetArgAddress(0, TargetResult.get());
+        context->SetArgDWord(1, (asDWORD)type);
+        context->Execute();
+    }
+}
+
+void CharacterInstance::OnStart()
+{
+    OnEvent("void OnStart(" SU_IF_RESULT "@)");
+}
+
+void CharacterInstance::OnFinish()
+{
+    OnEvent("void OnFinish(" SU_IF_RESULT "@)");
+}
+
+void CharacterInstance::OnJusticeCritical(AbilityNoteType type)
+{
+    OnEvent("void OnJusticeCritical(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
+}
+
+void CharacterInstance::OnJustice(AbilityNoteType type)
+{
+    OnEvent("void OnJustice(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
+}
+
+void CharacterInstance::OnAttack(AbilityNoteType type)
+{
+    OnEvent("void OnAttack(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
+}
+
+void CharacterInstance::OnFinish(AbilityNoteType type)
+{
+    OnEvent("void OnFinish(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
+}
+
+void RegisterCharacterSkillTypes(asIScriptEngine *engine)
+{
+    RegisterResultTypes(engine);
+    RegisterSkillTypes(engine);
+}

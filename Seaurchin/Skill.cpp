@@ -39,7 +39,9 @@ void SkillManager::Previous()
 
 SkillParameter *SkillManager::GetSkillParameter(int relative)
 {
-    return nullptr;
+    int ri = Selected + relative;
+    while (ri < 0) ri += Skills.size();
+    return Skills[ri % Skills.size()].get();
 }
 
 void SkillManager::LoadFromToml(boost::filesystem::path file)
@@ -88,4 +90,35 @@ void SkillManager::LoadFromToml(boost::filesystem::path file)
         return;
     }
     Skills.push_back(result);
+}
+
+void RegisterSkillTypes(asIScriptEngine *engine)
+{
+    engine->RegisterEnum(SU_IF_NOTETYPE);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Tap", (int)AbilityNoteType::Tap);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "ExTap", (int)AbilityNoteType::ExTap);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Flick", (int)AbilityNoteType::Flick);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "HellTap", (int)AbilityNoteType::HellTap);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Air", (int)AbilityNoteType::Air);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Hold", (int)AbilityNoteType::Hold);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Slide", (int)AbilityNoteType::Slide);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "AirAction", (int)AbilityNoteType::AirAction);
+
+    engine->RegisterInterface(SU_IF_ABILITY);
+    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void Initialize(dictionary@)");
+    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnStart(" SU_IF_RESULT "@)");
+    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnFinish(" SU_IF_RESULT "@)");
+    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnJusticeCritical(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
+    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnJustice(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
+    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnAttack(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
+    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnMiss(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
+
+    engine->RegisterObjectType(SU_IF_SKILL, 0, asOBJ_REF | asOBJ_NOCOUNT);
+    engine->RegisterObjectProperty(SU_IF_SKILL, "string Name", asOFFSET(SkillParameter, Name));
+    engine->RegisterObjectProperty(SU_IF_SKILL, "string Description", asOFFSET(SkillParameter, Description));
+
+    engine->RegisterObjectType(SU_IF_SKILL_MANAGER, 0, asOBJ_REF | asOBJ_NOCOUNT);
+    engine->RegisterObjectMethod(SU_IF_SKILL_MANAGER, "void Next()", asMETHOD(SkillManager, Next), asCALL_CDECL);
+    engine->RegisterObjectMethod(SU_IF_SKILL_MANAGER, "void Previous()", asMETHOD(SkillManager, Previous), asCALL_CDECL);
+    engine->RegisterObjectMethod(SU_IF_SKILL_MANAGER, SU_IF_SKILL "@ GetSkill(int)", asMETHOD(SkillManager, GetSkillParameter), asCALL_CDECL);
 }
