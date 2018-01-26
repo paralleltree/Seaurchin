@@ -3,35 +3,24 @@
 #include "AngelScriptManager.h"
 #include "Result.h"
 
-#define SU_IF_ABILITY "Ability"
-#define SU_IF_NOTETYPE "NoteType"
+
 #define SU_IF_CHARACTER_MANAGER "CharacterManager"
 
-struct AbilityInfo final {
+struct CharacterImageMetric final {
+    double WholeScale;
+    int FaceOrigin[2];
+    int SmallRange[4];
+    int FaceRange[4];
+};
+
+class CharacterParameter final {
+public:
     std::string Name;
-    std::unordered_map<std::string, boost::any> Arguments;
+    std::string ImagePath;
+    CharacterImageMetric Metric;
 };
 
-struct CharacterInfo final {
-    std::string Name;
-    std::string Description;
-    std::string SkillName;
-    boost::filesystem::path ImagePath;
-    std::vector<AbilityInfo> Abilities;
 
-    static std::shared_ptr<CharacterInfo> LoadFromToml(const boost::filesystem::path &path);
-};
-
-enum class CharacterNoteType {
-    Tap = 1,
-    ExTap,
-    Flick,
-    Air,
-    HellTap,
-    Hold,
-    Slide,
-    AirAction,
-};
 
 class Character final {
 private:

@@ -179,6 +179,7 @@
     <ClCompile Include="..\..\..\Wacom_Feel_SDK\src\cpp\WacomMultiTouch.cpp" />
     <ClCompile Include="AngelScriptManager.cpp" />
     <ClCompile Include="Character.cpp" />
+    <ClCompile Include="CharacterInstance.cpp" />
     <ClCompile Include="Controller.cpp" />
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="Easing.cpp" />
@@ -209,6 +210,7 @@
     <ClCompile Include="ScriptSprite.cpp" />
     <ClCompile Include="ScriptSpriteManager.cpp" />
     <ClCompile Include="Setting.cpp" />
+    <ClCompile Include="Skill.cpp" />
     <ClCompile Include="SkinHolder.cpp" />
     <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="ScriptFunction.cpp" />
@@ -226,6 +228,7 @@
     <ClInclude Include="..\..\..\DXLib\include\DxDataTypeWin.h" />
     <ClInclude Include="..\..\..\DXLib\include\DxFunctionWin.h" />
     <ClInclude Include="..\..\..\DXLib\include\DxLib.h" />
+    <ClInclude Include="CharacterInstance.h" />
     <ClInclude Include="ExtensionManager.h" />
     <ClInclude Include="SeaurchinExtension.h" />
     <ClInclude Include="AngelScriptManager.h" />
@@ -253,6 +256,7 @@
     <ClInclude Include="ScriptSprite.h" />
     <ClInclude Include="ScriptSpriteManager.h" />
     <ClInclude Include="Setting.h" />
+    <ClInclude Include="Skill.h" />
     <ClInclude Include="SkinHolder.h" />
     <ClInclude Include="SoundManager.h" />
     <ClInclude Include="ScriptFunction.h" />

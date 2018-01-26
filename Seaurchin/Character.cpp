@@ -310,3 +310,4 @@ string CharacterManager::GetSkillName(int relative)
     while (ri < 0) ri += Characters.size();
     return Characters[ri % Characters.size()]->SkillName;
 }
+

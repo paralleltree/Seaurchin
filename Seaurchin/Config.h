@@ -19,6 +19,8 @@
 #define SU_SOUND_DIR L"Sounds"
 #define SU_EXTENSION_DIR L"Extensions"
 #define SU_SCRIPT_DIR L"Scripts"
+#define SU_SKILL_DIR L"Skills"
+#define SU_ABILITY_DIR L"Abilities"
 
 #define SU_SKIN_MAIN_FILE L"Skin.as"
 #define SU_SKIN_TITLE_FILE L"Title.as"
