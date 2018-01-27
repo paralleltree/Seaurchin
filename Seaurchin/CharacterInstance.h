@@ -14,24 +14,21 @@
 
 class CharacterInstance final {
 private:
-    int reference;
+    int reference = 0;
 
     std::shared_ptr<AngelScript> ScriptInterface;
 
     std::shared_ptr<CharacterParameter> CharacterSource;
     std::shared_ptr<SkillParameter> SkillSource;
+    CharacterImageSet *ImageSet;
     std::shared_ptr<Result> TargetResult;
 
     std::vector<asIScriptObject*> Abilities;
     std::vector<asITypeInfo*> AbilityTypes;
     asIScriptContext *context;
 
-    SImage *ImageFull;
-    SImage *ImageSmall;
-    SImage *ImageFace;
-
-    void MakeCharacterImages();
     void LoadAbilities();
+    void CreateImageSet();
 
     asIScriptObject* LoadAbilityObject(boost::filesystem::path filepath);
 
@@ -53,9 +50,9 @@ public:
     void OnAttack(AbilityNoteType type);
     void OnMiss(AbilityNoteType type);
 
-    SImage* GetFullImage();
-    SImage* GetSmallImage();
-    SImage* GetFaceImage();
+    CharacterParameter* GetCharacterParameter();
+    SkillParameter* GetSkillParameter();
+    CharacterImageSet* GetCharacterImages();
 
     static std::shared_ptr<CharacterInstance> CreateInstance(std::shared_ptr<CharacterParameter> character, std::shared_ptr<SkillParameter> skill, std::shared_ptr<AngelScript> script);
 };

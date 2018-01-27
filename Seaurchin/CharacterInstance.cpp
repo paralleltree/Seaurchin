@@ -17,15 +17,12 @@ CharacterInstance::~CharacterInstance()
     context->Release();
     for (const auto &t : AbilityTypes) t->Release();
     for (const auto &o : Abilities) o->Release();
-    if (ImageFull) ImageFull->Release();
-    if (ImageSmall) ImageSmall->Release();
-    if (ImageFace) ImageFace->Release();
+    if (ImageSet) ImageSet->Release();
 }
 
 shared_ptr<CharacterInstance> CharacterInstance::CreateInstance(shared_ptr<CharacterParameter> character, shared_ptr<SkillParameter> skill, shared_ptr<AngelScript> script)
 {
     auto result = make_shared<CharacterInstance>(character, skill, script);
-    result->MakeCharacterImages();
     result->LoadAbilities();
     result->AddRef();
     return result;
@@ -34,36 +31,6 @@ shared_ptr<CharacterInstance> CharacterInstance::CreateInstance(shared_ptr<Chara
 void CharacterInstance::SetResult(shared_ptr<Result> result)
 {
     TargetResult = result;
-}
-
-void CharacterInstance::MakeCharacterImages()
-{
-    using namespace boost::filesystem;
-    // 内部的にはRenderTarget
-    path imgroot = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_CHARACTER_DIR;
-    auto root = (imgroot / ConvertUTF8ToUnicode(CharacterSource->ImagePath)).wstring();
-    int hBase = LoadGraph(reinterpret_cast<const char*>(root.c_str()));
-    int hSmall = MakeGraph(SU_CHAR_SMALL_WIDTH, SU_CHAR_SMALL_WIDTH);
-    int hFace = MakeGraph(SU_CHAR_FACE_SIZE, SU_CHAR_FACE_SIZE);
-    BEGIN_DRAW_TRANSACTION(hSmall);
-    DrawRectExtendGraph(
-        0, 0, SU_CHAR_SMALL_WIDTH, SU_CHAR_SMALL_HEIGHT,
-        CharacterSource->Metric.SmallRange[0], CharacterSource->Metric.SmallRange[1],
-        CharacterSource->Metric.SmallRange[2], CharacterSource->Metric.SmallRange[3],
-        hBase, TRUE);
-    BEGIN_DRAW_TRANSACTION(hFace);
-    DrawRectExtendGraph(
-        0, 0, SU_CHAR_FACE_SIZE, SU_CHAR_FACE_SIZE,
-        CharacterSource->Metric.FaceRange[0], CharacterSource->Metric.FaceRange[1],
-        CharacterSource->Metric.FaceRange[2], CharacterSource->Metric.FaceRange[3],
-        hBase, TRUE);
-    FINISH_DRAW_TRANSACTION;
-    ImageFull = new SImage(hBase);
-    ImageFull->AddRef();
-    ImageSmall = new SImage(hSmall);
-    ImageSmall->AddRef();
-    ImageFace = new SImage(hFace);
-    ImageFace->AddRef();
 }
 
 void CharacterInstance::LoadAbilities()
@@ -110,6 +77,11 @@ void CharacterInstance::LoadAbilities()
         context->Execute();
         log->info(u8"アビリティー " + ConvertUnicodeToUTF8(scrpath.c_str()));
     }
+}
+
+void CharacterInstance::CreateImageSet()
+{
+    ImageSet = CharacterImageSet::CreateImageSet(CharacterSource);
 }
 
 asIScriptObject* CharacterInstance::LoadAbilityObject(boost::filesystem::path filepath)
@@ -211,22 +183,20 @@ void CharacterInstance::OnMiss(AbilityNoteType type)
     OnEvent("void OnMiss(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
 }
 
-SImage* CharacterInstance::GetFullImage()
+CharacterParameter* CharacterInstance::GetCharacterParameter()
 {
-    ImageFull->AddRef();
-    return ImageFull;
+    return CharacterSource.get();
 }
 
-SImage* CharacterInstance::GetSmallImage()
+SkillParameter* CharacterInstance::GetSkillParameter()
 {
-    ImageSmall->AddRef();
-    return ImageSmall;
+    return SkillSource.get();
 }
 
-SImage* CharacterInstance::GetFaceImage()
+CharacterImageSet* CharacterInstance::GetCharacterImages()
 {
-    ImageFace->AddRef();
-    return ImageFace;
+    ImageSet->AddRef();
+    return ImageSet;
 }
 
 void RegisterCharacterSkillTypes(asIScriptEngine *engine)
@@ -238,7 +208,7 @@ void RegisterCharacterSkillTypes(asIScriptEngine *engine)
     engine->RegisterObjectType(SU_IF_CHARACTER_INSTANCE, 0, asOBJ_REF);
     engine->RegisterObjectBehaviour(SU_IF_CHARACTER_INSTANCE, asBEHAVE_ADDREF, "void f()", asMETHOD(CharacterInstance, AddRef), asCALL_THISCALL);
     engine->RegisterObjectBehaviour(SU_IF_CHARACTER_INSTANCE, asBEHAVE_RELEASE, "void f()", asMETHOD(CharacterInstance, Release), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_CHARACTER_INSTANCE, SU_IF_IMAGE "@ GetFullImage()", asMETHOD(CharacterInstance, GetFullImage), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_CHARACTER_INSTANCE, SU_IF_IMAGE "@ GetSmallImage()", asMETHOD(CharacterInstance, GetSmallImage), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_CHARACTER_INSTANCE, SU_IF_IMAGE "@ GetFaceImage()", asMETHOD(CharacterInstance, GetFaceImage), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_INSTANCE, SU_IF_CHARACTER_PARAM "@ GetCharacter()", asMETHOD(CharacterInstance, GetCharacterParameter), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_INSTANCE, SU_IF_SKILL "@ GetSkill()", asMETHOD(CharacterInstance, GetCharacterParameter), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_INSTANCE, SU_IF_CHARACTER_IMAGES "@ GetCharacterImages()", asMETHOD(CharacterInstance, GetCharacterParameter), asCALL_THISCALL);
 }

@@ -118,6 +118,91 @@ void CharacterManager::LoadFromToml(boost::filesystem::path file)
     Characters.push_back(result);
 }
 
+
+CharacterImageSet::CharacterImageSet(shared_ptr<CharacterParameter> param)
+{
+    Parameter = param;
+    LoadAllImage();
+}
+
+CharacterImageSet::~CharacterImageSet()
+{
+    ImageFull->Release();
+    ImageSmall->Release();
+    ImageFace->Release();
+}
+
+void CharacterImageSet::ApplyFullImage(SSprite *sprite)
+{
+    auto cx = Parameter->Metric.FaceOrigin[0], cy = Parameter->Metric.FaceOrigin[1];
+    auto sc = Parameter->Metric.WholeScale;
+    ostringstream ss;
+    ss << "origX:" << cx << ", origY:" << cy << ", scaleX:" << sc << ", scaleY:" << sc;
+
+    ImageFull->AddRef();
+    sprite->set_Image(ImageFull);
+    sprite->Apply(ss.str());
+    sprite->Release();
+}
+
+void CharacterImageSet::ApplySmallImage(SSprite *sprite)
+{
+    ImageSmall->AddRef();
+    sprite->set_Image(ImageSmall);
+    sprite->Release();
+}
+
+void CharacterImageSet::ApplyFaceImage(SSprite *sprite)
+{
+    ImageFace->AddRef();
+    sprite->set_Image(ImageFace);
+    sprite->Release();
+}
+
+CharacterImageSet *CharacterImageSet::CreateImageSet(std::shared_ptr<CharacterParameter> param)
+{
+    auto result = new CharacterImageSet(param);
+    result->AddRef();
+    return result;
+}
+
+void CharacterImageSet::LoadAllImage()
+{
+    auto root = ConvertUTF8ToUnicode(Parameter->ImagePath);
+    int hBase = LoadGraph(reinterpret_cast<const char*>(root.c_str()));
+    int hSmall = MakeGraph(SU_CHAR_SMALL_WIDTH, SU_CHAR_SMALL_WIDTH);
+    int hFace = MakeGraph(SU_CHAR_FACE_SIZE, SU_CHAR_FACE_SIZE);
+    BEGIN_DRAW_TRANSACTION(hSmall);
+    DrawRectExtendGraph(
+        0, 0, SU_CHAR_SMALL_WIDTH, SU_CHAR_SMALL_HEIGHT,
+        Parameter->Metric.SmallRange[0], Parameter->Metric.SmallRange[1],
+        Parameter->Metric.SmallRange[2], Parameter->Metric.SmallRange[3],
+        hBase, TRUE);
+    BEGIN_DRAW_TRANSACTION(hFace);
+    DrawRectExtendGraph(
+        0, 0, SU_CHAR_FACE_SIZE, SU_CHAR_FACE_SIZE,
+        Parameter->Metric.FaceRange[0], Parameter->Metric.FaceRange[1],
+        Parameter->Metric.FaceRange[2], Parameter->Metric.FaceRange[3],
+        hBase, TRUE);
+    FINISH_DRAW_TRANSACTION;
+    ImageFull = new SImage(hBase);
+    ImageFull->AddRef();
+    ImageSmall = new SImage(hSmall);
+    ImageSmall->AddRef();
+    ImageFace = new SImage(hFace);
+    ImageFace->AddRef();
+}
+
+void CharacterImageSet::RegisterType(asIScriptEngine *engine)
+{
+    engine->RegisterObjectType(SU_IF_CHARACTER_IMAGES, 0, asOBJ_REF);
+    engine->RegisterObjectBehaviour(SU_IF_CHARACTER_IMAGES, asBEHAVE_ADDREF, "void f()", asMETHOD(CharacterImageSet, AddRef), asCALL_THISCALL);
+    engine->RegisterObjectBehaviour(SU_IF_CHARACTER_IMAGES, asBEHAVE_RELEASE, "void f()", asMETHOD(CharacterImageSet, Release), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_IMAGES, "void ApplyFullImage(" SU_IF_SPRITE "@)", asMETHOD(CharacterImageSet, ApplyFullImage), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_IMAGES, "void ApplySmallImage(" SU_IF_SPRITE "@)", asMETHOD(CharacterImageSet, ApplySmallImage), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_IMAGES, "void ApplyFaceImage(" SU_IF_SPRITE "@)", asMETHOD(CharacterImageSet, ApplyFaceImage), asCALL_THISCALL);
+}
+
 void RegisterCharacterTypes(asIScriptEngine *engine)
 {
     engine->RegisterObjectType(SU_IF_CHARACTER_METRIC, sizeof(CharacterImageMetric), asOBJ_VALUE | asOBJ_POD);
@@ -135,4 +220,6 @@ void RegisterCharacterTypes(asIScriptEngine *engine)
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "void Next()", asMETHOD(CharacterManager, Next), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "void Previous()", asMETHOD(CharacterManager, Previous), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, SU_IF_CHARACTER_PARAM "@ GetCharacter(int)", asMETHOD(CharacterManager, GetCharacterParameter), asCALL_THISCALL);
+
+    CharacterImageSet::RegisterType(engine);
 }

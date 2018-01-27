@@ -1,11 +1,13 @@
 #pragma once
 
 #include "AngelScriptManager.h"
+#include "ScriptSprite.h"
 #include "Result.h"
 
 
 #define SU_IF_CHARACTER_METRIC "CharacterMetric"
 #define SU_IF_CHARACTER_PARAM "Character"
+#define SU_IF_CHARACTER_IMAGES "CharacterImages"
 #define SU_IF_CHARACTER_MANAGER "CharacterManager"
 
 struct CharacterImageMetric final {
@@ -24,6 +26,31 @@ public:
     std::string Name;
     std::string ImagePath;
     CharacterImageMetric Metric;
+};
+
+class CharacterImageSet final {
+private:
+    int reference = 0;
+
+    std::shared_ptr<CharacterParameter> Parameter;
+    SImage *ImageFull;
+    SImage *ImageSmall;
+    SImage *ImageFace;
+
+    void LoadAllImage();
+
+public:
+    void AddRef() { reference++; }
+    void Release() { if (--reference == 0) delete this; }
+    CharacterImageSet(std::shared_ptr<CharacterParameter> param);
+    ~CharacterImageSet();
+
+    void ApplyFullImage(SSprite *sprite);
+    void ApplySmallImage(SSprite *sprite);
+    void ApplyFaceImage(SSprite *sprite);
+
+    static CharacterImageSet* CreateImageSet(std::shared_ptr<CharacterParameter> param);
+    static void RegisterType(asIScriptEngine *engine);
 };
 
 class ExecutionManager;
