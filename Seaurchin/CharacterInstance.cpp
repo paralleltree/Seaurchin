@@ -24,9 +24,10 @@ CharacterInstance::~CharacterInstance()
 
 shared_ptr<CharacterInstance> CharacterInstance::CreateInstance(shared_ptr<CharacterParameter> character, shared_ptr<SkillParameter> skill, shared_ptr<AngelScript> script)
 {
-    auto result = make_shared<CharacterInstance>(character, skill);
+    auto result = make_shared<CharacterInstance>(character, skill, script);
     result->MakeCharacterImages();
     result->LoadAbilities();
+    result->AddRef();
     return result;
 }
 
@@ -210,9 +211,34 @@ void CharacterInstance::OnMiss(AbilityNoteType type)
     OnEvent("void OnMiss(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
 }
 
+SImage* CharacterInstance::GetFullImage()
+{
+    ImageFull->AddRef();
+    return ImageFull;
+}
+
+SImage* CharacterInstance::GetSmallImage()
+{
+    ImageSmall->AddRef();
+    return ImageSmall;
+}
+
+SImage* CharacterInstance::GetFaceImage()
+{
+    ImageFace->AddRef();
+    return ImageFace;
+}
+
 void RegisterCharacterSkillTypes(asIScriptEngine *engine)
 {
     RegisterResultTypes(engine);
     RegisterSkillTypes(engine);
     RegisterCharacterTypes(engine);
+
+    engine->RegisterObjectType(SU_IF_CHARACTER_INSTANCE, 0, asOBJ_REF);
+    engine->RegisterObjectBehaviour(SU_IF_CHARACTER_INSTANCE, asBEHAVE_ADDREF, "void f()", asMETHOD(CharacterInstance, AddRef), asCALL_THISCALL);
+    engine->RegisterObjectBehaviour(SU_IF_CHARACTER_INSTANCE, asBEHAVE_RELEASE, "void f()", asMETHOD(CharacterInstance, Release), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_INSTANCE, SU_IF_IMAGE "@ GetFullImage()", asMETHOD(CharacterInstance, GetFullImage), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_INSTANCE, SU_IF_IMAGE "@ GetSmallImage()", asMETHOD(CharacterInstance, GetSmallImage), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_INSTANCE, SU_IF_IMAGE "@ GetFaceImage()", asMETHOD(CharacterInstance, GetFaceImage), asCALL_THISCALL);
 }

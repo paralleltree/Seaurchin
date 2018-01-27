@@ -225,5 +225,5 @@ void AutoPlayerProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
 void AutoPlayerProcessor::IncrementCombo(AbilityNoteType type)
 {
     Player->CurrentResult->PerformJusticeCritical();
-    Player->CurrentCharacter->OnJusticeCritical(type);
+    Player->CurrentCharacterInstance->OnJusticeCritical(type);
 }

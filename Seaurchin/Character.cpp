@@ -67,7 +67,7 @@ void CharacterManager::LoadFromToml(boost::filesystem::path file)
     auto pr = toml::parse(ifs);
     ifs.close();
     if (!pr.valid()) {
-        log->error(u8"スキル {0} は不正なファイルです", ConvertUnicodeToUTF8(file.wstring()));
+        log->error(u8"キャラクター {0} は不正なファイルです", ConvertUnicodeToUTF8(file.wstring()));
         log->error(pr.errorReason);
         return;
     }
@@ -91,8 +91,8 @@ void CharacterManager::LoadFromToml(boost::filesystem::path file)
         }
 
         auto sr = root.find("Metric.SmallRange");
-        if (fo && fo->is<vector<int>>()) {
-            auto arr = fo->as<vector<int>>();
+        if (sr && sr->is<vector<int>>()) {
+            auto arr = sr->as<vector<int>>();
             for (int i = 0; i < 4; i++) result->Metric.SmallRange[i] = arr[i];
         } else {
             result->Metric.SmallRange[0] = 0;
@@ -101,9 +101,9 @@ void CharacterManager::LoadFromToml(boost::filesystem::path file)
             result->Metric.SmallRange[3] = 170;
         }
 
-        auto sr = root.find("Metric.FaceRange");
-        if (fo && fo->is<vector<int>>()) {
-            auto arr = fo->as<vector<int>>();
+        auto fr = root.find("Metric.FaceRange");
+        if (fr && fr->is<vector<int>>()) {
+            auto arr = fr->as<vector<int>>();
             for (int i = 0; i < 4; i++) result->Metric.FaceRange[i] = arr[i];
         } else {
             result->Metric.FaceRange[0] = 0;
@@ -112,9 +112,10 @@ void CharacterManager::LoadFromToml(boost::filesystem::path file)
             result->Metric.FaceRange[3] = 128;
         }
     } catch (exception) {
-        log->error(u8"スキル {0} の読み込みに失敗しました", ConvertUnicodeToUTF8(file.wstring()));
+        log->error(u8"キャラクター {0} の読み込みに失敗しました", ConvertUnicodeToUTF8(file.wstring()));
         return;
     }
+    Characters.push_back(result);
 }
 
 void RegisterCharacterTypes(asIScriptEngine *engine)
