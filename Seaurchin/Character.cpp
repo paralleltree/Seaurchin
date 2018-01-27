@@ -55,6 +55,14 @@ shared_ptr<CharacterParameter> CharacterManager::GetCharacterParameterSafe(int r
     return Characters[ri % Characters.size()];
 }
 
+CharacterImageSet* CharacterManager::CreateCharacterImages(int relative)
+{
+    int ri = Selected + relative;
+    while (ri < 0) ri += Characters.size();
+    auto cp = Characters[ri % Characters.size()];
+    return CharacterImageSet::CreateImageSet(cp);
+}
+
 
 void CharacterManager::LoadFromToml(boost::filesystem::path file)
 {
@@ -205,6 +213,8 @@ void CharacterImageSet::RegisterType(asIScriptEngine *engine)
 
 void RegisterCharacterTypes(asIScriptEngine *engine)
 {
+    CharacterImageSet::RegisterType(engine);
+
     engine->RegisterObjectType(SU_IF_CHARACTER_METRIC, sizeof(CharacterImageMetric), asOBJ_VALUE | asOBJ_POD);
     engine->RegisterObjectProperty(SU_IF_CHARACTER_METRIC, "double WholeScale", asOFFSET(CharacterImageMetric, WholeScale));
     engine->RegisterObjectMethod(SU_IF_CHARACTER_METRIC, "int get_FaceOrigin(uint)", asMETHOD(CharacterImageMetric, get_FaceOrigin), asCALL_THISCALL);
@@ -220,6 +230,5 @@ void RegisterCharacterTypes(asIScriptEngine *engine)
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "void Next()", asMETHOD(CharacterManager, Next), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "void Previous()", asMETHOD(CharacterManager, Previous), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, SU_IF_CHARACTER_PARAM "@ GetCharacter(int)", asMETHOD(CharacterManager, GetCharacterParameter), asCALL_THISCALL);
-
-    CharacterImageSet::RegisterType(engine);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, SU_IF_CHARACTER_IMAGES "@ CreateCharacterImages(int)", asMETHOD(CharacterManager, CreateCharacterImages), asCALL_THISCALL);
 }

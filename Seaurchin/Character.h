@@ -57,7 +57,7 @@ class ExecutionManager;
 
 class CharacterManager final {
 private:
-    ExecutionManager *manager;
+    ExecutionManager * manager;
     std::vector<std::shared_ptr<CharacterParameter>> Characters;
 
     int Selected;
@@ -73,6 +73,7 @@ public:
     void Previous();
     CharacterParameter* GetCharacterParameter(int relative);
     std::shared_ptr<CharacterParameter> GetCharacterParameterSafe(int relative);
+    CharacterImageSet* CreateCharacterImages(int relative);
 };
 
 void RegisterCharacterTypes(asIScriptEngine *engine);
