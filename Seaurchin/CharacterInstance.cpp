@@ -214,4 +214,5 @@ void RegisterCharacterSkillTypes(asIScriptEngine *engine)
 {
     RegisterResultTypes(engine);
     RegisterSkillTypes(engine);
+    RegisterCharacterTypes(engine);
 }

@@ -40,11 +40,12 @@ private:
 public:
     CharacterManager(ExecutionManager *exm);
 
-    void Load();
+    void LoadAllCharacters();
 
     void Next();
     void Previous();
     CharacterParameter* GetCharacterParameter(int relative);
+    std::shared_ptr<CharacterParameter> GetCharacterParameterSafe(int relative);
 };
 
-void RegisterCharacterTypes(ExecutionManager *exm);
+void RegisterCharacterTypes(asIScriptEngine *engine);

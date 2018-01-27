@@ -9,8 +9,7 @@
 #include "ScriptScene.h"
 #include "ScriptSprite.h"
 #include "ScenePlayer.h"
-#include "Character.h"
-#include "Result.h"
+#include "CharacterInstance.h"
 
 using namespace boost::filesystem;
 using namespace std;
@@ -28,6 +27,7 @@ ExecutionManager::ExecutionManager(std::shared_ptr<Setting> setting)
     SharedControlState = make_shared<ControlState>();
     Musics = make_shared<MusicsManager>(this);
     Characters = make_shared<CharacterManager>(this);
+    Skills = make_shared<SkillManager>(this);
     Extensions = make_unique<ExtensionManager>();
 }
 
@@ -56,15 +56,15 @@ void ExecutionManager::Initialize()
     RegisterScriptSprite(this);
     RegisterScriptScene(this);
     RegisterScriptSkin(this);
-    RegisterResultTypes(ScriptInterface->GetEngine());
-    RegisterCharacterTypes(this);
+    RegisterCharacterSkillTypes(ScriptInterface->GetEngine());
     RegisterPlayerScene(this);
     InterfacesRegisterSceneFunction(this);
     InterfacesRegisterGlobalFunction(this);
     RegisterGlobalManagementFunction();
     Extensions->RegisterInterfaces();
 
-    Characters->Load();
+    Characters->LoadAllCharacters();
+    Skills->LoadAllSkills();
 
     /*
     hImc = ImmGetContext(GetMainWindowHandle());
@@ -102,7 +102,8 @@ void ExecutionManager::RegisterGlobalManagementFunction()
     engine->RegisterGlobalFunction("double GetDoubleData(const string &in)", asMETHODPR(ExecutionManager, GetData<double>, (const string&), double), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("string GetStringData(const string &in)", asMETHODPR(ExecutionManager, GetData<string>, (const string&), string), asCALL_THISCALL_ASGLOBAL, this);
 
-    engine->RegisterGlobalFunction(SU_IF_CHARACTER_MANAGER "@ GetCharacterManager()", asMETHOD(ExecutionManager, GetCharacterManager), asCALL_THISCALL_ASGLOBAL, this);
+    engine->RegisterGlobalFunction(SU_IF_CHARACTER_MANAGER "@ GetCharacterManager()", asMETHOD(ExecutionManager, GetCharacterManagerUnsafe), asCALL_THISCALL_ASGLOBAL, this);
+    engine->RegisterGlobalFunction(SU_IF_SKILL_MANAGER "@ GetSkillManager()", asMETHOD(ExecutionManager, GetSkillManagerUnsafe), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("bool Execute(const string &in)", asMETHODPR(ExecutionManager, ExecuteSkin, (const string&), bool), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("bool ExecuteScene(" SU_IF_SCENE "@)", asMETHODPR(ExecutionManager, ExecuteScene, (asIScriptObject*), bool), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("bool ExecuteScene(" SU_IF_COSCENE "@)", asMETHODPR(ExecutionManager, ExecuteScene, (asIScriptObject*), bool), asCALL_THISCALL_ASGLOBAL, this);

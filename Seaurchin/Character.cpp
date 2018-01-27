@@ -12,7 +12,7 @@ CharacterManager::CharacterManager(ExecutionManager *exm)
     Selected = -1;
 }
 
-void CharacterManager::Load()
+void CharacterManager::LoadAllCharacters()
 {
     using namespace boost;
     using namespace boost::filesystem;
@@ -47,6 +47,14 @@ CharacterParameter* CharacterManager::GetCharacterParameter(int relative)
     while (ri < 0) ri += Characters.size();
     return Characters[ri % Characters.size()].get();
 }
+
+shared_ptr<CharacterParameter> CharacterManager::GetCharacterParameterSafe(int relative)
+{
+    int ri = Selected + relative;
+    while (ri < 0) ri += Characters.size();
+    return Characters[ri % Characters.size()];
+}
+
 
 void CharacterManager::LoadFromToml(boost::filesystem::path file)
 {
@@ -116,4 +124,14 @@ void RegisterCharacterTypes(asIScriptEngine *engine)
     engine->RegisterObjectMethod(SU_IF_CHARACTER_METRIC, "int get_FaceOrigin(uint)", asMETHOD(CharacterImageMetric, get_FaceOrigin), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_METRIC, "int get_SmalLRange(uint)", asMETHOD(CharacterImageMetric, get_SmallRange), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_METRIC, "int get_FaceRange(uint)", asMETHOD(CharacterImageMetric, get_FaceRange), asCALL_THISCALL);
+
+    engine->RegisterObjectType(SU_IF_CHARACTER_PARAM, 0, asOBJ_REF | asOBJ_NOCOUNT);
+    engine->RegisterObjectProperty(SU_IF_CHARACTER_PARAM, "string Name", asOFFSET(CharacterParameter, Name));
+    engine->RegisterObjectProperty(SU_IF_CHARACTER_PARAM, "string ImagePath", asOFFSET(CharacterParameter, ImagePath));
+    engine->RegisterObjectProperty(SU_IF_CHARACTER_PARAM, SU_IF_CHARACTER_METRIC " Metric", asOFFSET(CharacterParameter, Name));
+    
+    engine->RegisterObjectType(SU_IF_CHARACTER_MANAGER, 0, asOBJ_REF | asOBJ_NOCOUNT);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "void Next()", asMETHOD(CharacterManager, Next), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "void Previous()", asMETHOD(CharacterManager, Previous), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, SU_IF_CHARACTER_PARAM "@ GetCharacter(int)", asMETHOD(CharacterManager, GetCharacterParameter), asCALL_THISCALL);
 }

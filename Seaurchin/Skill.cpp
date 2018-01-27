@@ -24,6 +24,7 @@ void SkillManager::LoadAllSkills()
         if (!ends_with(filename, ".toml")) continue;
         LoadFromToml(fdata.path());
     }
+    spdlog::get("main")->info(u8"ÉXÉLÉãëçêî: {0:d}", Skills.size());
     Selected = Skills.size() ? 0 : -1;
 }
 
@@ -42,6 +43,13 @@ SkillParameter *SkillManager::GetSkillParameter(int relative)
     int ri = Selected + relative;
     while (ri < 0) ri += Skills.size();
     return Skills[ri % Skills.size()].get();
+}
+
+shared_ptr<SkillParameter> SkillManager::GetSkillParameterSafe(int relative)
+{
+    int ri = Selected + relative;
+    while (ri < 0) ri += Skills.size();
+    return Skills[ri % Skills.size()];
 }
 
 void SkillManager::LoadFromToml(boost::filesystem::path file)

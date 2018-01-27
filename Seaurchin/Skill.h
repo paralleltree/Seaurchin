@@ -47,6 +47,7 @@ public:
     void Next();
     void Previous();
     SkillParameter* GetSkillParameter(int relative);
+    std::shared_ptr<SkillParameter> GetSkillParameterSafe(int relative);
 };
 
 void RegisterSkillTypes(asIScriptEngine *engine);

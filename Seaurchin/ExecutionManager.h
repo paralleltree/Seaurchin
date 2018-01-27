@@ -11,6 +11,7 @@
 #include "ScenePlayer.h"
 #include "Controller.h"
 #include "Character.h"
+#include "Skill.h"
 
 class ExecutionManager final {
 private:
@@ -27,6 +28,7 @@ private:
     std::shared_ptr<SoundManager> Sound;
     std::shared_ptr<MusicsManager> Musics;
     std::shared_ptr<CharacterManager> Characters;
+    std::shared_ptr<SkillManager> Skills;
     std::unordered_map<std::string, boost::any> optionalData;
     HIMC hImc;
     DWORD ImmConversion, ImmSentence;
@@ -52,6 +54,10 @@ public:
     inline ControlState* GetControlStateUnsafe() { return SharedControlState.get(); }
     inline AngelScript* GetScriptInterfaceUnsafe() { return ScriptInterface.get(); }
     inline SoundManager* GetSoundManagerUnsafe() { return Sound.get(); }
+    inline std::shared_ptr<CharacterManager> GetCharacterManagerSafe() { return Characters; }
+    inline std::shared_ptr<SkillManager> GetSkillManagerSafe() { return Skills; }
+    inline CharacterManager* GetCharacterManagerUnsafe() { return Characters.get(); }
+    inline SkillManager* GetSkillManagerUnsafe() { return Skills.get(); }
 
     std::tuple<bool, LRESULT> CustomWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
     void ExecuteSkin();
@@ -64,7 +70,7 @@ public:
     ScenePlayer *CreatePlayer();
     SSoundMixer *GetDefaultMixer(const std::string &name);
     SSettingItem *GetSettingItem(const std::string &group, const std::string &key);
-    CharacterManager *GetCharacterManager() { return Characters.get(); }
+    
 
     template<typename T>
     void SetData(const std::string &name, const T& data);

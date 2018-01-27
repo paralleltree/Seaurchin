@@ -78,7 +78,9 @@ void ScenePlayer::Initialize()
 
     LoadResources();
 
-    CurrentCharacter = manager->GetCharacterManager()->CreateCharacterInstance(CurrentResult);
+    auto cp = manager->GetCharacterManagerSafe()->GetCharacterParameter(0);
+    auto sp = manager->GetSkillManagerSafe()->GetSkillParameter(0);
+    CurrentCharacterInstance = CharacterInstance::CreateInstance(cp, sp, manager->GetScriptInterfaceSafe());
     CurrentCharacter->Initialize();
 }
 
