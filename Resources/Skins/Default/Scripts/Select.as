@@ -238,43 +238,61 @@ class CharacterSelect : CoroutineScene {
   bool isEnabled;
   Skin@ skin;
   CharacterManager@ cm;
+  Character@ ch;
+  CharacterImages@ cim;
+  SkillManager@ sm;
+  Skill@ sk;
   
   Sprite@ spBack, spImage;
   TextSprite@ spTitle, spInfo, spName, spSkill, spDescription;
+  Container@ container;
   
   void Initialize() {
     @skin = GetSkin();
     @cm = GetCharacterManager();
+    @sm = GetSkillManager();
+    @container = Container();
     
     @spBack = Sprite(skin.GetImage("White"));
-    spBack.Apply("r:0, g:0, b:0, alpha:0");
+    spBack.Apply("r:0, g:0, b:0, alpha:0.8");
     
-    @spTitle = TextSprite(skin.GetFont("Normal64"), "キャラクター設定");
+    @spTitle = TextSprite(skin.GetFont("Normal64"), "キャラクター・スキル設定");
     spTitle.SetAlignment(TextAlign::Center, TextAlign::Top);
-    spTitle.Apply("x:-640, y:12");
+    spTitle.Apply("x:640, y:12");
     
-    @spInfo = TextSprite(skin.GetFont("Normal32"), "カーソルキー左右で変更");
+    @spInfo = TextSprite(skin.GetFont("Normal32"), "カーソルキー左右でキャラクター変更、上下でスキル変更");
     spInfo.SetAlignment(TextAlign::Center, TextAlign::Top);
-    spInfo.Apply("x:-640, y:688");
+    spInfo.Apply("x:640, y:688");
     
-    @spName = TextSprite(skin.GetFont("Normal64"), cm.GetName(0));
+    @spName = TextSprite(skin.GetFont("Normal64"), "");
     spName.SetAlignment(TextAlign::Center, TextAlign::Top);
-    spName.Apply("x:-640, y:360");
+    spName.Apply("x:320, y:600");
     
-    @spImage = Sprite(Image(cm.GetImagePath(0)));
-    spImage.Apply("x:-640, y:200, origX:150");
+    @spImage = Sprite();
+    spImage.Apply("x:320, y:256");
     
-    @spDescription = TextSprite(skin.GetFont("Normal64"), cm.GetDescription(0));
+    @spSkill = TextSprite(skin.GetFont("Normal64"), "");
+    spSkill.SetAlignment(TextAlign::Center, TextAlign::Top);
+    spSkill.Apply("x:960, y:360, scaleX:0.75, scaleY:0.75");
+    
+    @spDescription = TextSprite(skin.GetFont("Normal64"), "");
     spDescription.SetAlignment(TextAlign::Center, TextAlign::Top);
     spDescription.SetRich(true);
-    spDescription.Apply("x:-640, y:440, scaleX:0.75, scaleY:0.75");
+    spDescription.Apply("x:960, y:440, scaleX:0.75, scaleY:0.75");
     
-    AddSprite(spBack);
-    AddSprite(spTitle);
-    AddSprite(spInfo);
-    AddSprite(spName);
-    AddSprite(spImage);
-    AddSprite(spDescription);
+    container.AddChild(spBack);
+    container.AddChild(spTitle);
+    container.AddChild(spInfo);
+    container.AddChild(spName);
+    container.AddChild(spImage);
+    container.AddChild(spSkill);
+    container.AddChild(spDescription);
+    
+    AddSprite(container);
+    container.Apply("x:-1280");
+    
+    UpdateInfo();
+    UpdateSkill();
   }
   
   void Run() {
@@ -283,9 +301,18 @@ class CharacterSelect : CoroutineScene {
   }
   
   void UpdateInfo() {
-    spName.SetText(cm.GetName(0));
-    spDescription.SetText(cm.GetDescription(0));
-    spImage.SetImage(Image(cm.GetImagePath(0)));
+    @ch = cm.GetCharacter(0);
+    @cim = cm.CreateCharacterImages(0);
+    
+    spName.SetText(ch.Name);
+    //spDescription.SetText(cm.GetDescription(0));
+    cim.ApplyFullImage(spImage);
+  }
+  
+  void UpdateSkill() {
+    @sk = sm.GetSkill(0);
+    spSkill.SetText(sk.Name);
+    spDescription.SetText(sk.Description);
   }
   
   void Draw() {
@@ -297,20 +324,10 @@ class CharacterSelect : CoroutineScene {
       if (IsKeyTriggered(Key::INPUT_TAB)) {
         if (isEnabled) {
           Fire("Select:Enable");
-          spBack.AddMove("alpha(x:0.8, y:0, time:0.5)");
-          spTitle.AddMove("move_to(x:-640, time:0.5, ease:out_sine)");
-          spInfo.AddMove("move_to(x:-640, time:0.5, ease:out_sine)");
-          spName.AddMove("move_to(x:-640, time:0.5, ease:out_sine)");
-          spImage.AddMove("move_to(x:-640, time:0.5, ease:out_sine)");
-          spDescription.AddMove("move_to(x:-640, time:0.5, ease:out_sine)");
+          container.AddMove("move_to(x:-1280, time:0.5, ease:out_sine)");
         } else {
           Fire("Select:Disable");
-          spBack.AddMove("alpha(x:0, y:0.8, time:0.5)");
-          spTitle.AddMove("move_to(x:640, time:0.5, ease:out_sine)");
-          spInfo.AddMove("move_to(x:640, time:0.5, ease:out_sine)");
-          spName.AddMove("move_to(x:640, time:0.5, ease:out_sine)");
-          spImage.AddMove("move_to(x:640, time:0.5, ease:out_sine)");
-          spDescription.AddMove("move_to(x:640, time:0.5, ease:out_sine)");
+          container.AddMove("move_to(x:0, time:0.5, ease:out_sine)");
         }
         isEnabled = !isEnabled;
       }
@@ -323,20 +340,35 @@ class CharacterSelect : CoroutineScene {
           cm.Next();
           FadeChar();
         }
+        if (IsKeyTriggered(Key::INPUT_UP)) {
+          sm.Previous();
+          FadeSkill();
+        }
+        if (IsKeyTriggered(Key::INPUT_DOWN)) {
+          sm.Next();
+          FadeSkill();
+        }
       }
       YieldFrame(1);
     }
   }
   
   void FadeChar() {
-    spDescription.AddMove("alpha(x:1, y:0, time:0.2)");
     spName.AddMove("alpha(x:1, y:0, time:0.2)");
     spImage.AddMove("alpha(x:1, y:0, time:0.2)");
     YieldTime(0.2);
     UpdateInfo();
-    spDescription.AddMove("alpha(x:0, y:1, time:0.2)");
     spName.AddMove("alpha(x:0, y:1, time:0.2)");
     spImage.AddMove("alpha(x:0, y:1, time:0.2)");
+  }
+  
+  void FadeSkill() {
+    spSkill.AddMove("alpha(x:1, y:0, time:0.2)");
+    spDescription.AddMove("alpha(x:1, y:0, time:0.2)");
+    YieldTime(0.2);
+    UpdateSkill();
+    spSkill.AddMove("alpha(x:0, y:1, time:0.2)");
+    spDescription.AddMove("alpha(x:0, y:1, time:0.2)");
   }
   
   void OnEvent(const string &in event) {

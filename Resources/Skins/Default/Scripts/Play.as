@@ -77,6 +77,7 @@ class Play : CoroutineScene {
     while(!player.IsLoadCompleted()) YieldFrame(1);
     SetMusicInfo();
     Fire("Player:Ready");
+    player.GetReady();
     YieldTime(5);
     player.Play();
   }
