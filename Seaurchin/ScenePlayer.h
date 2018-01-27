@@ -34,7 +34,7 @@ enum class JudgeType {
 };
 
 enum class PlayingState {
-    
+
     ScoreNotLoaded,     // ‰½‚àn‚Ü‚Á‚Ä‚¢‚È‚¢
     BgmNotLoaded,       // •ˆ–Ê‚¾‚¯“Ç‚İ‚ñ‚¾
     ReadyToStart,       // “Ç‚İ‚İ‚ªI‚í‚Á‚½‚Ì‚Ån‚ß‚ç‚ê‚é
@@ -171,6 +171,7 @@ public:
     void GetReady();
     void Play();
     double GetPlayingTime();
+    CharacterInstance* GetCharacterInstance();
     void GetCurrentResult(DrawableResult *result);
     void MovePositionBySecond(double sec);
     void MovePositionByMeasure(int meas);

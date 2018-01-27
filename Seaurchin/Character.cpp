@@ -178,8 +178,8 @@ void CharacterImageSet::LoadAllImage()
 {
     auto root = ConvertUTF8ToUnicode(Parameter->ImagePath);
     int hBase = LoadGraph(reinterpret_cast<const char*>(root.c_str()));
-    int hSmall = MakeGraph(SU_CHAR_SMALL_WIDTH, SU_CHAR_SMALL_WIDTH);
-    int hFace = MakeGraph(SU_CHAR_FACE_SIZE, SU_CHAR_FACE_SIZE);
+    int hSmall = MakeScreen(SU_CHAR_SMALL_WIDTH, SU_CHAR_SMALL_WIDTH, 1);
+    int hFace = MakeScreen(SU_CHAR_FACE_SIZE, SU_CHAR_FACE_SIZE, 1);
     BEGIN_DRAW_TRANSACTION(hSmall);
     DrawRectExtendGraph(
         0, 0, SU_CHAR_SMALL_WIDTH, SU_CHAR_SMALL_HEIGHT,

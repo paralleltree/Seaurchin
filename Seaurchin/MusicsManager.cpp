@@ -197,8 +197,8 @@ string MusicSelectionCursor::GetBackgroundFileName(int32_t relativeIndex)
 {
     auto variant = GetScoreVariantAt(relativeIndex);
     auto current = Manager->Categories[CategoryIndex];
-    if (!variant) return "";
-    auto result = variant->Path.parent_path() / variant->BackgroundPath;
+    if (!variant || variant->BackgroundPath.empty()) return "";
+    auto result = Setting::GetRootDirectory() / SU_MUSIC_DIR / ConvertUTF8ToUnicode(current->GetName()) / variant->Path.parent_path() / variant->BackgroundPath;
     return ConvertUnicodeToUTF8(result.wstring());
 }
 

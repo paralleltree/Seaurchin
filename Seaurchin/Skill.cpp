@@ -35,7 +35,7 @@ void SkillManager::Next()
 
 void SkillManager::Previous()
 {
-    Selected = (Selected + Skills.size() + 1) % Skills.size();
+    Selected = (Selected + Skills.size() - 1) % Skills.size();
 }
 
 SkillParameter *SkillManager::GetSkillParameter(int relative)
