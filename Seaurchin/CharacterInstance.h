@@ -44,7 +44,7 @@ public:
     void OnJusticeCritical(AbilityNoteType type);
     void OnJustice(AbilityNoteType type);
     void OnAttack(AbilityNoteType type);
-    void OnFinish(AbilityNoteType type);
+    void OnMiss(AbilityNoteType type);
 
     static std::shared_ptr<CharacterInstance> CreateInstance(std::shared_ptr<CharacterParameter> character, std::shared_ptr<SkillParameter> skill, std::shared_ptr<AngelScript> script);
 };

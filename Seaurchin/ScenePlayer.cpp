@@ -329,7 +329,7 @@ void ScenePlayer::GetReady()
 {
     if (!isLoadCompleted || isReady) return;
     isReady = true;
-    CurrentCharacter->OnStart();
+    CurrentCharacterInstance->OnStart();
 }
 
 void ScenePlayer::SetPlayerResource(const string & name, SResource * resource)

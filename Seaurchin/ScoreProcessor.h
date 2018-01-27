@@ -4,6 +4,7 @@
 #include "Controller.h"
 #include "ScriptResource.h"
 #include "Character.h"
+#include "Skill.h"
 
 enum class NoteAttribute {
     Invisible = 0,
@@ -48,11 +49,11 @@ protected:
     bool CheckAirActionJudgement(std::shared_ptr<SusDrawableNoteData> note);
     bool CheckHoldJudgement(std::shared_ptr<SusDrawableNoteData> note);
     bool CheckSlideJudgement(std::shared_ptr<SusDrawableNoteData> note);
-    void IncrementCombo(std::shared_ptr<SusDrawableNoteData> note, double reltime, CharacterNoteType type);
+    void IncrementCombo(std::shared_ptr<SusDrawableNoteData> note, double reltime, AbilityNoteType type);
     void IncrementComboEx(std::shared_ptr<SusDrawableNoteData> note);
     void IncrementComboHell(std::shared_ptr<SusDrawableNoteData> note, int state);
-    void IncrementComboAir(std::shared_ptr<SusDrawableNoteData> note, double reltime, CharacterNoteType type);
-    void ResetCombo(std::shared_ptr<SusDrawableNoteData> note, CharacterNoteType type);
+    void IncrementComboAir(std::shared_ptr<SusDrawableNoteData> note, double reltime, AbilityNoteType type);
+    void ResetCombo(std::shared_ptr<SusDrawableNoteData> note, AbilityNoteType type);
 
 public:
     PlayableProcessor(ScenePlayer *player);
@@ -75,7 +76,7 @@ protected:
     bool isInHold = false, isInSlide = false, isInAA = false, wasInHold = false, wasInSlide = false, wasInAA = false;
 
     void ProcessScore(std::shared_ptr<SusDrawableNoteData> notes);
-    void IncrementCombo(CharacterNoteType type);
+    void IncrementCombo(AbilityNoteType type);
 
 public:
     AutoPlayerProcessor(ScenePlayer *player);

@@ -205,9 +205,9 @@ void CharacterInstance::OnAttack(AbilityNoteType type)
     OnEvent("void OnAttack(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
 }
 
-void CharacterInstance::OnFinish(AbilityNoteType type)
+void CharacterInstance::OnMiss(AbilityNoteType type)
 {
-    OnEvent("void OnFinish(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
+    OnEvent("void OnMiss(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
 }
 
 void RegisterCharacterSkillTypes(asIScriptEngine *engine)
