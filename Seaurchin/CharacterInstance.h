@@ -21,6 +21,7 @@ private:
     std::shared_ptr<CharacterParameter> CharacterSource;
     std::shared_ptr<SkillParameter> SkillSource;
     CharacterImageSet *ImageSet;
+    std::shared_ptr<SkillIndicators> Indicators;
     std::shared_ptr<Result> TargetResult;
 
     std::vector<asIScriptObject*> Abilities;
@@ -39,9 +40,8 @@ public:
     void AddRef() { reference++; }
     void Release() { if (--reference == 0) delete this; }
 
-    CharacterInstance(std::shared_ptr<CharacterParameter> character, std::shared_ptr<SkillParameter> skill, std::shared_ptr<AngelScript> script);
+    CharacterInstance(std::shared_ptr<CharacterParameter> character, std::shared_ptr<SkillParameter> skill, std::shared_ptr<AngelScript> script, std::shared_ptr<Result> result);
     ~CharacterInstance();
-    void SetResult(std::shared_ptr<Result> result);
 
     void OnStart();
     void OnFinish();
@@ -51,10 +51,11 @@ public:
     void OnMiss(AbilityNoteType type);
 
     CharacterParameter* GetCharacterParameter();
-    SkillParameter* GetSkillParameter();
     CharacterImageSet* GetCharacterImages();
+    SkillParameter* GetSkillParameter();
+    SkillIndicators* GetSkillIndicators();
 
-    static std::shared_ptr<CharacterInstance> CreateInstance(std::shared_ptr<CharacterParameter> character, std::shared_ptr<SkillParameter> skill, std::shared_ptr<AngelScript> script);
+    static std::shared_ptr<CharacterInstance> CreateInstance(std::shared_ptr<CharacterParameter> character, std::shared_ptr<SkillParameter> skill, std::shared_ptr<AngelScript> script, std::shared_ptr<Result> result);
 };
 
 void RegisterCharacterSkillTypes(asIScriptEngine *engine);

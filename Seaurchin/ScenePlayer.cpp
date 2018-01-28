@@ -81,8 +81,7 @@ void ScenePlayer::Initialize()
 
     auto cp = manager->GetCharacterManagerSafe()->GetCharacterParameterSafe(0);
     auto sp = manager->GetSkillManagerSafe()->GetSkillParameterSafe(0);
-    CurrentCharacterInstance = CharacterInstance::CreateInstance(cp, sp, manager->GetScriptInterfaceSafe());
-    CurrentCharacterInstance->SetResult(CurrentResult);
+    CurrentCharacterInstance = CharacterInstance::CreateInstance(cp, sp, manager->GetScriptInterfaceSafe(), CurrentResult);
 }
 
 void ScenePlayer::SetProcessorOptions(PlayableProcessor *processor)

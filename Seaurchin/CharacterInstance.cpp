@@ -4,11 +4,13 @@
 
 using namespace std;
 
-CharacterInstance::CharacterInstance(shared_ptr<CharacterParameter> character, shared_ptr<SkillParameter> skill, shared_ptr<AngelScript> script)
+CharacterInstance::CharacterInstance(shared_ptr<CharacterParameter> character, shared_ptr<SkillParameter> skill, shared_ptr<AngelScript> script, std::shared_ptr<Result> result)
 {
     CharacterSource = character;
     SkillSource = skill;
+    TargetResult = result;
     ScriptInterface = script;
+    Indicators = make_shared<SkillIndicators>();
     context = script->GetEngine()->CreateContext();
 }
 
@@ -20,18 +22,13 @@ CharacterInstance::~CharacterInstance()
     if (ImageSet) ImageSet->Release();
 }
 
-shared_ptr<CharacterInstance> CharacterInstance::CreateInstance(shared_ptr<CharacterParameter> character, shared_ptr<SkillParameter> skill, shared_ptr<AngelScript> script)
+shared_ptr<CharacterInstance> CharacterInstance::CreateInstance(shared_ptr<CharacterParameter> character, shared_ptr<SkillParameter> skill, shared_ptr<AngelScript> script, std::shared_ptr<Result> result)
 {
-    auto result = make_shared<CharacterInstance>(character, skill, script);
-    result->LoadAbilities();
-    result->CreateImageSet();
-    result->AddRef();
-    return result;
-}
-
-void CharacterInstance::SetResult(shared_ptr<Result> result)
-{
-    TargetResult = result;
+    auto ci = make_shared<CharacterInstance>(character, skill, script, result);
+    ci->LoadAbilities();
+    ci->CreateImageSet();
+    ci->AddRef();
+    return ci;
 }
 
 void CharacterInstance::LoadAbilities()
@@ -52,7 +49,7 @@ void CharacterInstance::LoadAbilities()
         Abilities.push_back(abo);
         AbilityTypes.push_back(abt);
 
-        auto init = abt->GetMethodByDecl("void Initialize(dictionary@)");
+        auto init = abt->GetMethodByDecl("void Initialize(dictionary@, " SU_IF_SKILL_INDICATORS "@)");
         if (!init) continue;
 
         auto args = CScriptDictionary::Create(ScriptInterface->GetEngine());
@@ -75,6 +72,7 @@ void CharacterInstance::LoadAbilities()
         context->Prepare(init);
         context->SetObject(abo);
         context->SetArgAddress(0, args);
+        context->SetArgAddress(1, Indicators.get());
         context->Execute();
         log->info(u8"アビリティー " + ConvertUnicodeToUTF8(scrpath.c_str()));
     }
@@ -194,6 +192,11 @@ SkillParameter* CharacterInstance::GetSkillParameter()
     return SkillSource.get();
 }
 
+SkillIndicators* CharacterInstance::GetSkillIndicators()
+{
+    return Indicators.get();
+}
+
 CharacterImageSet* CharacterInstance::GetCharacterImages()
 {
     ImageSet->AddRef();
@@ -210,6 +213,7 @@ void RegisterCharacterSkillTypes(asIScriptEngine *engine)
     engine->RegisterObjectBehaviour(SU_IF_CHARACTER_INSTANCE, asBEHAVE_ADDREF, "void f()", asMETHOD(CharacterInstance, AddRef), asCALL_THISCALL);
     engine->RegisterObjectBehaviour(SU_IF_CHARACTER_INSTANCE, asBEHAVE_RELEASE, "void f()", asMETHOD(CharacterInstance, Release), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_INSTANCE, SU_IF_CHARACTER_PARAM "@ GetCharacter()", asMETHOD(CharacterInstance, GetCharacterParameter), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_CHARACTER_INSTANCE, SU_IF_SKILL "@ GetSkill()", asMETHOD(CharacterInstance, GetSkillParameter), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_INSTANCE, SU_IF_CHARACTER_IMAGES "@ GetCharacterImages()", asMETHOD(CharacterInstance, GetCharacterImages), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_INSTANCE, SU_IF_SKILL "@ GetSkill()", asMETHOD(CharacterInstance, GetSkillParameter), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_INSTANCE, SU_IF_SKILL_INDICATORS "@ GetSkillIndicators()", asMETHOD(CharacterInstance, GetSkillIndicators), asCALL_THISCALL);
 }

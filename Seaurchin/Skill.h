@@ -1,9 +1,14 @@
 #pragma once
 
+#include "ScriptResource.h"
+
 #define SU_IF_ABILITY "Ability"
 #define SU_IF_SKILL "Skill"
 #define SU_IF_SKILL_MANAGER "SkillManager"
+#define SU_IF_SKILL_INDICATORS "SkillIndicators"
+#define SU_IF_SKILL_CALLBACK "SkillCallback"
 #define SU_IF_NOTETYPE "NoteType"
+
 
 class ExecutionManager;
 
@@ -17,6 +22,7 @@ class SkillParameter final {
 public:
     std::string Name;
     std::string Description;
+    std::string IconPath;
     std::vector<AbilityParameter> Abilities;
 };
 
@@ -48,6 +54,25 @@ public:
     void Previous();
     SkillParameter* GetSkillParameter(int relative);
     std::shared_ptr<SkillParameter> GetSkillParameterSafe(int relative);
+};
+
+class SkillIndicators final {
+private:
+    std::vector<SImage*> IndicatorIcons;
+    asIScriptFunction *CallbackFunction;
+    asIScriptObject *CallbackObject;
+    asIScriptContext *CallbackContext;
+    asITypeInfo *CallbackObjectType;
+
+public:
+    SkillIndicators();
+    ~SkillIndicators();
+
+    int GetSkillIndicatorCount();
+    SImage* GetSkillIndicatorImage(int index);
+    void SetCallback(asIScriptFunction *func);
+    int AddSkillIndicator(const std::string &icon);
+    void TriggerSkillIndicator(int index);
 };
 
 void RegisterSkillTypes(asIScriptEngine *engine);

@@ -54,10 +54,12 @@ shared_ptr<SkillParameter> SkillManager::GetSkillParameterSafe(int relative)
 
 void SkillManager::LoadFromToml(boost::filesystem::path file)
 {
+    using namespace boost::filesystem;
     auto log = spdlog::get("main");
     auto result = make_shared<SkillParameter>();
+    auto iconRoot = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_ICON_DIR;
 
-    ifstream ifs(file.wstring(), ios::in);
+    std::ifstream ifs(file.wstring(), ios::in);
     auto pr = toml::parse(ifs);
     ifs.close();
     if (!pr.valid()) {
@@ -70,7 +72,8 @@ void SkillManager::LoadFromToml(boost::filesystem::path file)
     try {
         result->Name = root.get<string>("Name");
         result->Description = root.get<string>("Description");
-        
+        result->IconPath = ConvertUnicodeToUTF8((iconRoot / ConvertUTF8ToUnicode(root.get<string>("Icon"))).wstring());
+
         auto abilities = root.get<vector<toml::Table>>("Abilities");
         for (const auto &ability : abilities) {
             AbilityParameter ai;
@@ -100,6 +103,74 @@ void SkillManager::LoadFromToml(boost::filesystem::path file)
     Skills.push_back(result);
 }
 
+
+SkillIndicators::SkillIndicators()
+{
+    CallbackFunction = nullptr;
+}
+
+SkillIndicators::~SkillIndicators()
+{
+    for (const auto &i : IndicatorIcons) i->Release();
+    if (CallbackFunction) {
+        auto engine = CallbackContext->GetEngine();
+        CallbackContext->Release();
+        CallbackFunction->Release();
+        engine->ReleaseScriptObject(CallbackObject, CallbackObjectType);
+    }
+}
+
+void SkillIndicators::SetCallback(asIScriptFunction *func)
+{
+    if (!func || func->GetFuncType() != asFUNC_DELEGATE) return;
+
+    if (CallbackFunction) {
+        auto engine = CallbackContext->GetEngine();
+        CallbackContext->Release();
+        CallbackFunction->Release();
+        engine->ReleaseScriptObject(CallbackObject, CallbackObjectType);
+    }
+
+    auto ctx = asGetActiveContext();
+    auto engine = ctx->GetEngine();
+    CallbackContext = engine->CreateContext();
+    CallbackFunction = func->GetDelegateFunction();
+    CallbackFunction->AddRef();
+    CallbackObject = (asIScriptObject*)func->GetDelegateObject();
+    CallbackObjectType = func->GetDelegateObjectType();
+}
+
+int SkillIndicators::AddSkillIndicator(const string &icon)
+{
+    using namespace boost::filesystem;
+    auto path = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_ICON_DIR / ConvertUTF8ToUnicode(icon);
+    auto image = SImage::CreateLoadedImageFromFile(ConvertUnicodeToUTF8(path.wstring()), true);
+    IndicatorIcons.push_back(image);
+    return IndicatorIcons.size() - 1;
+}
+
+void SkillIndicators::TriggerSkillIndicator(int index)
+{
+    CallbackContext->Prepare(CallbackFunction);
+    CallbackContext->SetObject(CallbackObject);
+    CallbackContext->SetArgDWord(0, index);
+    CallbackContext->Execute();
+    CallbackContext->Unprepare();
+}
+
+int SkillIndicators::GetSkillIndicatorCount()
+{
+    return IndicatorIcons.size();
+}
+
+SImage* SkillIndicators::GetSkillIndicatorImage(int index)
+{
+    if (index >= IndicatorIcons.size()) return nullptr;
+    auto result = IndicatorIcons[index];
+    result->AddRef();
+    return result;
+}
+
 void RegisterSkillTypes(asIScriptEngine *engine)
 {
     engine->RegisterEnum(SU_IF_NOTETYPE);
@@ -112,8 +183,16 @@ void RegisterSkillTypes(asIScriptEngine *engine)
     engine->RegisterEnumValue(SU_IF_NOTETYPE, "Slide", (int)AbilityNoteType::Slide);
     engine->RegisterEnumValue(SU_IF_NOTETYPE, "AirAction", (int)AbilityNoteType::AirAction);
 
+    engine->RegisterFuncdef("void " SU_IF_SKILL_CALLBACK "(int)");
+    engine->RegisterObjectType(SU_IF_SKILL_INDICATORS, 0, asOBJ_REF | asOBJ_NOCOUNT);
+    engine->RegisterObjectMethod(SU_IF_SKILL_INDICATORS, "int AddIndicator(const string &in)", asMETHOD(SkillIndicators, AddSkillIndicator), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SKILL_INDICATORS, "void TriggerIndicator(int)", asMETHOD(SkillIndicators, TriggerSkillIndicator), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SKILL_INDICATORS, "void SetCallback(" SU_IF_SKILL_CALLBACK "@)", asMETHOD(SkillIndicators, SetCallback), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SKILL_INDICATORS, "int GetIndicatorCount()", asMETHOD(SkillIndicators, GetSkillIndicatorCount), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SKILL_INDICATORS, SU_IF_IMAGE "@ GetIndicatorImage(int)", asMETHOD(SkillIndicators, GetSkillIndicatorImage), asCALL_THISCALL);
+
     engine->RegisterInterface(SU_IF_ABILITY);
-    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void Initialize(dictionary@)");
+    engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void Initialize(dictionary@, " SU_IF_SKILL_INDICATORS "@)");
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnStart(" SU_IF_RESULT "@)");
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnFinish(" SU_IF_RESULT "@)");
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnJusticeCritical(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
@@ -123,6 +202,7 @@ void RegisterSkillTypes(asIScriptEngine *engine)
 
     engine->RegisterObjectType(SU_IF_SKILL, 0, asOBJ_REF | asOBJ_NOCOUNT);
     engine->RegisterObjectProperty(SU_IF_SKILL, "string Name", asOFFSET(SkillParameter, Name));
+    engine->RegisterObjectProperty(SU_IF_SKILL, "string IconPath", asOFFSET(SkillParameter, IconPath));
     engine->RegisterObjectProperty(SU_IF_SKILL, "string Description", asOFFSET(SkillParameter, Description));
 
     engine->RegisterObjectType(SU_IF_SKILL_MANAGER, 0, asOBJ_REF | asOBJ_NOCOUNT);
