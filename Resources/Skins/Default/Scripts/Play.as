@@ -71,6 +71,7 @@ class Play : CoroutineScene {
     @player = ScenePlayer();
     SetPlayerResource();
     player.Initialize();
+    charinfo.InitInfo(player.GetCharacterInstance());
     player.Z = 5;
     AddSprite(player);
     player.Load();
@@ -82,7 +83,7 @@ class Play : CoroutineScene {
     player.Play();
   }
   
-  Sprite@ spTopCover, spBack;
+  Sprite@ spTopCover, spBack, spCustomBack;
   array<Sprite@> spGaugeCounts(10);
   Sprite@ spBarBack, spBarFront;
   ClipSprite@ spBarFill;
@@ -239,33 +240,79 @@ class Play : CoroutineScene {
       YieldFrame(1);
     }
   }
+  
+  void OnEvent(const string &in event) {
+    if (event == "Player:Ready") {
+      // 背景があればそっと差し替える
+      auto path = GetStringData("Player:Background");
+      if (path == "") return;
+      WriteLog(Severity::Info, "カスタム背景: " + path);
+      @spCustomBack = Sprite(Image(path));
+      spCustomBack.Apply("z:-29");
+      
+      AddSprite(spCustomBack);
+      spBack.AddMove("alpha(x:1, y:0, time:1)");
+      spCustomBack.AddMove("alpha(x:0, y:1, time:1)");
+      spBack.AddMove("death(wait:1)");
+    }
+  }
 }
 
 class CharacterInfo : CoroutineScene {
   Skin@ skin;
+  array<Sprite@> icons;
+  Container@ container;
+  Sprite@ spBack, spCharacter, spIcon;
+  TextSprite@ spSkill, spDescription;
   
   void Initialize() {
     @skin = GetSkin();
-    InitInfo();
+    // InitInfo();
     InitReady();
   }
   
-  SynthSprite@ spInfo;
-  void InitInfo() {
-    CharacterManager@ cm = GetCharacterManager();
+  void InitInfo(CharacterInstance@ ci) {
+    auto si = ci.GetSkillIndicators();
+    si.SetCallback(SkillCallback(OnSkill));
     
-    @spInfo = SynthSprite(314, 302);
-    spInfo.Transfer(skin.GetImage("CharacterBack"), 0, 0);
-    spInfo.Transfer(Image(cm.GetImagePath(0)), 8, 6);
+    @container = Container();
+    @spBack = Sprite(skin.GetImage("CharacterBack"));
+    spBack.Apply("z:-1");
     
-    TextSprite @spDescription = TextSprite(skin.GetFont("Normal32"), "");
-    spDescription.Apply("x:20, y: 166, r: 0, g: 0, b: 0");
-    spDescription.SetText(cm.GetDescription(0));
+    @spCharacter = Sprite();
+    spCharacter.Apply("x:8, y: 6");
+    ci.GetCharacterImages().ApplySmallImage(spCharacter);
+    
+    @spSkill = TextSprite(skin.GetFont("Normal32"), "");
+    spSkill.Apply("x:11, y: 180, r: 0, g: 0, b: 0, scaleX: 0.75, scaleY: 0.75");
+    spSkill.SetText(ci.GetSkill().Name);
+    
+    @spDescription = TextSprite(skin.GetFont("Normal32"), "");
+    spDescription.Apply("x:11, y: 208, r: 0, g: 0, b: 0, scaleX: 0.5, scaleY: 0.5");
+    spDescription.SetText(ci.GetSkill().Description);
     spDescription.SetRich(true);
-    spInfo.Transfer(spDescription);
     
-    spInfo.Apply("x:-314, y: 110, z:30");
-    AddSprite(spInfo);
+    container.AddChild(spBack);
+    container.AddChild(spCharacter);
+    container.AddChild(spSkill);
+    container.AddChild(spDescription);
+    
+    @spIcon = Sprite();
+    spIcon.SetImage(Image(ci.GetSkill().IconPath));
+    spIcon.Apply("x:217, y:180, scaleX:0.75, scaleY:0.75");
+    container.AddChild(spIcon);
+    
+    int ic = si.GetIndicatorCount();
+    for(int i = 0; i < ic; i++) {
+      Sprite@ icon = Sprite(si.GetIndicatorImage(i));
+      int ix = 276 - (i * 28);
+      icon.Apply("scaleX:0.25, scaleY:0.25, origX:48, origY:48, y:164, x:" + ix);
+      icons.insertLast(icon);
+      container.AddChild(icon);
+    }
+    
+    container.Apply("x:-296, y: 110, z:30");
+    AddSprite(container);
   }
   
   Sprite@ spReadyBack, spReadyFront;
@@ -305,10 +352,17 @@ class CharacterInfo : CoroutineScene {
     
   }
   
+  void OnSkill(int index) {
+    auto target = icons[index];
+    target.AbortMove(true);
+    target.Apply("scaleX:0.3, scaleY: 0.3");
+    target.AddMove("scale_to(x:0.25, y:0.25, time: 0.2)");
+  }
+  
   void OnEvent(const string &in event) {
     if (event == "Player:End") Disappear();
     if (event == "Player:Ready") {
-      spInfo.AddMove("move_by(x:314, time:0.5, ease:out_quad)");
+      container.AddMove("move_by(x:296, time:0.5, ease:out_quad)");
       spReadyBack.AddMove("scale_to(x:1, y:1, time:0.3, ease:out_sine)");
       spReadyFront.AddMove("move_by(x:1280, time:0.5, wait:0.3, ease:out_sine)");
       RunCoroutine(Coroutine(ReadyString), "CharInfo:Ready");

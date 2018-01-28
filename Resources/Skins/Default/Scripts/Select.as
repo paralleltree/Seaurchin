@@ -243,7 +243,7 @@ class CharacterSelect : CoroutineScene {
   SkillManager@ sm;
   Skill@ sk;
   
-  Sprite@ spBack, spImage;
+  Sprite@ spBack, spImage, spIcon;
   TextSprite@ spTitle, spInfo, spName, spSkill, spDescription;
   Container@ container;
   
@@ -271,6 +271,9 @@ class CharacterSelect : CoroutineScene {
     @spImage = Sprite();
     spImage.Apply("x:320, y:256");
     
+    @spIcon = Sprite();
+    spIcon.Apply("x:960, y:256, origX:48, origY:48, scaleX: 1.25, scaleY:1.25");
+    
     @spSkill = TextSprite(skin.GetFont("Normal64"), "");
     spSkill.SetAlignment(TextAlign::Center, TextAlign::Top);
     spSkill.Apply("x:960, y:360, scaleX:0.75, scaleY:0.75");
@@ -283,8 +286,11 @@ class CharacterSelect : CoroutineScene {
     container.AddChild(spBack);
     container.AddChild(spTitle);
     container.AddChild(spInfo);
+    
     container.AddChild(spName);
     container.AddChild(spImage);
+    
+    container.AddChild(spIcon);
     container.AddChild(spSkill);
     container.AddChild(spDescription);
     
@@ -313,6 +319,7 @@ class CharacterSelect : CoroutineScene {
     @sk = sm.GetSkill(0);
     spSkill.SetText(sk.Name);
     spDescription.SetText(sk.Description);
+    spIcon.SetImage(Image(sk.IconPath));
   }
   
   void Draw() {
@@ -363,10 +370,12 @@ class CharacterSelect : CoroutineScene {
   }
   
   void FadeSkill() {
+    spIcon.AddMove("alpha(x:1, y:0, time:0.2)");
     spSkill.AddMove("alpha(x:1, y:0, time:0.2)");
     spDescription.AddMove("alpha(x:1, y:0, time:0.2)");
     YieldTime(0.2);
     UpdateSkill();
+    spIcon.AddMove("alpha(x:0, y:1, time:0.2)");
     spSkill.AddMove("alpha(x:0, y:1, time:0.2)");
     spDescription.AddMove("alpha(x:0, y:1, time:0.2)");
   }
