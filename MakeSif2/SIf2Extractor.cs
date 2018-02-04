@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MakeSif2
 {
-    class SIf2Extractor
+    class Sif2Extractor
     {
         public void Extract(string filename)
         {

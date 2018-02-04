@@ -20,7 +20,7 @@ namespace MakeSif2
             }
             if (args.Length >= 2 && args[0] == "--extract")
             {
-                new SIf2Extractor().Extract(args[1]);
+                new Sif2Extractor().Extract(args[1]);
             }
             else if (args.Length >= 1 && args[0] != "--extract")
             {
