@@ -33,6 +33,16 @@ enum class JudgeType {
     Action,
 };
 
+enum class JudgeSoundType {
+    Tap,
+    ExTap,
+    Flick,
+    Air,
+    AirAction,
+    Holding,
+    Sliding,
+};
+
 enum class PlayingState {
 
     ScoreNotLoaded,     // ‰½‚àŽn‚Ü‚Á‚Ä‚¢‚È‚¢
@@ -59,6 +69,9 @@ protected:
     int hBlank;
     ExecutionManager *manager;
     SoundManager *soundManager;
+    Rx::subjects::subject<std::tuple<JudgeSoundType, bool>> judgeSoundSubject;
+    Rx::observable<std::tuple<JudgeSoundType, bool>> judgeSoundObservable;
+    Rx::composite_subscription judgeSoundSubscription;
     std::mutex asyncMutex;
     std::unique_ptr<SusAnalyzer> analyzer;
     std::map<std::string, SResource*> resources;
@@ -142,18 +155,11 @@ protected:
     void Prepare3DDrawCall();
 
     void ProcessSound();
+    void ProcessSoundQueue(std::tuple<JudgeSoundType, bool> t);
 
     void SpawnJudgeEffect(std::shared_ptr<SusDrawableNoteData> target, JudgeType type);
     void SpawnSlideLoopEffect(std::shared_ptr<SusDrawableNoteData> target);
-    void PlaySoundTap() { soundManager->PlayGlobal(soundTap->GetSample()); }
-    void PlaySoundExTap() { soundManager->PlayGlobal(soundExTap->GetSample()); }
-    void PlaySoundFlick() { soundManager->PlayGlobal(soundFlick->GetSample()); }
-    void PlaySoundAir() { soundManager->PlayGlobal(soundAir->GetSample()); }
-    void PlaySoundAirAction() { soundManager->PlayGlobal(soundAirAction->GetSample()); }
-    void PlaySoundHold() { soundManager->PlayGlobal(soundHoldLoop->GetSample()); }
-    void StopSoundHold() { soundManager->StopGlobal(soundHoldLoop->GetSample()); }
-    void PlaySoundSlide() { soundManager->PlayGlobal(soundSlideLoop->GetSample()); }
-    void StopSoundSlide() { soundManager->StopGlobal(soundSlideLoop->GetSample()); }
+    void EnqueueJudgeSound(JudgeSoundType type, bool play);
 
 public:
     ScenePlayer(ExecutionManager *exm);

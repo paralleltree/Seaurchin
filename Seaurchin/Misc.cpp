@@ -101,8 +101,3 @@ bool ConvertBoolean(const string &input)
         || input == "enable"
         || input == "enabled";
 }
-
-double lerp(double x, double a, double b)
-{
-    return (1.0 - x) * a + x * b;
-}

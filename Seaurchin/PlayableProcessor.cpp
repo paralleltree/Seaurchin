@@ -104,10 +104,10 @@ void PlayableProcessor::Update(vector<shared_ptr<SusDrawableNoteData>>& notes)
         HoldCheck = isInHold || HoldCheck;
     }
 
-    if (!wasInSlide && SlideCheck) Player->PlaySoundSlide();
-    if (wasInSlide && !SlideCheck) Player->StopSoundSlide();
-    if (!wasInHold && HoldCheck) Player->PlaySoundHold();
-    if (wasInHold && !HoldCheck) Player->StopSoundHold();
+    if (!wasInSlide && SlideCheck) Player->EnqueueJudgeSound(JudgeSoundType::Sliding, true);
+    if (wasInSlide && !SlideCheck) Player->EnqueueJudgeSound(JudgeSoundType::Sliding, false);
+    if (!wasInHold && HoldCheck) Player->EnqueueJudgeSound(JudgeSoundType::Holding, true);
+    if (wasInHold && !HoldCheck) Player->EnqueueJudgeSound(JudgeSoundType::Holding, false);
 
     wasInHold = HoldCheck;
     wasInSlide = SlideCheck;
@@ -120,8 +120,8 @@ void PlayableProcessor::MovePosition(double relative)
 
     wasInHold = isInHold = false;
     wasInSlide = isInSlide = false;
-    Player->StopSoundHold();
-    Player->StopSoundSlide();
+    Player->EnqueueJudgeSound(JudgeSoundType::Holding, false);
+    Player->EnqueueJudgeSound(JudgeSoundType::Sliding, false);
     Player->RemoveSlideEffect();
 
     // ‘—‚è: ”ò‚Î‚µ‚½•”•ª‚ðFinished‚É
@@ -183,25 +183,25 @@ void PlayableProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
         CheckAirActionJudgement(note);
     } else if (note->Type.test((size_t)SusNoteType::Air)) {
         if (!CheckAirJudgement(note)) return;
-        Player->PlaySoundAir();
+        Player->EnqueueJudgeSound(JudgeSoundType::Air, true);
         Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
         Player->SpawnJudgeEffect(note, JudgeType::ShortEx);
     } else if (note->Type.test((size_t)SusNoteType::Tap)) {
         if (!CheckJudgement(note)) return;
-        Player->PlaySoundTap();
+        Player->EnqueueJudgeSound(JudgeSoundType::Tap, true);
         Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
     } else if (note->Type.test((size_t)SusNoteType::ExTap)) {
         if (!CheckJudgement(note)) return;
-        Player->PlaySoundExTap();
+        Player->EnqueueJudgeSound(JudgeSoundType::ExTap, true);
         Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
         Player->SpawnJudgeEffect(note, JudgeType::ShortEx);
     } else if (note->Type.test((size_t)SusNoteType::Flick)) {
         if (!CheckJudgement(note)) return;
-        Player->PlaySoundFlick();
+        Player->EnqueueJudgeSound(JudgeSoundType::Flick, true);
         Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
     } else if (note->Type.test((size_t)SusNoteType::HellTap)) {
         if (!CheckHellJudgement(note)) return;
-        Player->PlaySoundTap();
+        Player->EnqueueJudgeSound(JudgeSoundType::Tap, true);
         Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
     }
 }
@@ -318,7 +318,7 @@ bool PlayableProcessor::CheckHoldJudgement(shared_ptr<SusDrawableNoteData> note)
             ResetCombo(note, AbilityNoteType::Hold);
         } else if (trigger) {
             IncrementCombo(note, judgeTime, AbilityNoteType::Hold);
-            Player->PlaySoundTap();
+            Player->EnqueueJudgeSound(JudgeSoundType::Tap, true);
             Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
         }
         return held;
@@ -342,18 +342,18 @@ bool PlayableProcessor::CheckHoldJudgement(shared_ptr<SusDrawableNoteData> note)
                 IncrementCombo(extra, judgeTime, AbilityNoteType::Hold);
             } else if (extra->Type[(size_t)SusNoteType::Step]) {
                 IncrementCombo(extra, judgeTime, AbilityNoteType::Hold);
-                Player->PlaySoundTap();
+                Player->EnqueueJudgeSound(JudgeSoundType::Tap, true);
                 Player->SpawnJudgeEffect(extra, JudgeType::SlideTap);
             } else {
                 IncrementCombo(extra, judgeTime, AbilityNoteType::Hold);
-                Player->PlaySoundTap();
+                Player->EnqueueJudgeSound(JudgeSoundType::Tap, true);
                 Player->SpawnJudgeEffect(extra, JudgeType::SlideTap);
                 note->OnTheFlyData.set((size_t)NoteAttribute::Completed);
             }
         } else {
             if (extra->Type[(size_t)SusNoteType::End] && release) {
                 IncrementCombo(extra, judgeTime, AbilityNoteType::Hold);
-                Player->PlaySoundTap();
+                Player->EnqueueJudgeSound(JudgeSoundType::Tap, true);
                 Player->SpawnJudgeEffect(extra, JudgeType::SlideTap);
                 note->OnTheFlyData.set((size_t)NoteAttribute::Completed);
             }
@@ -404,8 +404,8 @@ bool PlayableProcessor::CheckSlideJudgement(shared_ptr<SusDrawableNoteData> note
             }
             start = next = segment;
         }
-        auto center = lerp((timeInBlock - get<0>(start)) / (get<0>(next) - get<0>(start)), get<1>(start), get<1>(next)) * 16;
-        auto width = lerp(timeInBlock / (refNote->StartTime - lastStep->StartTime), lastStep->Length, refNote->Length);
+        auto center = glm::mix(get<1>(start), get<1>(next), (timeInBlock - get<0>(start)) / (get<0>(next) - get<0>(start))) * 16;
+        auto width = glm::mix(lastStep->Length, refNote->Length, timeInBlock / (refNote->StartTime - lastStep->StartTime));
         left = floor(center - width / 2.0);
         right = ceil(center + width / 2.0);
         ostringstream ss;
@@ -428,7 +428,7 @@ bool PlayableProcessor::CheckSlideJudgement(shared_ptr<SusDrawableNoteData> note
             ResetCombo(note, AbilityNoteType::Slide);
         } else if (trigger) {
             IncrementCombo(note, judgeTime, AbilityNoteType::Slide);
-            Player->PlaySoundTap();
+            Player->EnqueueJudgeSound(JudgeSoundType::Tap, true);
             Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
         }
         return held;
@@ -452,18 +452,18 @@ bool PlayableProcessor::CheckSlideJudgement(shared_ptr<SusDrawableNoteData> note
                 IncrementCombo(extra, judgeTime, AbilityNoteType::Slide);
             } else if (extra->Type[(size_t)SusNoteType::Step]) {
                 IncrementCombo(extra, judgeTime, AbilityNoteType::Slide);
-                Player->PlaySoundTap();
+                Player->EnqueueJudgeSound(JudgeSoundType::Tap, true);
                 Player->SpawnJudgeEffect(extra, JudgeType::SlideTap);
             } else {
                 IncrementCombo(extra, judgeTime, AbilityNoteType::Slide);
-                Player->PlaySoundTap();
+                Player->EnqueueJudgeSound(JudgeSoundType::Tap, true);
                 Player->SpawnJudgeEffect(extra, JudgeType::SlideTap);
                 note->OnTheFlyData.set((size_t)NoteAttribute::Completed);
             }
         } else {
             if (extra->Type[(size_t)SusNoteType::End] && release) {
                 IncrementCombo(extra, judgeTime, AbilityNoteType::Slide);
-                Player->PlaySoundTap();
+                Player->EnqueueJudgeSound(JudgeSoundType::Tap, true);
                 Player->SpawnJudgeEffect(extra, JudgeType::SlideTap);
                 note->OnTheFlyData.set((size_t)NoteAttribute::Completed);
             }
@@ -511,7 +511,7 @@ bool PlayableProcessor::CheckAirActionJudgement(shared_ptr<SusDrawableNoteData> 
         } else {
             if (trigger || (isAutoAir && judgeTime >= 0)) {
                 IncrementCombo(extra, judgeTime, AbilityNoteType::AirAction);
-                Player->PlaySoundAirAction();
+                Player->EnqueueJudgeSound(JudgeSoundType::AirAction, true);
                 Player->SpawnJudgeEffect(extra, JudgeType::Action);
                 if (extra->Type[(size_t)SusNoteType::End]) note->OnTheFlyData.set((size_t)NoteAttribute::Completed);
             }

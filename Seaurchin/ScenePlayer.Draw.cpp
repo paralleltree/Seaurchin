@@ -156,7 +156,7 @@ void ScenePlayer::SpawnJudgeEffect(shared_ptr<SusDrawableNoteData> target, Judge
 {
     Prepare3DDrawCall();
     auto position = target->StartLane + target->Length / 2.0;
-    auto x = lerp(position / 16.0, SU_LANE_X_MIN, SU_LANE_X_MAX);
+    auto x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, position / 16.0);
     switch (type) {
         case JudgeType::ShortNormal: {
             auto spawnAt = ConvWorldPosToScreenPos(VGet(x, SU_LANE_Y_GROUND, SU_LANE_Z_MIN));
@@ -254,16 +254,16 @@ void ScenePlayer::UpdateSlideEffect()
             for (auto &segmentPosition : segmentPositions) {
                 if (lastSegmentPosition == segmentPosition) continue;
                 double currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - last->StartTime);
-                if (CurrentTime >= lerp(currentTimeInBlock, last->StartTime, slideElement->StartTime)) {
+                double cst = glm::mix(last->StartTime, slideElement->StartTime, currentTimeInBlock);
+                if (CurrentTime >= cst) {
                     lastSegmentPosition = segmentPosition;
                     lastTimeInBlock = currentTimeInBlock;
                     continue;
                 }
-                double lst = lerp(lastTimeInBlock, last->StartTime, slideElement->StartTime);
-                double cst = lerp(currentTimeInBlock, last->StartTime, slideElement->StartTime);
+                double lst = glm::mix(last->StartTime, slideElement->StartTime, lastTimeInBlock);
                 double t = (CurrentTime - lst) / (cst - lst);
-                double x = lerp(t, get<1>(lastSegmentPosition), get<1>(segmentPosition));
-                double absx = lerp(x, SU_LANE_X_MIN, SU_LANE_X_MAX);
+                double x = glm::mix(get<1>(lastSegmentPosition), get<1>(segmentPosition), t);
+                double absx = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, x);
                 auto at = ConvWorldPosToScreenPos(VGet(absx, SU_LANE_Y_GROUND, SU_LANE_Z_MIN));
                 effect->Transform.X = at.x;
                 effect->Transform.Y = at.y;
@@ -302,12 +302,12 @@ void ScenePlayer::DrawShortNotes(shared_ptr<SusDrawableNoteData> note)
 void ScenePlayer::DrawAirNotes(shared_ptr<SusDrawableNoteData> note)
 {
     double relpos = 1.0 - note->ModifiedPosition / SeenDuration;
-    double z = lerp(relpos, SU_LANE_Z_MAX, SU_LANE_Z_MIN);
+    double z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, relpos);
 
     auto length = note->Length;
     auto slane = note->StartLane;
-    auto left = lerp(slane / 16.0, SU_LANE_X_MIN, SU_LANE_X_MAX);
-    auto right = lerp((slane + length) / 16.0, SU_LANE_X_MIN, SU_LANE_X_MAX);
+    auto left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, slane / 16.0);
+    auto right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, (slane + length) / 16.0);
     auto speed = note->Timeline->GetSpeedAt(CurrentTime);
     auto reftime = CurrentTime * speed;
     if (reftime < 0) reftime += ((int)(reftime / -0.5) + 1) * 0.5;
@@ -377,8 +377,8 @@ void ScenePlayer::DrawSlideNotes(shared_ptr<SusDrawableNoteData> note)
         for (auto &segmentPosition : segmentPositions) {
             if (lastSegmentPosition == segmentPosition) continue;
             double currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
-            double currentSegmentLength = lerp(currentTimeInBlock, lastStep->Length, slideElement->Length);
-            double segmentExPosition = lerp(currentTimeInBlock, lastStep->ModifiedPosition, slideElement->ModifiedPosition);
+            double currentSegmentLength = glm::mix(lastStep->Length, slideElement->Length, currentTimeInBlock);
+            double segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
             double currentSegmentRelativeY = 1.0 - segmentExPosition / SeenDuration;
 
             if (currentSegmentRelativeY < cullingLimit && lastSegmentRelativeY < cullingLimit) {
@@ -418,9 +418,9 @@ void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
     auto lastStepRelativeY = 1.0 - lastStep->ModifiedPosition / SeenDuration;
     double segmentLength = 128.0;   // Bufferè„Ç≈ÇÃç≈è¨ÇÃí∑Ç≥
 
-    double aasz = lerp(lastStepRelativeY, SU_LANE_Z_MAX, SU_LANE_Z_MIN);
+    double aasz = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, lastStepRelativeY);
     double cry = ((double)lastStep->StartLane + lastStep->Length / 2.0) / 16.0;
-    double center = lerp(cry, SU_LANE_X_MIN, SU_LANE_X_MAX);
+    double center = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, cry);
     VERTEX3D vertices[] = {
         { VGet(center - 10, SU_LANE_Y_GROUND, aasz), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 1.0f, 1.0f, 0.0f },
         { VGet(center - 10, SU_LANE_Y_AIR * lastStep->ExtraAttribute->HeightScale, aasz), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 0.0f, 0.0f, 0.0f },
@@ -444,24 +444,24 @@ void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
         for (auto &segmentPosition : segmentPositions) {
             if (lastSegmentPosition == segmentPosition) continue;
             double currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
-            double currentSegmentLength = lerp(currentTimeInBlock, lastStep->Length, slideElement->Length);
-            double segmentExPosition = lerp(currentTimeInBlock, lastStep->ModifiedPosition, slideElement->ModifiedPosition);
+            double currentSegmentLength = glm::mix(lastStep->Length, slideElement->Length, currentTimeInBlock);
+            double segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
             double currentSegmentRelativeY = 1.0 - segmentExPosition / SeenDuration;
 
             if (currentSegmentRelativeY < cullingLimit && lastSegmentRelativeY < cullingLimit) {
                 SetUseZBuffer3D(FALSE);
-                double back = lerp(currentSegmentRelativeY, SU_LANE_Z_MAX, SU_LANE_Z_MIN);
-                double front = lerp(lastSegmentRelativeY, SU_LANE_Z_MAX, SU_LANE_Z_MIN);
+                double back = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentSegmentRelativeY);
+                double front = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, lastSegmentRelativeY);
                 double backLeft = get<1>(segmentPosition) - lastSegmentLength / 32.0;
                 double backRight = get<1>(segmentPosition) + lastSegmentLength / 32.0;
                 double frontLeft = get<1>(lastSegmentPosition) - lastSegmentLength / 32.0;
                 double frontRight = get<1>(lastSegmentPosition) + lastSegmentLength / 32.0;
-                double pbl = lerp(backLeft, SU_LANE_X_MIN, SU_LANE_X_MAX);
-                double pbr = lerp(backRight, SU_LANE_X_MIN, SU_LANE_X_MAX);
-                double pfl = lerp(frontLeft, SU_LANE_X_MIN, SU_LANE_X_MAX);
-                double pfr = lerp(frontRight, SU_LANE_X_MIN, SU_LANE_X_MAX);
-                double pbz = lerp(currentTimeInBlock, lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale);
-                double pfz = lerp(lastTimeInBlock, lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale);
+                double pbl = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, backLeft);
+                double pbr = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, backRight);
+                double pfl = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, frontLeft);
+                double pfr = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, frontRight);
+                double pbz = glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, currentTimeInBlock);
+                double pfz = glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, lastTimeInBlock);
                 // TODO: ç≈ìKâªÇµÇÎ
                 VERTEX3D vertices[] = {
                     { VGet(pfl, SU_LANE_Y_AIR * pfz, front), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 1.0f, 1.0f, 0.0f },
@@ -471,10 +471,10 @@ void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
                 };
                 DrawPolygonIndexed3D(vertices, 4, RectVertexIndices, 2, imageAirAction->GetHandle(), TRUE);
 
-                vertices[0].pos.x = lerp(get<1>(lastSegmentPosition), SU_LANE_X_MIN, SU_LANE_X_MAX) - 10;
-                vertices[1].pos.x = lerp(get<1>(segmentPosition), SU_LANE_X_MIN, SU_LANE_X_MAX) - 10;
-                vertices[2].pos.x = lerp(get<1>(segmentPosition), SU_LANE_X_MIN, SU_LANE_X_MAX) + 10;
-                vertices[3].pos.x = lerp(get<1>(lastSegmentPosition), SU_LANE_X_MIN, SU_LANE_X_MAX) + 10;
+                vertices[0].pos.x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, get<1>(lastSegmentPosition)) - 10;
+                vertices[1].pos.x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, get<1>(segmentPosition)) - 10;
+                vertices[2].pos.x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, get<1>(segmentPosition)) + 10;
+                vertices[3].pos.x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, get<1>(lastSegmentPosition)) + 10;
                 vertices[0].u = 0.9375f; vertices[0].v = 1.0f;
                 vertices[1].u = 0.9375f; vertices[1].v = 0.0f;
                 vertices[2].u = 1.0000f; vertices[2].v = 0.0f;
@@ -492,9 +492,9 @@ void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
         if (!slideElement->Type.test((size_t)SusNoteType::Invisible)) {
             double atLeft = (slideElement->StartLane) / 16.0;
             double atRight = (slideElement->StartLane + slideElement->Length) / 16.0;
-            double left = lerp(atLeft, SU_LANE_X_MIN, SU_LANE_X_MAX) + 5;
-            double right = lerp(atRight, SU_LANE_X_MIN, SU_LANE_X_MAX) - 5;
-            double z = lerp(currentStepRelativeY, SU_LANE_Z_MAX, SU_LANE_Z_MIN);
+            double left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atLeft) + 5;
+            double right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atRight) - 5;
+            double z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentStepRelativeY);
             auto color = GetColorU8(255, 255, 255, 255);
             auto yBase = SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale;
             VERTEX3D vertices[] = {

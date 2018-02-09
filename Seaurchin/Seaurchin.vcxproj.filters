@@ -49,6 +49,9 @@
     <Filter Include="インターフェース\描画システム">
       <UniqueIdentifier>{261a98c2-065d-4806-aae5-abe7200a0492}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\ライブラリ">
+      <UniqueIdentifier>{11261168-c68c-4cb0-a44c-605b63a7fdb2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -310,6 +313,9 @@
     </ClInclude>
     <ClInclude Include="CharacterInstance.h">
       <Filter>インターフェース\キャラクター</Filter>
+    </ClInclude>
+    <ClInclude Include="Crc32.h">
+      <Filter>ヘッダー ファイル\ライブラリ</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

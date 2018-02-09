@@ -2,11 +2,14 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 #define _USE_MATH_DEFINES
+#define _ENABLE_ATOMIC_ALIGNMENT_FIX
 
 //Windows
 #include <Windows.h>
 #include <Shlwapi.h>
 #include <Imm.h>
+#include <intrin.h>
+
 
 //C Runtime
 #include <cstdio>
@@ -53,6 +56,7 @@
 #include <boost/spirit/include/qi.hpp>
 #include <boost/optional.hpp>
 #include <boost/range/sub_range.hpp>
+#include <boost/lockfree/queue.hpp>
 
 //Libraries
 #include <DxLib.h>
@@ -86,3 +90,14 @@
 #include <spdlog/sinks/sink.h>
 
 #include <toml/toml.h>
+
+#include <rxcpp/rx.hpp>
+namespace Rx
+{
+using namespace rxcpp;
+using namespace rxcpp::sources;
+using namespace rxcpp::operators;
+using namespace rxcpp::util;
+}
+
+#include <glm/glm.hpp>

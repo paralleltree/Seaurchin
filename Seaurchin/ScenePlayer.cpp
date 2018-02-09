@@ -42,6 +42,10 @@ void RegisterPlayerScene(ExecutionManager * manager)
 ScenePlayer::ScenePlayer(ExecutionManager *exm) : manager(exm)
 {
     soundManager = manager->GetSoundManagerUnsafe();
+    judgeSoundObservable = judgeSoundSubject.get_observable();
+    judgeSoundSubscription = judgeSoundObservable.subscribe([this](auto t) {
+        ProcessSoundQueue(t);
+    });
 }
 
 ScenePlayer::~ScenePlayer()
@@ -94,6 +98,12 @@ void ScenePlayer::SetProcessorOptions(PlayableProcessor *processor)
     processor->SetJudgeAdjusts(jas, jms, jaa, jma);
 }
 
+void ScenePlayer::EnqueueJudgeSound(JudgeSoundType type, bool play)
+{
+    judgeSoundSubject.get_subscriber().on_next(make_tuple(type, play));
+}
+
+
 void ScenePlayer::Finalize()
 {
     soundManager->StopGlobal(soundHoldLoop->GetSample());
@@ -106,6 +116,7 @@ void ScenePlayer::Finalize()
     fontCombo->Release();
     DeleteGraph(hGroundBuffer);
     DeleteGraph(hBlank);
+    judgeSoundSubscription.unsubscribe();
 }
 
 void ScenePlayer::LoadWorker()
@@ -172,8 +183,8 @@ void ScenePlayer::CalculateCurves(std::shared_ptr<SusDrawableNoteData> note)
             copy(controlPoints.begin(), controlPoints.end(), back_inserter(bezierBuffer));
             for (int k = controlPoints.size() - 1; k >= 0; k--) {
                 for (int l = 0; l < k; l++) {
-                    auto derivedTime = lerp(relativeTimeInBlock, get<0>(bezierBuffer[l]), get<0>(bezierBuffer[l + 1]));
-                    auto derivedPosition = lerp(relativeTimeInBlock, get<1>(bezierBuffer[l]), get<1>(bezierBuffer[l + 1]));
+                    auto derivedTime = glm::mix(get<0>(bezierBuffer[l]), get<0>(bezierBuffer[l + 1]), relativeTimeInBlock);
+                    auto derivedPosition = glm::mix(get<1>(bezierBuffer[l]), get<1>(bezierBuffer[l + 1]), relativeTimeInBlock);
                     bezierBuffer[l] = make_tuple(derivedTime, derivedPosition);
                 }
             }
@@ -306,6 +317,41 @@ void ScenePlayer::ProcessSound()
         case PlayingState::BothOngoing:
             // BgmLastingÇÕé¿éøÇ»Ç≥ÇªÇ§Ç≈Ç∑ÇÀÅc
             //TODO: ã»ÇÃçƒê∂Ç…âûÇ∂ÇƒScoreLastingÇ÷à⁄çs
+            break;
+    }
+}
+
+void ScenePlayer::ProcessSoundQueue(tuple<JudgeSoundType, bool> t)
+{
+    switch (get<0>(t)) {
+        case JudgeSoundType::Tap:
+            soundManager->PlayGlobal(soundTap->GetSample());
+            break;
+        case JudgeSoundType::ExTap:
+            soundManager->PlayGlobal(soundExTap->GetSample());
+            break;
+        case JudgeSoundType::Flick:
+            soundManager->PlayGlobal(soundFlick->GetSample());
+            break;
+        case JudgeSoundType::Air:
+            soundManager->PlayGlobal(soundAir->GetSample());
+            break;
+        case JudgeSoundType::AirAction:
+            soundManager->PlayGlobal(soundAirAction->GetSample());
+            break;
+        case JudgeSoundType::Holding:
+            if (get<1>(t)) {
+                soundManager->PlayGlobal(soundHoldLoop->GetSample());
+            } else {
+                soundManager->StopGlobal(soundHoldLoop->GetSample());
+            }
+            break;
+        case JudgeSoundType::Sliding:
+            if (get<1>(t)) {
+                soundManager->PlayGlobal(soundSlideLoop->GetSample());
+            } else {
+                soundManager->StopGlobal(soundSlideLoop->GetSample());
+            }
             break;
     }
 }
