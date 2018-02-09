@@ -31,6 +31,8 @@ private:
     static boost::xpressive::sregex srmove;
     static boost::xpressive::sregex srparam;
 
+    static void ApplyProperty(Mover* mover, const std::string &prop);
+
 public:
     SSprite *Target;
 

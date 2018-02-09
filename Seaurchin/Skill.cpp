@@ -155,7 +155,7 @@ void SkillIndicators::TriggerSkillIndicator(int index)
     CallbackContext->SetObject(CallbackObject);
     CallbackContext->SetArgDWord(0, index);
     CallbackContext->Execute();
-    CallbackContext->Unprepare();
+    // CallbackContext->Unprepare();
 }
 
 int SkillIndicators::GetSkillIndicatorCount()

@@ -12,6 +12,15 @@
 
 #define SU_IF_CHARACTER_INSTANCE "CharacterInstance"
 
+struct AbilityFunctions {
+    asIScriptFunction *OnStart;
+    asIScriptFunction *OnFinish;
+    asIScriptFunction *OnJusticeCritical;
+    asIScriptFunction *OnJustice;
+    asIScriptFunction *OnAttack;
+    asIScriptFunction *OnMiss;
+};
+
 class CharacterInstance final {
 private:
     int reference = 0;
@@ -26,6 +35,7 @@ private:
 
     std::vector<asIScriptObject*> Abilities;
     std::vector<asITypeInfo*> AbilityTypes;
+    std::vector<AbilityFunctions> AbilityEvents;
     asIScriptContext *context;
 
     void LoadAbilities();
@@ -33,8 +43,8 @@ private:
 
     asIScriptObject* LoadAbilityObject(boost::filesystem::path filepath);
 
-    void OnEvent(const char *name);
-    void OnEvent(const char *name, AbilityNoteType type);
+    void CallEventFunction(asIScriptObject *obj, asIScriptFunction* func);
+    void CallEventFunction(asIScriptObject *obj, asIScriptFunction* func, AbilityNoteType type);
 
 public:
     void AddRef() { reference++; }

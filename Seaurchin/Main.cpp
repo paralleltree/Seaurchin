@@ -89,7 +89,7 @@ void Run()
     {
         pstart = start;
         start = high_resolution_clock::now();
-        float delta = duration_cast<nanoseconds>(start - pstart).count() / 1000000000.0;
+        double delta = duration_cast<nanoseconds>(start - pstart).count() / 1000000000.0;
         manager->Tick(delta);
         manager->Draw();
     }

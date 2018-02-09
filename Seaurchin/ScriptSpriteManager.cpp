@@ -88,6 +88,7 @@ string ScriptSpriteMover::ParseMover(Mover *mover, std::string move)
 {
     using namespace boost::algorithm;
     using namespace crc32_constexpr;
+
     smatch match;
     move.erase(remove(move.begin(), move.end(), ' '), move.end());
 
@@ -96,38 +97,54 @@ string ScriptSpriteMover::ParseMover(Mover *mover, std::string move)
     bool m = regex_match(move, match, srmove);
     if (!m) return "";
     auto ms = match[s1].str();
-    vector<string> params;
-    split(params, match[s2].str(), is_any_of(","));
-    for (const auto& s : params) {
-        regex_match(s, match, srparam);
-        auto pname = match[s1].str();
-        auto pval = match[s2].str();
-        switch (crc32_rec(0xffffffff, pname.c_str())) {
-            case "x"_crc32:
-            case "r"_crc32:
-                mover->X = atof(pval.c_str());
-                break;
-            case "y"_crc32:
-            case "g"_crc32:
-                mover->Y = atof(pval.c_str());
-                break;
-            case "z"_crc32:
-            case "b"_crc32:
-                mover->Z = atof(pval.c_str());
-                break;
-            case "time"_crc32:
-                mover->Duration = atof(pval.c_str());
-                break;
-            case "wait"_crc32:
-                mover->Wait = atof(pval.c_str());
-                break;
-            case "ease"_crc32:
-                mover->Function = easings[pval];
-                break;
-        }
-    }
+    auto mp = match[s2].str();
 
+    int now = 0;
+    int end = 0;
+    string prop;
+    while (true) {
+        end = mp.find(',', now);
+        if (end == string::npos) break;
+        prop = mp.substr(now, end - now);
+        now = end + 1;
+        ApplyProperty(mover, prop);
+    }
+    prop = mp.substr(now);
+    ApplyProperty(mover, prop);
     return ms;
+}
+
+void ScriptSpriteMover::ApplyProperty(Mover* mover, const string &prop)
+{
+    using namespace crc32_constexpr;
+    auto pos = prop.find(':');
+    if (pos == string::npos) return;
+    auto p = prop.substr(0, pos);
+    auto v = prop.substr(pos + 1);
+
+    switch (crc32_rec(0xffffffff, p.c_str())) {
+        case "x"_crc32:
+        case "r"_crc32:
+            mover->X = atof(v.c_str());
+            break;
+        case "y"_crc32:
+        case "g"_crc32:
+            mover->Y = atof(v.c_str());
+            break;
+        case "z"_crc32:
+        case "b"_crc32:
+            mover->Z = atof(v.c_str());
+            break;
+        case "time"_crc32:
+            mover->Duration = atof(v.c_str());
+            break;
+        case "wait"_crc32:
+            mover->Wait = atof(v.c_str());
+            break;
+        case "ease"_crc32:
+            mover->Function = easings[v];
+            break;
+    }
 }
 
 tuple<string, vector<tuple<string, string>>> ScriptSpriteMover::ParseRaw(const string & move)

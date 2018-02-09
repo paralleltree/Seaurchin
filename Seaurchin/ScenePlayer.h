@@ -40,7 +40,9 @@ enum class JudgeSoundType {
     Air,
     AirAction,
     Holding,
+    HoldingStop,
     Sliding,
+    SlidingStop,
 };
 
 enum class PlayingState {
@@ -69,9 +71,8 @@ protected:
     int hBlank;
     ExecutionManager *manager;
     SoundManager *soundManager;
-    Rx::subjects::subject<std::tuple<JudgeSoundType, bool>> judgeSoundSubject;
-    Rx::observable<std::tuple<JudgeSoundType, bool>> judgeSoundObservable;
-    Rx::composite_subscription judgeSoundSubscription;
+    boost::lockfree::queue<JudgeSoundType> judgeSoundQueue;
+    std::thread judgeSoundThread;
     std::mutex asyncMutex;
     std::unique_ptr<SusAnalyzer> analyzer;
     std::map<std::string, SResource*> resources;
@@ -82,6 +83,7 @@ protected:
     ScoreProcessor *processor;
     bool isLoadCompleted = false;
     bool isReady = false;
+    bool isTerminating = false;
     bool usePrioritySort = false;
 
     double cameraZ = -340, cameraY = 620, cameraTargetZ = 580; // スクショから計測
@@ -155,11 +157,11 @@ protected:
     void Prepare3DDrawCall();
 
     void ProcessSound();
-    void ProcessSoundQueue(std::tuple<JudgeSoundType, bool> t);
+    void ProcessSoundQueue();
 
     void SpawnJudgeEffect(std::shared_ptr<SusDrawableNoteData> target, JudgeType type);
     void SpawnSlideLoopEffect(std::shared_ptr<SusDrawableNoteData> target);
-    void EnqueueJudgeSound(JudgeSoundType type, bool play);
+    void EnqueueJudgeSound(JudgeSoundType type);
 
 public:
     ScenePlayer(ExecutionManager *exm);

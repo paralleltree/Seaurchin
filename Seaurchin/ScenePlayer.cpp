@@ -39,12 +39,12 @@ void RegisterPlayerScene(ExecutionManager * manager)
 }
 
 
-ScenePlayer::ScenePlayer(ExecutionManager *exm) : manager(exm)
+ScenePlayer::ScenePlayer(ExecutionManager *exm) : manager(exm), judgeSoundQueue(32)
 {
+    auto threads = Rx::observe_on_event_loop();
     soundManager = manager->GetSoundManagerUnsafe();
-    judgeSoundObservable = judgeSoundSubject.get_observable();
-    judgeSoundSubscription = judgeSoundObservable.subscribe([this](auto t) {
-        ProcessSoundQueue(t);
+    judgeSoundThread = thread([this]() {
+        ProcessSoundQueue();
     });
 }
 
@@ -98,14 +98,15 @@ void ScenePlayer::SetProcessorOptions(PlayableProcessor *processor)
     processor->SetJudgeAdjusts(jas, jms, jaa, jma);
 }
 
-void ScenePlayer::EnqueueJudgeSound(JudgeSoundType type, bool play)
+void ScenePlayer::EnqueueJudgeSound(JudgeSoundType type)
 {
-    judgeSoundSubject.get_subscriber().on_next(make_tuple(type, play));
+    judgeSoundQueue.push(type);
 }
 
 
 void ScenePlayer::Finalize()
 {
+    isTerminating = true;
     soundManager->StopGlobal(soundHoldLoop->GetSample());
     soundManager->StopGlobal(soundSlideLoop->GetSample());
     for (auto& res : resources) res.second->Release();
@@ -116,7 +117,7 @@ void ScenePlayer::Finalize()
     fontCombo->Release();
     DeleteGraph(hGroundBuffer);
     DeleteGraph(hBlank);
-    judgeSoundSubscription.unsubscribe();
+    judgeSoundThread.join();
 }
 
 void ScenePlayer::LoadWorker()
@@ -283,8 +284,9 @@ void ScenePlayer::Tick(double delta)
     PreviousStatus = Status;
     if (State != PlayingState::Paused) processor->Update(judgeData);
     CurrentResult->GetCurrentResult(&Status);
-    
+
     TickGraphics(delta);
+    ProcessSound();
 }
 
 void ScenePlayer::ProcessSound()
@@ -321,38 +323,43 @@ void ScenePlayer::ProcessSound()
     }
 }
 
-void ScenePlayer::ProcessSoundQueue(tuple<JudgeSoundType, bool> t)
+void ScenePlayer::ProcessSoundQueue()
 {
-    switch (get<0>(t)) {
-        case JudgeSoundType::Tap:
-            soundManager->PlayGlobal(soundTap->GetSample());
-            break;
-        case JudgeSoundType::ExTap:
-            soundManager->PlayGlobal(soundExTap->GetSample());
-            break;
-        case JudgeSoundType::Flick:
-            soundManager->PlayGlobal(soundFlick->GetSample());
-            break;
-        case JudgeSoundType::Air:
-            soundManager->PlayGlobal(soundAir->GetSample());
-            break;
-        case JudgeSoundType::AirAction:
-            soundManager->PlayGlobal(soundAirAction->GetSample());
-            break;
-        case JudgeSoundType::Holding:
-            if (get<1>(t)) {
+    JudgeSoundType type;
+    while (!isTerminating) {
+        if (!judgeSoundQueue.pop(type)) {
+            Sleep(0);
+            continue;
+        }
+        switch (type) {
+            case JudgeSoundType::Tap:
+                soundManager->PlayGlobal(soundTap->GetSample());
+                break;
+            case JudgeSoundType::ExTap:
+                soundManager->PlayGlobal(soundExTap->GetSample());
+                break;
+            case JudgeSoundType::Flick:
+                soundManager->PlayGlobal(soundFlick->GetSample());
+                break;
+            case JudgeSoundType::Air:
+                soundManager->PlayGlobal(soundAir->GetSample());
+                break;
+            case JudgeSoundType::AirAction:
+                soundManager->PlayGlobal(soundAirAction->GetSample());
+                break;
+            case JudgeSoundType::Holding:
                 soundManager->PlayGlobal(soundHoldLoop->GetSample());
-            } else {
+                break;
+            case JudgeSoundType::HoldingStop:
                 soundManager->StopGlobal(soundHoldLoop->GetSample());
-            }
-            break;
-        case JudgeSoundType::Sliding:
-            if (get<1>(t)) {
+                break;
+            case JudgeSoundType::Sliding:
                 soundManager->PlayGlobal(soundSlideLoop->GetSample());
-            } else {
+                break;
+            case JudgeSoundType::SlidingStop:
                 soundManager->StopGlobal(soundSlideLoop->GetSample());
-            }
-            break;
+                break;
+        }
     }
 }
 
@@ -465,7 +472,7 @@ void ScenePlayer::Reload()
     auto prevBgmPos = bgmStream->GetPlayingPosition();
     soundManager->StopGlobal(bgmStream);
     delete bgmStream;
-    
+
     SetMainWindowText(reinterpret_cast<const char*>(L"ÉäÉçÅ[ÉhíÜÅc"));
     LoadWorker();
     SetMainWindowText(reinterpret_cast<const char*>(ConvertUTF8ToUnicode(SU_APP_NAME " " SU_APP_VERSION).c_str()));

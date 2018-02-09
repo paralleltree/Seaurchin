@@ -46,8 +46,16 @@ void CharacterInstance::LoadAbilities()
         if (!abo) continue;
         auto abt = abo->GetObjectType();
         abt->AddRef();
+        AbilityFunctions funcs;
+        funcs.OnStart = abt->GetMethodByDecl("void OnStart(" SU_IF_RESULT "@)");
+        funcs.OnFinish = abt->GetMethodByDecl("void OnFinish(" SU_IF_RESULT "@)");
+        funcs.OnJusticeCritical = abt->GetMethodByDecl("void OnJusticeCritical(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
+        funcs.OnJustice = abt->GetMethodByDecl("void OnJustice(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
+        funcs.OnAttack = abt->GetMethodByDecl("void OnAttack(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
+        funcs.OnMiss = abt->GetMethodByDecl("void OnMiss(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
         Abilities.push_back(abo);
         AbilityTypes.push_back(abt);
+        AbilityEvents.push_back(funcs);
 
         auto init = abt->GetMethodByDecl("void Initialize(dictionary@, " SU_IF_SKILL_INDICATORS "@)");
         if (!init) continue;
@@ -127,59 +135,75 @@ asIScriptObject* CharacterInstance::LoadAbilityObject(boost::filesystem::path fi
     return obj;
 }
 
-void CharacterInstance::OnEvent(const char *name)
+void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunction *func)
 {
-    for (int i = 0; i < Abilities.size(); ++i) {
-        auto func = AbilityTypes[i]->GetMethodByDecl(name);
-        if (!func) continue;
-        context->Prepare(func);
-        context->SetObject(Abilities[i]);
-        context->SetArgAddress(0, TargetResult.get());
-        context->Execute();
-    }
+    context->Prepare(func);
+    context->SetObject(obj);
+    context->SetArgAddress(0, TargetResult.get());
+    context->Execute();
 }
 
-void CharacterInstance::OnEvent(const char *name, AbilityNoteType type)
+void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunction *func, AbilityNoteType type)
 {
-    for (int i = 0; i < Abilities.size(); ++i) {
-        auto func = AbilityTypes[i]->GetMethodByDecl(name);
-        if (!func) continue;
-        context->Prepare(func);
-        context->SetObject(Abilities[i]);
-        context->SetArgAddress(0, TargetResult.get());
-        context->SetArgDWord(1, (asDWORD)type);
-        context->Execute();
-    }
+    context->Prepare(func);
+    context->SetObject(obj);
+    context->SetArgAddress(0, TargetResult.get());
+    context->SetArgDWord(1, (asDWORD)type);
+    context->Execute();
 }
 
 void CharacterInstance::OnStart()
 {
-    OnEvent("void OnStart(" SU_IF_RESULT "@)");
+    for (int i = 0; i < Abilities.size(); ++i) {
+        auto func = AbilityEvents[i].OnStart;
+        auto obj = Abilities[i];
+        CallEventFunction(obj, func);
+    }
 }
 
 void CharacterInstance::OnFinish()
 {
-    OnEvent("void OnFinish(" SU_IF_RESULT "@)");
+    for (int i = 0; i < Abilities.size(); ++i) {
+        auto func = AbilityEvents[i].OnFinish;
+        auto obj = Abilities[i];
+        CallEventFunction(obj, func);
+    }
 }
 
 void CharacterInstance::OnJusticeCritical(AbilityNoteType type)
 {
-    OnEvent("void OnJusticeCritical(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
+    for (int i = 0; i < Abilities.size(); ++i) {
+        auto func = AbilityEvents[i].OnJusticeCritical;
+        auto obj = Abilities[i];
+        CallEventFunction(obj, func, type);
+    }
 }
 
 void CharacterInstance::OnJustice(AbilityNoteType type)
 {
-    OnEvent("void OnJustice(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
+    for (int i = 0; i < Abilities.size(); ++i) {
+        auto func = AbilityEvents[i].OnJustice;
+        auto obj = Abilities[i];
+        CallEventFunction(obj, func, type);
+    }
 }
 
 void CharacterInstance::OnAttack(AbilityNoteType type)
 {
-    OnEvent("void OnAttack(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
+    for (int i = 0; i < Abilities.size(); ++i) {
+        auto func = AbilityEvents[i].OnAttack;
+        auto obj = Abilities[i];
+        CallEventFunction(obj, func, type);
+    }
 }
 
 void CharacterInstance::OnMiss(AbilityNoteType type)
 {
-    OnEvent("void OnMiss(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")", type);
+    for (int i = 0; i < Abilities.size(); ++i) {
+        auto func = AbilityEvents[i].OnMiss;
+        auto obj = Abilities[i];
+        CallEventFunction(obj, func, type);
+    }
 }
 
 CharacterParameter* CharacterInstance::GetCharacterParameter()

@@ -87,8 +87,6 @@ void ScenePlayer::Draw()
     combo << Status.Combo;
     textCombo->set_Text(combo.str());
 
-    ProcessSound();
-
     BEGIN_DRAW_TRANSACTION(hGroundBuffer);
     DrawLaneBackground();
     DrawMeasureLines();
