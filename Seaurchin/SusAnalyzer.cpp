@@ -98,6 +98,7 @@ void SusAnalyzer::Reset()
 
     auto defea = make_shared<SusNoteExtraAttribute>();
     defea->Priority = 0;
+    defea->HeightScale = 1;
     ExtraAttributes[DefaultExtraAttributeNumber] = defea;
     ExtraAttributeToApply = defea;
 }
@@ -672,6 +673,7 @@ void SusAnalyzer::RenderScoreData(vector<shared_ptr<SusDrawableNoteData>> &data)
                         nextNote->Length = curNo.NotePosition.Length;
                         nextNote->Type = curNo.Type;
                         nextNote->Timeline = curNo.Timeline;
+                        nextNote->ExtraAttribute = curNo.ExtraAttribute;
                         nextNote->StartTimeEx = get<1>(nextNote->Timeline->GetRawDrawStateAt(nextNote->StartTime));
 
                         if (curNo.Type.test((size_t)SusNoteType::Step) || curNo.Type.test((size_t)SusNoteType::End)) {
@@ -903,6 +905,10 @@ void SusNoteExtraAttribute::Apply(const string &props)
             case "priority"_crc32:
             case "pr"_crc32:
                 Priority = (uint32_t)atoi(pr[1].c_str());
+                break;
+            case "height"_crc32:
+            case "h"_crc32:
+                HeightScale = (double)atof(pr[1].c_str());
                 break;
         }
     }

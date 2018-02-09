@@ -674,7 +674,7 @@ void SSynthSprite::Draw(const Transform2D & parent, const ColorTint & color)
     DrawBy(tf, cl);
 }
 
-SSynthSprite * SSynthSprite::Clone()
+SSynthSprite* SSynthSprite::Clone()
 {
     auto clone = new SSynthSprite(Width, Height);
     clone->CopyParameterFrom(this);

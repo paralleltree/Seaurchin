@@ -85,6 +85,7 @@ public:
 class SusNoteExtraAttribute final {
 public:
     uint32_t Priority;
+    double HeightScale;
 
     void Apply(const std::string &props);
 };

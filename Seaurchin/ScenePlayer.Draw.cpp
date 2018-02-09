@@ -423,8 +423,8 @@ void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
     double center = lerp(cry, SU_LANE_X_MIN, SU_LANE_X_MAX);
     VERTEX3D vertices[] = {
         { VGet(center - 10, SU_LANE_Y_GROUND, aasz), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 1.0f, 1.0f, 0.0f },
-        { VGet(center - 10, SU_LANE_Y_AIR, aasz), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 0.0f, 0.0f, 0.0f },
-        { VGet(center + 10, SU_LANE_Y_AIR, aasz), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0000f, 0.0f, 0.0f, 0.0f },
+        { VGet(center - 10, SU_LANE_Y_AIR * lastStep->ExtraAttribute->HeightScale, aasz), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 0.0f, 0.0f, 0.0f },
+        { VGet(center + 10, SU_LANE_Y_AIR * lastStep->ExtraAttribute->HeightScale, aasz), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0000f, 0.0f, 0.0f, 0.0f },
         { VGet(center + 10, SU_LANE_Y_GROUND, aasz), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0000f, 1.0f, 0.0f, 0.0f },
     };
     DrawPolygonIndexed3D(vertices, 4, RectVertexIndices, 2, imageAirAction->GetHandle(), TRUE);
@@ -436,8 +436,9 @@ void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
         auto &segmentPositions = curveData[slideElement];
 
         auto lastSegmentPosition = segmentPositions[0];
+        double blockDuration = slideElement->StartTime - lastStep->StartTime;
         double lastSegmentLength = lastStep->Length;
-        double lastTimeInBlock = get<0>(lastSegmentPosition) / (slideElement->StartTime - lastStep->StartTime);
+        double lastTimeInBlock = get<0>(lastSegmentPosition) / blockDuration;
         auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / SeenDuration;
         double currentExPosition = get<1>(lastStep->Timeline->GetRawDrawStateAt(CurrentTime));
         for (auto &segmentPosition : segmentPositions) {
@@ -448,7 +449,7 @@ void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
             double currentSegmentRelativeY = 1.0 - segmentExPosition / SeenDuration;
 
             if (currentSegmentRelativeY < cullingLimit && lastSegmentRelativeY < cullingLimit) {
-                SetUseZBuffer3D(TRUE);
+                SetUseZBuffer3D(FALSE);
                 double back = lerp(currentSegmentRelativeY, SU_LANE_Z_MAX, SU_LANE_Z_MIN);
                 double front = lerp(lastSegmentRelativeY, SU_LANE_Z_MAX, SU_LANE_Z_MIN);
                 double backLeft = get<1>(segmentPosition) - lastSegmentLength / 32.0;
@@ -459,11 +460,14 @@ void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
                 double pbr = lerp(backRight, SU_LANE_X_MIN, SU_LANE_X_MAX);
                 double pfl = lerp(frontLeft, SU_LANE_X_MIN, SU_LANE_X_MAX);
                 double pfr = lerp(frontRight, SU_LANE_X_MIN, SU_LANE_X_MAX);
+                double pbz = lerp(currentTimeInBlock, lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale);
+                double pfz = lerp(lastTimeInBlock, lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale);
+                // TODO: 最適化しろ
                 VERTEX3D vertices[] = {
-                    { VGet(pfl, SU_LANE_Y_AIR, front), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 1.0f, 1.0f, 0.0f },
-                    { VGet(pbl, SU_LANE_Y_AIR, back), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 0.0f, 0.0f, 0.0f },
-                    { VGet(pbr, SU_LANE_Y_AIR, back), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 0.0f, 0.0f, 0.0f },
-                    { VGet(pfr, SU_LANE_Y_AIR, front), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 1.0f, 0.0f, 0.0f },
+                    { VGet(pfl, SU_LANE_Y_AIR * pfz, front), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 1.0f, 1.0f, 0.0f },
+                    { VGet(pbl, SU_LANE_Y_AIR * pbz, back), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 0.0f, 0.0f, 0.0f },
+                    { VGet(pbr, SU_LANE_Y_AIR * pbz, back), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 0.0f, 0.0f, 0.0f },
+                    { VGet(pfr, SU_LANE_Y_AIR * pfz, front), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 1.0f, 0.0f, 0.0f },
                 };
                 DrawPolygonIndexed3D(vertices, 4, RectVertexIndices, 2, imageAirAction->GetHandle(), TRUE);
 
@@ -483,6 +487,7 @@ void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
             lastSegmentRelativeY = currentSegmentRelativeY;
             lastTimeInBlock = currentTimeInBlock;
         }
+        SetUseZBuffer3D(TRUE);
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
         if (!slideElement->Type.test((size_t)SusNoteType::Invisible)) {
             double atLeft = (slideElement->StartLane) / 16.0;
@@ -491,6 +496,7 @@ void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
             double right = lerp(atRight, SU_LANE_X_MIN, SU_LANE_X_MAX) - 5;
             double z = lerp(currentStepRelativeY, SU_LANE_Z_MAX, SU_LANE_Z_MIN);
             auto color = GetColorU8(255, 255, 255, 255);
+            auto yBase = SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale;
             VERTEX3D vertices[] = {
                 //本体 上 手前
                 /*
@@ -514,29 +520,29 @@ void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
                 0  →手前
                 */
                 { VGet(left, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 1.0f, 0.0f, 0.0f },
-                { VGet(left, SU_LANE_Y_AIR, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 0.0f, 0.0f, 0.0f },
-                { VGet(left, SU_LANE_Y_AIR, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 0.0f },
-                { VGet(left, SU_LANE_Y_AIR + 20, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.125f, 0.25f, 0.0f, 0.0f },
-                { VGet(left, SU_LANE_Y_AIR + 20, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.208f, 1.0f, 0.0f, 0.0f },
-                { VGet(left, SU_LANE_Y_AIR + 40, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.208f, 0.5f, 0.0f, 0.0f },
-                { VGet(left, SU_LANE_Y_AIR, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.0f },
-                { VGet(left, SU_LANE_Y_AIR + 20, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.125f, 0.0f, 0.0f, 0.0f },
-                { VGet(left, SU_LANE_Y_AIR + 20, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 1.0f, 0.0f, 0.0f },
-                { VGet(left, SU_LANE_Y_AIR + 40, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 0.5f, 0.0f, 0.0f },
+                { VGet(left, yBase, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 0.0f, 0.0f, 0.0f },
+                { VGet(left, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 0.0f },
+                { VGet(left, yBase + 20, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.125f, 0.25f, 0.0f, 0.0f },
+                { VGet(left, yBase + 20, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.208f, 1.0f, 0.0f, 0.0f },
+                { VGet(left, yBase + 40, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.208f, 0.5f, 0.0f, 0.0f },
+                { VGet(left, yBase, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.0f },
+                { VGet(left, yBase + 20, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.125f, 0.0f, 0.0f, 0.0f },
+                { VGet(left, yBase + 20, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 1.0f, 0.0f, 0.0f },
+                { VGet(left, yBase + 40, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 0.5f, 0.0f, 0.0f },
 
                 { VGet(right, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 1.0f, 0.0f, 0.0f },
-                { VGet(right, SU_LANE_Y_AIR, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 0.0f, 0.0f, 0.0f },
-                { VGet(right, SU_LANE_Y_AIR, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.625f, 0.25f, 0.0f, 0.0f },
-                { VGet(right, SU_LANE_Y_AIR + 20, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.25f, 0.0f, 0.0f },
-                { VGet(right, SU_LANE_Y_AIR + 20, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.625f, 1.0f, 0.0f, 0.0f },
-                { VGet(right, SU_LANE_Y_AIR + 40, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.625f, 0.5f, 0.0f, 0.0f },
-                { VGet(right, SU_LANE_Y_AIR, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.625f, 0.0f, 0.0f, 0.0f },
-                { VGet(right, SU_LANE_Y_AIR + 20, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.0f, 0.0f, 0.0f },
-                { VGet(right, SU_LANE_Y_AIR + 20, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.416f, 1.0f, 0.0f, 0.0f },
-                { VGet(right, SU_LANE_Y_AIR + 40, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.416f, 0.5f, 0.0f, 0.0f },
+                { VGet(right, yBase, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 0.0f, 0.0f, 0.0f },
+                { VGet(right, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.625f, 0.25f, 0.0f, 0.0f },
+                { VGet(right, yBase + 20, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.25f, 0.0f, 0.0f },
+                { VGet(right, yBase + 20, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.625f, 1.0f, 0.0f, 0.0f },
+                { VGet(right, yBase + 40, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.625f, 0.5f, 0.0f, 0.0f },
+                { VGet(right, yBase, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.625f, 0.0f, 0.0f, 0.0f },
+                { VGet(right, yBase + 20, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.0f, 0.0f, 0.0f },
+                { VGet(right, yBase + 20, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.416f, 1.0f, 0.0f, 0.0f },
+                { VGet(right, yBase + 40, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.416f, 0.5f, 0.0f, 0.0f },
 
-                { VGet(left, SU_LANE_Y_AIR, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.125f, 0.5f, 0.0f, 0.0f },
-                { VGet(right, SU_LANE_Y_AIR, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.5f, 0.0f, 0.0f },
+                { VGet(left, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.125f, 0.5f, 0.0f, 0.0f },
+                { VGet(right, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.5f, 0.0f, 0.0f },
             };
             uint16_t indices[] = {
                 //下のやつ
