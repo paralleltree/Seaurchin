@@ -108,6 +108,10 @@ protected:
     SFont *fontCombo;
     SAnimatedImage *animeTap, *animeExTap, *animeSlideTap, *animeSlideLoop, *animeAirAction;
     STextSprite *textCombo;
+    int movieBackground = 0;
+    double movieCurrentPosition = 0.0;
+    bool moviePlaying = false;
+    std::wstring movieFileName = L"";
     unsigned int slideLineColor = GetColor(0, 200, 255);
     unsigned int airActionLineColor = GetColor(0, 255, 32);
     unsigned int airActionJudgeColor = GetColor(128, 255, 160);
@@ -135,6 +139,7 @@ protected:
     PlayingState State = PlayingState::ScoreNotLoaded;
     PlayingState LastState;
     bool AirActionShown = false;
+    bool MetronomeAvailable = true;
 
     void TickGraphics(double delta);
     void AddSprite(SSprite *sprite);

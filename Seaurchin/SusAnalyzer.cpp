@@ -227,6 +227,12 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, bool onlyMeta, uint32
         case "WAVEOFFSET"_crc32:
             SharedMetaData.WaveOffset = ConvertFloat(result[2]);
             break;
+        case "MOVIE"_crc32:
+            SharedMetaData.UMovieFileName = ConvertRawString(result[2]);
+            break;
+        case "MOVIEOFFSET"_crc32:
+            SharedMetaData.MovieOffset = ConvertFloat(result[2]);
+            break;
         case "JACKET"_crc32:
             SharedMetaData.UJacketFileName = ConvertRawString(result[2]);
             break;

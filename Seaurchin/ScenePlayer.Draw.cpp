@@ -87,6 +87,8 @@ void ScenePlayer::Draw()
     combo << Status.Combo;
     textCombo->set_Text(combo.str());
 
+    if (movieBackground) DrawExtendGraph(0, 0, SU_RES_WIDTH, SU_RES_HEIGHT, movieBackground, FALSE);
+
     BEGIN_DRAW_TRANSACTION(hGroundBuffer);
     DrawLaneBackground();
     DrawMeasureLines();
@@ -375,7 +377,7 @@ void ScenePlayer::DrawSlideNotes(shared_ptr<SusDrawableNoteData> note)
         for (auto &segmentPosition : segmentPositions) {
             if (lastSegmentPosition == segmentPosition) continue;
             double currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
-            double currentSegmentLength = glm::mix(lastStep->Length, slideElement->Length, currentTimeInBlock);
+            double currentSegmentLength = glm::mix((double)lastStep->Length, (double)slideElement->Length, currentTimeInBlock);
             double segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
             double currentSegmentRelativeY = 1.0 - segmentExPosition / SeenDuration;
 
@@ -442,7 +444,7 @@ void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
         for (auto &segmentPosition : segmentPositions) {
             if (lastSegmentPosition == segmentPosition) continue;
             double currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
-            double currentSegmentLength = glm::mix(lastStep->Length, slideElement->Length, currentTimeInBlock);
+            double currentSegmentLength = glm::mix((double)lastStep->Length, (double)slideElement->Length, currentTimeInBlock);
             double segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
             double currentSegmentRelativeY = 1.0 - segmentExPosition / SeenDuration;
 

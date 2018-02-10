@@ -104,7 +104,9 @@ struct SusMetaData {
     std::string USongId = u8"";
     std::string UWaveFileName = u8"";
     std::string UBackgroundFileName = u8"";
+    std::string UMovieFileName = u8"";
     double WaveOffset = 0;
+    double MovieOffset = 0;
     double BaseBpm = 0;
     uint32_t Level = 0;
     uint32_t DifficultyType = 0;

@@ -7,6 +7,7 @@
 #include "Misc.h"
 
 using namespace std;
+static const double qNaN = numeric_limits<double>::quiet_NaN();
 
 void RegisterPlayerScene(ExecutionManager * manager)
 {
@@ -117,6 +118,7 @@ void ScenePlayer::Finalize()
     fontCombo->Release();
     DeleteGraph(hGroundBuffer);
     DeleteGraph(hBlank);
+    if (movieBackground) DeleteGraph(movieBackground);
     judgeSoundThread.join();
 }
 
@@ -131,6 +133,7 @@ void ScenePlayer::LoadWorker()
     auto scorefile = mm->GetSelectedScorePath();
 
     analyzer->LoadFromFile(scorefile.wstring());
+    MetronomeAvailable = !analyzer->SharedMetaData.ExtraFlags[(size_t)SusMetaDataFlags::DisableMetronome];
     analyzer->RenderScoreData(data);
     for (auto &note : data) {
         if (note->Type.test((size_t)SusNoteType::Slide) || note->Type.test((size_t)SusNoteType::AirAction)) CalculateCurves(note);
@@ -142,6 +145,10 @@ void ScenePlayer::LoadWorker()
     auto file = boost::filesystem::path(scorefile).parent_path() / ConvertUTF8ToUnicode(analyzer->SharedMetaData.UWaveFileName);
     bgmStream = SoundStream::CreateFromFile(file.wstring().c_str());
     State = PlayingState::ReadyToStart;
+
+    if (analyzer->SharedMetaData.UMovieFileName != "") {
+        movieFileName = (boost::filesystem::path(scorefile).parent_path() / ConvertUTF8ToUnicode(analyzer->SharedMetaData.UMovieFileName)).wstring();
+    }
 
     // 前カウントの計算
     // WaveOffsetが1小節分より長いとめんどくさそうなので差し引いてく
@@ -303,7 +310,7 @@ void ScenePlayer::ProcessSound()
                 State = PlayingState::OnlyScoreOngoing;
             } else if (NextMetronomeTime < 0 && CurrentTime >= NextMetronomeTime) {
                 //TODO: NextMetronomeにもLatency適用？
-                soundManager->PlayGlobal(soundTap->GetSample());
+                if (MetronomeAvailable) soundManager->PlayGlobal(soundTap->GetSample());
                 NextMetronomeTime += 60 / analyzer->GetBpmAt(0, 0);
             }
             break;
@@ -320,6 +327,15 @@ void ScenePlayer::ProcessSound()
             // BgmLastingは実質なさそうですね…
             //TODO: 曲の再生に応じてScoreLastingへ移行
             break;
+    }
+
+    if (moviePlaying) {
+        movieCurrentPosition = TellMovieToGraph(movieBackground) / 1000.0;
+        return;
+    }
+    if (CurrentTime >= -movieCurrentPosition) {
+        PlayMovieToGraph(movieBackground);
+        moviePlaying = true;
     }
 }
 
@@ -381,6 +397,21 @@ bool ScenePlayer::IsLoadCompleted()
 void ScenePlayer::GetReady()
 {
     if (!isLoadCompleted || isReady) return;
+    
+    // これはUIスレッドでやる必要あり マジかよ
+    if (movieFileName != L"") {
+        movieBackground = LoadGraph(reinterpret_cast<const char*>(movieFileName.c_str()));
+        double offset = analyzer->SharedMetaData.MovieOffset;
+        if (offset < 0) {
+            // 先にシークして0.0から再生開始
+            SeekMovieToGraph(movieBackground, (int)(-offset * 1000));
+            movieCurrentPosition = 0;
+        } else {
+            // offset待って再生開始
+            movieCurrentPosition = -offset;
+        }
+    }
+
     isReady = true;
     CurrentCharacterInstance->OnStart();
 }
@@ -428,6 +459,7 @@ void ScenePlayer::MovePositionBySecond(double sec)
     bgmStream->SetPlayingPosition(newBgmPos);
     CurrentTime = newBgmPos + gap;
     processor->MovePosition(CurrentTime - oldTime);
+    SeekMovieToGraph(movieBackground, (int)((CurrentTime - oldTime + movieCurrentPosition) * 1000.0));
 }
 
 void ScenePlayer::MovePositionByMeasure(int meas)
@@ -444,6 +476,7 @@ void ScenePlayer::MovePositionByMeasure(int meas)
     bgmStream->SetPlayingPosition(newBgmPos);
     CurrentTime = newBgmPos + gap;
     processor->MovePosition(CurrentTime - oldTime);
+    SeekMovieToGraph(movieBackground, (int)((CurrentTime - oldTime + movieCurrentPosition) * 1000.0));
 }
 
 void ScenePlayer::Pause()
@@ -452,6 +485,7 @@ void ScenePlayer::Pause()
     LastState = State;
     State = PlayingState::Paused;
     bgmStream->Pause();
+    PauseMovieToGraph(movieBackground);
 }
 
 void ScenePlayer::Resume()
@@ -459,6 +493,7 @@ void ScenePlayer::Resume()
     if (State != PlayingState::Paused) return;
     State = LastState;
     bgmStream->Resume();
+    PlayMovieToGraph(movieBackground);
 }
 
 void ScenePlayer::Reload()
