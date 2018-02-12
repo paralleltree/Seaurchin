@@ -452,8 +452,8 @@ void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
                 SetUseZBuffer3D(FALSE);
                 double back = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentSegmentRelativeY);
                 double front = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, lastSegmentRelativeY);
-                double backLeft = get<1>(segmentPosition) - lastSegmentLength / 32.0;
-                double backRight = get<1>(segmentPosition) + lastSegmentLength / 32.0;
+                double backLeft = get<1>(segmentPosition) - currentSegmentLength / 32.0;
+                double backRight = get<1>(segmentPosition) + currentSegmentLength / 32.0;
                 double frontLeft = get<1>(lastSegmentPosition) - lastSegmentLength / 32.0;
                 double frontRight = get<1>(lastSegmentPosition) + lastSegmentLength / 32.0;
                 double pbl = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, backLeft);
