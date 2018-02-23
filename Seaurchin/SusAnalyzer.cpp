@@ -66,6 +66,7 @@ SusAnalyzer::SusAnalyzer(uint32_t tpb)
 {
     TicksPerBeat = tpb;
     LongInjectionPerBeat = 2;
+    SegmentsPerSecond = 20;
     TimelineResolver = [=](uint32_t number) { return HispeedDefinitions[number]; };
     ErrorCallbacks.push_back([this](auto type, auto message) {
         auto log = spdlog::get("main");
@@ -304,6 +305,9 @@ void SusAnalyzer::ProcessRequest(const string &cmd, uint32_t line)
             if (ConvertBoolean(params[1])) {
                 SharedMetaData.ExtraFlags.set((size_t)SusMetaDataFlags::EnableDrawPriority);
             }
+            break;
+        case "segments_per_second"_crc32:
+            SegmentsPerSecond = ConvertInteger(params[1]);
             break;
     }
 }
@@ -613,7 +617,7 @@ uint32_t SusAnalyzer::GetRelativeTicks(uint32_t measure, uint32_t tick)
     return result + tick;
 }
 
-void SusAnalyzer::RenderScoreData(vector<shared_ptr<SusDrawableNoteData>> &data)
+void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curveData)
 {
     // 不正チェックリスト
     // ショート: はみ出しは全部アウト
@@ -656,6 +660,7 @@ void SusAnalyzer::RenderScoreData(vector<shared_ptr<SusDrawableNoteData>> &data)
             bool completed = false;
             auto lastStep = note;
             for (auto it : Notes) {
+                auto genCurve = true;
                 auto curPos = get<0>(it);
                 auto curNo = get<1>(it);
                 if (!curNo.Type.test((size_t)ltype) || curNo.Extra != info.Extra) continue;
@@ -663,6 +668,7 @@ void SusAnalyzer::RenderScoreData(vector<shared_ptr<SusDrawableNoteData>> &data)
                 if (curPos.Measure == time.Measure && curPos.Tick < time.Tick) continue;
                 switch (ltype) {
                     case SusNoteType::Hold: {
+                        genCurve = false;
                         if (curNo.Type.test((size_t)SusNoteType::Control) || curNo.Type.test((size_t)SusNoteType::Invisible))
                             MakeMessage(curPos.Measure, curPos.Tick, curNo.NotePosition.StartLane, u8"HoldでControl/Invisibleは指定できません。");
                         if (curNo.NotePosition.StartLane != info.NotePosition.StartLane || curNo.NotePosition.Length != info.NotePosition.Length)
@@ -702,6 +708,7 @@ void SusAnalyzer::RenderScoreData(vector<shared_ptr<SusDrawableNoteData>> &data)
                         }
 
                         noteData->ExtraData.push_back(nextNote);
+                        if (genCurve) CalculateCurves(nextNote, curveData);
                         break;
                     }
                 }
@@ -731,6 +738,45 @@ void SusAnalyzer::RenderScoreData(vector<shared_ptr<SusDrawableNoteData>> &data)
             MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"致命的なノーツエラー(不正な内部表現です)。");
         }
         auto test = GetRelativeTime(GetAbsoluteTime(2, 200));
+    }
+}
+
+void SusAnalyzer::CalculateCurves(shared_ptr<SusDrawableNoteData> note, NoteCurvesList &curveData)
+{
+    auto lastStep = note;
+    double segmentsPerSecond = 20;   // Buffer上での最小の長さ
+    vector<tuple<double, double>> controlPoints;    // lastStepからの時間, X中央位置(0~1)
+    vector<tuple<double, double>> bezierBuffer;
+
+    controlPoints.push_back(make_tuple(0, (lastStep->StartLane + lastStep->Length / 2.0) / 16.0));
+    for (auto &slideElement : note->ExtraData) {
+        if (slideElement->Type.test((size_t)SusNoteType::Injection)) continue;
+        if (slideElement->Type.test((size_t)SusNoteType::Control)) {
+            auto cpi = make_tuple(slideElement->StartTime - lastStep->StartTime, (slideElement->StartLane + slideElement->Length / 2.0) / 16.0);
+            controlPoints.push_back(cpi);
+            continue;
+        }
+        // EndかStepかInvisible
+        controlPoints.push_back(make_tuple(slideElement->StartTime - lastStep->StartTime, (slideElement->StartLane + slideElement->Length / 2.0) / 16.0));
+        int segmentPoints = segmentsPerSecond * (slideElement->StartTime - lastStep->StartTime) + 2;
+        vector<tuple<double, double>> segmentPositions;
+        for (int j = 0; j < segmentPoints; j++) {
+            double relativeTimeInBlock = j / (double)(segmentPoints - 1);
+            bezierBuffer.clear();
+            copy(controlPoints.begin(), controlPoints.end(), back_inserter(bezierBuffer));
+            for (int k = controlPoints.size() - 1; k >= 0; k--) {
+                for (int l = 0; l < k; l++) {
+                    auto derivedTime = glm::mix(get<0>(bezierBuffer[l]), get<0>(bezierBuffer[l + 1]), relativeTimeInBlock);
+                    auto derivedPosition = glm::mix(get<1>(bezierBuffer[l]), get<1>(bezierBuffer[l + 1]), relativeTimeInBlock);
+                    bezierBuffer[l] = make_tuple(derivedTime, derivedPosition);
+                }
+            }
+            segmentPositions.push_back(bezierBuffer[0]);
+        }
+        curveData[slideElement] = segmentPositions;
+        lastStep = slideElement;
+        controlPoints.clear();
+        controlPoints.push_back(make_tuple(0, (slideElement->StartLane + slideElement->Length / 2.0) / 16.0));
     }
 }
 

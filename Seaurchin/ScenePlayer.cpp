@@ -134,10 +134,7 @@ void ScenePlayer::LoadWorker()
 
     analyzer->LoadFromFile(scorefile.wstring());
     MetronomeAvailable = !analyzer->SharedMetaData.ExtraFlags[(size_t)SusMetaDataFlags::DisableMetronome];
-    analyzer->RenderScoreData(data);
-    for (auto &note : data) {
-        if (note->Type.test((size_t)SusNoteType::Slide) || note->Type.test((size_t)SusNoteType::AirAction)) CalculateCurves(note);
-    }
+    analyzer->RenderScoreData(data, curveData);
     usePrioritySort = analyzer->SharedMetaData.ExtraFlags[(size_t)SusMetaDataFlags::EnableDrawPriority];
     processor->Reset();
     State = PlayingState::BgmNotLoaded;

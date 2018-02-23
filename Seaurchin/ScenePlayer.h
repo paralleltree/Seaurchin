@@ -123,11 +123,11 @@ protected:
     std::shared_ptr<CharacterInstance> CurrentCharacterInstance;
 
     // ‹È‚Ì“r’†‚Å•Ï‰»‚·‚é‚â‚Â‚ç
-    std::vector<std::shared_ptr<SusDrawableNoteData>> data;
-    std::vector<std::shared_ptr<SusDrawableNoteData>> seenData, judgeData;
+    DrawableNotesList data;
+    DrawableNotesList seenData, judgeData;
     std::unordered_map<std::shared_ptr<SusDrawableNoteData>, SSprite*> SlideEffects;
     // ŽžŠÔ ‰¡ˆÊ’u ExŽžŠÔ
-    std::unordered_map<std::shared_ptr<SusDrawableNoteData>, std::vector<std::tuple<double, double>>> curveData;
+    NoteCurvesList curveData;
     double CurrentTime = 0;
     double CurrentSoundTime = 0;
     double SeenDuration = 0.8;

@@ -166,6 +166,9 @@ struct SusDrawableNoteData {
 };
 
 
+using DrawableNotesList = std::vector<std::shared_ptr<SusDrawableNoteData>>;
+using NoteCurvesList = std::unordered_map<std::shared_ptr<SusDrawableNoteData>, std::vector<std::tuple<double, double>>>;
+
 //BMS派生フォーマットことSUS(SeaUrchinScore)の解析
 class SusAnalyzer final {
 private:
@@ -178,6 +181,7 @@ private:
     uint32_t DefaultExtraAttributeNumber = std::numeric_limits<uint32_t>::max();
     uint32_t TicksPerBeat;
     double LongInjectionPerBeat;
+    int SegmentsPerSecond;
     std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)> TimelineResolver = nullptr;
     std::vector<std::function<void(std::string, std::string)>> ErrorCallbacks;
     std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> Notes;
@@ -194,6 +198,7 @@ private:
     void ProcessData(const boost::xpressive::smatch &result, uint32_t line);
     void MakeMessage(uint32_t line, const std::string &message);
     void MakeMessage(uint32_t meas, uint32_t tick, uint32_t lane, const std::string &message);
+    void CalculateCurves(std::shared_ptr<SusDrawableNoteData> note, NoteCurvesList &curveData);
 
 public:
     SusMetaData SharedMetaData;
@@ -205,7 +210,7 @@ public:
     void Reset();
     void SetMessageCallBack(std::function<void(std::string, std::string)> func);
     void LoadFromFile(const std::wstring &fileName, bool analyzeOnlyMetaData = false);
-    void RenderScoreData(std::vector<std::shared_ptr<SusDrawableNoteData>> &data);
+    void RenderScoreData(DrawableNotesList &data, NoteCurvesList &curveData);
     float GetBeatsAt(uint32_t measure);
     double GetBpmAt(uint32_t measure, uint32_t tick);
     double GetAbsoluteTime(uint32_t measure, uint32_t tick);
