@@ -636,6 +636,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
         auto bits = info.Type.to_ulong();
         auto noteData = make_shared<SusDrawableNoteData>();
         if (bits & SU_NOTE_LONG_MASK) {
+            auto genCurve = true;
             noteData->Type = info.Type;
             noteData->StartTime = GetAbsoluteTime(time.Measure, time.Tick);
             noteData->StartLane = info.NotePosition.StartLane;
@@ -648,6 +649,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
             switch ((bits >> 6) & 7) {
                 case 1:
                     ltype = SusNoteType::Hold;
+                    genCurve = false;
                     break;
                 case 2:
                     ltype = SusNoteType::Slide;
@@ -660,7 +662,6 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
             bool completed = false;
             auto lastStep = note;
             for (auto it : Notes) {
-                auto genCurve = true;
                 auto curPos = get<0>(it);
                 auto curNo = get<1>(it);
                 if (!curNo.Type.test((size_t)ltype) || curNo.Extra != info.Extra) continue;
@@ -668,7 +669,6 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                 if (curPos.Measure == time.Measure && curPos.Tick < time.Tick) continue;
                 switch (ltype) {
                     case SusNoteType::Hold: {
-                        genCurve = false;
                         if (curNo.Type.test((size_t)SusNoteType::Control) || curNo.Type.test((size_t)SusNoteType::Invisible))
                             MakeMessage(curPos.Measure, curPos.Tick, curNo.NotePosition.StartLane, u8"HoldでControl/Invisibleは指定できません。");
                         if (curNo.NotePosition.StartLane != info.NotePosition.StartLane || curNo.NotePosition.Length != info.NotePosition.Length)
@@ -706,9 +706,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                             noteData->Duration = nextNote->StartTime - noteData->StartTime;
                             completed = true;
                         }
-
                         noteData->ExtraData.push_back(nextNote);
-                        if (genCurve) CalculateCurves(nextNote, curveData);
                         break;
                     }
                 }
@@ -718,6 +716,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                 MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"ロングノーツに終点がありません。");
             } else {
                 data.push_back(noteData);
+                if (genCurve) CalculateCurves(noteData, curveData);
             }
         } else if (bits & SU_NOTE_SHORT_MASK) {
             // ショート
