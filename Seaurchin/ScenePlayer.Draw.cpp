@@ -381,7 +381,7 @@ void ScenePlayer::DrawSlideNotes(shared_ptr<SusDrawableNoteData> note)
             double segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
             double currentSegmentRelativeY = 1.0 - segmentExPosition / SeenDuration;
 
-            if (currentSegmentRelativeY < cullingLimit && lastSegmentRelativeY < cullingLimit) {
+            if (currentSegmentRelativeY < cullingLimit || lastSegmentRelativeY < cullingLimit) {
                 SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
                 DrawRectModiGraphF(
                     get<1>(lastSegmentPosition) * laneBufferX - lastSegmentLength / 2 * widthPerLane, laneBufferY * lastSegmentRelativeY,
@@ -448,7 +448,7 @@ void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
             double segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
             double currentSegmentRelativeY = 1.0 - segmentExPosition / SeenDuration;
 
-            if (currentSegmentRelativeY < cullingLimit && lastSegmentRelativeY < cullingLimit) {
+            if (currentSegmentRelativeY < cullingLimit || lastSegmentRelativeY < cullingLimit) {
                 SetUseZBuffer3D(FALSE);
                 double back = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentSegmentRelativeY);
                 double front = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, lastSegmentRelativeY);
