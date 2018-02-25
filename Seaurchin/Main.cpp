@@ -38,12 +38,13 @@ void PreInitialize(HINSTANCE hInstance)
 
     setting = make_shared<Setting>(hInstance);
     setting->Load(SU_SETTING_FILE);
+    auto vs = setting->ReadValue<bool>("Graphic", "WaitVSync", false);
+    auto fs = setting->ReadValue<bool>("Graphic", "Fullscreen", false);
 
     SetUseCharCodeFormat(DX_CHARCODEFORMAT_UTF16LE);
-    ChangeWindowMode(TRUE);
+    ChangeWindowMode(fs ? FALSE : TRUE);
     SetMainWindowText(reinterpret_cast<const char*>(ConvertUTF8ToUnicode(SU_APP_NAME " " SU_APP_VERSION).c_str()));
     SetAlwaysRunFlag(TRUE);
-    auto vs = setting->ReadValue<bool>("Graphic", "WaitVSync", false);
     SetWaitVSyncFlag(vs ? TRUE : FALSE);
     SetWindowIconID(IDI_ICON1);
     SetUseFPUPreserveFlag(TRUE);
