@@ -9,6 +9,7 @@
 struct MusicScoreInfo final {
     uint16_t Difficulty;
     uint16_t Level;
+    double BpmToShow;
     std::string DifficultyName;
     std::string Designer;
     boost::filesystem::path Path;
@@ -107,6 +108,7 @@ public:
     std::string GetBackgroundFileName(int32_t relativeIndex);
     int GetDifficulty(int32_t relativeIndex);
     int GetLevel(int32_t relativeIndex);
+    double GetBpm(int32_t relativeIndex);
     std::string GetExtraLevel(int32_t relativeIndex);
     std::string GetDesignerName(int32_t relativeIndex);
 

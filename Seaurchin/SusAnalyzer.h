@@ -109,6 +109,7 @@ struct SusMetaData {
     double WaveOffset = 0;
     double MovieOffset = 0;
     double BaseBpm = 0;
+    double ShowBpm = -1;
     uint32_t Level = 0;
     uint32_t DifficultyType = 0;
     std::string UExtraDifficulty = "";

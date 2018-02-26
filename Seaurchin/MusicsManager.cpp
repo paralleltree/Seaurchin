@@ -85,6 +85,7 @@ void MusicsManager::CreateMusicCache()
                 score->BackgroundPath = ConvertUTF8ToUnicode(Analyzer->SharedMetaData.UBackgroundFileName);
                 score->WavePath = ConvertUTF8ToUnicode(Analyzer->SharedMetaData.UWaveFileName);
                 score->Designer = Analyzer->SharedMetaData.UDesigner;
+                score->BpmToShow = Analyzer->SharedMetaData.ShowBpm;
                 score->Difficulty = Analyzer->SharedMetaData.DifficultyType;
                 score->DifficultyName = Analyzer->SharedMetaData.UExtraDifficulty;
                 score->Level = Analyzer->SharedMetaData.Level;
@@ -205,25 +206,31 @@ string MusicSelectionCursor::GetBackgroundFileName(int32_t relativeIndex)
 int MusicSelectionCursor::GetDifficulty(int32_t relativeIndex)
 {
     auto variant = GetScoreVariantAt(relativeIndex);
-    return variant->Difficulty;
+    return variant ? variant->Difficulty : 0;
 }
 
 int MusicSelectionCursor::GetLevel(int32_t relativeIndex)
 {
     auto variant = GetScoreVariantAt(relativeIndex);
-    return variant->Level;
+    return variant ? variant->Level : 0;
+}
+
+double MusicSelectionCursor::GetBpm(int32_t relativeIndex)
+{
+    auto variant = GetScoreVariantAt(relativeIndex);
+    return variant ? variant->BpmToShow : 0;
 }
 
 std::string MusicSelectionCursor::GetExtraLevel(int32_t relativeIndex)
 {
     auto variant = GetScoreVariantAt(relativeIndex);
-    return variant->DifficultyName;
+    return variant ? variant->DifficultyName : "";
 }
 
 std::string MusicSelectionCursor::GetDesignerName(int32_t relativeIndex)
 {
     auto variant = GetScoreVariantAt(relativeIndex);
-    return variant->Designer;
+    return variant ? variant->Designer : "";
 }
 
 MusicSelectionState MusicSelectionCursor::Enter()
@@ -359,6 +366,7 @@ void MusicSelectionCursor::RegisterScriptInterface(asIScriptEngine *engine)
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, "string GetBackgroundFileName(int)", asMETHOD(MusicSelectionCursor, GetBackgroundFileName), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, "int GetDifficulty(int)", asMETHOD(MusicSelectionCursor, GetDifficulty), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, "int GetLevel(int)", asMETHOD(MusicSelectionCursor, GetLevel), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_MSCURSOR, "int GetBpm(int)", asMETHOD(MusicSelectionCursor, GetBpm), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, "string GetExtraLevel(int)", asMETHOD(MusicSelectionCursor, GetExtraLevel), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, "string GetDesignerName(int)", asMETHOD(MusicSelectionCursor, GetDesignerName), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, SU_IF_MSCSTATE " Next()", asMETHOD(MusicSelectionCursor, Next), asCALL_THISCALL);
