@@ -1,31 +1,32 @@
 #pragma once
 
-#define SU_NOTE_LONG_MASK  0b00000000000111000000
-#define SU_NOTE_SHORT_MASK 0b00000000000000111110
+#define SU_NOTE_LONG_MASK  0b00000000001110000000
+#define SU_NOTE_SHORT_MASK 0b00000000000001111110
 
 enum class SusNoteType : uint16_t {
 	Undefined = 0,  // BPMノーツなど
-    Tap,            // Invisible Stepに使う
-    ExTap,          // 中割り コンボだけ加算
-	Flick,
-	Air,
-    HellTap,
+    Tap,            // Tap
+    ExTap,          // ExTap
+	Flick,          // Flick
+	Air,            // Air
+    HellTap,        // AIR: Hell Tap
+    AwesomeExTap,   // STAR PLUS: やべーExTap (https://twitter.com/chunithm/status/967959264055648256)
 
-    Hold = 6,
+    Hold = 7,
     Slide,
 	AirAction,
 
-    Start = 9,
+    Start = 10,
     Step,
 	Control,
     End,
 
-    Up = 13,
+    Up = 14,
     Down,
     Left,
     Right,
 
-    Injection = 17,
+    Injection = 18,
     Invisible,
     Unused3,
 };
@@ -130,7 +131,7 @@ struct SusMetaData {
 
 
 struct SusRawNoteData {
-    std::bitset<20> Type;
+    std::bitset<32> Type;
     std::shared_ptr<SusHispeedTimeline> Timeline;
     union {
         uint16_t DefinitionNumber;
@@ -144,7 +145,7 @@ struct SusRawNoteData {
 };
 
 struct SusDrawableNoteData {
-    std::bitset<20> Type;
+    std::bitset<32> Type;
     std::bitset<8> OnTheFlyData;
     std::shared_ptr<SusHispeedTimeline> Timeline;
     std::shared_ptr<SusNoteExtraAttribute> ExtraAttribute;
