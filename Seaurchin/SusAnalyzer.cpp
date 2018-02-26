@@ -340,6 +340,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, uint32_t line)
             auto number = ConvertHexatridecimal(lane);
             double value = ConvertFloat(pattern);
             BpmDefinitions[number] = value;
+            if (SharedMetaData.ShowBpm < 0) SharedMetaData.ShowBpm = value;
         } else if (meas == "TIL") {
             auto number = ConvertHexatridecimal(lane);
             auto it = HispeedDefinitions.find(number);
