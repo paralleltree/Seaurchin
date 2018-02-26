@@ -20,7 +20,7 @@ ExecutionManager::ExecutionManager(std::shared_ptr<Setting> setting)
     random_device seed;
 
     SharedSetting = setting;
-    SettingManager = make_unique<SettingItemManager>(SharedSetting);
+    SettingManager = make_unique<Setting2::SettingItemManager>(SharedSetting);
     ScriptInterface = make_shared<AngelScript>();
     Sound = make_shared<SoundManager>();
     Random = make_shared<mt19937>(seed());
@@ -35,11 +35,8 @@ void ExecutionManager::Initialize()
 {
     std::ifstream slfile;
     string procline;
-    path slpath = SharedSetting->GetRootDirectory() / SU_DATA_DIR / SU_SCRIPT_DIR / "SettingList.txt";
-    slfile.open(slpath.wstring(), ios::in);
-    while (getline(slfile, procline))
-        if (procline[0] != '#') SettingManager->AddSettingByString(procline);
-    slfile.close();
+    path slpath = SharedSetting->GetRootDirectory() / SU_DATA_DIR / SU_SCRIPT_DIR / SU_SETTING_DEFINITION_FILE;
+    SettingManager->LoadItemsFromToml(slpath);
     SettingManager->RetrieveAllValues();
 
     SharedControlState->Initialize();
@@ -146,12 +143,21 @@ bool ExecutionManager::CheckSkinStructure(boost::filesystem::path name)
 
 void ExecutionManager::ExecuteSkin()
 {
+    using namespace boost::filesystem;
     auto log = spdlog::get("main");
+
     auto sn = SharedSetting->ReadValue<string>(SU_SETTING_GENERAL, SU_SETTING_SKIN, "Default");
     if (find(SkinNames.begin(), SkinNames.end(), ConvertUTF8ToUnicode(sn)) == SkinNames.end()) {
         log->error(u8"スキン \"{0}\"が見つかりませんでした", sn);
         return;
     }
+    auto skincfg = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SKIN_DIR / ConvertUTF8ToUnicode(sn) / SU_SETTING_DEFINITION_FILE;
+    if (exists(skincfg)) {
+        log->info("スキンの設定定義ファイルが有効です");
+        SettingManager->LoadItemsFromToml(skincfg);
+        SettingManager->RetrieveAllValues();
+    }
+
     Skin = unique_ptr<SkinHolder>(new SkinHolder(ConvertUTF8ToUnicode(sn), ScriptInterface, Sound));
     Skin->Initialize();
     log->info(u8"スキン読み込み完了");

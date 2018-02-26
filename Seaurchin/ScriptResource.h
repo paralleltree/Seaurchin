@@ -149,10 +149,10 @@ public:
 
 class SSettingItem : public SResource {
 protected:
-    std::shared_ptr<SettingItem> setting;
+    std::shared_ptr<Setting2::SettingItem> setting;
 
 public:
-    SSettingItem(std::shared_ptr<SettingItem> s);
+    SSettingItem(std::shared_ptr<Setting2::SettingItem> s);
     ~SSettingItem() override;
 
     void Save();

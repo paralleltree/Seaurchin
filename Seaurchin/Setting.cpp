@@ -56,167 +56,6 @@ void Setting::Save() const
     ofs.close();
 }
 
-// SettingItem -----------------------------------------------------------------
-
-SettingItem::SettingItem(shared_ptr<Setting> setting, const string &group, const string &key) : SettingInstance(setting), SettingGroup(group), SettingKey(key)
-{
-
-}
-
-// NumberSettingItem -------------------------------------------------------------------
-
-function<string(NumberSettingItem*)> NumberSettingItem::DefaultFormatter = [](NumberSettingItem *item) {
-
-    ostringstream ss;
-    ss << setprecision(item->GetFloatDigits()) << item->GetValue();
-    return ss.str();
-};
-
-NumberSettingItem::NumberSettingItem(shared_ptr<Setting> setting, const string &group, const string &key) : SettingItem(setting, group, key)
-{
-    Formatter = DefaultFormatter;
-    Type = SettingType::IntegerSetting;
-}
-
-std::string NumberSettingItem::GetItemString()
-{
-    return Formatter(this);
-}
-
-void NumberSettingItem::MoveNext()
-{
-    Value += Step;
-    if (Value > MaxValue) Value = MaxValue;
-}
-
-void NumberSettingItem::MovePrevious()
-{
-    Value -= Step;
-    if (Value < MinValue) Value = MinValue;
-}
-
-void NumberSettingItem::SaveValue()
-{
-    SettingInstance->WriteValue<double>(SettingGroup, SettingKey, Value);
-}
-
-void NumberSettingItem::RetrieveValue()
-{
-    Value = SettingInstance->ReadValue<double>(SettingGroup, SettingKey, 0);
-}
-
-void NumberSettingItem::SetStep(double step)
-{
-    Step = fabs(step);
-}
-
-void NumberSettingItem::SetRange(double min, double max)
-{
-    if (max < min) return;
-    MinValue = min;
-    MaxValue = max;
-}
-
-void NumberSettingItem::SetFloatDigits(int digits)
-{
-    if (digits < 0) return;
-    FloatDigits = digits;
-    Type = digits > 0 ? SettingType::FloatSetting : SettingType::IntegerSetting;
-}
-
-BooleanSettingItem::BooleanSettingItem(shared_ptr<Setting> setting, const string &group, const string &key) : SettingItem(setting, group, key)
-{
-    Type = SettingType::BooleanSetting;
-}
-
-string BooleanSettingItem::GetItemString()
-{
-    return Value ? TrueText : FalseText;
-}
-
-void BooleanSettingItem::MoveNext()
-{
-    Value = !Value;
-}
-
-void BooleanSettingItem::MovePrevious()
-{
-    Value = !Value;
-}
-
-void BooleanSettingItem::SaveValue()
-{
-    SettingInstance->WriteValue<bool>(SettingGroup, SettingKey, Value);
-}
-
-void BooleanSettingItem::RetrieveValue()
-{
-    Value = SettingInstance->ReadValue<bool>(SettingGroup, SettingKey, false);
-}
-
-void BooleanSettingItem::SetText(const string &t, const string &f)
-{
-    TrueText = t;
-    FalseText = f;
-}
-
-SettingItemManager::SettingItemManager(std::shared_ptr<Setting> setting) : ReferredSetting(setting)
-{
-
-}
-
-void SettingItemManager::AddSettingByString(const string &proc)
-{
-    //B:<Group>:<Key>:Description:YesText:NoText:Default
-    //FI:<Group>:<Key>:Description:Min:Max:Step:Default
-    auto str = proc;
-    vector<string> params;
-    ba::erase_all(str, " ");
-    ba::split(params, str, boost::is_any_of(":"));
-    if (params.size() < 4) return;
-    if (params[0] == "B") {
-        ReferredSetting->ReadValue(params[1], params[2], ConvertBoolean(params[6]));
-        auto si = make_shared<BooleanSettingItem>(ReferredSetting, params[1], params[2]);
-        si->SetDescription(params[3]);
-        si->SetText(params[4], params[5]);
-        si->RetrieveValue();
-        Items[params[1] + "." + params[2]] = si;
-    } else if (params[0] == "I") {
-        ReferredSetting->ReadValue<double>(params[1], params[2], ConvertInteger(params[7]));
-        auto si = make_shared<NumberSettingItem>(ReferredSetting, params[1], params[2]);
-        si->SetDescription(params[3]);
-        si->SetFloatDigits(0);
-        si->SetRange(ConvertInteger(params[4]), ConvertInteger(params[5]));
-        si->SetStep(ConvertInteger(params[6]));
-        si->RetrieveValue();
-        Items[params[1] + "." + params[2]] = si;
-    } else if (params[0] == "F") {
-        ReferredSetting->ReadValue(params[1], params[2], ConvertFloat(params[7]));
-        auto si = make_shared<NumberSettingItem>(ReferredSetting, params[1], params[2]);
-        si->SetDescription(params[3]);
-        si->SetFloatDigits(5);
-        si->SetRange(ConvertFloat(params[4]), ConvertFloat(params[5]));
-        si->SetStep(ConvertFloat(params[6]));
-        si->RetrieveValue();
-        Items[params[1] + "." + params[2]] = si;
-    }
-}
-
-std::shared_ptr<SettingItem> SettingItemManager::GetSettingItem(const string &group, const string &key)
-{
-    return Items[group + "." + key];
-}
-
-void SettingItemManager::RetrieveAllValues()
-{
-    for (auto &si : Items) si.second->RetrieveValue();
-}
-
-void SettingItemManager::SaveAllValues()
-{
-    for (auto &si : Items) si.second->SaveValue();
-}
-
 namespace Setting2
 {
 
@@ -250,7 +89,7 @@ void SettingItemManager::LoadItemsFromToml(boost::filesystem::path file)
     }
     for (const auto &item : items->as<vector<toml::Value>>()) {
         if (item.type() != toml::Value::TABLE_TYPE) continue;
-        shared_ptr<SettingItem> si;
+        shared_ptr<SettingItem> si = nullptr;
         auto group = item.get<string>("Group");
         auto key = item.get<string>("Key");
         auto type = item.get<string>("Type");
@@ -266,7 +105,7 @@ void SettingItemManager::LoadItemsFromToml(boost::filesystem::path file)
                 si = make_shared<BooleanSettingItem>(SettingInstance, group, key);
                 break;
             case "String"_crc32:
-                si = make_shared<SettingItem>(SettingInstance, group, key);
+                si = make_shared<StringSettingItem>(SettingInstance, group, key);
                 break;
                 // TODO: ŽÀ‘•‚µ‚ë
             case "IntegerSelect"_crc32:
@@ -324,9 +163,9 @@ void SettingItem::Build(const toml::Value &table)
     if (d && d->is<string>()) {
         Description = d->as<string>();
     }
-    auto d = table.find("Name");
-    if (d && d->is<string>()) {
-        FindName = d->as<string>();
+    auto n = table.find("Name");
+    if (n && n->is<string>()) {
+        FindName = n->as<string>();
     }
 }
 
@@ -336,6 +175,10 @@ string SettingItem::GetSettingName()
     return fmt::format("{0}.{1}", Group, Key);
 }
 
+string SettingItem::GetDescription()
+{
+    return Description;
+}
 
 // IntegerSettingItem
 

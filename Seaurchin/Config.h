@@ -29,6 +29,7 @@
 #define SU_SKIN_PLAY_FILE L"Play.as"
 #define SU_SKIN_RESULT_FILE L"Result.as"
 #define SU_SYSTEM_MENU_FILE L"System.as"
+#define SU_SETTING_DEFINITION_FILE L"SettingList.toml"
 
 #define SU_FONT_SYSTEM "ÇlÇr ÉSÉVÉbÉN"
 

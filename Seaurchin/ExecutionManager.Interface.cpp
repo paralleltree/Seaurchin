@@ -41,6 +41,7 @@ SSoundMixer *ExecutionManager::GetDefaultMixer(const string &name)
 SSettingItem *ExecutionManager::GetSettingItem(const string &group, const string &key)
 {
     auto si = SettingManager->GetSettingItem(group, key);
+    if (!si) return nullptr;
     auto result = new SSettingItem(si);
     result->AddRef();
     return result;
