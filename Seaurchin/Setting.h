@@ -139,6 +139,58 @@ public:
     void Build(const toml::Value &table) override;
 };
 
+class IntegerSelectSettingItem final : public SettingItem {
+private:
+    int64_t Value;
+    int64_t Default;
+    int Selected = -1;
+    std::vector<int64_t> Values;
+
+public:
+    IntegerSelectSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
+    std::string GetItemString() override;
+    void MoveNext() override;
+    void MovePrevious() override;
+    void SaveValue() override;
+    void RetrieveValue() override;
+    void Build(const toml::Value &table) override;
+};
+
+class FloatSelectSettingItem final : public SettingItem {
+private:
+    double Value;
+    double Default;
+    int Selected = -1;
+    std::vector<double> Values;
+
+public:
+    FloatSelectSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
+    std::string GetItemString() override;
+    void MoveNext() override;
+    void MovePrevious() override;
+    void SaveValue() override;
+    void RetrieveValue() override;
+    void Build(const toml::Value &table) override;
+};
+
+class StringSelectSettingItem final : public SettingItem {
+private:
+    std::string Value;
+    std::string Default;
+    int Selected = -1;
+    std::vector<std::string> Values;
+
+public:
+    StringSelectSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
+    std::string GetItemString() override;
+    void MoveNext() override;
+    void MovePrevious() override;
+    void SaveValue() override;
+    void RetrieveValue() override;
+    void Build(const toml::Value &table) override;
+};
+
+
 class SettingItemManager final {
 private:
     std::shared_ptr<Setting> SettingInstance;

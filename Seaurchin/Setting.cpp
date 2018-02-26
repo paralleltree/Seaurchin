@@ -107,12 +107,14 @@ void SettingItemManager::LoadItemsFromToml(boost::filesystem::path file)
             case "String"_crc32:
                 si = make_shared<StringSettingItem>(SettingInstance, group, key);
                 break;
-                // TODO: 実装しろ
             case "IntegerSelect"_crc32:
+                si = make_shared<IntegerSelectSettingItem>(SettingInstance, group, key);
                 break;
             case "FloatSelect"_crc32:
+                si = make_shared<FloatSelectSettingItem>(SettingInstance, group, key);
                 break;
             case "StringSelect"_crc32:
+                si = make_shared<StringSelectSettingItem>(SettingInstance, group, key);
                 break;
             default:
                 log->warn(u8"不明な設定タイプです: {0}", type);
@@ -379,6 +381,159 @@ void StringSettingItem::Build(const toml::Value &table)
     if (d && d->is<bool>()) {
         Default = d->as<bool>();
     }
+}
+
+// IntegerSelectSettingItem
+
+IntegerSelectSettingItem::IntegerSelectSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key) : SettingItem(setting, group, key)
+{
+    Value = Default = 0;
+    Type = SettingItemType::IntegerSelect;
+}
+
+string IntegerSelectSettingItem::GetItemString()
+{
+    return fmt::format("{0}", Value);
+}
+
+void IntegerSelectSettingItem::MoveNext()
+{
+    Selected = (Selected + Values.size() + 1) % Values.size();
+    Value = Values[Selected];
+}
+
+void IntegerSelectSettingItem::MovePrevious()
+{
+    Selected = (Selected + Values.size() - 1) % Values.size();
+    Value = Values[Selected];
+}
+
+void IntegerSelectSettingItem::SaveValue()
+{
+    SettingInstance->WriteValue<int64_t>(Group, Key, Value);
+}
+
+void IntegerSelectSettingItem::RetrieveValue()
+{
+    Value = SettingInstance->ReadValue(Group, Key, Default);
+}
+
+void IntegerSelectSettingItem::Build(const toml::Value &table)
+{
+    SettingItem::Build(table);
+    auto r = table.find("Values");
+    if (r && r->is<vector<int64_t>>()) {
+        auto v = r->as<vector<int64_t>>();
+        for (const auto &val : v) Values.push_back(val);
+    }
+    auto d = table.find("Default");
+    if (d && d->is<int64_t>()) {
+        Default = d->as<int64_t>();
+    }
+    Selected = 0;
+    if (Values.size() == 0) Values.push_back(0);
+}
+
+// FloatSelectSettingItem
+
+FloatSelectSettingItem::FloatSelectSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key) : SettingItem(setting, group, key)
+{
+    Value = Default = 0;
+    Type = SettingItemType::FloatSelect;
+}
+
+string FloatSelectSettingItem::GetItemString()
+{
+    return fmt::format("{0}", Value);
+}
+
+void FloatSelectSettingItem::MoveNext()
+{
+    Selected = (Selected + Values.size() + 1) % Values.size();
+    Value = Values[Selected];
+}
+
+void FloatSelectSettingItem::MovePrevious()
+{
+    Selected = (Selected + Values.size() - 1) % Values.size();
+    Value = Values[Selected];
+}
+
+void FloatSelectSettingItem::SaveValue()
+{
+    SettingInstance->WriteValue<double>(Group, Key, Value);
+}
+
+void FloatSelectSettingItem::RetrieveValue()
+{
+    Value = SettingInstance->ReadValue(Group, Key, Default);
+}
+
+void FloatSelectSettingItem::Build(const toml::Value &table)
+{
+    SettingItem::Build(table);
+    auto r = table.find("Values");
+    if (r && r->is<vector<double>>()) {
+        auto v = r->as<vector<double>>();
+        for (const auto &val : v) Values.push_back(val);
+    }
+    auto d = table.find("Default");
+    if (d && d->is<double>()) {
+        Default = d->as<double>();
+    }
+    Selected = 0;
+    if (Values.size() == 0) Values.push_back(0);
+}
+
+// StringSelectSettingItem
+
+StringSelectSettingItem::StringSelectSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key) : SettingItem(setting, group, key)
+{
+    Value = Default = "";
+    Type = SettingItemType::StringSelect;
+}
+
+string StringSelectSettingItem::GetItemString()
+{
+    return fmt::format("{0}", Value);
+}
+
+void StringSelectSettingItem::MoveNext()
+{
+    Selected = (Selected + Values.size() + 1) % Values.size();
+    Value = Values[Selected];
+}
+
+void StringSelectSettingItem::MovePrevious()
+{
+    Selected = (Selected + Values.size() - 1) % Values.size();
+    Value = Values[Selected];
+}
+
+void StringSelectSettingItem::SaveValue()
+{
+    SettingInstance->WriteValue<string>(Group, Key, Value);
+}
+
+void StringSelectSettingItem::RetrieveValue()
+{
+    Value = SettingInstance->ReadValue(Group, Key, Default);
+}
+
+void StringSelectSettingItem::Build(const toml::Value &table)
+{
+    SettingItem::Build(table);
+    auto r = table.find("Values");
+    if (r && r->is<vector<string>>()) {
+        auto v = r->as<vector<string>>();
+        for (const auto &val : v) Values.push_back(val);
+    }
+    auto d = table.find("Default");
+    if (d && d->is<string>()) {
+        Default = d->as<string>();
+    }
+    Selected = 0;
+    if (Values.size() == 0) Values.push_back(0);
 }
 
 }
