@@ -91,3 +91,22 @@ int ScriptIncludeCallback(const wchar_t *include, const wchar_t *from, CWScriptB
     auto as = reinterpret_cast<AngelScript*>(userParam);
     return as->IncludeFile(include, from) ? 1 : -1;
 }
+
+CallbackObject::CallbackObject(asIScriptFunction *callback)
+{
+    auto ctx = asGetActiveContext();
+    auto engine = ctx->GetEngine();
+    Context = engine->CreateContext();
+    Function = callback->GetDelegateFunction();
+    Function->AddRef();
+    Object = (asIScriptObject*)callback->GetDelegateObject();
+    Type = callback->GetDelegateObjectType();
+}
+
+CallbackObject::~CallbackObject()
+{
+    auto engine = Context->GetEngine();
+    Context->Release();
+    Function->Release();
+    engine->ReleaseScriptObject(Object, Type);
+}

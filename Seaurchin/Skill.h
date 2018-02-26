@@ -8,7 +8,7 @@
 #define SU_IF_SKILL_INDICATORS "SkillIndicators"
 #define SU_IF_SKILL_CALLBACK "SkillCallback"
 #define SU_IF_NOTETYPE "NoteType"
-
+#define SU_IF_JUDGETYPE "JudgeType"
 
 class ExecutionManager;
 
@@ -35,6 +35,13 @@ enum class AbilityNoteType {
     Hold,
     Slide,
     AirAction,
+};
+
+enum class AbilityJudgeType {
+    JusticeCritical = 1,
+    Justice,
+    Attack,
+    Miss,
 };
 
 class SkillManager final {

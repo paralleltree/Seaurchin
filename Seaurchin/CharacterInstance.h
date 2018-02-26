@@ -11,6 +11,7 @@
 #define SU_CHAR_FACE_SIZE 128
 
 #define SU_IF_CHARACTER_INSTANCE "CharacterInstance"
+#define SU_IF_JUDGE_CALLBACK "JudgeCallback"
 
 struct AbilityFunctions {
     asIScriptFunction *OnStart;
@@ -37,6 +38,7 @@ private:
     std::vector<asITypeInfo*> AbilityTypes;
     std::vector<AbilityFunctions> AbilityEvents;
     asIScriptContext *context;
+    CallbackObject *JudgeCallback;
 
     void LoadAbilities();
     void CreateImageSet();
@@ -45,6 +47,7 @@ private:
 
     void CallEventFunction(asIScriptObject *obj, asIScriptFunction* func);
     void CallEventFunction(asIScriptObject *obj, asIScriptFunction* func, AbilityNoteType type);
+    void CallJudgeCallback(AbilityJudgeType judge, AbilityNoteType type);
 
 public:
     void AddRef() { reference++; }
@@ -59,6 +62,7 @@ public:
     void OnJustice(AbilityNoteType type);
     void OnAttack(AbilityNoteType type);
     void OnMiss(AbilityNoteType type);
+    void SetCallback(asIScriptFunction *func);
 
     CharacterParameter* GetCharacterParameter();
     CharacterImageSet* GetCharacterImages();

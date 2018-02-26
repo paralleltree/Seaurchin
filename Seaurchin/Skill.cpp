@@ -183,6 +183,12 @@ void RegisterSkillTypes(asIScriptEngine *engine)
     engine->RegisterEnumValue(SU_IF_NOTETYPE, "Slide", (int)AbilityNoteType::Slide);
     engine->RegisterEnumValue(SU_IF_NOTETYPE, "AirAction", (int)AbilityNoteType::AirAction);
 
+    engine->RegisterEnum(SU_IF_JUDGETYPE);
+    engine->RegisterEnumValue(SU_IF_JUDGETYPE, "JusticeCritical", (int)AbilityJudgeType::JusticeCritical);
+    engine->RegisterEnumValue(SU_IF_JUDGETYPE, "Justice", (int)AbilityJudgeType::Justice);
+    engine->RegisterEnumValue(SU_IF_JUDGETYPE, "Attack", (int)AbilityJudgeType::Attack);
+    engine->RegisterEnumValue(SU_IF_JUDGETYPE, "Miss", (int)AbilityJudgeType::Miss);
+
     engine->RegisterFuncdef("void " SU_IF_SKILL_CALLBACK "(int)");
     engine->RegisterObjectType(SU_IF_SKILL_INDICATORS, 0, asOBJ_REF | asOBJ_NOCOUNT);
     engine->RegisterObjectMethod(SU_IF_SKILL_INDICATORS, "int AddIndicator(const string &in)", asMETHOD(SkillIndicators, AddSkillIndicator), asCALL_THISCALL);

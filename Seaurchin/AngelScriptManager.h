@@ -52,3 +52,13 @@ public:
     //asITypeInfoからインスタンス作成 リファレンス無しなのでさっさとAddRefしろ
     asIScriptObject* InstantiateObject(asITypeInfo *type);
 };
+
+struct CallbackObject {
+    asIScriptObject *Object;
+    asIScriptFunction *Function;
+    asITypeInfo *Type;
+    asIScriptContext *Context;
+
+    CallbackObject(asIScriptFunction *callback);
+    ~CallbackObject();
+};

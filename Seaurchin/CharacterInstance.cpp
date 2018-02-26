@@ -10,12 +10,14 @@ CharacterInstance::CharacterInstance(shared_ptr<CharacterParameter> character, s
     SkillSource = skill;
     TargetResult = result;
     ScriptInterface = script;
+    JudgeCallback = nullptr;
     Indicators = make_shared<SkillIndicators>();
     context = script->GetEngine()->CreateContext();
 }
 
 CharacterInstance::~CharacterInstance()
 {
+    if (JudgeCallback) delete JudgeCallback;
     context->Release();
     for (const auto &t : AbilityTypes) t->Release();
     for (const auto &o : Abilities) o->Release();
@@ -155,6 +157,16 @@ void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunctio
     spdlog::get("main")->info("Event: {0}us", chrono::duration_cast<chrono::microseconds>(en - st).count());
 }
 
+void CharacterInstance::CallJudgeCallback(AbilityJudgeType judge, AbilityNoteType type)
+{
+    if (!JudgeCallback) return;
+    JudgeCallback->Context->Prepare(JudgeCallback->Function);
+    JudgeCallback->Context->SetObject(JudgeCallback->Object);
+    JudgeCallback->Context->SetArgDWord(0, (asDWORD)judge);
+    JudgeCallback->Context->SetArgDWord(1, (asDWORD)type);
+    JudgeCallback->Context->Execute();
+}
+
 void CharacterInstance::OnStart()
 {
     for (int i = 0; i < Abilities.size(); ++i) {
@@ -180,6 +192,7 @@ void CharacterInstance::OnJusticeCritical(AbilityNoteType type)
         auto obj = Abilities[i];
         CallEventFunction(obj, func, type);
     }
+    CallJudgeCallback(AbilityJudgeType::JusticeCritical, type);
 }
 
 void CharacterInstance::OnJustice(AbilityNoteType type)
@@ -189,6 +202,7 @@ void CharacterInstance::OnJustice(AbilityNoteType type)
         auto obj = Abilities[i];
         CallEventFunction(obj, func, type);
     }
+    CallJudgeCallback(AbilityJudgeType::Justice, type);
 }
 
 void CharacterInstance::OnAttack(AbilityNoteType type)
@@ -198,6 +212,7 @@ void CharacterInstance::OnAttack(AbilityNoteType type)
         auto obj = Abilities[i];
         CallEventFunction(obj, func, type);
     }
+    CallJudgeCallback(AbilityJudgeType::Attack, type);
 }
 
 void CharacterInstance::OnMiss(AbilityNoteType type)
@@ -207,6 +222,14 @@ void CharacterInstance::OnMiss(AbilityNoteType type)
         auto obj = Abilities[i];
         CallEventFunction(obj, func, type);
     }
+    CallJudgeCallback(AbilityJudgeType::Miss, type);
+}
+
+void CharacterInstance::SetCallback(asIScriptFunction *func)
+{
+    if (!func || func->GetFuncType() != asFUNC_DELEGATE) return;
+    if (JudgeCallback) delete JudgeCallback;
+    JudgeCallback = new CallbackObject(func);
 }
 
 CharacterParameter* CharacterInstance::GetCharacterParameter()
@@ -236,6 +259,7 @@ void RegisterCharacterSkillTypes(asIScriptEngine *engine)
     RegisterSkillTypes(engine);
     RegisterCharacterTypes(engine);
 
+    engine->RegisterFuncdef("void " SU_IF_JUDGE_CALLBACK "(" SU_IF_JUDGETYPE ", " SU_IF_NOTETYPE ")");
     engine->RegisterObjectType(SU_IF_CHARACTER_INSTANCE, 0, asOBJ_REF);
     engine->RegisterObjectBehaviour(SU_IF_CHARACTER_INSTANCE, asBEHAVE_ADDREF, "void f()", asMETHOD(CharacterInstance, AddRef), asCALL_THISCALL);
     engine->RegisterObjectBehaviour(SU_IF_CHARACTER_INSTANCE, asBEHAVE_RELEASE, "void f()", asMETHOD(CharacterInstance, Release), asCALL_THISCALL);
