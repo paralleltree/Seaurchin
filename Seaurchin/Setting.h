@@ -48,6 +48,7 @@ protected:
     std::shared_ptr<Setting> SettingInstance;
     std::string SettingGroup;
     std::string SettingKey;
+    std::string SettingName;
     std::string Description;
     SettingType Type;
 
@@ -142,9 +143,11 @@ protected:
     std::string Description;
     std::string Group;
     std::string Key;
+    std::string FindName;
 
 public:
     SettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
+    std::string GetSettingName();
 
     virtual std::string GetItemString() = 0;
     virtual void MoveNext() = 0;
@@ -220,6 +223,21 @@ public:
     void SaveValue() override;
     void RetrieveValue() override;
     void Build(const toml::Value &table) override;
+};
+
+class SettingItemManager final {
+private:
+    std::shared_ptr<Setting> SettingInstance;
+    std::unordered_map<std::string, std::shared_ptr<SettingItem>> Items;
+
+public:
+    SettingItemManager(std::shared_ptr<Setting> setting);
+    void LoadItemsFromToml(boost::filesystem::path file);
+    void RetrieveAllValues();
+    void SaveAllValues();
+
+    std::shared_ptr<SettingItem> GetSettingItem(const std::string &group, const std::string &key);
+    std::shared_ptr<SettingItem> GetSettingItem(const std::string &name);
 };
 
 }

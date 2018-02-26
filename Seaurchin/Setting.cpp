@@ -220,17 +220,122 @@ void SettingItemManager::SaveAllValues()
 namespace Setting2
 {
 
+// SettingItemManager
+
+SettingItemManager::SettingItemManager(shared_ptr<Setting> setting)
+{
+    SettingInstance = setting;
+}
+
+void SettingItemManager::LoadItemsFromToml(boost::filesystem::path file)
+{
+    using namespace boost::filesystem;
+    using namespace crc32_constexpr;
+
+    auto log = spdlog::get("main");
+
+    std::ifstream ifs(file.wstring(), ios::in);
+    auto pr = toml::parse(ifs);
+    ifs.close();
+    if (!pr.valid()) {
+        log->error(u8"設定定義 {0} は不正なファイルです", ConvertUnicodeToUTF8(file.wstring()));
+        log->error(pr.errorReason);
+        return;
+    }
+    auto &root = pr.value;
+    auto items = root.find("SettingItems");
+    if (!items || !items->is<toml::Array>()) {
+        log->warn(u8"設定定義 {0} に設定項目がありません", ConvertUnicodeToUTF8(file.wstring()));
+        return;
+    }
+    for (const auto &item : items->as<vector<toml::Value>>()) {
+        if (item.type() != toml::Value::TABLE_TYPE) continue;
+        shared_ptr<SettingItem> si;
+        auto group = item.get<string>("Group");
+        auto key = item.get<string>("Key");
+        auto type = item.get<string>("Type");
+        
+        switch (crc32_rec(0xffffffff, type.c_str())) {
+            case "Integer"_crc32:
+                si = make_shared<IntegerSettingItem>(SettingInstance, group, key);
+                break;
+            case "Float"_crc32:
+                si = make_shared<FloatSettingItem>(SettingInstance, group, key);
+                break;
+            case "Boolean"_crc32:
+                si = make_shared<BooleanSettingItem>(SettingInstance, group, key);
+                break;
+            case "String"_crc32:
+                si = make_shared<SettingItem>(SettingInstance, group, key);
+                break;
+                // TODO: 実装しろ
+            case "IntegerSelect"_crc32:
+                break;
+            case "FloatSelect"_crc32:
+                break;
+            case "StringSelect"_crc32:
+                break;
+            default:
+                log->warn(u8"不明な設定タイプです: {0}", type);
+                continue;
+        }
+        si->Build(item);
+        Items[si->GetSettingName()] = si;
+    }
+}
+
+void SettingItemManager::RetrieveAllValues()
+{
+    for (auto &si : Items) si.second->RetrieveValue();
+}
+
+void SettingItemManager::SaveAllValues()
+{
+    for (auto &si : Items) si.second->SaveValue();
+}
+
+shared_ptr<SettingItem> SettingItemManager::GetSettingItem(const string &group, const string &key)
+{
+    auto skey = fmt::format("{0}.{1}", group, key);
+    if (Items.find(skey) != Items.end()) return Items[skey];
+    return nullptr;
+}
+
+shared_ptr<SettingItem> SettingItemManager::GetSettingItem(const string &name)
+{
+    if (Items.find(name) != Items.end()) return Items[name];
+    return nullptr;
+}
+
+// SettingItem
+
 SettingItem::SettingItem(shared_ptr<Setting> setting, const string &group, const string &key)
 {
     SettingInstance = setting;
     Group = group;
     Key = key;
+    Description = u8"説明はありません";
+    FindName = "";
 }
 
 void SettingItem::Build(const toml::Value &table)
 {
-
+    auto d = table.find("Description");
+    if (d && d->is<string>()) {
+        Description = d->as<string>();
+    }
+    auto d = table.find("Name");
+    if (d && d->is<string>()) {
+        FindName = d->as<string>();
+    }
 }
+
+string SettingItem::GetSettingName()
+{
+    if (FindName != "") return FindName;
+    return fmt::format("{0}.{1}", Group, Key);
+}
+
 
 // IntegerSettingItem
 
