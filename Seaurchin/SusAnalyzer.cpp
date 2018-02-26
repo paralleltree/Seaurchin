@@ -407,7 +407,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, uint32_t line)
                     noteData.Type.set((size_t)SusNoteType::HellTap);
                     break;
                 case '5':
-                    noteData.Type.set((size_t)SusNoteType::AwesomeExTap);
+                    noteData.Type.set((size_t)SusNoteType::/*Awesome*/ExTap);
                     break;
                 default:
                     if (note[1] == '0') continue;

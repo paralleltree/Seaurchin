@@ -23,9 +23,16 @@ struct SpriteMoverObject {
 class SSprite;
 
 class ScriptSpriteMover2 final {
+private:
+    SSprite *Target;
+    
+    void ApplyProperty(const std::string &prop, const std::string &value);
+
 public:
     ScriptSpriteMover2(SSprite *target);
     ~ScriptSpriteMover2();
 
     void Tick(double delta);
+
+    void Apply(const std::string &application);
 };
