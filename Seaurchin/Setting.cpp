@@ -334,8 +334,8 @@ void BooleanSettingItem::Build(const toml::Value &table)
     auto r = table.find("Values");
     if (r && r->is<vector<string>>()) {
         auto v = r->as<vector<string>>();
-        Falsy = v[0];
-        Truthy = v[1];
+        Truthy = v[0];
+        Falsy = v[1];
     }
     auto d = table.find("Default");
     if (d && d->is<bool>()) {
