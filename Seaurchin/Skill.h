@@ -29,6 +29,7 @@ public:
 enum class AbilityNoteType {
     Tap = 1,
     ExTap,
+    AwesomeExTap,
     Flick,
     Air,
     HellTap,

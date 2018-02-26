@@ -176,6 +176,7 @@ void RegisterSkillTypes(asIScriptEngine *engine)
     engine->RegisterEnum(SU_IF_NOTETYPE);
     engine->RegisterEnumValue(SU_IF_NOTETYPE, "Tap", (int)AbilityNoteType::Tap);
     engine->RegisterEnumValue(SU_IF_NOTETYPE, "ExTap", (int)AbilityNoteType::ExTap);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "AwesomeExTap", (int)AbilityNoteType::AwesomeExTap);
     engine->RegisterEnumValue(SU_IF_NOTETYPE, "Flick", (int)AbilityNoteType::Flick);
     engine->RegisterEnumValue(SU_IF_NOTETYPE, "HellTap", (int)AbilityNoteType::HellTap);
     engine->RegisterEnumValue(SU_IF_NOTETYPE, "Air", (int)AbilityNoteType::Air);
