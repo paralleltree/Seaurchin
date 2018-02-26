@@ -89,8 +89,8 @@ void SusAnalyzer::Reset()
     // TicksPerBeat = ;
     SharedMetaData.Reset();
 
-    BpmDefinitions[0] = 120.0;
-    BeatsDefinitions[0] = 4.0;
+    BpmDefinitions[1] = 120.0;
+    BeatsDefinitions[1] = 4.0;
 
     auto defhs = make_shared<SusHispeedTimeline>([&](uint32_t m, uint32_t t) { return GetAbsoluteTime(m, t); });
     defhs->AddKeysByString("0'0:1.0:v", TimelineResolver);
@@ -133,7 +133,7 @@ void SusAnalyzer::LoadFromFile(const wstring &fileName, bool analyzeOnlyMetaData
         if (xp::regex_match(rawline, match, RegexSusCommand)) {
             ProcessCommand(match, analyzeOnlyMetaData, line);
         } else if (xp::regex_match(rawline, match, RegexSusData)) {
-            if (!analyzeOnlyMetaData && !boost::starts_with(rawline, "#BPM")) ProcessData(match, line);
+            if (!analyzeOnlyMetaData || boost::starts_with(rawline, "#BPM")) ProcessData(match, line);
         } else {
             MakeMessage(line, u8"SUS有効行ですが解析できませんでした。");
         }

@@ -14,7 +14,8 @@ class SettingScene : CoroutineScene {
       
     },
     {
-      GetSettingItem("Graphic", "WaitVSync")
+      GetSettingItem("Graphic", "WaitVSync"),
+      GetSettingItem("Graphic", "Fullscreen")
     },
     {
       GetSettingItem("Sound", "BufferLatency"),

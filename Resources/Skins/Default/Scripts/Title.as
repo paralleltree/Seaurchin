@@ -135,7 +135,7 @@ class Title : CoroutineScene {
         spLogo.AddMove("scale_to(x:0.4, y:0.4, time:0.5, ease:out_sine)");
         spLogo.AddMove("move_by(y:-240, time:0.5, wait:0.5, ease:out_sine)");
         spTitle.AddMove("move_by(x:-200, time:0.5, ease:out_sine)");
-        spTitle.AddMove("range_size(width:1.0, height:1.0, time:0.5, ease:out_sine)");
+        spTitle.AddMove("range_size(x:1.0, y:1.0, time:0.5, ease:out_sine)");
         spTitle.AddMove("move_by(y:-240, time:0.5, wait:0.5, ease:out_sine)");
         YieldTime(1.0);
         break;

@@ -71,6 +71,7 @@ class Play : CoroutineScene {
     @player = ScenePlayer();
     SetPlayerResource();
     player.Initialize();
+    // player.SetJudgeCallback(JudgeCallback(OnJudge));
     charinfo.InitInfo(player.GetCharacterInstance());
     player.Z = 5;
     AddSprite(player);
@@ -256,6 +257,15 @@ class Play : CoroutineScene {
       spBack.AddMove("death(wait:1)");
     }
   }
+  
+  /*
+  // 判定発生ごとに呼ばれるコールバック
+  // judgeにはJC/J/A/Mの情報が入ります
+  void OnJudge(JudgeType judge, NoteType note) {
+    if (note != NoteType::ExTap) return;
+    WriteLog(Severiy::Info, "ExTap");
+  }
+  */
 }
 
 class CharacterInfo : CoroutineScene {
