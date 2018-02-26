@@ -34,6 +34,7 @@ ScriptSpriteMover2::~ScriptSpriteMover2()
 
 void ScriptSpriteMover2::Tick(double delta)
 {
+    
     auto i = moves.begin();
     while (i != moves.end()) {
         auto mobj = i->get();
@@ -56,6 +57,7 @@ void ScriptSpriteMover2::Tick(double delta)
             ++i;
         }
     }
+    
 }
 
 void ScriptSpriteMover2::Apply(const string &application)
@@ -83,7 +85,7 @@ void ScriptSpriteMover2::AddMove(const string &mover)
     SplitProps(paramstr, params);
 
     auto mobj = BuildMoverObject(funcname, params);
-    mobj->Function(Target, mobj->Argument, mobj->Data, 0);
+    if (!mobj) return;
     moves.push_back(move(mobj));
 }
 
@@ -147,7 +149,8 @@ std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const st
     } else {
         // TODO: ƒJƒXƒ^ƒ€Mover‚É‘Î‰ž
         auto custom = Target->GetCustomAction(func);
-        return nullptr;
+        if (!custom) return nullptr;
+        result->Function = custom;
     }
 
     for (const auto &prop : props) {

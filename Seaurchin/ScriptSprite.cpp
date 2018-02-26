@@ -84,23 +84,7 @@ void SSprite::AbortMove(bool terminate)
 
 void SSprite::Apply(const string & dict)
 {
-    using namespace boost::algorithm;
-    
-    string list = dict;
-    list.erase(remove(list.begin(), list.end(), ' '), list.end());
-    
-    int now = 0;
-    int end = 0;
-    string prop;
-    while (true) {
-        end = list.find(',', now);
-        if (end == string::npos) break;
-        prop = list.substr(now, end - now);
-        now = end + 1;
-        ApplyProperty(prop);
-    }
-    prop = list.substr(now);
-    ApplyProperty(prop);
+    mover->Apply(dict);
 }
 
 void SSprite::Apply(const CScriptDictionary & dict)
@@ -119,52 +103,6 @@ void SSprite::Apply(const CScriptDictionary & dict)
     }
 
     Apply(aps.str());
-}
-
-void SSprite::ApplyProperty(const std::string &prop)
-{
-    auto pos = prop.find(':');
-    if (pos == string::npos) return;
-    auto pn = prop.substr(0, pos);
-    auto pv = prop.substr(pos + 1);
-    switch (crc32_rec(0xffffffff, pn.c_str())) {
-        case "x"_crc32:
-            Transform.X = ToDouble(pv.c_str());
-            break;
-        case "y"_crc32:
-            Transform.Y = ToDouble(pv.c_str());
-            break;
-        case "z"_crc32:
-            ZIndex = (int)ToDouble(pv.c_str());
-            break;
-        case "origX"_crc32:
-            Transform.OriginX = ToDouble(pv.c_str());
-            break;
-        case "origY"_crc32:
-            Transform.OriginY = ToDouble(pv.c_str());
-            break;
-        case "scaleX"_crc32:
-            Transform.ScaleX = ToDouble(pv.c_str());
-            break;
-        case "scaleY"_crc32:
-            Transform.ScaleY = ToDouble(pv.c_str());
-            break;
-        case "angle"_crc32:
-            Transform.Angle = ToDouble(pv.c_str());
-            break;
-        case "alpha"_crc32:
-            Color.A = (unsigned char)(ToDouble(pv.c_str()) * 255.0);
-            break;
-        case "r"_crc32:
-            Color.R = (unsigned char)ToDouble(pv.c_str());
-            break;
-        case "g"_crc32:
-            Color.G = (unsigned char)ToDouble(pv.c_str());
-            break;
-        case "b"_crc32:
-            Color.B = (unsigned char)ToDouble(pv.c_str());
-            break;
-    }
 }
 
 void SSprite::Tick(double delta)

@@ -648,7 +648,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
             noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
 
             SusNoteType ltype;
-            switch ((bits >> 6) & 7) {
+            switch ((bits >> 7) & 7) {
                 case 1:
                     ltype = SusNoteType::Hold;
                     genCurve = false;

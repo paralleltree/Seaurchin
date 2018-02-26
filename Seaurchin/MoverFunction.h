@@ -16,5 +16,6 @@ bool ActionAngleBy(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &
 bool ActionScaleTo(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, double delta);
 bool ActionColor(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, double delta);
 bool ActionAlpha(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, double delta);
+bool ActionDeath(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, double delta);
 }
 

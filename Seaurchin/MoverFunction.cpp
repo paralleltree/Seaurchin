@@ -45,8 +45,8 @@ bool ActionMoveBy(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &d
         if (!isnan(args.Y)) target->Transform.Y = args.Ease(data.Now, args.Duration, data.Extra2, args.Y);
         return false;
     } else {
-        if (!isnan(args.X)) target->Transform.X = args.X + args.X;
-        if (!isnan(args.Y)) target->Transform.Y = args.Y + args.Y;
+        if (!isnan(args.X)) target->Transform.X = data.Extra1 + args.X;
+        if (!isnan(args.Y)) target->Transform.Y = data.Extra2 + args.Y;
         return true;
     }
 }

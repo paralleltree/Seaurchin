@@ -28,10 +28,6 @@ struct SpriteMoverObject {
     MoverFunction::Action Function;
     SpriteMoverArgument Argument;
     SpriteMoverData Data;
-    ~SpriteMoverObject()
-    {
-        spdlog::get("main")->info(u8"MoverObject Destroyed");
-    }
 };
 
 class SSprite;

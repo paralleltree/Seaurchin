@@ -30,8 +30,6 @@ protected:
     ScriptSpriteMover2 *mover;
 
     void CopyParameterFrom(SSprite *original);
-    void ApplyProperty(const std::string &prop);
-
 
 public:
     //’l(CopyParameterFrom‚ÅˆêŠ‡)

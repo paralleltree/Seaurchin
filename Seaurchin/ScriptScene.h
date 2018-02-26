@@ -2,7 +2,6 @@
 
 #include "Scene.h"
 #include "ScriptSprite.h"
-#include "ScriptSpriteManager.h"
 #include "ScriptFunction.h"
 
 #define SU_IF_SCENE "Scene"
