@@ -28,6 +28,8 @@ To* CastReferenceType(From *from)
     return result;
 }
 
+using PropList = std::vector<std::tuple<std::string, std::string>>;
+
 //std::string ConvertUTF8ToShiftJis(const std::string &utf8str);
 //std::string ConvertShiftJisToUTF8(const std::string &sjisstr);
 std::wstring ConvertUTF8ToUnicode(const std::string &utf8str);
@@ -38,3 +40,4 @@ int32_t ConvertInteger(const std::string &input);
 uint32_t ConvertHexatridecimal(const std::string &input);
 double ConvertFloat(const std::string &input);
 bool ConvertBoolean(const std::string &input);
+void SplitProps(const std::string &source, PropList &vec);

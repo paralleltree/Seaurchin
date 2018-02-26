@@ -101,3 +101,24 @@ bool ConvertBoolean(const string &input)
         || input == "enable"
         || input == "enabled";
 }
+
+void SplitProps(const string &source, PropList &vec)
+{
+    int now = 0;
+    int end = 0;
+    string pset;
+    while (true) {
+        end = source.find(',', now);
+        if (end == string::npos) break;
+
+        pset = source.substr(now, end - now);
+        auto pos = pset.find(':');
+        if (pos == string::npos) continue;
+        vec.push_back(make_tuple(pset.substr(0, pos), pset.substr(pos + 1)));
+        now = end + 1;
+    }
+    pset = source.substr(now);
+    auto pos = pset.find(':');
+    if (pos == string::npos) return;
+    vec.push_back(make_tuple(pset.substr(0, pos), pset.substr(pos + 1)));
+}

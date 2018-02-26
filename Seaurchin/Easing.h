@@ -1,9 +1,9 @@
 #pragma once
 
-class Easing
+namespace Easing
 {
+class Easing {
 public:
-
     static double Linear(double time, double timeDuration, double startValue, double valueDuration);
     static double InQuad(double time, double timeDuration, double startValue, double valueDuration);
     static double OutQuad(double time, double timeDuration, double startValue, double valueDuration);
@@ -35,6 +35,7 @@ public:
     static double InBounce(double time, double timeDuration, double startValue, double valueDuration);
     static double OutBounce(double time, double timeDuration, double startValue, double valueDuration);
     static double InOutBounce(double time, double timeDuration, double startValue, double valueDuration);
-
-    typedef double(*EasingFunction)(double, double, double, double);
 };
+using EasingFunction = double(*)(double, double, double, double);
+extern std::unordered_map<std::string, EasingFunction> Easings;
+}

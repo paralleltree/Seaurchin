@@ -90,9 +90,6 @@
     <ClCompile Include="Misc.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Easing.cpp">
-      <Filter>インターフェース\C++</Filter>
-    </ClCompile>
     <ClCompile Include="Scene.cpp">
       <Filter>インターフェース\C++</Filter>
     </ClCompile>
@@ -168,9 +165,6 @@
     <ClCompile Include="ScriptSprite.cpp">
       <Filter>インターフェース\描画システム</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptSpriteManager.cpp">
-      <Filter>インターフェース\描画システム</Filter>
-    </ClCompile>
     <ClCompile Include="Result.cpp">
       <Filter>インターフェース\キャラクター</Filter>
     </ClCompile>
@@ -178,6 +172,12 @@
       <Filter>インターフェース\キャラクター</Filter>
     </ClCompile>
     <ClCompile Include="ScriptSpriteMover2.cpp">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClCompile>
+    <ClCompile Include="Easing.cpp">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClCompile>
+    <ClCompile Include="MoverFunction.cpp">
       <Filter>インターフェース\描画システム</Filter>
     </ClCompile>
   </ItemGroup>
@@ -229,9 +229,6 @@
     </ClInclude>
     <ClInclude Include="Misc.h">
       <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="Easing.h">
-      <Filter>インターフェース\C++</Filter>
     </ClInclude>
     <ClInclude Include="Scene.h">
       <Filter>インターフェース\C++</Filter>
@@ -299,9 +296,6 @@
     <ClInclude Include="ScriptSpriteMisc.h">
       <Filter>インターフェース\描画システム</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptSpriteManager.h">
-      <Filter>インターフェース\描画システム</Filter>
-    </ClInclude>
     <ClInclude Include="ScriptResource.h">
       <Filter>インターフェース\描画システム</Filter>
     </ClInclude>
@@ -321,6 +315,12 @@
       <Filter>ヘッダー ファイル\ライブラリ</Filter>
     </ClInclude>
     <ClInclude Include="ScriptSpriteMover2.h">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClInclude>
+    <ClInclude Include="Easing.h">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClInclude>
+    <ClInclude Include="MoverFunction.h">
       <Filter>インターフェース\描画システム</Filter>
     </ClInclude>
   </ItemGroup>

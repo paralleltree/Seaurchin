@@ -1,5 +1,44 @@
 #include "Easing.h"
 
+using namespace std;
+
+namespace Easing
+{
+
+unordered_map<string, EasingFunction> Easings = {
+    { "linear", Easing::Linear },
+    { "in_quad", Easing::InQuad },
+    { "out_quad", Easing::OutQuad },
+    { "inout_quad", Easing::InOutQuad },
+    { "in_cubic", Easing::InCubic },
+    { "out_cubic", Easing::OutCubic },
+    { "inout_cubic", Easing::InOutCubic },
+    { "in_quart", Easing::InQuart },
+    { "out_quart", Easing::OutQuart },
+    { "inout_quart", Easing::InOutQuart },
+    { "in_quint", Easing::InQuint },
+    { "out_quint", Easing::OutQuint },
+    { "inout_quint", Easing::InOutQuint },
+    { "in_sine", Easing::InSine },
+    { "out_sine", Easing::OutSine },
+    { "inout_sine", Easing::InOutSine },
+    { "in_expo", Easing::InExpo },
+    { "out_expo", Easing::OutExpo },
+    { "inout_expo", Easing::InOutExpo },
+    { "in_circle", Easing::InCircle },
+    { "out_circle", Easing::OutCircle },
+    { "inout_circle", Easing::InOutCircle },
+    { "in_elastic", Easing::InElastic },
+    { "out_elastic", Easing::OutElastic },
+    { "inout_elastic", Easing::InOutElastic },
+    { "in_back", Easing::InBack },
+    { "out_back", Easing::OutBack },
+    { "inout_back", Easing::InOutBack },
+    { "in_bounce", Easing::InBounce },
+    { "out_bounce", Easing::OutBounce },
+    { "inout_bounce", Easing::InOutBounce }
+};
+
 double Easing::Linear(double time, double timeDuration, double startValue, double valueDuration)
 {
     return valueDuration * (time / timeDuration) + startValue;
@@ -122,12 +161,9 @@ double Easing::InElastic(double time, double timeDuration, double startValue, do
 {
     double s = 1.70158; double p = 0.0; double a = valueDuration;
     if (time == 0) return startValue; if ((time /= timeDuration) == 1) return startValue + valueDuration; if (p == 0) p = timeDuration * .3;
-    if (a < abs(valueDuration))
-    {
+    if (a < abs(valueDuration)) {
         a = valueDuration; s = p / 4;
-    }
-    else
-    {
+    } else {
         s = p / (2 * M_PI) * asin(valueDuration / a);
     }
     return -(a * pow(2, 10 * (time -= 1)) * sin((time * timeDuration - s) * (2 * M_PI) / p)) + startValue;
@@ -137,12 +173,9 @@ double Easing::OutElastic(double time, double timeDuration, double startValue, d
 {
     double s = 1.70158; double p = 0.0; double a = valueDuration;
     if (time == 0) return startValue; if ((time /= timeDuration) == 1) return startValue + valueDuration; if (p == 0) p = timeDuration * .3;
-    if (a < abs(valueDuration))
-    {
+    if (a < abs(valueDuration)) {
         a = valueDuration; s = p / 4;
-    }
-    else
-    {
+    } else {
         s = p / (2 * M_PI) * asin(valueDuration / a);
     }
     return a * pow(2, -10 * time) * sin((time * timeDuration - s) * (2 * M_PI) / p) + valueDuration + startValue;
@@ -152,12 +185,9 @@ double Easing::InOutElastic(double time, double timeDuration, double startValue,
 {
     double s = 1.70158; double p = 0.0; double a = valueDuration;
     if (time == 0) return startValue; if ((time /= timeDuration / 2) == 2) return startValue + valueDuration; if (p == 0) p = timeDuration * (.3 * 1.5);
-    if (a < abs(valueDuration))
-    {
+    if (a < abs(valueDuration)) {
         a = valueDuration; s = p / 4;
-    }
-    else
-    {
+    } else {
         s = p / (2 * M_PI) * asin(valueDuration / a);
     }
     if (time < 1) return -.5 * (a * pow(2, 10 * (time -= 1)) * sin((time * timeDuration - s) * (2 * M_PI) / p)) + startValue;
@@ -188,20 +218,13 @@ double Easing::InBounce(double time, double timeDuration, double startValue, dou
 
 double Easing::OutBounce(double time, double timeDuration, double startValue, double valueDuration)
 {
-    if ((time /= timeDuration) < (1 / 2.75))
-    {
+    if ((time /= timeDuration) < (1 / 2.75)) {
         return valueDuration * (7.5625 * time * time) + startValue;
-    }
-    else if (time < (2 / 2.75))
-    {
+    } else if (time < (2 / 2.75)) {
         return valueDuration * (7.5625 * (time -= (1.5 / 2.75)) * time + .75) + startValue;
-    }
-    else if (time < (2.5 / 2.75))
-    {
+    } else if (time < (2.5 / 2.75)) {
         return valueDuration * (7.5625 * (time -= (2.25 / 2.75)) * time + .9375) + startValue;
-    }
-    else
-    {
+    } else {
         return valueDuration * (7.5625 * (time -= (2.625 / 2.75)) * time + .984375) + startValue;
     }
 }
@@ -210,4 +233,6 @@ double Easing::InOutBounce(double time, double timeDuration, double startValue, 
 {
     if (time < timeDuration / 2) return InBounce(time * 2, 0, valueDuration, timeDuration) * .5 + startValue;
     return OutBounce(time * 2 - timeDuration, 0, valueDuration, timeDuration) * .5 + valueDuration * .5 + startValue;
+}
+
 }

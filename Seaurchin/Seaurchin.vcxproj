@@ -124,6 +124,7 @@
     <ClCompile Include="Interfaces.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Misc.cpp" />
+    <ClCompile Include="MoverFunction.cpp" />
     <ClCompile Include="MusicsManager.cpp" />
     <ClCompile Include="PlayableProcessor.cpp" />
     <ClCompile Include="ExtensionManager.cpp" />
@@ -143,7 +144,6 @@
     <ClCompile Include="ScriptResource.cpp" />
     <ClCompile Include="ScriptScene.cpp" />
     <ClCompile Include="ScriptSprite.cpp" />
-    <ClCompile Include="ScriptSpriteManager.cpp" />
     <ClCompile Include="ScriptSpriteMover2.cpp" />
     <ClCompile Include="Setting.cpp" />
     <ClCompile Include="Skill.cpp" />
@@ -167,6 +167,7 @@
     <ClInclude Include="CharacterInstance.h" />
     <ClInclude Include="Crc32.h" />
     <ClInclude Include="ExtensionManager.h" />
+    <ClInclude Include="MoverFunction.h" />
     <ClInclude Include="ScriptSpriteMover2.h" />
     <ClInclude Include="SeaurchinExtension.h" />
     <ClInclude Include="AngelScriptManager.h" />
@@ -192,7 +193,6 @@
     <ClInclude Include="ScriptResource.h" />
     <ClInclude Include="ScriptScene.h" />
     <ClInclude Include="ScriptSprite.h" />
-    <ClInclude Include="ScriptSpriteManager.h" />
     <ClInclude Include="Setting.h" />
     <ClInclude Include="Skill.h" />
     <ClInclude Include="SkinHolder.h" />
