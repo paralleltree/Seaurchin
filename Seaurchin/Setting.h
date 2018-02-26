@@ -121,3 +121,105 @@ public:
     void RetrieveAllValues();
     void SaveAllValues();
 };
+
+namespace Setting2
+{
+
+enum class SettingItemType {
+    Integer,
+    Float,
+    Boolean,
+    String,
+    IntegerSelect,
+    FloatSelect,
+    StringSelect,
+};
+
+class SettingItem {
+protected:
+    std::shared_ptr<Setting> SettingInstance;
+    SettingItemType Type;
+    std::string Description;
+    std::string Group;
+    std::string Key;
+
+public:
+    SettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
+
+    virtual std::string GetItemString() = 0;
+    virtual void MoveNext() = 0;
+    virtual void MovePrevious() = 0;
+    virtual void SaveValue() = 0;
+    virtual void RetrieveValue() = 0;
+    virtual void Build(const toml::Value &table);
+};
+
+class IntegerSettingItem final : public SettingItem {
+private:
+    int64_t Value;
+    int64_t MinValue;
+    int64_t MaxValue;
+    int64_t Step;
+    int64_t Default;
+
+public:
+    IntegerSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
+    std::string GetItemString() override;
+    void MoveNext() override;
+    void MovePrevious() override;
+    void SaveValue() override;
+    void RetrieveValue() override;
+    void Build(const toml::Value &table) override;
+};
+
+class FloatSettingItem final : public SettingItem {
+private:
+    double Value;
+    double MinValue;
+    double MaxValue;
+    double Step;
+    double Default;
+
+public:
+    FloatSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
+    std::string GetItemString() override;
+    void MoveNext() override;
+    void MovePrevious() override;
+    void SaveValue() override;
+    void RetrieveValue() override;
+    void Build(const toml::Value &table) override;
+};
+
+class BooleanSettingItem final : public SettingItem {
+private:
+    bool Value;
+    std::string Truthy;
+    std::string Falsy;
+    bool Default;
+
+public:
+    BooleanSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
+    std::string GetItemString() override;
+    void MoveNext() override;
+    void MovePrevious() override;
+    void SaveValue() override;
+    void RetrieveValue() override;
+    void Build(const toml::Value &table) override;
+};
+
+class StringSettingItem final : public SettingItem {
+private:
+    std::string Value;
+    bool Default;
+
+public:
+    StringSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
+    std::string GetItemString() override;
+    void MoveNext() override;
+    void MovePrevious() override;
+    void SaveValue() override;
+    void RetrieveValue() override;
+    void Build(const toml::Value &table) override;
+};
+
+}

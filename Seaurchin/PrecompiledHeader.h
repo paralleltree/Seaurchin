@@ -85,6 +85,10 @@
 
 #include <msgpack.hpp>
 
+#define FMT_HEADER_ONLY
+#include <fmt/format.h>
+
+#define SPDLOG_FMT_EXTERNAL
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/wincolor_sink.h>
 #include <spdlog/sinks/sink.h>

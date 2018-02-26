@@ -217,3 +217,220 @@ void SettingItemManager::SaveAllValues()
     for (auto &si : Items) si.second->SaveValue();
 }
 
+namespace Setting2
+{
+
+SettingItem::SettingItem(shared_ptr<Setting> setting, const string &group, const string &key)
+{
+    SettingInstance = setting;
+    Group = group;
+    Key = key;
+}
+
+void SettingItem::Build(const toml::Value &table)
+{
+
+}
+
+// IntegerSettingItem
+
+IntegerSettingItem::IntegerSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key) : SettingItem(setting, group, key)
+{
+    Value = Default = 0;
+    MinValue = MaxValue = 0;
+    Step = 1;
+    Type = SettingItemType::Integer;
+}
+
+string IntegerSettingItem::GetItemString()
+{
+    return fmt::format("{0}", Value);
+}
+
+void IntegerSettingItem::MoveNext()
+{
+    Value += Step;
+    if (Value > MaxValue) Value = MaxValue;
+}
+
+void IntegerSettingItem::MovePrevious()
+{
+    Value -= Step;
+    if (Value < MinValue) Value = MinValue;
+}
+
+void IntegerSettingItem::SaveValue()
+{
+    SettingInstance->WriteValue<int64_t>(Group, Key, Value);
+}
+
+void IntegerSettingItem::RetrieveValue()
+{
+    Value = SettingInstance->ReadValue(Group, Key, Default);
+}
+
+void IntegerSettingItem::Build(const toml::Value &table)
+{
+    SettingItem::Build(table);
+    auto r = table.find("Range");
+    if (r && r->is<vector<int64_t>>()) {
+        auto v = r->as<vector<int64_t>>();
+        MinValue = v[0];
+        MaxValue = v[1];
+    }
+    auto s = table.find("Step");
+    if (s && s->is<int64_t>()) {
+        Step = s->as<int64_t>();
+    }
+    auto d = table.find("Default");
+    if (d && d->is<int64_t>()) {
+        Default = d->as<int64_t>();
+    }
+}
+
+// FloatSettingItem
+
+FloatSettingItem::FloatSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key) : SettingItem(setting, group, key)
+{
+    Value = Default = 0;
+    MinValue = MaxValue = 0;
+    Step = 1;
+    Type = SettingItemType::Float;
+}
+
+string FloatSettingItem::GetItemString()
+{
+    return fmt::format("{0}", Value);
+}
+
+void FloatSettingItem::MoveNext()
+{
+    Value += Step;
+    if (Value > MaxValue) Value = MaxValue;
+}
+
+void FloatSettingItem::MovePrevious()
+{
+    Value -= Step;
+    if (Value < MinValue) Value = MinValue;
+}
+
+void FloatSettingItem::SaveValue()
+{
+    SettingInstance->WriteValue<double>(Group, Key, Value);
+}
+
+void FloatSettingItem::RetrieveValue()
+{
+    Value = SettingInstance->ReadValue(Group, Key, Default);
+}
+
+void FloatSettingItem::Build(const toml::Value &table)
+{
+    SettingItem::Build(table);
+    auto r = table.find("Range");
+    if (r && r->is<vector<double>>()) {
+        auto v = r->as<vector<double>>();
+        MinValue = v[0];
+        MaxValue = v[1];
+    }
+    auto s = table.find("Step");
+    if (s && s->is<double>()) {
+        Step = s->as<double>();
+    }
+    auto d = table.find("Default");
+    if (d && d->is<double>()) {
+        Default = d->as<double>();
+    }
+}
+
+// BooleanSettingItem
+
+BooleanSettingItem::BooleanSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key) : SettingItem(setting, group, key)
+{
+    Value = Default = false;
+    Falsy = Truthy = "";
+    Type = SettingItemType::Boolean;
+}
+
+string BooleanSettingItem::GetItemString()
+{
+    return fmt::format("{0}", Value ? Truthy : Falsy);
+}
+
+void BooleanSettingItem::MoveNext()
+{
+    Value = !Value;
+}
+
+void BooleanSettingItem::MovePrevious()
+{
+    Value = !Value;
+}
+
+void BooleanSettingItem::SaveValue()
+{
+    SettingInstance->WriteValue<bool>(Group, Key, Value);
+}
+
+void BooleanSettingItem::RetrieveValue()
+{
+    Value = SettingInstance->ReadValue(Group, Key, Default);
+}
+
+void BooleanSettingItem::Build(const toml::Value &table)
+{
+    SettingItem::Build(table);
+    auto r = table.find("Values");
+    if (r && r->is<vector<string>>()) {
+        auto v = r->as<vector<string>>();
+        Falsy = v[0];
+        Truthy = v[1];
+    }
+    auto d = table.find("Default");
+    if (d && d->is<bool>()) {
+        Default = d->as<bool>();
+    }
+}
+
+// StringSettingItem
+
+StringSettingItem::StringSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key) : SettingItem(setting, group, key)
+{
+    Value = Default = "";
+    Type = SettingItemType::String;
+}
+
+string StringSettingItem::GetItemString()
+{
+    return fmt::format("{0}", Value);
+}
+
+void StringSettingItem::MoveNext()
+{
+}
+
+void StringSettingItem::MovePrevious()
+{
+}
+
+void StringSettingItem::SaveValue()
+{
+    SettingInstance->WriteValue<string>(Group, Key, Value);
+}
+
+void StringSettingItem::RetrieveValue()
+{
+    Value = SettingInstance->ReadValue(Group, Key, Default);
+}
+
+void StringSettingItem::Build(const toml::Value &table)
+{
+    SettingItem::Build(table);
+    auto d = table.find("Default");
+    if (d && d->is<bool>()) {
+        Default = d->as<bool>();
+    }
+}
+
+}

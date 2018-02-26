@@ -83,7 +83,7 @@ void ScriptSpriteMover2::AddMove(const string &mover)
     vector<tuple<string, string>> params;
     params.reserve(8);
     SplitProps(paramstr, params);
-
+    
     auto mobj = BuildMoverObject(funcname, params);
     if (!mobj) return;
     moves.push_back(move(mobj));
