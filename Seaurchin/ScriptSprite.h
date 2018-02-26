@@ -1,6 +1,8 @@
 #pragma once
 
 #include "ScriptSpriteMisc.h"
+#include "MoverFunction.h"
+#include "ScriptSpriteMover2.h"
 #include "ScriptResource.h"
 
 #define SU_IF_COLOR "Color"
@@ -17,7 +19,6 @@
 #define SU_IF_ANIMESPRITE "AnimeSprite"
 #define SU_IF_CONTAINER "Container"
 
-class ScriptSpriteMover;
 struct Mover;
 //äÓíÍÇ™ImageSpriteÇ≈Ç‡Ç¢Ç¢ãCÇ™ÇµÇƒÇÈÇÒÇæÇÊÇÀê≥íº
 class SSprite {
@@ -26,7 +27,7 @@ private:
 
 protected:
     int Reference;
-    ScriptSpriteMover *mover;
+    ScriptSpriteMover2 *mover;
 
     void CopyParameterFrom(SSprite *original);
     void ApplyProperty(const std::string &prop);
@@ -51,8 +52,7 @@ public:
 
     inline void Dismiss() { IsDead = true; }
     inline void Revive() { IsDead = false; }
-    virtual std::function<bool(SSprite*, Mover&, double)> GetCustomAction(const std::string &name);
-    virtual void ParseCustomMover(Mover *mover, const std::vector<std::tuple<std::string, std::string>> &params);
+    virtual MoverFunction::Action GetCustomAction(const std::string &name);
     void AddMove(const std::string &move);
     void AbortMove(bool terminate);
     void Apply(const std::string &dict);
@@ -206,13 +206,12 @@ protected:
     SRenderTarget *ActualTarget = nullptr;
     void DrawBy(const Transform2D &tf, const ColorTint &ct);
 
-    static bool ActionMoveRangeTo(SSprite* thisObj, Mover& mover, double delta);
+    static bool ActionMoveRangeTo(SSprite *thisObj, SpriteMoverArgument &args, SpriteMoverData &data, double delta);
 
 public:
     SClippingSprite(int w, int h);
 
-    std::function<bool(SSprite*, Mover&, double)> GetCustomAction(const std::string &name) override;
-    void ParseCustomMover(Mover *mover, const std::vector<std::tuple<std::string, std::string>> &params) override;
+    MoverFunction::Action GetCustomAction(const std::string &name) override;
     void SetRange(double tx, double ty, double w, double h);
     void Draw() override;
     void Draw(const Transform2D &parent, const ColorTint &color) override;

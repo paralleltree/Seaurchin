@@ -1,5 +1,4 @@
 #include "ScriptSprite.h"
-#include "ScriptSpriteManager.h"
 #include "ExecutionManager.h"
 #include "Misc.h"
 
@@ -47,7 +46,7 @@ SSprite::SSprite()
 {
     //ZIndex = 0;
     Color = Colors::White;
-    mover = new ScriptSpriteMover(this);
+    mover = new ScriptSpriteMover2(this);
 }
 
 SSprite::~SSprite()
@@ -55,6 +54,7 @@ SSprite::~SSprite()
     //WriteDebugConsole("Destructing ScriptSprite\n");
     if (Image) Image->Release();
     Image = nullptr;
+    delete mover;
 }
 
 void SSprite::AddRef()
@@ -67,20 +67,9 @@ void SSprite::Release()
     if (--Reference == 0) delete this;
 }
 
-function<bool(SSprite*, Mover&, double)> SSprite::GetCustomAction(const string & name)
+MoverFunction::Action SSprite::GetCustomAction(const string & name)
 {
     return nullptr;
-}
-
-void SSprite::ParseCustomMover(Mover *mover, const vector<tuple<string, string>>& params)
-{
-    using namespace crc32_constexpr;
-    for (auto& t : params) {
-        switch (crc32_rec(0xffffffff, get<0>(t).c_str())) {
-            case ""_crc32:
-                break;
-        }
-    }
 }
 
 void SSprite::AddMove(const string & move)
@@ -736,20 +725,20 @@ void SClippingSprite::DrawBy(const Transform2D & tf, const ColorTint & ct)
         HasAlpha ? TRUE : FALSE, FALSE);
 }
 
-bool SClippingSprite::ActionMoveRangeTo(SSprite * thisObj, Mover & mover, double delta)
+bool SClippingSprite::ActionMoveRangeTo(SSprite *thisObj, SpriteMoverArgument &args, SpriteMoverData &data, double delta)
 {
     auto target = static_cast<SClippingSprite*>(thisObj);
     if (delta == 0) {
-        mover.Extra1 = target->U2;
-        mover.Extra2 = target->V2;
+        data.Extra1 = target->U2;
+        data.Extra2 = target->V2;
         return false;
     } else if (delta >= 0) {
-        target->U2 = mover.Function(mover.Now, mover.Duration, mover.Extra1, mover.X - mover.Extra1);
-        target->V2 = mover.Function(mover.Now, mover.Duration, mover.Extra2, mover.Y - mover.Extra2);
+        target->U2 = args.Ease(data.Now, args.Duration, data.Extra1, args.X - data.Extra1);
+        target->V2 = args.Ease(data.Now, args.Duration, data.Extra2, args.Y - data.Extra2);
         return false;
     } else {
-        target->U2 = mover.X;
-        target->V2 = mover.Y;
+        target->U2 = args.X;
+        target->V2 = args.Y;
         return true;
     }
 }
@@ -759,27 +748,13 @@ SClippingSprite::SClippingSprite(int w, int h) : SSynthSprite(w, h)
 
 }
 
-function<bool(SSprite*, Mover&, double)> SClippingSprite::GetCustomAction(const string & name)
+MoverFunction::Action SClippingSprite::GetCustomAction(const string & name)
 {
     switch (crc32_rec(0xffffffff, name.c_str())) {
         case "range_size"_crc32:
             return ActionMoveRangeTo;
     }
     return nullptr;
-}
-
-void SClippingSprite::ParseCustomMover(Mover * mover, const vector<tuple<string, string>>& params)
-{
-    for (auto &p : params) {
-        switch (crc32_rec(0xffffffff, get<0>(p).c_str())) {
-            case "width"_crc32:
-                mover->X = ToDouble(get<1>(p).c_str());
-                break;
-            case "height"_crc32:
-                mover->Y = ToDouble(get<1>(p).c_str());
-                break;
-        }
-    }
 }
 
 void SClippingSprite::SetRange(double tx, double ty, double w, double h)

@@ -52,4 +52,5 @@ public:
 
     void Apply(const std::string &application);
     void AddMove(const std::string &params);
+    void Abort(bool completeMove);
 };

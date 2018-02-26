@@ -28,7 +28,9 @@ ScriptSpriteMover2::ScriptSpriteMover2(SSprite *target)
 }
 
 ScriptSpriteMover2::~ScriptSpriteMover2()
-{}
+{
+    moves.clear();
+}
 
 void ScriptSpriteMover2::Tick(double delta)
 {
@@ -48,7 +50,7 @@ void ScriptSpriteMover2::Tick(double delta)
         bool result = mobj->Function(Target, mobj->Argument, mobj->Data, delta);
         mobj->Data.Now += delta;
         if (mobj->Data.Now >= mobj->Argument.Duration || result) {
-            mobj->Function(Target, mobj->Argument, mobj->Data, 0);
+            mobj->Function(Target, mobj->Argument, mobj->Data, -1);
             i = moves.erase(i);
         } else {
             ++i;
@@ -83,6 +85,12 @@ void ScriptSpriteMover2::AddMove(const string &mover)
     auto mobj = BuildMoverObject(funcname, params);
     mobj->Function(Target, mobj->Argument, mobj->Data, 0);
     moves.push_back(move(mobj));
+}
+
+void ScriptSpriteMover2::Abort(bool completeMove)
+{
+    if (completeMove) for (const auto &mobj : moves) mobj->Function(Target, mobj->Argument, mobj->Data, -1);
+    moves.clear();
 }
 
 void ScriptSpriteMover2::ApplyProperty(const string &prop, const string &value)
@@ -138,6 +146,7 @@ std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const st
         result->Function = MoverFunction::Actions[func];
     } else {
         // TODO: ƒJƒXƒ^ƒ€Mover‚É‘Î‰ž
+        auto custom = Target->GetCustomAction(func);
         return nullptr;
     }
 
