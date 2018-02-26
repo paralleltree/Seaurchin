@@ -145,11 +145,14 @@ void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunctio
 
 void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunction *func, AbilityNoteType type)
 {
+    auto st = chrono::high_resolution_clock::now();
     context->Prepare(func);
     context->SetObject(obj);
     context->SetArgAddress(0, TargetResult.get());
     context->SetArgDWord(1, (asDWORD)type);
     context->Execute();
+    auto en = chrono::high_resolution_clock::now();
+    spdlog::get("main")->info("Event: {0}us", chrono::duration_cast<chrono::microseconds>(en - st).count());
 }
 
 void CharacterInstance::OnStart()

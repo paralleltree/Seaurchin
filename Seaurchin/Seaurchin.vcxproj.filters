@@ -177,6 +177,9 @@
     <ClCompile Include="CharacterInstance.cpp">
       <Filter>インターフェース\キャラクター</Filter>
     </ClCompile>
+    <ClCompile Include="ScriptSpriteMover2.cpp">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">
@@ -316,6 +319,9 @@
     </ClInclude>
     <ClInclude Include="Crc32.h">
       <Filter>ヘッダー ファイル\ライブラリ</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptSpriteMover2.h">
+      <Filter>インターフェース\描画システム</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

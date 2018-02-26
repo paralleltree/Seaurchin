@@ -144,6 +144,7 @@
     <ClCompile Include="ScriptScene.cpp" />
     <ClCompile Include="ScriptSprite.cpp" />
     <ClCompile Include="ScriptSpriteManager.cpp" />
+    <ClCompile Include="ScriptSpriteMover2.cpp" />
     <ClCompile Include="Setting.cpp" />
     <ClCompile Include="Skill.cpp" />
     <ClCompile Include="SkinHolder.cpp" />
@@ -166,6 +167,7 @@
     <ClInclude Include="CharacterInstance.h" />
     <ClInclude Include="Crc32.h" />
     <ClInclude Include="ExtensionManager.h" />
+    <ClInclude Include="ScriptSpriteMover2.h" />
     <ClInclude Include="SeaurchinExtension.h" />
     <ClInclude Include="AngelScriptManager.h" />
     <ClInclude Include="Character.h" />
