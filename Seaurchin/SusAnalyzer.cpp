@@ -89,8 +89,8 @@ void SusAnalyzer::Reset()
     // TicksPerBeat = ;
     SharedMetaData.Reset();
 
-    BpmDefinitions[1] = 120.0;
-    BeatsDefinitions[1] = 4.0;
+    BpmDefinitions[0] = 120.0;
+    BeatsDefinitions[0] = 4.0;
 
     auto defhs = make_shared<SusHispeedTimeline>([&](uint32_t m, uint32_t t) { return GetAbsoluteTime(m, t); });
     defhs->AddKeysByString("0'0:1.0:v", TimelineResolver);
@@ -338,7 +338,8 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, uint32_t line)
         transform(meas.cbegin(), meas.cend(), meas.begin(), toupper);
         if (meas == "BPM") {
             auto number = ConvertHexatridecimal(lane);
-            BpmDefinitions[number] = ConvertFloat(pattern);
+            double value = ConvertFloat(pattern);
+            BpmDefinitions[number] = value;
         } else if (meas == "TIL") {
             auto number = ConvertHexatridecimal(lane);
             auto it = HispeedDefinitions.find(number);
