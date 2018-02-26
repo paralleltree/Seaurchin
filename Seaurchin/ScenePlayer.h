@@ -188,6 +188,7 @@ public:
     void GetCurrentResult(DrawableResult *result);
     void MovePositionBySecond(double sec);
     void MovePositionByMeasure(int meas);
+    void SetJudgeCallback(asIScriptFunction *func);
     void Pause();
     void Resume();
     void Reload();

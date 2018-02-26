@@ -37,6 +37,7 @@ void RegisterPlayerScene(ExecutionManager * manager)
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void GetCurrentResult(" SU_IF_DRESULT " &out)", asMETHOD(ScenePlayer, GetCurrentResult), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void MovePositionBySecond(double)", asMETHOD(ScenePlayer, MovePositionBySecond), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void MovePositionByMeasure(int)", asMETHOD(ScenePlayer, MovePositionByMeasure), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void SetJudgeCallback(" SU_IF_JUDGE_CALLBACK "@)", asMETHOD(ScenePlayer, SetJudgeCallback), asCALL_THISCALL);
 }
 
 
@@ -513,6 +514,12 @@ void ScenePlayer::Reload()
     bgmStream->SetPlayingPosition(bgmMeantToBePlayedAt);
     CurrentTime = prevCurrentTime;
     State = PlayingState::Paused;
+}
+
+void ScenePlayer::SetJudgeCallback(asIScriptFunction *func)
+{
+    if (!CurrentCharacterInstance) return;
+    CurrentCharacterInstance->SetCallback(func);
 }
 
 void ScenePlayer::AdjustCamera(double cy, double cz, double ctz)
