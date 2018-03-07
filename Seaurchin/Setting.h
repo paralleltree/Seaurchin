@@ -127,7 +127,7 @@ public:
 class StringSettingItem final : public SettingItem {
 private:
     std::string Value;
-    bool Default;
+    std::string Default;
 
 public:
     StringSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);

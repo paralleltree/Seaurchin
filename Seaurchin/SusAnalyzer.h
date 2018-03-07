@@ -124,6 +124,7 @@ struct SusMetaData {
         WaveOffset = 0;
         BaseBpm = 0;
         Level = 0;
+        ShowBpm = -1;
         DifficultyType = 0;
         UExtraDifficulty = u8"";
         ExtraFlags.reset();
