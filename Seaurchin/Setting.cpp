@@ -378,8 +378,8 @@ void StringSettingItem::Build(const toml::Value &table)
 {
     SettingItem::Build(table);
     auto d = table.find("Default");
-    if (d && d->is<bool>()) {
-        Default = d->as<bool>();
+    if (d && d->is<string>()) {
+        Default = d->as<string>();
     }
 }
 

@@ -153,7 +153,7 @@ void ExecutionManager::ExecuteSkin()
     }
     auto skincfg = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SKIN_DIR / ConvertUTF8ToUnicode(sn) / SU_SETTING_DEFINITION_FILE;
     if (exists(skincfg)) {
-        log->info("スキンの設定定義ファイルが有効です");
+        log->info(u8"スキンの設定定義ファイルが有効です");
         SettingManager->LoadItemsFromToml(skincfg);
         SettingManager->RetrieveAllValues();
     }
