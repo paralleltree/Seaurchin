@@ -82,11 +82,14 @@ SusAnalyzer::~SusAnalyzer()
 void SusAnalyzer::Reset()
 {
     Notes.clear();
+    BpmChanges.clear();
     BpmDefinitions.clear();
     BeatsDefinitions.clear();
     HispeedDefinitions.clear();
     ExtraAttributes.clear();
-    // TicksPerBeat = ;
+    TicksPerBeat = 192;  // todo
+    LongInjectionPerBeat = 2;
+    SegmentsPerSecond = 20;
     SharedMetaData.Reset();
 
     BpmDefinitions[1] = 120.0;

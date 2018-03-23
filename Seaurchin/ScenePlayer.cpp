@@ -133,6 +133,7 @@ void ScenePlayer::LoadWorker()
     auto mm = manager->GetMusicsManager();
     auto scorefile = mm->GetSelectedScorePath();
 
+    analyzer->Reset();
     analyzer->LoadFromFile(scorefile.wstring());
     MetronomeAvailable = !analyzer->SharedMetaData.ExtraFlags[(size_t)SusMetaDataFlags::DisableMetronome];
     analyzer->RenderScoreData(data, curveData);
