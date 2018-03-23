@@ -110,6 +110,7 @@ struct SusMetaData {
     double MovieOffset = 0;
     double BaseBpm = 0;
     double ShowBpm = -1;
+    double ScoreDuration = 0;
     uint32_t Level = 0;
     uint32_t DifficultyType = 0;
     std::string UExtraDifficulty = "";
@@ -125,6 +126,7 @@ struct SusMetaData {
         BaseBpm = 0;
         Level = 0;
         ShowBpm = -1;
+        ScoreDuration = 0;
         DifficultyType = 0;
         UExtraDifficulty = u8"";
         ExtraFlags.reset();

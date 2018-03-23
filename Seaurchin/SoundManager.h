@@ -55,6 +55,7 @@ public:
     static SoundStream *CreateFromFile(const std::wstring &fileNameW);
     double GetPlayingPosition();
     void SetPlayingPosition(double pos);
+    inline DWORD GetStatus() { return BASS_ChannelIsActive(hStream); }
 };
 
 class SoundMixerStream {

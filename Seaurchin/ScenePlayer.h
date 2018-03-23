@@ -57,6 +57,7 @@ enum class PlayingState {
     BothOngoing,        // 両方再生してる
     ScoreLasting,       // 譜面残ってる
     BgmLasting,         // 曲残ってる
+    Completed,          // 全部終わった
 };
 
 class ExecutionManager;
@@ -85,6 +86,7 @@ protected:
     bool isReady = false;
     bool isTerminating = false;
     bool usePrioritySort = false;
+    bool hasEnded = false;
 
     double cameraZ = -340, cameraY = 620, cameraTargetZ = 580; // スクショから計測
     double laneBufferX = 1024;
@@ -135,6 +137,7 @@ protected:
     double PreloadingTime = 0.5;
     double BackingTime = 0.0;
     double NextMetronomeTime = 0.0;
+    double ScoreDuration = 0.0;
     double SoundBufferingLatency = 0.030;   //TODO: 環境に若干寄り添う
     PlayingState State = PlayingState::ScoreNotLoaded;
     PlayingState LastState;

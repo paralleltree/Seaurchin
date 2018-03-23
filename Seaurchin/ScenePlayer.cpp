@@ -140,6 +140,7 @@ void ScenePlayer::LoadWorker()
     usePrioritySort = analyzer->SharedMetaData.ExtraFlags[(size_t)SusMetaDataFlags::EnableDrawPriority];
     processor->Reset();
     State = PlayingState::BgmNotLoaded;
+    ScoreDuration = analyzer->SharedMetaData.ScoreDuration;
 
     auto file = boost::filesystem::path(scorefile).parent_path() / ConvertUTF8ToUnicode(analyzer->SharedMetaData.UWaveFileName);
     bgmStream = SoundStream::CreateFromFile(file.wstring().c_str());
@@ -323,8 +324,30 @@ void ScenePlayer::ProcessSound()
             }
             break;
         case PlayingState::BothOngoing:
-            // BgmLastingÇÕé¿éøÇ»Ç≥ÇªÇ§Ç≈Ç∑ÇÀÅc
-            //TODO: ã»ÇÃçƒê∂Ç…âûÇ∂ÇƒScoreLastingÇ÷à⁄çs
+            if (bgmStream->GetStatus() == BASS_ACTIVE_STOPPED) {
+                if (CurrentTime >= ScoreDuration) {
+                    hasEnded = true;
+                    State = PlayingState::Completed;
+                } else {
+                    State = PlayingState::ScoreLasting;
+                }
+            } else {
+                if (CurrentTime >= ScoreDuration) {
+                    hasEnded = true;
+                    State = PlayingState::BgmLasting;
+                }
+            }
+            break;
+        case PlayingState::BgmLasting:
+            if (bgmStream->GetStatus() == BASS_ACTIVE_STOPPED) {
+                State = PlayingState::Completed;
+            }
+            break;
+        case PlayingState::ScoreLasting:
+            if (CurrentTime >= ScoreDuration) {
+                hasEnded = true;
+                State = PlayingState::Completed;
+            }
             break;
     }
 
@@ -448,6 +471,7 @@ void ScenePlayer::MovePositionBySecond(double sec)
 {
     //é¿ç€Ç…ìÆÇ¢ÇΩéûä‘Ç≈åvéZÇπÇÊ
     if (State < PlayingState::BothOngoing && State != PlayingState::Paused) return;
+    if (hasEnded) return;
     double gap = analyzer->SharedMetaData.WaveOffset - SoundBufferingLatency;
     double oldBgmPos = bgmStream->GetPlayingPosition();
     double oldTime = CurrentTime;
@@ -464,6 +488,7 @@ void ScenePlayer::MovePositionBySecond(double sec)
 void ScenePlayer::MovePositionByMeasure(int meas)
 {
     if (State < PlayingState::BothOngoing && State != PlayingState::Paused) return;
+    if (hasEnded) return;
     double gap = analyzer->SharedMetaData.WaveOffset - SoundBufferingLatency;
     double oldBgmPos = bgmStream->GetPlayingPosition();
     double oldTime = CurrentTime;
@@ -480,7 +505,7 @@ void ScenePlayer::MovePositionByMeasure(int meas)
 
 void ScenePlayer::Pause()
 {
-    if (State <= PlayingState::Paused) return;
+    if (State <= PlayingState::Paused || hasEnded) return;
     LastState = State;
     State = PlayingState::Paused;
     bgmStream->Pause();

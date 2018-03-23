@@ -725,6 +725,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                 MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"ロングノーツに終点がありません。");
             } else {
                 data.push_back(noteData);
+                SharedMetaData.ScoreDuration = max(SharedMetaData.ScoreDuration, noteData->StartTime + noteData->Duration);
                 if (genCurve) CalculateCurves(noteData, curveData);
             }
         } else if (bits & SU_NOTE_SHORT_MASK) {
@@ -741,7 +742,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
             noteData->ExtraAttribute = info.ExtraAttribute;
             noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
             data.push_back(noteData);
-
+            SharedMetaData.ScoreDuration = max(SharedMetaData.ScoreDuration, noteData->StartTime);
         } else {
             MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"致命的なノーツエラー(不正な内部表現です)。");
         }
