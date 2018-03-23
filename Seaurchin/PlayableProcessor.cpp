@@ -193,6 +193,11 @@ void PlayableProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
         Player->EnqueueJudgeSound(JudgeSoundType::ExTap);
         Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
         Player->SpawnJudgeEffect(note, JudgeType::ShortEx);
+    } else if (note->Type.test((size_t)SusNoteType::AwesomeExTap)) {
+        if (!CheckJudgement(note)) return;
+        Player->EnqueueJudgeSound(JudgeSoundType::ExTap);
+        Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
+        Player->SpawnJudgeEffect(note, JudgeType::ShortEx);
     } else if (note->Type.test((size_t)SusNoteType::Flick)) {
         if (!CheckJudgement(note)) return;
         Player->EnqueueJudgeSound(JudgeSoundType::Flick);
@@ -223,7 +228,7 @@ bool PlayableProcessor::CheckJudgement(shared_ptr<SusDrawableNoteData> note)
     }
     for (int i = note->StartLane; i < note->StartLane + note->Length; i++) {
         if (!CurrentState->GetTriggerState(ControllerSource::IntegratedSliders, i)) continue;
-        if (note->Type[(size_t)SusNoteType::ExTap]) {
+        if (note->Type[(size_t)SusNoteType::ExTap] || note->Type[(size_t)SusNoteType::AwesomeExTap]) {
             IncrementComboEx(note);
         } else if (note->Type[(size_t)SusNoteType::Flick]) {
             IncrementCombo(note, reltime, AbilityNoteType::Flick);
@@ -535,7 +540,11 @@ void PlayableProcessor::IncrementComboEx(std::shared_ptr<SusDrawableNoteData> no
 {
     note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
     Player->CurrentResult->PerformJusticeCritical();
-    Player->CurrentCharacterInstance->OnJusticeCritical(AbilityNoteType::ExTap);
+    Player->CurrentCharacterInstance->OnJusticeCritical(
+        note->Type[(size_t)SusNoteType::AwesomeExTap]
+        ? AbilityNoteType::AwesomeExTap
+        : AbilityNoteType::ExTap
+    );
 }
 
 void PlayableProcessor::IncrementComboHell(std::shared_ptr<SusDrawableNoteData> note, int state)

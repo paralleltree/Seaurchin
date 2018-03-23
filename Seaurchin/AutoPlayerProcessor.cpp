@@ -209,6 +209,12 @@ void AutoPlayerProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
         Player->SpawnJudgeEffect(note, JudgeType::ShortEx);
         IncrementCombo(AbilityNoteType::ExTap);
         note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
+    } else if (note->Type.test((size_t)SusNoteType::AwesomeExTap)) {
+        Player->EnqueueJudgeSound(JudgeSoundType::ExTap);
+        Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
+        Player->SpawnJudgeEffect(note, JudgeType::ShortEx);
+        IncrementCombo(AbilityNoteType::AwesomeExTap);
+        note->OnTheFlyData.set((size_t)NoteAttribute::Finished);
     } else if (note->Type.test((size_t)SusNoteType::Flick)) {
         Player->EnqueueJudgeSound(JudgeSoundType::Flick);
         Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
