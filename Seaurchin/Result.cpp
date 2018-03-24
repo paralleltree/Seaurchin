@@ -96,6 +96,9 @@ void Result::GetCurrentResult(DrawableResult *result)
     result->MaxCombo = MaxCombo;
     result->Score = round(CurrentScore);
 
+    result->Notes = Notes;
+    result->PastNotes = JusticeCritical + Justice + Attack + Miss;
+
     result->FulfilledGauges = 0;
     result->CurrentGaugeRatio = 0;
     result->RawGaugeValue = GaugeValue;
@@ -120,6 +123,8 @@ void RegisterResultTypes(asIScriptEngine *engine)
     engine->RegisterObjectProperty(SU_IF_DRESULT, "uint32 Miss", asOFFSET(DrawableResult, Miss));
     engine->RegisterObjectProperty(SU_IF_DRESULT, "uint32 Combo", asOFFSET(DrawableResult, Combo));
     engine->RegisterObjectProperty(SU_IF_DRESULT, "uint32 MaxCombo", asOFFSET(DrawableResult, MaxCombo));
+    engine->RegisterObjectProperty(SU_IF_DRESULT, "uint32 Notes", asOFFSET(DrawableResult, Notes));
+    engine->RegisterObjectProperty(SU_IF_DRESULT, "uint32 PastNotes", asOFFSET(DrawableResult, PastNotes));
     engine->RegisterObjectProperty(SU_IF_DRESULT, "uint32 Score", asOFFSET(DrawableResult, Score));
     engine->RegisterObjectProperty(SU_IF_DRESULT, "uint32 FulfilledGauges", asOFFSET(DrawableResult, FulfilledGauges));
     engine->RegisterObjectProperty(SU_IF_DRESULT, "double CurrentGaugeRatio", asOFFSET(DrawableResult, CurrentGaugeRatio));

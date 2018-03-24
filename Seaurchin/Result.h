@@ -12,6 +12,9 @@ struct DrawableResult {
     uint32_t Combo;
     uint32_t MaxCombo;
 
+    uint32_t Notes;
+    uint32_t PastNotes;
+
     uint32_t FulfilledGauges;
     double CurrentGaugeRatio;
     double RawGaugeValue;
