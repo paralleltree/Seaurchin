@@ -327,6 +327,7 @@ void ScenePlayer::ProcessSound()
             if (bgmStream->GetStatus() == BASS_ACTIVE_STOPPED) {
                 if (CurrentTime >= ScoreDuration) {
                     hasEnded = true;
+                    manager->Fire("Player:Completed");
                     State = PlayingState::Completed;
                 } else {
                     State = PlayingState::ScoreLasting;
@@ -340,12 +341,14 @@ void ScenePlayer::ProcessSound()
             break;
         case PlayingState::BgmLasting:
             if (bgmStream->GetStatus() == BASS_ACTIVE_STOPPED) {
+                manager->Fire("Player:Completed");
                 State = PlayingState::Completed;
             }
             break;
         case PlayingState::ScoreLasting:
             if (CurrentTime >= ScoreDuration) {
                 hasEnded = true;
+                manager->Fire("Player:Completed");
                 State = PlayingState::Completed;
             }
             break;
@@ -553,4 +556,9 @@ void ScenePlayer::AdjustCamera(double cy, double cz, double ctz)
     cameraY += cy;
     cameraZ += cz;
     cameraTargetZ += ctz;
+}
+
+void ScenePlayer::StoreResult()
+{
+    CurrentResult->GetCurrentResult(&manager->LastResult);
 }

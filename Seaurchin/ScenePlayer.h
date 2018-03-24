@@ -195,6 +195,7 @@ public:
     void Pause();
     void Resume();
     void Reload();
+    void StoreResult();
 };
 
 void RegisterPlayerScene(ExecutionManager *exm);

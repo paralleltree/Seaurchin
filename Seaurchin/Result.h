@@ -14,6 +14,8 @@ struct DrawableResult {
 
     uint32_t FulfilledGauges;
     double CurrentGaugeRatio;
+    double RawGaugeValue;
+    double GaugeBySkill;
 
     uint32_t Score;
 };
@@ -30,6 +32,7 @@ private:
 
     double GaugeValue;
     double GaugePerJusticeCritical;
+    double GaugeBoostBySkill;
 
     double CurrentScore;
     double ScorePerJusticeCritical;

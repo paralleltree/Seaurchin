@@ -46,3 +46,8 @@ SSettingItem *ExecutionManager::GetSettingItem(const string &group, const string
     result->AddRef();
     return result;
 }
+
+void ExecutionManager::GetStoredResult(DrawableResult *result)
+{
+    *result = LastResult;
+}

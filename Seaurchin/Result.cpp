@@ -14,7 +14,7 @@ void Result::Reset()
     Justice = 0;
     Attack = 0;
     Miss = 0;
-    GaugeValue = 0;
+    GaugeValue = GaugeBoostBySkill = 0;
     CurrentScore = 0;
     CurrentCombo = MaxCombo = 0;
 }
@@ -58,25 +58,26 @@ void Result::PerformMiss()
 void Result::BoostGaugeByValue(int value)
 {
     GaugeValue += value;
+    GaugeBoostBySkill += value;
     GaugeValue = std::max(0.0, GaugeValue);
 }
 
 void Result::BoostGaugeJusticeCritical(double ratio)
 {
-    GaugeValue += GaugePerJusticeCritical * ratio;
-    GaugeValue = std::max(0.0, GaugeValue);
+    double value = GaugePerJusticeCritical * ratio;
+    BoostGaugeByValue(value);
 }
 
 void Result::BoostGaugeJustice(double ratio)
 {
-    GaugeValue += GaugePerJusticeCritical * ratio * 0.5;
-    GaugeValue = std::max(0.0, GaugeValue);
+    double value = GaugePerJusticeCritical * ratio * 0.5;
+    BoostGaugeByValue(value);
 }
 
 void Result::BoostGaugeAttack(double ratio)
 {
-    GaugeValue += GaugePerJusticeCritical * ratio * 0.1;
-    GaugeValue = std::max(0.0, GaugeValue);
+    double value = GaugePerJusticeCritical * ratio * 0.1;
+    BoostGaugeByValue(value);
 }
 
 void Result::BoostGaugeMiss(double ratio)
@@ -97,6 +98,8 @@ void Result::GetCurrentResult(DrawableResult *result)
 
     result->FulfilledGauges = 0;
     result->CurrentGaugeRatio = 0;
+    result->RawGaugeValue = GaugeValue;
+    result->GaugeBySkill = GaugeBoostBySkill;
     auto cg = round(GaugeValue);
     auto ng = 12000;
     auto delta = 2000;
@@ -120,6 +123,8 @@ void RegisterResultTypes(asIScriptEngine *engine)
     engine->RegisterObjectProperty(SU_IF_DRESULT, "uint32 Score", asOFFSET(DrawableResult, Score));
     engine->RegisterObjectProperty(SU_IF_DRESULT, "uint32 FulfilledGauges", asOFFSET(DrawableResult, FulfilledGauges));
     engine->RegisterObjectProperty(SU_IF_DRESULT, "double CurrentGaugeRatio", asOFFSET(DrawableResult, CurrentGaugeRatio));
+    engine->RegisterObjectProperty(SU_IF_DRESULT, "double RawGaugeValue", asOFFSET(DrawableResult, RawGaugeValue));
+    engine->RegisterObjectProperty(SU_IF_DRESULT, "double GaugeBySkill", asOFFSET(DrawableResult, GaugeBySkill));
 
     engine->RegisterObjectType(SU_IF_RESULT, 0, asOBJ_REF | asOBJ_NOCOUNT);
     engine->RegisterObjectMethod(SU_IF_RESULT, "void PerformJusticeCritical()", asMETHOD(Result, PerformJusticeCritical), asCALL_THISCALL);

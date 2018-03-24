@@ -14,6 +14,8 @@
 #include "Skill.h"
 
 class ExecutionManager final {
+    friend class ScenePlayer;
+
 private:
     std::shared_ptr<Setting> SharedSetting;
     std::unique_ptr<Setting2::SettingItemManager> SettingManager;
@@ -30,6 +32,7 @@ private:
     std::shared_ptr<CharacterManager> Characters;
     std::shared_ptr<SkillManager> Skills;
     std::unordered_map<std::string, boost::any> optionalData;
+    DrawableResult LastResult;
     HIMC hImc;
     DWORD ImmConversion, ImmSentence;
     SSoundMixer *MixerBGM, *MixerSE;
@@ -70,7 +73,7 @@ public:
     ScenePlayer *CreatePlayer();
     SSoundMixer *GetDefaultMixer(const std::string &name);
     SSettingItem *GetSettingItem(const std::string &group, const std::string &key);
-    
+    void GetStoredResult(DrawableResult *result);
 
     template<typename T>
     void SetData(const std::string &name, const T& data);
