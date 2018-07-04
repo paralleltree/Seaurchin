@@ -374,31 +374,31 @@ void ScenePlayer::ProcessSoundQueue()
         }
         switch (type) {
             case JudgeSoundType::Tap:
-                soundManager->PlayGlobal(soundTap->GetSample());
+                if (soundTap) soundManager->PlayGlobal(soundTap->GetSample());
                 break;
             case JudgeSoundType::ExTap:
-                soundManager->PlayGlobal(soundExTap->GetSample());
+                if (soundExTap) soundManager->PlayGlobal(soundExTap->GetSample());
                 break;
             case JudgeSoundType::Flick:
-                soundManager->PlayGlobal(soundFlick->GetSample());
+                if (soundFlick) soundManager->PlayGlobal(soundFlick->GetSample());
                 break;
             case JudgeSoundType::Air:
-                soundManager->PlayGlobal(soundAir->GetSample());
+                if (soundAir) soundManager->PlayGlobal(soundAir->GetSample());
                 break;
             case JudgeSoundType::AirAction:
-                soundManager->PlayGlobal(soundAirAction->GetSample());
+                if (soundAirAction) soundManager->PlayGlobal(soundAirAction->GetSample());
                 break;
             case JudgeSoundType::Holding:
-                soundManager->PlayGlobal(soundHoldLoop->GetSample());
+                if (soundHoldLoop) soundManager->PlayGlobal(soundHoldLoop->GetSample());
                 break;
             case JudgeSoundType::HoldingStop:
-                soundManager->StopGlobal(soundHoldLoop->GetSample());
+                if (soundHoldLoop) soundManager->StopGlobal(soundHoldLoop->GetSample());
                 break;
             case JudgeSoundType::Sliding:
-                soundManager->PlayGlobal(soundSlideLoop->GetSample());
+                if (soundSlideLoop) soundManager->PlayGlobal(soundSlideLoop->GetSample());
                 break;
             case JudgeSoundType::SlidingStop:
-                soundManager->StopGlobal(soundSlideLoop->GetSample());
+                if (soundSlideLoop) soundManager->StopGlobal(soundSlideLoop->GetSample());
                 break;
         }
     }
