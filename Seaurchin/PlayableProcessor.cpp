@@ -181,7 +181,11 @@ void PlayableProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
         CheckAirActionJudgement(note);
     } else if (note->Type.test((size_t)SusNoteType::Air)) {
         if (!CheckAirJudgement(note)) return;
-        Player->EnqueueJudgeSound(JudgeSoundType::Air);
+        if (note->Type[(size_t)SusNoteType::Up]) {
+            Player->EnqueueJudgeSound(JudgeSoundType::Air);
+        } else {
+            Player->EnqueueJudgeSound(JudgeSoundType::AirDown);
+        }
         Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
         Player->SpawnJudgeEffect(note, JudgeType::ShortEx);
     } else if (note->Type.test((size_t)SusNoteType::Tap)) {

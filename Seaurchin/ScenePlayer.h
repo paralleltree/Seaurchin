@@ -38,6 +38,7 @@ enum class JudgeSoundType {
     ExTap,
     Flick,
     Air,
+    AirDown,
     AirAction,
     Holding,
     HoldingStop,
@@ -100,7 +101,7 @@ protected:
     double actualNoteScaleX = (widthPerLane / 2) / noteImageBlockX;
     double actualNoteScaleY = actualNoteScaleX * scaleNoteY;
 
-    SSound *soundTap, *soundExTap, *soundFlick, *soundAir, *soundAirAction, *soundHoldLoop, *soundSlideLoop;
+    SSound *soundTap, *soundExTap, *soundFlick, *soundAir, *soundAirDown, *soundAirAction, *soundHoldLoop, *soundSlideLoop;
     SImage *imageLaneGround, *imageLaneJudgeLine;
     SImage *imageTap, *imageExTap, *imageFlick, *imageHellTap;
     SImage *imageAirUp, *imageAirDown;

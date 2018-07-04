@@ -127,6 +127,7 @@ public:
 
     inline SoundSample *GetSample() { return sample; }
     void SetLoop(bool looping);
+    void SetVolume(float vol);
 
     static SSound* CreateSound(SoundManager *smanager);
     static SSound* CreateSoundFromFile(SoundManager *smanager, const std::string &file, int simul);

@@ -393,6 +393,11 @@ void SSound::SetLoop(bool looping)
     sample->SetLoop(looping);
 }
 
+void SSound::SetVolume(float vol)
+{
+    sample->SetVolume(vol);
+}
+
 SSound * SSound::CreateSound(SoundManager *smanager)
 {
     auto result = new SSound(nullptr);

@@ -111,7 +111,7 @@ void ScenePlayer::Finalize()
     isTerminating = true;
     soundManager->StopGlobal(soundHoldLoop->GetSample());
     soundManager->StopGlobal(soundSlideLoop->GetSample());
-    for (auto& res : resources) res.second->Release();
+    for (auto& res : resources) if (res.second) res.second->Release();
     soundManager->StopGlobal(bgmStream);
     delete processor;
     delete bgmStream;
@@ -384,6 +384,9 @@ void ScenePlayer::ProcessSoundQueue()
                 break;
             case JudgeSoundType::Air:
                 if (soundAir) soundManager->PlayGlobal(soundAir->GetSample());
+                break;
+            case JudgeSoundType::AirDown:
+                if (soundAirDown) soundManager->PlayGlobal(soundAirDown->GetSample());
                 break;
             case JudgeSoundType::AirAction:
                 if (soundAirAction) soundManager->PlayGlobal(soundAirAction->GetSample());

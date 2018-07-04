@@ -193,7 +193,11 @@ void AutoPlayerProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
             extra->OnTheFlyData.set((size_t)NoteAttribute::Finished);
         }
     } else if (note->Type.test((size_t)SusNoteType::Air)) {
-        Player->EnqueueJudgeSound(JudgeSoundType::Air);
+        if (note->Type[(size_t)SusNoteType::Up]) {
+            Player->EnqueueJudgeSound(JudgeSoundType::Air);
+        } else {
+            Player->EnqueueJudgeSound(JudgeSoundType::AirDown);
+        }
         Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
         Player->SpawnJudgeEffect(note, JudgeType::ShortEx);
         IncrementCombo(AbilityNoteType::Air);
