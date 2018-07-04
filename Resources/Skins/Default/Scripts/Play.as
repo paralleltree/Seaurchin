@@ -190,7 +190,7 @@ class Play : CoroutineScene {
         }
       }
       if (dsNow.CurrentGaugeRatio != dsPrev.CurrentGaugeRatio) {
-        spBarFill.AddMove("range_size(width:" + formatFloat(dsNow.CurrentGaugeRatio, '', 1, 4) + ", height:1, time:0.1, ease:out_sine)");
+        spBarFill.AddMove("range_size(x:" + formatFloat(dsNow.CurrentGaugeRatio, '', 1, 4) + ", y:1, time:0.1, ease:out_sine)");
         txtScore.SetText(formatInt(dsNow.Score, "", 8));
       }
       if (dsNow.MaxCombo != dsPrev.MaxCombo) txtMaxCombo.SetText(formatInt(dsNow.MaxCombo, "", 5));

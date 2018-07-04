@@ -320,17 +320,17 @@ void ScenePlayer::DrawAirNotes(shared_ptr<SusDrawableNoteData> note)
     auto left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, slane / 16.0);
     auto right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, (slane + length) / 16.0);
     auto speed = note->Timeline->GetSpeedAt(CurrentTime);
-    auto reftime = CurrentTime * speed;
-    if (reftime < 0) reftime += ((int)(reftime / -0.5) + 1) * 0.5;
+    // TODO: ‚à‚Á‚Æ‚Ü‚Æ‚à‚É³‚Ì’l‚¾‚¯Žæ‚é•û–@l‚¦‚ë
+    auto reftime = (CurrentTime + 60.0) * speed;
     auto xadjust = note->Type.test((size_t)SusNoteType::Left) ? -80.0 : (note->Type.test((size_t)SusNoteType::Right) ? 80.0 : 0);
-    auto role = note->Type.test((size_t)SusNoteType::Up) ? fmod(CurrentTime * speed * 2.0, 0.5) : 0.5 - fmod(CurrentTime * speed, 0.5);
+    auto role = note->Type.test((size_t)SusNoteType::Up) ? fmod(reftime, 0.5) : 0.5 - fmod(reftime, 0.5);
     auto handle = note->Type.test((size_t)SusNoteType::Up) ? imageAirUp->GetHandle() : imageAirDown->GetHandle();
 
     VERTEX3D vertices[] = {
         { VGet(left + xadjust, SU_LANE_Y_AIRINDICATE, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.0f, role, 0.0f, 0.0f },
-    { VGet(right + xadjust, SU_LANE_Y_AIRINDICATE, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0f, role, 0.0f, 0.0f },
-    { VGet(right, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0f, role + 0.5f, 0.0f, 0.0f },
-    { VGet(left, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.0f, role + 0.5f, 0.0f, 0.0f }
+        { VGet(right + xadjust, SU_LANE_Y_AIRINDICATE, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0f, role, 0.0f, 0.0f },
+        { VGet(right, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0f, role + 0.5f, 0.0f, 0.0f },
+        { VGet(left, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.0f, role + 0.5f, 0.0f, 0.0f }
     };
     Prepare3DDrawCall();
     SetUseZBuffer3D(FALSE);
