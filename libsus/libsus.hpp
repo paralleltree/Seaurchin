@@ -40,4 +40,21 @@ struct RelativeNote {
     uint8_t Width;
 };
 
+enum class Result {
+    Success = 0,
+    Error,
+
+    Inserted,
+    Updated,
+    Removed,
+    CannotRemove,
+};
+
+class ISus {
+public:
+    virtual void Truncate() = 0;
+    virtual void AddNote() = 0;
+    virtual void ReplaceNote() = 0;
+};
+
 }

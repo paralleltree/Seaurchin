@@ -66,7 +66,6 @@ SusAnalyzer::SusAnalyzer(uint32_t tpb)
 {
     TicksPerBeat = tpb;
     LongInjectionPerBeat = 2;
-    SegmentsPerSecond = 20;
     TimelineResolver = [=](uint32_t number) { return HispeedDefinitions[number]; };
     ErrorCallbacks.push_back([this](auto type, auto message) {
         auto log = spdlog::get("main");
@@ -89,7 +88,6 @@ void SusAnalyzer::Reset()
     ExtraAttributes.clear();
     TicksPerBeat = 192;  // todo
     LongInjectionPerBeat = 2;
-    SegmentsPerSecond = 20;
     SharedMetaData.Reset();
 
     BpmDefinitions[1] = 120.0;
@@ -312,7 +310,7 @@ void SusAnalyzer::ProcessRequest(const string &cmd, uint32_t line)
             }
             break;
         case "segments_per_second"_crc32:
-            SegmentsPerSecond = ConvertInteger(params[1]);
+            SharedMetaData.SegmentsPerSecond = ConvertInteger(params[1]);
             break;
     }
 }

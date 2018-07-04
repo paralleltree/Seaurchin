@@ -111,6 +111,7 @@ struct SusMetaData {
     double BaseBpm = 0;
     double ShowBpm = -1;
     double ScoreDuration = 0;
+    int SegmentsPerSecond = 20;
     uint32_t Level = 0;
     uint32_t DifficultyType = 0;
     std::string UExtraDifficulty = "";
@@ -127,6 +128,7 @@ struct SusMetaData {
         Level = 0;
         ShowBpm = -1;
         ScoreDuration = 0;
+        SegmentsPerSecond = 20;
         DifficultyType = 0;
         UExtraDifficulty = u8"";
         ExtraFlags.reset();
@@ -186,7 +188,6 @@ private:
     uint32_t DefaultExtraAttributeNumber = std::numeric_limits<uint32_t>::max();
     uint32_t TicksPerBeat;
     double LongInjectionPerBeat;
-    int SegmentsPerSecond;
     std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)> TimelineResolver = nullptr;
     std::vector<std::function<void(std::string, std::string)>> ErrorCallbacks;
     std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> Notes;

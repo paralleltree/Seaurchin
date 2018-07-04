@@ -1,2 +1,2 @@
-#include "libsus.h"
+#include "libsus.hpp"
 

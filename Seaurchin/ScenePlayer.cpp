@@ -141,6 +141,7 @@ void ScenePlayer::LoadWorker()
     processor->Reset();
     State = PlayingState::BgmNotLoaded;
     ScoreDuration = analyzer->SharedMetaData.ScoreDuration;
+    SegmentsPerSecond = analyzer->SharedMetaData.SegmentsPerSecond;
 
     auto file = boost::filesystem::path(scorefile).parent_path() / ConvertUTF8ToUnicode(analyzer->SharedMetaData.UWaveFileName);
     bgmStream = SoundStream::CreateFromFile(file.wstring().c_str());
@@ -169,7 +170,6 @@ void ScenePlayer::LoadWorker()
 void ScenePlayer::CalculateCurves(std::shared_ptr<SusDrawableNoteData> note)
 {
     auto lastStep = note;
-    double segmentsPerSecond = 20;   // Bufferã‚Å‚ÌÅ¬‚Ì’·‚³
     vector<tuple<double, double>> controlPoints;    // lastStep‚©‚ç‚ÌŠÔ, X’†‰›ˆÊ’u(0~1)
     vector<tuple<double, double>> bezierBuffer;
 
@@ -183,7 +183,7 @@ void ScenePlayer::CalculateCurves(std::shared_ptr<SusDrawableNoteData> note)
         }
         // End‚©Step‚©Invisible
         controlPoints.push_back(make_tuple(slideElement->StartTime - lastStep->StartTime, (slideElement->StartLane + slideElement->Length / 2.0) / 16.0));
-        int segmentPoints = segmentsPerSecond * (slideElement->StartTime - lastStep->StartTime) + 2;
+        int segmentPoints = SegmentsPerSecond * (slideElement->StartTime - lastStep->StartTime) + 2;
         vector<tuple<double, double>> segmentPositions;
         for (int j = 0; j < segmentPoints; j++) {
             double relativeTimeInBlock = j / (double)(segmentPoints - 1);

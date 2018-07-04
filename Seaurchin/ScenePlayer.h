@@ -139,6 +139,7 @@ protected:
     double NextMetronomeTime = 0.0;
     double ScoreDuration = 0.0;
     double SoundBufferingLatency = 0.030;   //TODO: ŠÂ‹«‚ÉŽáŠ±Šñ‚è“Y‚¤
+    double SegmentsPerSecond = 20.0;
     PlayingState State = PlayingState::ScoreNotLoaded;
     PlayingState LastState;
     bool AirActionShown = false;
