@@ -141,7 +141,6 @@ void ScenePlayer::LoadWorker()
     processor->Reset();
     State = PlayingState::BgmNotLoaded;
     ScoreDuration = analyzer->SharedMetaData.ScoreDuration;
-    SegmentsPerSecond = analyzer->SharedMetaData.SegmentsPerSecond;
 
     auto file = boost::filesystem::path(scorefile).parent_path() / ConvertUTF8ToUnicode(analyzer->SharedMetaData.UWaveFileName);
     bgmStream = SoundStream::CreateFromFile(file.wstring().c_str());
@@ -164,44 +163,6 @@ void ScenePlayer::LoadWorker()
         manager->SetData("Player:Artist", analyzer->SharedMetaData.UArtist);
         manager->SetData<int>("Player:Level", analyzer->SharedMetaData.Level);
         isLoadCompleted = true;
-    }
-}
-
-void ScenePlayer::CalculateCurves(std::shared_ptr<SusDrawableNoteData> note)
-{
-    auto lastStep = note;
-    vector<tuple<double, double>> controlPoints;    // lastStep‚©‚ç‚ÌŽžŠÔ, X’†‰›ˆÊ’u(0~1)
-    vector<tuple<double, double>> bezierBuffer;
-
-    controlPoints.push_back(make_tuple(0, (lastStep->StartLane + lastStep->Length / 2.0) / 16.0));
-    for (auto &slideElement : note->ExtraData) {
-        if (slideElement->Type.test((size_t)SusNoteType::Injection)) continue;
-        if (slideElement->Type.test((size_t)SusNoteType::Control)) {
-            auto cpi = make_tuple(slideElement->StartTime - lastStep->StartTime, (slideElement->StartLane + slideElement->Length / 2.0) / 16.0);
-            controlPoints.push_back(cpi);
-            continue;
-        }
-        // End‚©Step‚©Invisible
-        controlPoints.push_back(make_tuple(slideElement->StartTime - lastStep->StartTime, (slideElement->StartLane + slideElement->Length / 2.0) / 16.0));
-        int segmentPoints = SegmentsPerSecond * (slideElement->StartTime - lastStep->StartTime) + 2;
-        vector<tuple<double, double>> segmentPositions;
-        for (int j = 0; j < segmentPoints; j++) {
-            double relativeTimeInBlock = j / (double)(segmentPoints - 1);
-            bezierBuffer.clear();
-            copy(controlPoints.begin(), controlPoints.end(), back_inserter(bezierBuffer));
-            for (int k = controlPoints.size() - 1; k >= 0; k--) {
-                for (int l = 0; l < k; l++) {
-                    auto derivedTime = glm::mix(get<0>(bezierBuffer[l]), get<0>(bezierBuffer[l + 1]), relativeTimeInBlock);
-                    auto derivedPosition = glm::mix(get<1>(bezierBuffer[l]), get<1>(bezierBuffer[l + 1]), relativeTimeInBlock);
-                    bezierBuffer[l] = make_tuple(derivedTime, derivedPosition);
-                }
-            }
-            segmentPositions.push_back(bezierBuffer[0]);
-        }
-        curveData[slideElement] = segmentPositions;
-        lastStep = slideElement;
-        controlPoints.clear();
-        controlPoints.push_back(make_tuple(0, (slideElement->StartLane + slideElement->Length / 2.0) / 16.0));
     }
 }
 

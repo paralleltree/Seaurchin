@@ -4,7 +4,9 @@
 #define SU_NOTE_SHORT_MASK 0b00000000000001111110
 
 enum class SusNoteType : uint16_t {
-	Undefined = 0,  // BPMノーツなど
+	Undefined = 0,
+
+    // ショート
     Tap,            // Tap
     ExTap,          // ExTap
 	Flick,          // Flick
@@ -12,23 +14,27 @@ enum class SusNoteType : uint16_t {
     HellTap,        // AIR: Hell Tap
     AwesomeExTap,   // STAR PLUS: やべーExTap (https://twitter.com/chunithm/status/967959264055648256)
 
-    Hold = 7,
-    Slide,
-	AirAction,
+    // ロング
+    Hold = 7,       // Hold
+    Slide,          // Slide
+	AirAction,      // AirAction
 
-    Start = 10,
-    Step,
-	Control,
-    End,
+    // 位置(ロング用)
+    Start = 10,     // 開始
+    Step,           // 中継
+	Control,        // 変曲
+    End,            // 終了
 
-    Up = 14,
-    Down,
-    Left,
-    Right,
+    // 方向(Air用、組み合わせ可)
+    Up = 14,        // 上
+    Down,           // 下
+    Left,           // 左
+    Right,          // 右
 
-    Injection = 18,
-    Invisible,
-    Unused3,
+    // その他
+    Injection = 18, // (ロング)コンボ挿入
+    Invisible,      // 不可視
+    MeasureLine,    // 小節線
 };
 
 struct SusRelativeNoteTime {
@@ -195,7 +201,7 @@ private:
     std::unordered_map<uint32_t, double> BpmDefinitions;
 	std::unordered_map<uint32_t, float> BeatsDefinitions;
     std::unordered_map<uint32_t, std::shared_ptr<SusHispeedTimeline>> HispeedDefinitions;
-    std::shared_ptr<SusHispeedTimeline> HispeedToApply;
+    std::shared_ptr<SusHispeedTimeline> HispeedToApply, HispeedToMeasure;
     std::unordered_map<uint32_t, std::shared_ptr<SusNoteExtraAttribute>> ExtraAttributes;
     std::shared_ptr<SusNoteExtraAttribute> ExtraAttributeToApply;
 

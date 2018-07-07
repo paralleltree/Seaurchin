@@ -97,6 +97,7 @@ void SusAnalyzer::Reset()
     defhs->AddKeysByString("0'0:1.0:v", TimelineResolver);
     HispeedDefinitions[DefaultHispeedNumber] = defhs;
     HispeedToApply = defhs;
+    HispeedToMeasure = defhs;
 
     auto defea = make_shared<SusNoteExtraAttribute>();
     defea->Priority = 0;
@@ -142,6 +143,7 @@ void SusAnalyzer::LoadFromFile(const wstring &fileName, bool analyzeOnlyMetaData
     file.close();
     if (!analyzeOnlyMetaData) log->info(u8"…終了");
     if (!analyzeOnlyMetaData) {
+        // いい感じにソート
         stable_sort(Notes.begin(), Notes.end(), [](tuple<SusRelativeNoteTime, SusRawNoteData> a, tuple<SusRelativeNoteTime, SusRawNoteData> b) {
             return get<1>(a).Type.to_ulong() > get<1>(b).Type.to_ulong();
         });
@@ -151,6 +153,19 @@ void SusAnalyzer::LoadFromFile(const wstring &fileName, bool analyzeOnlyMetaData
         stable_sort(Notes.begin(), Notes.end(), [](tuple<SusRelativeNoteTime, SusRawNoteData> a, tuple<SusRelativeNoteTime, SusRawNoteData> b) {
             return get<0>(a).Measure < get<0>(b).Measure;
         });
+
+        // 小節線ノーツ
+        // この時点でケツは最終ノーツのはず
+        auto lastMeasure = get<0>(Notes[Notes.size() - 1]).Measure + 2;
+        for (int i = 0; i <= lastMeasure; i++) {
+            SusRawNoteData ml;
+            SusRelativeNoteTime t = { i, 0 };
+            ml.Type.set((size_t)SusNoteType::MeasureLine);
+            ml.Timeline = HispeedToMeasure;
+            ml.ExtraAttribute = ExtraAttributes[DefaultExtraAttributeNumber];
+            Notes.push_back(make_tuple(t, ml));
+        }
+
         copy_if(Notes.begin(), Notes.end(), back_inserter(BpmChanges), [](tuple<SusRelativeNoteTime, SusRawNoteData> n) {
             return get<1>(n).Type.test((size_t)SusNoteType::Undefined);
         });
@@ -278,6 +293,17 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, bool onlyMeta, uint32
         case "NOATTRIBUTE"_crc32:
             if (!onlyMeta) ExtraAttributeToApply = ExtraAttributes[DefaultExtraAttributeNumber];
             break;
+
+        case "MEASUREHS"_crc32: {
+            if (onlyMeta) break;
+            auto hsn = ConvertHexatridecimal(result[2]);
+            if (HispeedDefinitions.find(hsn) == HispeedDefinitions.end()) {
+                MakeMessage(line, u8"指定されたタイムラインが存在しません");
+                break;
+            }
+            HispeedToMeasure = HispeedDefinitions[hsn];
+            break;
+        }
 
         default:
             MakeMessage(line, u8"SUSコマンドが無効です");
@@ -741,6 +767,14 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
             noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
             data.push_back(noteData);
             SharedMetaData.ScoreDuration = max(SharedMetaData.ScoreDuration, noteData->StartTime);
+        } else if (info.Type[(size_t)SusNoteType::MeasureLine]) {
+            noteData->Type = info.Type;
+            noteData->ExtraAttribute = info.ExtraAttribute;
+            noteData->StartTime = GetAbsoluteTime(time.Measure, 0);
+            noteData->Duration = 0;
+            noteData->Timeline = info.Timeline;
+            noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
+            data.push_back(noteData);
         } else {
             MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"致命的なノーツエラー(不正な内部表現です)。");
         }
@@ -751,7 +785,6 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
 void SusAnalyzer::CalculateCurves(shared_ptr<SusDrawableNoteData> note, NoteCurvesList &curveData)
 {
     auto lastStep = note;
-    double segmentsPerSecond = 20;   // Buffer上での最小の長さ
     vector<tuple<double, double>> controlPoints;    // lastStepからの時間, X中央位置(0~1)
     vector<tuple<double, double>> bezierBuffer;
 
@@ -765,7 +798,7 @@ void SusAnalyzer::CalculateCurves(shared_ptr<SusDrawableNoteData> note, NoteCurv
         }
         // EndかStepかInvisible
         controlPoints.push_back(make_tuple(slideElement->StartTime - lastStep->StartTime, (slideElement->StartLane + slideElement->Length / 2.0) / 16.0));
-        int segmentPoints = segmentsPerSecond * (slideElement->StartTime - lastStep->StartTime) + 2;
+        int segmentPoints = SharedMetaData.SegmentsPerSecond * (slideElement->StartTime - lastStep->StartTime) + 2;
         vector<tuple<double, double>> segmentPositions;
         for (int j = 0; j < segmentPoints; j++) {
             double relativeTimeInBlock = j / (double)(segmentPoints - 1);

@@ -102,7 +102,11 @@ void ScenePlayer::Draw()
 
     BEGIN_DRAW_TRANSACTION(hGroundBuffer);
     DrawLaneBackground();
-    DrawMeasureLines();
+    DrawLaneDivisionLines();
+    for (auto& note : seenData) {
+        auto &type = note->Type;
+        if (type[(size_t)SusNoteType::MeasureLine]) DrawMeasureLine(note);
+    }
 
     for (auto& note : seenData) {
         auto &type = note->Type;
@@ -319,18 +323,17 @@ void ScenePlayer::DrawAirNotes(shared_ptr<SusDrawableNoteData> note)
     auto slane = note->StartLane;
     auto left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, slane / 16.0);
     auto right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, (slane + length) / 16.0);
-    auto speed = note->Timeline->GetSpeedAt(CurrentTime);
-    // TODO: ‚à‚Á‚Æ‚Ü‚Æ‚à‚É³‚Ì’l‚¾‚¯Žæ‚é•û–@l‚¦‚ë
-    auto reftime = (CurrentTime + 60.0) * speed;
+    auto refrole = NormalizedFmod(-note->ModifiedPosition, 0.5);
+    spdlog::get("main")->info("role: {0} - {1}", refrole, note->ModifiedPosition);
+    auto role = note->Type.test((size_t)SusNoteType::Up) ? refrole : 0.5 - refrole;
     auto xadjust = note->Type.test((size_t)SusNoteType::Left) ? -80.0 : (note->Type.test((size_t)SusNoteType::Right) ? 80.0 : 0);
-    auto role = note->Type.test((size_t)SusNoteType::Up) ? fmod(reftime, 0.5) : 0.5 - fmod(reftime, 0.5);
     auto handle = note->Type.test((size_t)SusNoteType::Up) ? imageAirUp->GetHandle() : imageAirDown->GetHandle();
 
     VERTEX3D vertices[] = {
         { VGet(left + xadjust, SU_LANE_Y_AIRINDICATE, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.0f, role, 0.0f, 0.0f },
-        { VGet(right + xadjust, SU_LANE_Y_AIRINDICATE, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0f, role, 0.0f, 0.0f },
-        { VGet(right, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0f, role + 0.5f, 0.0f, 0.0f },
-        { VGet(left, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.0f, role + 0.5f, 0.0f, 0.0f }
+    { VGet(right + xadjust, SU_LANE_Y_AIRINDICATE, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0f, role, 0.0f, 0.0f },
+    { VGet(right, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0f, role + 0.5f, 0.0f, 0.0f },
+    { VGet(left, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.0f, role + 0.5f, 0.0f, 0.0f }
     };
     Prepare3DDrawCall();
     SetUseZBuffer3D(FALSE);
@@ -613,17 +616,21 @@ void ScenePlayer::DrawTap(int lane, int length, double relpos, int handle)
     }
 }
 
-void ScenePlayer::DrawMeasureLines()
+void ScenePlayer::DrawMeasureLine(shared_ptr<SusDrawableNoteData> note)
+{
+    auto relpos = 1.0 - note->ModifiedPosition / SeenDuration;
+    DrawLineAA(0, relpos * laneBufferY, laneBufferX, relpos * laneBufferY, GetColor(255, 255, 255), 6);
+}
+
+void ScenePlayer::DrawLaneDivisionLines()
 {
     int division = 8;
-    for (int i = 1; i < division; i++) DrawLineAA(laneBufferX / division * i, 0, laneBufferX / division * i, laneBufferY * cullingLimit, GetColor(255, 255, 255), 3);
-
-    auto rbeg = analyzer->GetRelativeTime(CurrentTime);
-    auto rend = analyzer->GetRelativeTime(CurrentTime + SeenDuration);
-    for (int i = get<0>(rbeg); i < get<0>(rend) + 1; i++) {
-        auto pos = analyzer->GetAbsoluteTime(i, 0);
-        double relpos = 1.0 - (pos - CurrentTime) / SeenDuration;
-        DrawLineAA(0, relpos * laneBufferY, laneBufferX, relpos * laneBufferY, GetColor(255, 255, 255), 6);
+    for (int i = 1; i < division; i++) {
+        DrawLineAA(
+            laneBufferX / division * i, 0,
+            laneBufferX / division * i, laneBufferY * cullingLimit,
+            GetColor(255, 255, 255), 3
+        );
     }
 }
 

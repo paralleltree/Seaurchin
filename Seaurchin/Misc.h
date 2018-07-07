@@ -36,6 +36,7 @@ std::wstring ConvertUTF8ToUnicode(const std::string &utf8str);
 std::string ConvertUnicodeToUTF8(const std::wstring &utf16str);
 void ScriptSceneWarnOutOf(const std::string &type, asIScriptContext *ctx);
 double ToDouble(const char *str);
+double NormalizedFmod(double x, double y);
 int32_t ConvertInteger(const std::string &input);
 uint32_t ConvertHexatridecimal(const std::string &input);
 double ConvertFloat(const std::string &input);

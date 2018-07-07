@@ -140,7 +140,6 @@ protected:
     double NextMetronomeTime = 0.0;
     double ScoreDuration = 0.0;
     double SoundBufferingLatency = 0.030;   //TODO: ŠÂ‹«‚ÉŽáŠ±Šñ‚è“Y‚¤
-    double SegmentsPerSecond = 20.0;
     PlayingState State = PlayingState::ScoreNotLoaded;
     PlayingState LastState;
     bool AirActionShown = false;
@@ -154,14 +153,14 @@ protected:
     void RemoveSlideEffect();
     void UpdateSlideEffect();
     void CalculateNotes(double time, double duration, double preced);
-    void CalculateCurves(std::shared_ptr<SusDrawableNoteData> note);
     void DrawShortNotes(std::shared_ptr<SusDrawableNoteData> note);
     void DrawAirNotes(std::shared_ptr<SusDrawableNoteData> note);
     void DrawHoldNotes(std::shared_ptr<SusDrawableNoteData> note);
     void DrawSlideNotes(std::shared_ptr<SusDrawableNoteData> note);
     void DrawAirActionNotes(std::shared_ptr<SusDrawableNoteData> note);
     void DrawTap(int lane, int length, double relpos, int handle);
-    void DrawMeasureLines();
+    void DrawMeasureLine(std::shared_ptr<SusDrawableNoteData> note);
+    void DrawLaneDivisionLines();
     void DrawLaneBackground();
     void RefreshComboText();
     void Prepare3DDrawCall();

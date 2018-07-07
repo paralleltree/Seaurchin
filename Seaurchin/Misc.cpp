@@ -74,6 +74,13 @@ double ToDouble(const char *str)
     return sign * result;
 }
 
+double NormalizedFmod(double x, double y)
+{
+    if (y < 0) y = -y;
+    int q = x >= 0 ? x / y : (x / y) - 1;
+    return x - q * y;
+}
+
 int32_t ConvertInteger(const string &input)
 {
     return atoi(input.c_str());
