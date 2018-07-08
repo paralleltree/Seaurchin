@@ -139,7 +139,7 @@ void AutoPlayerProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
                 extra->OnTheFlyData.set((size_t)NoteAttribute::Finished);
                 return;
             }
-            Player->EnqueueJudgeSound(JudgeSoundType::Tap);
+            Player->EnqueueJudgeSound(JudgeSoundType::HoldStep);
             Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
             IncrementCombo(AbilityNoteType::Hold);
             extra->OnTheFlyData.set((size_t)NoteAttribute::Finished);
@@ -167,7 +167,7 @@ void AutoPlayerProcessor::ProcessScore(shared_ptr<SusDrawableNoteData> note)
                 extra->OnTheFlyData.set((size_t)NoteAttribute::Finished);
                 return;
             }
-            Player->EnqueueJudgeSound(JudgeSoundType::Tap);
+            Player->EnqueueJudgeSound(JudgeSoundType::SlideStep);
             Player->SpawnJudgeEffect(extra, JudgeType::SlideTap);
             IncrementCombo(AbilityNoteType::Slide);
             extra->OnTheFlyData.set((size_t)NoteAttribute::Finished);

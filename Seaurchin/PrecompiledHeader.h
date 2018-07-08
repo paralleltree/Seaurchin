@@ -69,7 +69,6 @@
 #include <scriptstdstring\scriptstdstring.h>
 #include <scriptdictionary\scriptdictionary.h>
 #include "wscriptbuilder.h"
-//#include "as_smart_ptr_wrapper.h"
 
 #include <WacomMultiTouch.h>
 
@@ -79,8 +78,10 @@
 #include <zlib.h>
 #include <png.h>
 
+/*
 #define WITH_XAUDIO2
 #include <soloud.h>
+*/
 
 #include <bass.h>
 #include <bassmix.h>

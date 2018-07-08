@@ -355,7 +355,7 @@ bool PlayableProcessor::CheckHoldJudgement(shared_ptr<SusDrawableNoteData> note)
                 IncrementCombo(extra, judgeTime, AbilityNoteType::Hold);
             } else {
                 IncrementCombo(extra, judgeTime, AbilityNoteType::Hold);
-                Player->EnqueueJudgeSound(JudgeSoundType::Tap);
+                Player->EnqueueJudgeSound(JudgeSoundType::HoldStep);
                 Player->SpawnJudgeEffect(extra, JudgeType::SlideTap);
             }
             if (extra->Type[(size_t)SusNoteType::End]) {
@@ -431,7 +431,7 @@ bool PlayableProcessor::CheckSlideJudgement(shared_ptr<SusDrawableNoteData> note
             ResetCombo(note, AbilityNoteType::Slide);
         } else if (trigger) {
             IncrementCombo(note, judgeTime, AbilityNoteType::Slide);
-            Player->EnqueueJudgeSound(JudgeSoundType::Tap);
+            Player->EnqueueJudgeSound(JudgeSoundType::SlideStep);
             Player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
         }
         return held;

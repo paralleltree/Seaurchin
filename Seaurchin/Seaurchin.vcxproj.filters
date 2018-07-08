@@ -180,9 +180,6 @@
     <ClCompile Include="MoverFunction.cpp">
       <Filter>インターフェース\描画システム</Filter>
     </ClCompile>
-    <ClCompile Include="SoundManager2.cpp">
-      <Filter>インターフェース\C++</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">
@@ -325,9 +322,6 @@
     </ClInclude>
     <ClInclude Include="MoverFunction.h">
       <Filter>インターフェース\描画システム</Filter>
-    </ClInclude>
-    <ClInclude Include="SoundManager2.h">
-      <Filter>インターフェース\C++</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

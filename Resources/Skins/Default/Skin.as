@@ -65,6 +65,8 @@ void InitializeSkin(Skin@ skin) {
   skin.LoadSound("*Sound-AirAction", "AirAction.wav");
   skin.LoadSound("*Sound-SlideLoop", "SlideLoop.wav");
   skin.LoadSound("*Sound-HoldLoop", "SlideLoop.wav");
+  skin.LoadSound("*Sound-HoldStep", "HoldStep.wav");
+  skin.LoadSound("*Sound-SlideStep", "SlideStep.wav");
   skin.LoadSound("SoundCursor", "button01a.mp3");
   
 }

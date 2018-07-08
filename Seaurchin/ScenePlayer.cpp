@@ -354,11 +354,17 @@ void ScenePlayer::ProcessSoundQueue()
             case JudgeSoundType::Holding:
                 if (soundHoldLoop) soundManager->PlayGlobal(soundHoldLoop->GetSample());
                 break;
+            case JudgeSoundType::HoldStep:
+                if (soundHoldStep) soundManager->PlayGlobal(soundHoldStep->GetSample());
+                break;
             case JudgeSoundType::HoldingStop:
                 if (soundHoldLoop) soundManager->StopGlobal(soundHoldLoop->GetSample());
                 break;
             case JudgeSoundType::Sliding:
                 if (soundSlideLoop) soundManager->PlayGlobal(soundSlideLoop->GetSample());
+                break;
+            case JudgeSoundType::SlideStep:
+                if (soundSlideStep) soundManager->PlayGlobal(soundSlideStep->GetSample());
                 break;
             case JudgeSoundType::SlidingStop:
                 if (soundSlideLoop) soundManager->StopGlobal(soundSlideLoop->GetSample());

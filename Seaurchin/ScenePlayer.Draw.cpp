@@ -55,6 +55,8 @@ void ScenePlayer::LoadResources()
     soundAirAction = dynamic_cast<SSound*>(resources["SoundAirAction"]);
     soundSlideLoop = dynamic_cast<SSound*>(resources["SoundSlideLoop"]);
     soundHoldLoop = dynamic_cast<SSound*>(resources["SoundHoldLoop"]);
+    soundSlideStep = dynamic_cast<SSound*>(resources["SoundSlideStep"]);
+    soundHoldStep = dynamic_cast<SSound*>(resources["SoundHoldStep"]);
     fontCombo = dynamic_cast<SFont*>(resources["FontCombo"]);
 
     fontCombo->AddRef();
@@ -77,6 +79,8 @@ void ScenePlayer::LoadResources()
     if (soundAirAction) soundAirAction->SetVolume(setting->ReadValue("Sound", "VolumeAirAction", 1.0));
     if (soundHoldLoop) soundHoldLoop->SetVolume(setting->ReadValue("Sound", "VolumeHold", 1.0));
     if (soundSlideLoop) soundSlideLoop->SetVolume(setting->ReadValue("Sound", "VolumeSlide", 1.0));
+    if (soundHoldStep) soundHoldStep->SetVolume(setting->ReadValue("Sound", "VolumeHold", 1.0));
+    if (soundSlideStep) soundSlideStep->SetVolume(setting->ReadValue("Sound", "VolumeSlide", 1.0));
 }
 
 void ScenePlayer::AddSprite(SSprite *sprite)
@@ -324,7 +328,6 @@ void ScenePlayer::DrawAirNotes(shared_ptr<SusDrawableNoteData> note)
     auto left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, slane / 16.0);
     auto right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, (slane + length) / 16.0);
     auto refrole = NormalizedFmod(-note->ModifiedPosition, 0.5);
-    spdlog::get("main")->info("role: {0} - {1}", refrole, note->ModifiedPosition);
     auto role = note->Type.test((size_t)SusNoteType::Up) ? refrole : 0.5 - refrole;
     auto xadjust = note->Type.test((size_t)SusNoteType::Left) ? -80.0 : (note->Type.test((size_t)SusNoteType::Right) ? 80.0 : 0);
     auto handle = note->Type.test((size_t)SusNoteType::Up) ? imageAirUp->GetHandle() : imageAirDown->GetHandle();
@@ -524,10 +527,10 @@ void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
                 DDDDDDDDDDSSSSCL
                 左側面頂点位置
                 9+--------+5
-                |上のやつ|
+                | 上のやつ|
                 8+--------+4
                 7+--------+3
-                |  本1体 |
+                | 本 1 体 |
                 6+----+---+2
                 下 | の
                 や | つ
