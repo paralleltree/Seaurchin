@@ -118,8 +118,8 @@ protected:
     bool moviePlaying = false;
     std::wstring movieFileName = L"";
     unsigned int slideLineColor = GetColor(0, 200, 255);
-    unsigned int airActionLineColor = GetColor(0, 255, 32);
     unsigned int airActionJudgeColor = GetColor(128, 255, 160);
+    bool showSlideLine, showAirActionJudge;
 
     //Slide‚Ìd‚İ‚ªáŠ±ˆá‚¤‚ç‚µ‚¢‚¯‚Ç‚»‚Ì‚Ö‚ñ‹–‚µ‚Ä‚Ë
     std::shared_ptr<Result> CurrentResult;

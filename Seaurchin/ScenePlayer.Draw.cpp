@@ -16,18 +16,6 @@ static VERTEX3D GroundVertices[] = {
 
 void ScenePlayer::LoadResources()
 {
-    // 2^x§ŒÀ‚ª‚ ‚é‚Ì‚Å‚±‚±‚ÅŒvŽZ
-    int exty = laneBufferX * SU_LANE_ASPECT_EXT;
-    double bufferY = 2;
-    while (exty > bufferY) bufferY *= 2;
-    float bufferV = exty / bufferY;
-    for (int i = 2; i < 4; i++) GroundVertices[i].v = bufferV;
-    hGroundBuffer = MakeScreen(laneBufferX, bufferY, TRUE);
-    hBlank = MakeScreen(128, 128, FALSE);
-    BEGIN_DRAW_TRANSACTION(hBlank);
-    DrawBox(0, 0, 128, 128, GetColor(255, 255, 255), TRUE);
-    FINISH_DRAW_TRANSACTION;
-
     imageLaneGround = dynamic_cast<SImage*>(resources["LaneGround"]);
     imageLaneJudgeLine = dynamic_cast<SImage*>(resources["LaneJudgeLine"]);
     imageTap = dynamic_cast<SImage*>(resources["Tap"]);
@@ -59,15 +47,6 @@ void ScenePlayer::LoadResources()
     soundHoldStep = dynamic_cast<SSound*>(resources["SoundHoldStep"]);
     fontCombo = dynamic_cast<SFont*>(resources["FontCombo"]);
 
-    fontCombo->AddRef();
-    textCombo = STextSprite::Factory(fontCombo, "0000");
-    textCombo->SetAlignment(STextAlign::Center, STextAlign::Center);
-    auto size = 320.0 / fontCombo->get_Size();
-    ostringstream app;
-    app << setprecision(5);
-    app << "x:512, y:3200, " << "scaleX:" << size << ", scaleY:" << size;
-    textCombo->Apply(app.str());
-
     auto setting = manager->GetSettingInstanceSafe();
     if (soundHoldLoop) soundHoldLoop->SetLoop(true);
     if (soundSlideLoop) soundSlideLoop->SetLoop(true);
@@ -81,6 +60,36 @@ void ScenePlayer::LoadResources()
     if (soundSlideLoop) soundSlideLoop->SetVolume(setting->ReadValue("Sound", "VolumeSlide", 1.0));
     if (soundHoldStep) soundHoldStep->SetVolume(setting->ReadValue("Sound", "VolumeHold", 1.0));
     if (soundSlideStep) soundSlideStep->SetVolume(setting->ReadValue("Sound", "VolumeSlide", 1.0));
+
+    vector<toml::Value> scv = { 0, 200, 255 };
+    vector<toml::Value> aajcv = { 128, 255, 160 };
+    scv = setting->ReadValue("Play", "ColorSlideLine", scv);
+    aajcv = setting->ReadValue("Play", "ColorAirActionJudgeLine", aajcv);
+    showSlideLine = setting->ReadValue("Play", "ShowSlideLine", true);
+    showAirActionJudge = setting->ReadValue("Play", "ShowAirActionJudgeLine", true);
+    slideLineColor = GetColor(scv[0].as<int>(), scv[1].as<int>(), scv[2].as<int>());
+    airActionJudgeColor = GetColor(aajcv[0].as<int>(), aajcv[1].as<int>(), aajcv[2].as<int>());
+
+    // 2^x§ŒÀ‚ª‚ ‚é‚Ì‚Å‚±‚±‚ÅŒvŽZ
+    int exty = laneBufferX * SU_LANE_ASPECT_EXT;
+    double bufferY = 2;
+    while (exty > bufferY) bufferY *= 2;
+    float bufferV = exty / bufferY;
+    for (int i = 2; i < 4; i++) GroundVertices[i].v = bufferV;
+    hGroundBuffer = MakeScreen(laneBufferX, bufferY, TRUE);
+    hBlank = MakeScreen(128, 128, FALSE);
+    BEGIN_DRAW_TRANSACTION(hBlank);
+    DrawBox(0, 0, 128, 128, GetColor(255, 255, 255), TRUE);
+    FINISH_DRAW_TRANSACTION;
+
+    fontCombo->AddRef();
+    textCombo = STextSprite::Factory(fontCombo, "0000");
+    textCombo->SetAlignment(STextAlign::Center, STextAlign::Center);
+    auto size = 320.0 / fontCombo->get_Size();
+    ostringstream app;
+    app << setprecision(5);
+    app << "x:512, y:3200, " << "scaleX:" << size << ", scaleY:" << size;
+    textCombo->Apply(app.str());
 }
 
 void ScenePlayer::AddSprite(SSprite *sprite)
@@ -138,7 +147,7 @@ void ScenePlayer::Draw()
         if (note->Type.test((size_t)SusNoteType::Air)) DrawAirNotes(note);
     }
 
-    if (AirActionShown) {
+    if (AirActionShown && showAirActionJudge) {
         SetDrawBlendMode(DX_BLENDMODE_ADD, 192);
         SetUseZBuffer3D(FALSE);
         DrawTriangle3D(
@@ -409,7 +418,7 @@ void ScenePlayer::DrawSlideNotes(shared_ptr<SusDrawableNoteData> note)
                     imageSlideStrut->GetHandle(), TRUE
                 );
                 SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-                DrawLineAA(
+                if (showSlideLine) DrawLineAA(
                     get<1>(lastSegmentPosition) * laneBufferX, laneBufferY * lastSegmentRelativeY,
                     get<1>(segmentPosition) * laneBufferX, laneBufferY * currentSegmentRelativeY,
                     slideLineColor, 16);
