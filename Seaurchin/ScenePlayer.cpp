@@ -175,7 +175,8 @@ void ScenePlayer::CalculateNotes(double time, double duration, double preced)
     seenData.clear();
     copy_if(data.begin(), data.end(), back_inserter(seenData), [&](shared_ptr<SusDrawableNoteData> n) {
         double ptime = time - preced;
-        if (n->Type.to_ulong() & SU_NOTE_LONG_MASK) {
+        auto types = n->Type.to_ulong();
+        if (types & SU_NOTE_LONG_MASK) {
             // ロング
             if (time > n->StartTime + n->Duration) return false;
             auto st = n->GetStateAt(time);
@@ -194,12 +195,20 @@ void ScenePlayer::CalculateNotes(double time, double duration, double preced)
                 return false;
             }) && n->ModifiedPosition > duration) return false;
             return true;
-        } else {
+        } else if (types & SU_NOTE_SHORT_MASK) {
             // ショート
             if (time > n->StartTime) return false;
             auto st = n->GetStateAt(time);
             if (n->ModifiedPosition < -preced || n->ModifiedPosition > duration) return false;
             return get<0>(st);
+        } else {
+            if (n->Type[(size_t)SusNoteType::MeasureLine]) {
+                auto st = n->GetStateAt(time);
+                if (n->ModifiedPosition < -preced || n->ModifiedPosition > duration) return false;
+                return get<0>(st);
+            } else {
+                return false;
+            }
         }
     });
     if (usePrioritySort) sort(seenData.begin(), seenData.end(), [](shared_ptr<SusDrawableNoteData> a, shared_ptr<SusDrawableNoteData> b) {
