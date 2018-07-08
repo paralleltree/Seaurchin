@@ -15,12 +15,10 @@
 * [Boost](https://www.boost.org/)
 * [FreeType](https://www.freetype.org/)
 * [libpng](http://www.libpng.org/pub/png/libpng.html)
-* [BASS Audio Library](https://www.un4seen.com/)
-* [msgpack-c](https://github.com/msgpack/msgpack-c)
+* [SoLoud](http://sol.gfxile.net/soloud/)
 * [Wacom feel™ Multi-Touch SDK](http://wdnet.jp/library/feelmulti-touch)
 * [spdlog](https://github.com/gabime/spdlog)
 * [tinytoml](https://github.com/mayah/tinytoml)
-* [RxCpp](https://github.com/Reactive-Extensions/RxCpp)
 * [glm](https://glm.g-truc.net/0.9.9/index.html)
 
 # ライセンス

@@ -43,7 +43,6 @@ void RegisterPlayerScene(ExecutionManager * manager)
 
 ScenePlayer::ScenePlayer(ExecutionManager *exm) : manager(exm), judgeSoundQueue(32)
 {
-    auto threads = Rx::observe_on_event_loop();
     soundManager = manager->GetSoundManagerUnsafe();
     judgeSoundThread = thread([this]() {
         ProcessSoundQueue();

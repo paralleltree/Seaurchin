@@ -34,6 +34,7 @@
 #include <map>
 #include <utility>
 #include <limits>
+#include <unordered_set>
 #include <unordered_map>
 #include <forward_list>
 #include <list>
@@ -60,7 +61,6 @@
 
 //Libraries
 #include <DxLib.h>
-//#include <EffekseerForDXLib.h>
 
 #include <angelscript.h>
 #include <scriptarray\scriptarray.h>
@@ -79,11 +79,12 @@
 #include <zlib.h>
 #include <png.h>
 
+#define WITH_XAUDIO2
+#include <soloud.h>
+
 #include <bass.h>
 #include <bassmix.h>
 #include <bass_fx.h>
-
-#include <msgpack.hpp>
 
 #define FMT_HEADER_ONLY
 #include <fmt/format.h>
@@ -94,14 +95,5 @@
 #include <spdlog/sinks/sink.h>
 
 #include <toml/toml.h>
-
-#include <rxcpp/rx.hpp>
-namespace Rx
-{
-using namespace rxcpp;
-using namespace rxcpp::sources;
-using namespace rxcpp::operators;
-using namespace rxcpp::util;
-}
 
 #include <glm/glm.hpp>
