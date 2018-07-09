@@ -279,7 +279,7 @@ void ScenePlayer::ProcessSound()
                 State = PlayingState::OnlyScoreOngoing;
             } else if (NextMetronomeTime < 0 && CurrentTime >= NextMetronomeTime) {
                 //TODO: NextMetronome‚É‚àLatency“K—pH
-                if (MetronomeAvailable) soundManager->PlayGlobal(soundTap->GetSample());
+                if (MetronomeAvailable) soundManager->PlayGlobal(soundMetronome->GetSample());
                 NextMetronomeTime += 60 / analyzer->GetBpmAt(0, 0);
             }
             break;

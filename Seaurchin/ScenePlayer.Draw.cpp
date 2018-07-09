@@ -46,6 +46,7 @@ void ScenePlayer::LoadResources()
     soundHoldLoop = dynamic_cast<SSound*>(resources["SoundHoldLoop"]);
     soundSlideStep = dynamic_cast<SSound*>(resources["SoundSlideStep"]);
     soundHoldStep = dynamic_cast<SSound*>(resources["SoundHoldStep"]);
+    soundMetronome = dynamic_cast<SSound*>(resources["Metronome"]);
     fontCombo = dynamic_cast<SFont*>(resources["FontCombo"]);
 
     auto setting = manager->GetSettingInstanceSafe();
@@ -61,6 +62,7 @@ void ScenePlayer::LoadResources()
     if (soundSlideLoop) soundSlideLoop->SetVolume(setting->ReadValue("Sound", "VolumeSlide", 1.0));
     if (soundHoldStep) soundHoldStep->SetVolume(setting->ReadValue("Sound", "VolumeHold", 1.0));
     if (soundSlideStep) soundSlideStep->SetVolume(setting->ReadValue("Sound", "VolumeSlide", 1.0));
+    if (soundMetronome) soundMetronome->SetVolume(setting->ReadValue("Sound", "VolumeTap", 1.0));
 
     vector<toml::Value> scv = { 0, 200, 255 };
     vector<toml::Value> aajcv = { 128, 255, 160 };

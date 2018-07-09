@@ -46,6 +46,7 @@ enum class JudgeSoundType {
     Sliding,
     SlideStep,
     SlidingStop,
+    Metronome,
 };
 
 enum class PlayingState {
@@ -117,6 +118,7 @@ protected:
 
     SSound *soundTap, *soundExTap, *soundFlick, *soundAir, *soundAirDown, *soundAirAction;
     SSound *soundHoldLoop, *soundSlideLoop, *soundHoldStep, *soundSlideStep;
+    SSound *soundMetronome;
     SImage *imageLaneGround, *imageLaneJudgeLine;
     SImage *imageTap, *imageExTap, *imageFlick, *imageHellTap;
     SImage *imageAir, *imageAirUp, *imageAirDown;
