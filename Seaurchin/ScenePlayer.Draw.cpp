@@ -114,6 +114,7 @@ void ScenePlayer::Draw()
     if (movieBackground) DrawExtendGraph(0, 0, SU_RES_WIDTH, SU_RES_HEIGHT, movieBackground, FALSE);
 
     BEGIN_DRAW_TRANSACTION(hGroundBuffer);
+    // 背景部
     DrawLaneBackground();
     DrawLaneDivisionLines();
     for (auto& note : seenData) {
@@ -121,12 +122,14 @@ void ScenePlayer::Draw()
         if (type[(size_t)SusNoteType::MeasureLine]) DrawMeasureLine(note);
     }
 
+    // 下側のロングノーツ類
     for (auto& note : seenData) {
         auto &type = note->Type;
         if (type[(size_t)SusNoteType::Hold]) DrawHoldNotes(note);
         if (type[(size_t)SusNoteType::Slide]) DrawSlideNotes(note);
     }
 
+    // 上側のショートノーツ類
     for (auto& note : seenData) {
         auto &type = note->Type;
         if (type[(size_t)SusNoteType::Tap]) DrawShortNotes(note);
@@ -142,10 +145,7 @@ void ScenePlayer::Draw()
 
     //3D系ノーツ
     Prepare3DDrawCall();
-    for (auto& note : seenData) {
-        if (note->Type.test((size_t)SusNoteType::AirAction)) DrawAirActionNotes(note);
-        if (note->Type.test((size_t)SusNoteType::Air)) DrawAirNotes(note);
-    }
+    DrawAerialNotes(seenData);
 
     if (AirActionShown && showAirActionJudge) {
         SetDrawBlendMode(DX_BLENDMODE_ADD, 192);
@@ -161,7 +161,59 @@ void ScenePlayer::Draw()
             VGet(SU_LANE_X_MAX_EXT, SU_LANE_Y_AIR - 5, SU_LANE_Z_MIN - 5),
             airActionJudgeColor, TRUE);
     }
+}
 
+void ScenePlayer::DrawAerialNotes(vector<shared_ptr<SusDrawableNoteData>> notes)
+{
+    vector<AirDrawQuery> airdraws, covers;
+    for (const auto &note : seenData) {
+        if (note->Type.test((size_t)SusNoteType::AirAction)) {
+            // DrawAirActionNotes(note);
+            AirDrawQuery head;
+            head.Type = AirDrawType::AirActionStart;
+            head.Z = 1.0 - note->ModifiedPosition / SeenDuration;
+            head.Note = note;
+            airdraws.push_back(head);
+            shared_ptr<SusDrawableNoteData> prev = note;
+            for (const auto extra : note->ExtraData) {
+                if (extra->Type.test((size_t)SusNoteType::Control)) continue;
+                if (extra->Type.test((size_t)SusNoteType::Injection)) continue;
+                AirDrawQuery tail;
+                tail.Type = AirDrawType::AirActionStep;
+                tail.Z = 1.0 - extra->ModifiedPosition / SeenDuration;
+                tail.Note = extra;
+                tail.PreviousNote = prev;
+                airdraws.push_back(tail);
+                covers.push_back(tail);
+                prev = extra;
+            }
+        }
+        if (note->Type.test((size_t)SusNoteType::Air)) {
+            // DrawAirNotes(note);
+            AirDrawQuery head;
+            head.Type = AirDrawType::Air;
+            head.Z = 1.0 - note->ModifiedPosition / SeenDuration;
+            head.Note = note;
+            airdraws.push_back(head);
+        }
+    }
+    stable_sort(airdraws.begin(), airdraws.end(), [](AirDrawQuery a, AirDrawQuery b) {
+        return a.Z < b.Z;
+    });
+    for (const auto &query : airdraws) {
+        switch (query.Type) {
+            case AirDrawType::Air:
+                DrawAirNotes(query);
+                break;
+            case AirDrawType::AirActionStart:
+                DrawAirActionStart(query);
+                break;
+            case AirDrawType::AirActionStep:
+                DrawAirActionStep(query);
+                break;
+        }
+    }
+    for (const auto &query : covers) DrawAirActionCover(query);
 }
 
 void ScenePlayer::RefreshComboText()
@@ -327,13 +379,12 @@ void ScenePlayer::DrawShortNotes(shared_ptr<SusDrawableNoteData> note)
     DrawTap(slane, length, relpos, handleToDraw);
 }
 
-void ScenePlayer::DrawAirNotes(shared_ptr<SusDrawableNoteData> note)
+void ScenePlayer::DrawAirNotes(const AirDrawQuery &query)
 {
-    double relpos = 1.0 - note->ModifiedPosition / SeenDuration;
-    double z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, relpos);
-
+    auto note = query.Note;
     auto length = note->Length;
     auto slane = note->StartLane;
+    double z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, query.Z);
     auto left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, slane / 16.0);
     auto right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, (slane + length) / 16.0);
     auto refrole = NormalizedFmod(-note->ModifiedPosition, 0.5);
@@ -342,10 +393,34 @@ void ScenePlayer::DrawAirNotes(shared_ptr<SusDrawableNoteData> note)
     auto handle = note->Type.test((size_t)SusNoteType::Up) ? imageAirUp->GetHandle() : imageAirDown->GetHandle();
 
     VERTEX3D vertices[] = {
-        { VGet(left + xadjust, SU_LANE_Y_AIRINDICATE, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.0f, role, 0.0f, 0.0f },
-    { VGet(right + xadjust, SU_LANE_Y_AIRINDICATE, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0f, role, 0.0f, 0.0f },
-    { VGet(right, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0f, role + 0.5f, 0.0f, 0.0f },
-    { VGet(left, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.0f, role + 0.5f, 0.0f, 0.0f }
+        {
+            VGet(left + xadjust, SU_LANE_Y_AIRINDICATE, z),
+            VGet(0, 0, -1),
+            GetColorU8(255, 255, 255, 255),
+            GetColorU8(0, 0, 0, 0),
+            0.0f, role, 0.0f, 0.0f
+        },
+        {
+            VGet(right + xadjust, SU_LANE_Y_AIRINDICATE, z),
+            VGet(0, 0, -1),
+            GetColorU8(255, 255, 255, 255),
+            GetColorU8(0, 0, 0, 0),
+            1.0f, role, 0.0f, 0.0f
+        },
+        {
+            VGet(right, SU_LANE_Y_GROUND, z),
+            VGet(0, 0, -1),
+            GetColorU8(255, 255, 255, 255),
+            GetColorU8(0, 0, 0, 0),
+            1.0f, role + 0.5f, 0.0f, 0.0f
+        },
+        {
+            VGet(left, SU_LANE_Y_GROUND, z),
+            VGet(0, 0, -1),
+            GetColorU8(255, 255, 255, 255),
+            GetColorU8(0, 0, 0, 0),
+            0.0f, role + 0.5f, 0.0f, 0.0f
+        }
     };
     Prepare3DDrawCall();
     SetUseZBuffer3D(FALSE);
@@ -438,179 +513,205 @@ void ScenePlayer::DrawSlideNotes(shared_ptr<SusDrawableNoteData> note)
     }
 }
 
-void ScenePlayer::DrawAirActionNotes(shared_ptr<SusDrawableNoteData> note)
+void ScenePlayer::DrawAirActionStart(const AirDrawQuery &query)
 {
-    auto lastStep = note;
-    auto lastStepRelativeY = 1.0 - lastStep->ModifiedPosition / SeenDuration;
+    auto lastStep = query.Note;
+    auto lastStepRelativeY = query.Z;
     double segmentLength = 128.0;   // Buffer上での最小の長さ
 
     double aasz = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, lastStepRelativeY);
     double cry = ((double)lastStep->StartLane + lastStep->Length / 2.0) / 16.0;
     double center = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, cry);
     VERTEX3D vertices[] = {
-        { VGet(center - 10, SU_LANE_Y_GROUND, aasz), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 1.0f, 1.0f, 0.0f },
-    { VGet(center - 10, SU_LANE_Y_AIR * lastStep->ExtraAttribute->HeightScale, aasz), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 0.0f, 0.0f, 0.0f },
-    { VGet(center + 10, SU_LANE_Y_AIR * lastStep->ExtraAttribute->HeightScale, aasz), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0000f, 0.0f, 0.0f, 0.0f },
-    { VGet(center + 10, SU_LANE_Y_GROUND, aasz), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0000f, 1.0f, 0.0f, 0.0f },
+        {
+            VGet(center - 10, SU_LANE_Y_GROUND, aasz),
+            VGet(0, 0, -1),
+            GetColorU8(255, 255, 255, 255),
+            GetColorU8(0, 0, 0, 0),
+            0.9375f, 1.0f, 1.0f, 0.0f
+        },
+        {
+            VGet(center - 10, SU_LANE_Y_AIR * lastStep->ExtraAttribute->HeightScale, aasz),
+            VGet(0, 0, -1),
+            GetColorU8(255, 255, 255, 255),
+            GetColorU8(0, 0, 0, 0),
+            0.9375f, 0.0f, 0.0f, 0.0f
+        },
+        {
+            VGet(center + 10, SU_LANE_Y_AIR * lastStep->ExtraAttribute->HeightScale, aasz),
+            VGet(0, 0, -1),
+            GetColorU8(255, 255, 255, 255),
+            GetColorU8(0, 0, 0, 0),
+            1.0000f, 0.0f, 0.0f, 0.0f
+        },
+        {
+            VGet(center + 10, SU_LANE_Y_GROUND, aasz),
+            VGet(0, 0, -1),
+            GetColorU8(255, 255, 255, 255),
+            GetColorU8(0, 0, 0, 0),
+            1.0000f, 1.0f, 0.0f, 0.0f
+        },
     };
     DrawPolygonIndexed3D(vertices, 4, RectVertexIndices, 2, imageAirAction->GetHandle(), TRUE);
+}
 
-    for (auto &slideElement : note->ExtraData) {
-        if (slideElement->Type.test((size_t)SusNoteType::Control)) continue;
-        if (slideElement->Type.test((size_t)SusNoteType::Injection)) continue;
-        double currentStepRelativeY = 1.0 - slideElement->ModifiedPosition / SeenDuration;
-        auto &segmentPositions = curveData[slideElement];
+void ScenePlayer::DrawAirActionStep(const AirDrawQuery &query)
+{
+    auto slideElement = query.Note;
+    double currentStepRelativeY = query.Z;
 
-        auto lastSegmentPosition = segmentPositions[0];
-        double blockDuration = slideElement->StartTime - lastStep->StartTime;
-        double lastSegmentLength = lastStep->Length;
-        double lastTimeInBlock = get<0>(lastSegmentPosition) / blockDuration;
-        auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / SeenDuration;
-        double currentExPosition = get<1>(lastStep->Timeline->GetRawDrawStateAt(CurrentTime));
-        for (auto &segmentPosition : segmentPositions) {
-            if (lastSegmentPosition == segmentPosition) continue;
-            double currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
-            double currentSegmentLength = glm::mix((double)lastStep->Length, (double)slideElement->Length, currentTimeInBlock);
-            double segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
-            double currentSegmentRelativeY = 1.0 - segmentExPosition / SeenDuration;
+    SetUseZBuffer3D(TRUE);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+    if (!slideElement->Type.test((size_t)SusNoteType::Invisible)) {
+        double atLeft = (slideElement->StartLane) / 16.0;
+        double atRight = (slideElement->StartLane + slideElement->Length) / 16.0;
+        double left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atLeft) + 5;
+        double right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atRight) - 5;
+        double z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentStepRelativeY);
+        auto color = GetColorU8(255, 255, 255, 255);
+        auto yBase = SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale;
+        VERTEX3D vertices[] = {
+            //本体 上 手前
+            /*
+            llttttttrrSSSSCL
+            llttttttrrSSSSCL
+            --ffffff--SSSSCL
+            --ffffff--SSSSCL
+            DDDDDDDDDDSSSSCL
+            DDDDDDDDDDSSSSCL
+            DDDDDDDDDDSSSSCL
+            DDDDDDDDDDSSSSCL
+            左側面頂点位置
+            9+--------+5
+            | 上のやつ|
+            8+--------+4
+            7+--------+3
+            | 本 1 体 |
+            6+----+---+2
+            下 | の
+            や | つ
+            0  →手前
+            */
+            { VGet(left, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 1.0f, 0.0f, 0.0f },
+        { VGet(left, yBase, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 0.0f, 0.0f, 0.0f },
+        { VGet(left, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 0.0f },
+        { VGet(left, yBase + 20, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.125f, 0.25f, 0.0f, 0.0f },
+        { VGet(left, yBase + 20, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.208f, 1.0f, 0.0f, 0.0f },
+        { VGet(left, yBase + 40, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.208f, 0.5f, 0.0f, 0.0f },
+        { VGet(left, yBase, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.0f },
+        { VGet(left, yBase + 20, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.125f, 0.0f, 0.0f, 0.0f },
+        { VGet(left, yBase + 20, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 1.0f, 0.0f, 0.0f },
+        { VGet(left, yBase + 40, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 0.5f, 0.0f, 0.0f },
 
-            if (currentSegmentRelativeY < cullingLimit || lastSegmentRelativeY < cullingLimit) {
-                SetUseZBuffer3D(FALSE);
-                double back = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentSegmentRelativeY);
-                double front = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, lastSegmentRelativeY);
-                double backLeft = get<1>(segmentPosition) - currentSegmentLength / 32.0;
-                double backRight = get<1>(segmentPosition) + currentSegmentLength / 32.0;
-                double frontLeft = get<1>(lastSegmentPosition) - lastSegmentLength / 32.0;
-                double frontRight = get<1>(lastSegmentPosition) + lastSegmentLength / 32.0;
-                double pbl = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, backLeft);
-                double pbr = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, backRight);
-                double pfl = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, frontLeft);
-                double pfr = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, frontRight);
-                double pbz = glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, currentTimeInBlock);
-                double pfz = glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, lastTimeInBlock);
-                // TODO: 最適化しろ
-                VERTEX3D vertices[] = {
-                    { VGet(pfl, SU_LANE_Y_AIR * pfz, front), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 1.0f, 1.0f, 0.0f },
-                { VGet(pbl, SU_LANE_Y_AIR * pbz, back), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 0.0f, 0.0f, 0.0f },
-                { VGet(pbr, SU_LANE_Y_AIR * pbz, back), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 0.0f, 0.0f, 0.0f },
-                { VGet(pfr, SU_LANE_Y_AIR * pfz, front), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 1.0f, 0.0f, 0.0f },
-                };
-                DrawPolygonIndexed3D(vertices, 4, RectVertexIndices, 2, imageAirAction->GetHandle(), TRUE);
+        { VGet(right, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 1.0f, 0.0f, 0.0f },
+        { VGet(right, yBase, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 0.0f, 0.0f, 0.0f },
+        { VGet(right, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.625f, 0.25f, 0.0f, 0.0f },
+        { VGet(right, yBase + 20, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.25f, 0.0f, 0.0f },
+        { VGet(right, yBase + 20, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.625f, 1.0f, 0.0f, 0.0f },
+        { VGet(right, yBase + 40, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.625f, 0.5f, 0.0f, 0.0f },
+        { VGet(right, yBase, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.625f, 0.0f, 0.0f, 0.0f },
+        { VGet(right, yBase + 20, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.0f, 0.0f, 0.0f },
+        { VGet(right, yBase + 20, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.416f, 1.0f, 0.0f, 0.0f },
+        { VGet(right, yBase + 40, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.416f, 0.5f, 0.0f, 0.0f },
 
-                vertices[0].pos.x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, get<1>(lastSegmentPosition)) - 10;
-                vertices[1].pos.x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, get<1>(segmentPosition)) - 10;
-                vertices[2].pos.x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, get<1>(segmentPosition)) + 10;
-                vertices[3].pos.x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, get<1>(lastSegmentPosition)) + 10;
-                vertices[0].u = 0.9375f; vertices[0].v = 1.0f;
-                vertices[1].u = 0.9375f; vertices[1].v = 0.0f;
-                vertices[2].u = 1.0000f; vertices[2].v = 0.0f;
-                vertices[3].u = 1.0000f; vertices[3].v = 1.0f;
-                DrawPolygonIndexed3D(vertices, 4, RectVertexIndices, 2, imageAirAction->GetHandle(), TRUE);
-            }
+        { VGet(left, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.125f, 0.5f, 0.0f, 0.0f },
+        { VGet(right, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.5f, 0.0f, 0.0f },
+        };
+        uint16_t indices[] = {
+            //下のやつ
+            0, 1, 11,
+            0, 11, 10,
+            //本体
+            //上
+            3, 7, 17,
+            3, 17, 13,
+            //左
+            6, 7, 3,
+            6, 3, 2,
+            //右
+            12, 13, 17,
+            12, 17, 16,
+            //手前
+            20, 3, 13,
+            20, 13, 21,
 
-            lastSegmentPosition = segmentPosition;
-            lastSegmentLength = currentSegmentLength;
-            lastSegmentRelativeY = currentSegmentRelativeY;
-            lastTimeInBlock = currentTimeInBlock;
-        }
+            //へばりついてるの
+            //手前
+            4, 5, 15,
+            4, 15, 14,
+            //後ろ
+            8, 9, 19,
+            8, 19, 18,
+            //左
+            8, 9, 5,
+            8, 5, 4,
+            //右
+            14, 15, 19,
+            14, 19, 18,
+        };
         SetUseZBuffer3D(TRUE);
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-        if (!slideElement->Type.test((size_t)SusNoteType::Invisible)) {
-            double atLeft = (slideElement->StartLane) / 16.0;
-            double atRight = (slideElement->StartLane + slideElement->Length) / 16.0;
-            double left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atLeft) + 5;
-            double right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atRight) - 5;
-            double z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentStepRelativeY);
-            auto color = GetColorU8(255, 255, 255, 255);
-            auto yBase = SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale;
-            VERTEX3D vertices[] = {
-                //本体 上 手前
-                /*
-                llttttttrrSSSSCL
-                llttttttrrSSSSCL
-                --ffffff--SSSSCL
-                --ffffff--SSSSCL
-                DDDDDDDDDDSSSSCL
-                DDDDDDDDDDSSSSCL
-                DDDDDDDDDDSSSSCL
-                DDDDDDDDDDSSSSCL
-                左側面頂点位置
-                9+--------+5
-                | 上のやつ|
-                8+--------+4
-                7+--------+3
-                | 本 1 体 |
-                6+----+---+2
-                下 | の
-                や | つ
-                0  →手前
-                */
-                { VGet(left, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 1.0f, 0.0f, 0.0f },
-            { VGet(left, yBase, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 0.0f, 0.0f, 0.0f },
-            { VGet(left, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 0.0f },
-            { VGet(left, yBase + 20, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.125f, 0.25f, 0.0f, 0.0f },
-            { VGet(left, yBase + 20, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.208f, 1.0f, 0.0f, 0.0f },
-            { VGet(left, yBase + 40, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.208f, 0.5f, 0.0f, 0.0f },
-            { VGet(left, yBase, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.0f },
-            { VGet(left, yBase + 20, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.125f, 0.0f, 0.0f, 0.0f },
-            { VGet(left, yBase + 20, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 1.0f, 0.0f, 0.0f },
-            { VGet(left, yBase + 40, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 0.5f, 0.0f, 0.0f },
+        DrawPolygonIndexed3D(vertices, 22, indices + 6, 16, imageAirAction->GetHandle(), TRUE);
+        SetUseZBuffer3D(FALSE);
+        DrawPolygonIndexed3D(vertices, 22, indices, 2, imageAirAction->GetHandle(), TRUE);
+    }
+}
 
-            { VGet(right, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 1.0f, 0.0f, 0.0f },
-            { VGet(right, yBase, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 0.0f, 0.0f, 0.0f },
-            { VGet(right, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.625f, 0.25f, 0.0f, 0.0f },
-            { VGet(right, yBase + 20, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.25f, 0.0f, 0.0f },
-            { VGet(right, yBase + 20, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.625f, 1.0f, 0.0f, 0.0f },
-            { VGet(right, yBase + 40, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.625f, 0.5f, 0.0f, 0.0f },
-            { VGet(right, yBase, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.625f, 0.0f, 0.0f, 0.0f },
-            { VGet(right, yBase + 20, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.0f, 0.0f, 0.0f },
-            { VGet(right, yBase + 20, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.416f, 1.0f, 0.0f, 0.0f },
-            { VGet(right, yBase + 40, z + 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.416f, 0.5f, 0.0f, 0.0f },
+void ScenePlayer::DrawAirActionCover(const AirDrawQuery &query)
+{
+    auto slideElement = query.Note;
+    auto lastStep = query.PreviousNote;
+    auto &segmentPositions = curveData[slideElement];
 
-            { VGet(left, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.125f, 0.5f, 0.0f, 0.0f },
-            { VGet(right, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.5f, 0.0f, 0.0f },
-            };
-            uint16_t indices[] = {
-                //下のやつ
-                0, 1, 11,
-                0, 11, 10,
-                //本体
-                //上
-                3, 7, 17,
-                3, 17, 13,
-                //左
-                6, 7, 3,
-                6, 3, 2,
-                //右
-                12, 13, 17,
-                12, 17, 16,
-                //手前
-                20, 3, 13,
-                20, 13, 21,
+    auto lastSegmentPosition = segmentPositions[0];
+    double blockDuration = slideElement->StartTime - lastStep->StartTime;
+    double lastSegmentLength = lastStep->Length;
+    double lastTimeInBlock = get<0>(lastSegmentPosition) / blockDuration;
+    auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / SeenDuration;
+    for (auto &segmentPosition : segmentPositions) {
+        if (lastSegmentPosition == segmentPosition) continue;
+        double currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
+        double currentSegmentLength = glm::mix((double)lastStep->Length, (double)slideElement->Length, currentTimeInBlock);
+        double segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
+        double currentSegmentRelativeY = 1.0 - segmentExPosition / SeenDuration;
 
-                //へばりついてるの
-                //手前
-                4, 5, 15,
-                4, 15, 14,
-                //後ろ
-                8, 9, 19,
-                8, 19, 18,
-                //左
-                8, 9, 5,
-                8, 5, 4,
-                //右
-                14, 15, 19,
-                14, 19, 18,
-            };
-            SetUseZBuffer3D(TRUE);
-            DrawPolygonIndexed3D(vertices, 22, indices + 6, 16, imageAirAction->GetHandle(), TRUE);
+        if (currentSegmentRelativeY < cullingLimit || lastSegmentRelativeY < cullingLimit) {
             SetUseZBuffer3D(FALSE);
-            DrawPolygonIndexed3D(vertices, 22, indices, 2, imageAirAction->GetHandle(), TRUE);
-            //DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageAirAction->GetHandle());
+            double back = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentSegmentRelativeY);
+            double front = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, lastSegmentRelativeY);
+            double backLeft = get<1>(segmentPosition) - currentSegmentLength / 32.0;
+            double backRight = get<1>(segmentPosition) + currentSegmentLength / 32.0;
+            double frontLeft = get<1>(lastSegmentPosition) - lastSegmentLength / 32.0;
+            double frontRight = get<1>(lastSegmentPosition) + lastSegmentLength / 32.0;
+            double pbl = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, backLeft);
+            double pbr = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, backRight);
+            double pfl = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, frontLeft);
+            double pfr = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, frontRight);
+            double pbz = glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, currentTimeInBlock);
+            double pfz = glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, lastTimeInBlock);
+            // TODO: 最適化しろ
+            VERTEX3D vertices[] = {
+                { VGet(pfl, SU_LANE_Y_AIR * pfz, front), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 1.0f, 1.0f, 0.0f },
+            { VGet(pbl, SU_LANE_Y_AIR * pbz, back), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 0.0f, 0.0f, 0.0f },
+            { VGet(pbr, SU_LANE_Y_AIR * pbz, back), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 0.0f, 0.0f, 0.0f },
+            { VGet(pfr, SU_LANE_Y_AIR * pfz, front), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 1.0f, 0.0f, 0.0f },
+            };
+            DrawPolygonIndexed3D(vertices, 4, RectVertexIndices, 2, imageAirAction->GetHandle(), TRUE);
+
+            vertices[0].pos.x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, get<1>(lastSegmentPosition)) - 10;
+            vertices[1].pos.x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, get<1>(segmentPosition)) - 10;
+            vertices[2].pos.x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, get<1>(segmentPosition)) + 10;
+            vertices[3].pos.x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, get<1>(lastSegmentPosition)) + 10;
+            vertices[0].u = 0.9375f; vertices[0].v = 1.0f;
+            vertices[1].u = 0.9375f; vertices[1].v = 0.0f;
+            vertices[2].u = 1.0000f; vertices[2].v = 0.0f;
+            vertices[3].u = 1.0000f; vertices[3].v = 1.0f;
+            DrawPolygonIndexed3D(vertices, 4, RectVertexIndices, 2, imageAirAction->GetHandle(), TRUE);
         }
 
-        lastStep = slideElement;
-        lastStepRelativeY = currentStepRelativeY;
+        lastSegmentPosition = segmentPosition;
+        lastSegmentLength = currentSegmentLength;
+        lastSegmentRelativeY = currentSegmentRelativeY;
+        lastTimeInBlock = currentTimeInBlock;
     }
 }
 

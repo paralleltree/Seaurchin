@@ -62,6 +62,19 @@ enum class PlayingState {
     Completed,          // ëSïîèIÇÌÇ¡ÇΩ
 };
 
+enum class AirDrawType {
+    Air,
+    AirActionStart,
+    AirActionStep,
+    AirActionCover,
+};
+
+struct AirDrawQuery {
+    double Z = 0.0;
+    AirDrawType Type = AirDrawType::Air;
+    std::shared_ptr<SusDrawableNoteData> Note, PreviousNote;
+};
+
 class ExecutionManager;
 class ScenePlayer : public SSprite {
     friend class ScoreProcessor;
@@ -156,16 +169,19 @@ protected:
     void UpdateSlideEffect();
     void CalculateNotes(double time, double duration, double preced);
     void DrawShortNotes(std::shared_ptr<SusDrawableNoteData> note);
-    void DrawAirNotes(std::shared_ptr<SusDrawableNoteData> note);
+    void DrawAirNotes(const AirDrawQuery &query);
     void DrawHoldNotes(std::shared_ptr<SusDrawableNoteData> note);
     void DrawSlideNotes(std::shared_ptr<SusDrawableNoteData> note);
-    void DrawAirActionNotes(std::shared_ptr<SusDrawableNoteData> note);
+    void DrawAirActionStart(const AirDrawQuery &query);
+    void DrawAirActionStep(const AirDrawQuery &query);
+    void DrawAirActionCover(const AirDrawQuery &query);
     void DrawTap(int lane, int length, double relpos, int handle);
     void DrawMeasureLine(std::shared_ptr<SusDrawableNoteData> note);
     void DrawLaneDivisionLines();
     void DrawLaneBackground();
     void RefreshComboText();
     void Prepare3DDrawCall();
+    void DrawAerialNotes(std::vector<std::shared_ptr<SusDrawableNoteData>> notes);
 
     void ProcessSound();
     void ProcessSoundQueue();
