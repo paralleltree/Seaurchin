@@ -44,6 +44,7 @@ class Play : CoroutineScene {
     player.SetResource("FontCombo", skin.GetFont("Combo192"));
     player.SetResource("Tap", skin.GetImage("*Note-Tap"));
     player.SetResource("ExTap", skin.GetImage("*Note-ExTap"));
+    player.SetResource("Air", skin.GetImage("*Note-Air"));
     player.SetResource("AirUp", skin.GetImage("*Note-AirUp"));
     player.SetResource("AirDown", skin.GetImage("*Note-AirDown"));
     player.SetResource("Flick", skin.GetImage("*Note-Flick"));

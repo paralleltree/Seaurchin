@@ -487,6 +487,23 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, uint32_t line)
                     noteData.Type.set((size_t)SusNoteType::Down);
                     noteData.Type.set((size_t)SusNoteType::Left);
                     break;
+                case '7':
+                    noteData.Type.set((size_t)SusNoteType::Air);
+                    noteData.Type.set((size_t)SusNoteType::Up);
+                    noteData.Type.set((size_t)SusNoteType::Grounded);
+                    break;
+                case '8':
+                    noteData.Type.set((size_t)SusNoteType::Air);
+                    noteData.Type.set((size_t)SusNoteType::Up);
+                    noteData.Type.set((size_t)SusNoteType::Left);
+                    noteData.Type.set((size_t)SusNoteType::Grounded);
+                    break;
+                case '9':
+                    noteData.Type.set((size_t)SusNoteType::Air);
+                    noteData.Type.set((size_t)SusNoteType::Up);
+                    noteData.Type.set((size_t)SusNoteType::Right);
+                    noteData.Type.set((size_t)SusNoteType::Grounded);
+                    break;
                 default:
                     if (note[1] == '0') continue;
                     MakeMessage(line, u8"Airレーンの指定が不正です。");
@@ -694,7 +711,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
 
             bool completed = false;
             auto lastStep = note;
-            for (auto it : Notes) {
+            for (const auto &it : Notes) {
                 auto curPos = get<0>(it);
                 auto curNo = get<1>(it);
                 if (!curNo.Type.test((size_t)ltype) || curNo.Extra != info.Extra) continue;
@@ -765,6 +782,25 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
             noteData->Timeline = info.Timeline;
             noteData->ExtraAttribute = info.ExtraAttribute;
             noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
+            if (info.Type[(size_t)SusNoteType::Air] && info.Type[(size_t)SusNoteType::Up] && !info.Type[(size_t)SusNoteType::Grounded]) {
+                // オート接地条件: 下に別ノーツがあってそれがロング終点 or 下に別ノーツがない
+                bool found = false;
+                for (const auto &target : Notes) {
+                    auto gtime = get<0>(target);
+                    auto ginfo = get<1>(target);
+                    auto bits = ginfo.Type.to_ulong();
+                    if (time != gtime) continue;
+                    if (info.NotePosition.StartLane != ginfo.NotePosition.StartLane
+                        || info.NotePosition.Length != ginfo.NotePosition.Length)
+                        continue;
+                    if (!(bits & SU_NOTE_LONG_MASK)) continue;
+                    if (!ginfo.Type[(size_t)SusNoteType::End]) continue;
+                    noteData->Type.set((size_t)SusNoteType::Grounded);
+                    found = true;
+                    break;
+                }
+                if (!found) noteData->Type.set((size_t)SusNoteType::Grounded);
+            }
             data.push_back(noteData);
             SharedMetaData.ScoreDuration = max(SharedMetaData.ScoreDuration, noteData->StartTime);
         } else if (info.Type[(size_t)SusNoteType::MeasureLine]) {

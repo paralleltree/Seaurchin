@@ -35,6 +35,7 @@ enum class SusNoteType : uint16_t {
     Injection = 18, // (ロング)コンボ挿入
     Invisible,      // 不可視
     MeasureLine,    // 小節線
+    Grounded,       // Airの足が個別に描画される
 };
 
 struct SusRelativeNoteTime {

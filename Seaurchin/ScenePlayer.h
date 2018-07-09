@@ -119,7 +119,7 @@ protected:
     SSound *soundHoldLoop, *soundSlideLoop, *soundHoldStep, *soundSlideStep;
     SImage *imageLaneGround, *imageLaneJudgeLine;
     SImage *imageTap, *imageExTap, *imageFlick, *imageHellTap;
-    SImage *imageAirUp, *imageAirDown;
+    SImage *imageAir, *imageAirUp, *imageAirDown;
     SImage *imageHold, *imageHoldStrut;
     SImage *imageSlide, *imageSlideStrut;
     SImage *imageAirAction;

@@ -22,6 +22,7 @@ void ScenePlayer::LoadResources()
     imageExTap = dynamic_cast<SImage*>(resources["ExTap"]);
     imageFlick = dynamic_cast<SImage*>(resources["Flick"]);
     imageHellTap = dynamic_cast<SImage*>(resources["HellTap"]);
+    imageAir = dynamic_cast<SImage*>(resources["Air"]);
     imageAirUp = dynamic_cast<SImage*>(resources["AirUp"]);
     imageAirDown = dynamic_cast<SImage*>(resources["AirDown"]);
     imageHold = dynamic_cast<SImage*>(resources["Hold"]);
@@ -136,6 +137,7 @@ void ScenePlayer::Draw()
         if (type[(size_t)SusNoteType::ExTap]) DrawShortNotes(note);
         if (type[(size_t)SusNoteType::Flick]) DrawShortNotes(note);
         if (type[(size_t)SusNoteType::HellTap]) DrawShortNotes(note);
+        if (type[(size_t)SusNoteType::Air] && type[(size_t)SusNoteType::Grounded]) DrawShortNotes(note);
     }
 
     FINISH_DRAW_TRANSACTION;
@@ -363,20 +365,22 @@ void ScenePlayer::DrawShortNotes(shared_ptr<SusDrawableNoteData> note)
     double relpos = 1.0 - note->ModifiedPosition / SeenDuration;
     auto length = note->Length;
     auto slane = note->StartLane;
-    int handleToDraw = 0;
+    SImage *handleToDraw = nullptr;
 
     if (note->Type.test((size_t)SusNoteType::Tap)) {
-        handleToDraw = imageTap->GetHandle();
+        handleToDraw = imageTap;
     } else if (note->Type.test((size_t)SusNoteType::ExTap)) {
-        handleToDraw = imageExTap->GetHandle();
+        handleToDraw = imageExTap;
     } else if (note->Type.test((size_t)SusNoteType::Flick)) {
-        handleToDraw = imageFlick->GetHandle();
+        handleToDraw = imageFlick;
     } else if (note->Type.test((size_t)SusNoteType::HellTap)) {
-        handleToDraw = imageHellTap->GetHandle();
+        handleToDraw = imageHellTap;
+    } else if (note->Type.test((size_t)SusNoteType::Air)) {
+        handleToDraw = imageAir;
     }
 
     //64*3 x 64 ‚ð•`‰æ‚·‚é‚©‚ç1/2‚Å‚â‚é•K—v‚ª‚ ‚é
-    DrawTap(slane, length, relpos, handleToDraw);
+    if (handleToDraw) DrawTap(slane, length, relpos, handleToDraw->GetHandle());
 }
 
 void ScenePlayer::DrawAirNotes(const AirDrawQuery &query)
