@@ -176,6 +176,7 @@ protected:
     void DrawSlideNotes(std::shared_ptr<SusDrawableNoteData> note);
     void DrawAirActionStart(const AirDrawQuery &query);
     void DrawAirActionStep(const AirDrawQuery &query);
+    void DrawAirActionStepBox(const AirDrawQuery &query);
     void DrawAirActionCover(const AirDrawQuery &query);
     void DrawTap(int lane, int length, double relpos, int handle);
     void DrawMeasureLine(std::shared_ptr<SusDrawableNoteData> note);

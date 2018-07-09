@@ -62,7 +62,11 @@ void ScenePlayer::LoadResources()
     if (soundSlideLoop) soundSlideLoop->SetVolume(setting->ReadValue("Sound", "VolumeSlide", 1.0));
     if (soundHoldStep) soundHoldStep->SetVolume(setting->ReadValue("Sound", "VolumeHold", 1.0));
     if (soundSlideStep) soundSlideStep->SetVolume(setting->ReadValue("Sound", "VolumeSlide", 1.0));
-    if (soundMetronome) soundMetronome->SetVolume(setting->ReadValue("Sound", "VolumeTap", 1.0));
+    if (soundMetronome) {
+        soundMetronome->SetVolume(setting->ReadValue("Sound", "VolumeTap", 1.0));
+    } else {
+        soundMetronome = soundTap;
+    }
 
     vector<toml::Value> scv = { 0, 200, 255 };
     vector<toml::Value> aajcv = { 128, 255, 160 };
@@ -218,6 +222,9 @@ void ScenePlayer::DrawAerialNotes(vector<shared_ptr<SusDrawableNoteData>> notes)
         }
     }
     for (const auto &query : covers) DrawAirActionCover(query);
+    for (const auto &query : airdraws) {
+        if (query.Type == AirDrawType::AirActionStep) DrawAirActionStepBox(query);
+    }
 }
 
 void ScenePlayer::RefreshComboText()
@@ -561,7 +568,7 @@ void ScenePlayer::DrawAirActionStart(const AirDrawQuery &query)
     DrawPolygonIndexed3D(vertices, 4, RectVertexIndices, 2, imageAirAction->GetHandle(), TRUE);
 }
 
-void ScenePlayer::DrawAirActionStep(const AirDrawQuery &query)
+void ScenePlayer::DrawAirActionStepBox(const AirDrawQuery &query)
 {
     auto slideElement = query.Note;
     double currentStepRelativeY = query.Z;
@@ -577,27 +584,6 @@ void ScenePlayer::DrawAirActionStep(const AirDrawQuery &query)
         auto color = GetColorU8(255, 255, 255, 255);
         auto yBase = SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale;
         VERTEX3D vertices[] = {
-            //本体 上 手前
-            /*
-            llttttttrrSSSSCL
-            llttttttrrSSSSCL
-            --ffffff--SSSSCL
-            --ffffff--SSSSCL
-            DDDDDDDDDDSSSSCL
-            DDDDDDDDDDSSSSCL
-            DDDDDDDDDDSSSSCL
-            DDDDDDDDDDSSSSCL
-            左側面頂点位置
-            9+--------+5
-            | 上のやつ|
-            8+--------+4
-            7+--------+3
-            | 本 1 体 |
-            6+----+---+2
-            下 | の
-            や | つ
-            0  →手前
-            */
             { VGet(left, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 1.0f, 0.0f, 0.0f },
         { VGet(left, yBase, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 0.0f, 0.0f, 0.0f },
         { VGet(left, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.0f, 0.25f, 0.0f, 0.0f },
@@ -624,6 +610,7 @@ void ScenePlayer::DrawAirActionStep(const AirDrawQuery &query)
         { VGet(right, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.5f, 0.0f, 0.0f },
         };
         uint16_t indices[] = {
+            // 本当は上2ついらないけどindex計算が面倒なので放置
             //下のやつ
             0, 1, 11,
             0, 11, 10,
@@ -657,6 +644,35 @@ void ScenePlayer::DrawAirActionStep(const AirDrawQuery &query)
         };
         SetUseZBuffer3D(TRUE);
         DrawPolygonIndexed3D(vertices, 22, indices + 6, 16, imageAirAction->GetHandle(), TRUE);
+    }
+}
+
+void ScenePlayer::DrawAirActionStep(const AirDrawQuery &query)
+{
+    auto slideElement = query.Note;
+    double currentStepRelativeY = query.Z;
+
+    SetUseZBuffer3D(TRUE);
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+    if (!slideElement->Type.test((size_t)SusNoteType::Invisible)) {
+        double atLeft = (slideElement->StartLane) / 16.0;
+        double atRight = (slideElement->StartLane + slideElement->Length) / 16.0;
+        double left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atLeft) + 5;
+        double right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atRight) - 5;
+        double z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentStepRelativeY);
+        auto color = GetColorU8(255, 255, 255, 255);
+        auto yBase = SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale;
+        VERTEX3D vertices[] = {
+            { VGet(left, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 1.0f, 0.0f, 0.0f },
+        { VGet(left, yBase, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 0.0f, 0.0f, 0.0f },
+
+        { VGet(right, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 1.0f, 0.0f, 0.0f },
+        { VGet(right, yBase, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 0.0f, 0.0f, 0.0f },
+        };
+        uint16_t indices[] = {
+            0, 1, 3,
+            0, 3, 2,
+        };
         SetUseZBuffer3D(FALSE);
         DrawPolygonIndexed3D(vertices, 22, indices, 2, imageAirAction->GetHandle(), TRUE);
     }
