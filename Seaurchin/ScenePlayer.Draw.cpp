@@ -445,18 +445,25 @@ void ScenePlayer::DrawHoldNotes(shared_ptr<SusDrawableNoteData> note)
 {
     auto length = note->Length;
     auto slane = note->StartLane;
-    double relpos = 1.0 - note->ModifiedPosition / SeenDuration;
-    //’†g‚¾‚¯æ‚É•`‰æ
     auto endpoint = note->ExtraData.back();
+    double relpos = 1.0 - note->ModifiedPosition / SeenDuration;
     double reltailpos = 1.0 - endpoint->ModifiedPosition / SeenDuration;
+    // ’†g‚¾‚¯æ‚É•`‰æ
+    // 1‰æ–Ê•ª‚Å8•ªŠ„‚®‚ç‚¢‚Å‚æ‚³‚»‚¤
+    int segments = fabs(relpos - reltailpos) * 8;
     SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
-    DrawModiGraphF(
-        slane * widthPerLane, laneBufferY * relpos,
-        (slane + length) * widthPerLane, laneBufferY * relpos,
-        (slane + length) * widthPerLane, laneBufferY * reltailpos,
-        slane * widthPerLane, laneBufferY * reltailpos,
-        imageHoldStrut->GetHandle(), TRUE
-    );
+    for (int i = 0; i < segments; i++) {
+        double head = glm::mix(relpos, reltailpos, (double)i / segments);
+        double tail = glm::mix(relpos, reltailpos, (double)(i + 1) / segments);
+        DrawRectModiGraphF(
+            slane * widthPerLane, laneBufferY * head,
+            (slane + length) * widthPerLane, laneBufferY * head,
+            (slane + length) * widthPerLane, laneBufferY * tail,
+            slane * widthPerLane, laneBufferY * tail,
+            0, (192.0 * i) / segments, noteImageBlockX, 192.0 / segments,
+            imageHoldStrut->GetHandle(), TRUE
+        );
+    }
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
     DrawTap(slane, length, relpos, imageHold->GetHandle());
