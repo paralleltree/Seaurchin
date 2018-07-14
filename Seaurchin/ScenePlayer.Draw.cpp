@@ -450,7 +450,7 @@ void ScenePlayer::DrawHoldNotes(shared_ptr<SusDrawableNoteData> note)
     double reltailpos = 1.0 - endpoint->ModifiedPosition / SeenDuration;
     // ’†g‚¾‚¯æ‚É•`‰æ
     // 1‰æ–Ê•ª‚Å8•ªŠ„‚®‚ç‚¢‚Å‚æ‚³‚»‚¤
-    int segments = fabs(relpos - reltailpos) * 8;
+    int segments = fabs(relpos - reltailpos) * 8 + 1;
     SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
     for (int i = 0; i < segments; i++) {
         double head = glm::mix(relpos, reltailpos, (double)i / segments);
