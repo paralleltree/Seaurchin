@@ -63,6 +63,13 @@ void ExecutionManager::Initialize()
     Characters->LoadAllCharacters();
     Skills->LoadAllSkills();
 
+    hCommunicationPipe = CreateNamedPipe(
+        SU_NAMED_PIPE_NAME,
+        PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
+        3, 0, 0, 1000,
+        nullptr
+    );
+
     /*
     hImc = ImmGetContext(GetMainWindowHandle());
     if (!ImmGetOpenStatus(hImc)) ImmSetOpenStatus(hImc, TRUE);
@@ -78,6 +85,11 @@ void ExecutionManager::Shutdown()
     SharedControlState->Terminate();
     MixerBGM->Release();
     MixerSE->Release();
+    if (hCommunicationPipe != INVALID_HANDLE_VALUE) {
+        DisconnectNamedPipe(hCommunicationPipe);
+        CloseHandle(hCommunicationPipe);
+    }
+    
 }
 
 void ExecutionManager::RegisterGlobalManagementFunction()
@@ -316,6 +328,9 @@ std::tuple<bool, LRESULT> ExecutionManager::CustomWindowProc(HWND hWnd, UINT msg
 {
     ostringstream buffer;
     switch (msg) {
+        case WM_SEAURCHIN_ABORT:
+            InterfacesExitApplication();
+            return make_tuple(true, 0);
         /*
             //IME
         case WM_INPUTLANGCHANGE:

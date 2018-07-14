@@ -34,6 +34,7 @@ private:
     std::unordered_map<std::string, boost::any> optionalData;
     DrawableResult LastResult;
     HIMC hImc;
+    HANDLE hCommunicationPipe;
     DWORD ImmConversion, ImmSentence;
     SSoundMixer *MixerBGM, *MixerSE;
 

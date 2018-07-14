@@ -4,10 +4,11 @@
 
 
 #define SU_APP_NAME "Seaurchin"
-#define SU_APP_VERSION "0.41.1"
+#define SU_APP_VERSION "0.41.2"
 
 #define SU_SETTING_FILE L"config.toml"
 #define SU_CACHE_MUSIC_FILE L"musics.mp"
+#define SU_NAMED_PIPE_NAME "\\\\.\\pipe\\seaurchin"
 
 #define SU_DATA_DIR L"Data"
 #define SU_IMAGE_DIR L"Images"
@@ -43,3 +44,18 @@
 #define SU_UDTYPE_WAIT 101
 #define SU_UDTYPE_SKIN 102
 #define SU_UDTYPE_ENTRYPOINT 103
+
+// カスタムウィンドウメッセージ
+
+// Seaurchinを落とす
+// wp, lp: なし
+#define WM_SEAURCHIN_ABORT (WM_APP + 1)
+
+// 再生開始する
+// wp, lp: なし
+// \\.\pipe\seaurchin に所定の形式でデータを書き出すこと
+#define WM_SEAURCHIN_PLAY (WM_APP + 10)
+
+// 情報を取得する
+// wp, lp: なし
+#define WM_SEAURCHIN_GET_INFO (WM_APP + 11)
