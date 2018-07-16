@@ -33,7 +33,7 @@ Default = 6.0
 
 [[SettingItems]]
 Group = "Play"
-Key = "JudgeMultiplierAirString"
+Key = "AirRollMultiplier"
 Description = "Air流速調整(倍)"
 Type = "Float"
 Range = [ 0.5, 4.0 ]
@@ -52,7 +52,7 @@ Default = 0
 [[SettingItems]]
 Group = "Play"
 Key = "JudgeMultiplierSlider"
-Description = "エアストリング判定拡張(倍)"
+Description = "スライダー判定拡張(倍)"
 Type = "Float"
 Range = [ 1.0, 10.0 ]
 Step = 0.1
@@ -61,7 +61,7 @@ Default = 1.0
 [[SettingItems]]
 Group = "Play"
 Key = "JudgeAdjustAirString"
-Description = "スライダー判定位置調整(ms)"
+Description = "エアストリング判定位置調整(ms)"
 Type = "Integer"
 Range = [ -1000, 1000 ]
 Step = 1

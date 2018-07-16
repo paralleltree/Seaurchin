@@ -782,8 +782,18 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
             noteData->Timeline = info.Timeline;
             noteData->ExtraAttribute = info.ExtraAttribute;
             noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
+            // RollHispeed組み込み
+            if (noteData->ExtraAttribute->RollHispeedNumber >= 0) {
+                if (HispeedDefinitions.find(noteData->ExtraAttribute->RollHispeedNumber) != HispeedDefinitions.end()) {
+                    noteData->ExtraAttribute->RollTimeline = HispeedDefinitions[noteData->ExtraAttribute->RollHispeedNumber];
+                } else {
+                    MakeMessage(0, u8"指定されたタイムラインが存在しません");
+                    noteData->ExtraAttribute->RollHispeedNumber = -1;
+                }
+            }
+            // Air接地処理
+            // オート接地条件: 下に別ノーツがあってそれがロング終点 or 下に別ノーツがない
             if (info.Type[(size_t)SusNoteType::Air] && info.Type[(size_t)SusNoteType::Up] && !info.Type[(size_t)SusNoteType::Grounded]) {
-                // オート接地条件: 下に別ノーツがあってそれがロング終点 or 下に別ノーツがない
                 bool found = false;
                 for (const auto &target : Notes) {
                     auto gtime = get<0>(target);
@@ -1033,6 +1043,10 @@ void SusNoteExtraAttribute::Apply(const string &props)
             case "priority"_crc32:
             case "pr"_crc32:
                 Priority = (uint32_t)atoi(pr[1].c_str());
+                break;
+            case "rollhs"_crc32:
+            case "rh"_crc32:
+                RollHispeedNumber = ConvertHexatridecimal(pr[1].c_str());
                 break;
             case "height"_crc32:
             case "h"_crc32:

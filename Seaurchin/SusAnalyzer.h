@@ -92,8 +92,10 @@ public:
 
 class SusNoteExtraAttribute final {
 public:
-    uint32_t Priority;
-    double HeightScale;
+    uint32_t Priority = 0;
+    int32_t RollHispeedNumber = -1;
+    std::shared_ptr<SusHispeedTimeline> RollTimeline = nullptr;
+    double HeightScale = 1.0;
 
     void Apply(const std::string &props);
 };

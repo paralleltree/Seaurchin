@@ -79,6 +79,7 @@ void ScenePlayer::Initialize()
 
     auto setting = manager->GetSettingInstanceSafe();
     HispeedMultiplier = setting->ReadValue<double>("Play", "Hispeed", 6);
+    AirRollSpeed = setting->ReadValue<double>("Play", "AirRollMultiplier", 1.5);
     SoundBufferingLatency = setting->ReadValue<int>("Sound", "BufferLatency", 30) / 1000.0;
     PreloadingTime = 0.5;
 

@@ -403,8 +403,15 @@ void ScenePlayer::DrawAirNotes(const AirDrawQuery &query)
     double z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, query.Z);
     auto left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, slane / 16.0);
     auto right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, (slane + length) / 16.0);
-    auto refrole = NormalizedFmod(-note->ModifiedPosition, 0.5);
-    auto role = note->Type.test((size_t)SusNoteType::Up) ? refrole : 0.5 - refrole;
+    double refroll;
+    if (note->ExtraAttribute->RollTimeline) {
+        auto state = note->ExtraAttribute->RollTimeline->GetRawDrawStateAt(CurrentTime);
+        auto mp = note->StartTimeEx - get<1>(state);
+        refroll = NormalizedFmod(-mp * AirRollSpeed, 0.5);
+    } else {
+        refroll = NormalizedFmod(-note->ModifiedPosition * AirRollSpeed, 0.5);
+    }
+    auto roll = note->Type.test((size_t)SusNoteType::Up) ? refroll : 0.5 - refroll;
     auto xadjust = note->Type.test((size_t)SusNoteType::Left) ? -80.0 : (note->Type.test((size_t)SusNoteType::Right) ? 80.0 : 0);
     auto handle = note->Type.test((size_t)SusNoteType::Up) ? imageAirUp->GetHandle() : imageAirDown->GetHandle();
 
@@ -414,28 +421,28 @@ void ScenePlayer::DrawAirNotes(const AirDrawQuery &query)
             VGet(0, 0, -1),
             GetColorU8(255, 255, 255, 255),
             GetColorU8(0, 0, 0, 0),
-            0.0f, role, 0.0f, 0.0f
+            0.0f, roll, 0.0f, 0.0f
         },
         {
             VGet(right + xadjust, SU_LANE_Y_AIRINDICATE, z),
             VGet(0, 0, -1),
             GetColorU8(255, 255, 255, 255),
             GetColorU8(0, 0, 0, 0),
-            1.0f, role, 0.0f, 0.0f
+            1.0f, roll, 0.0f, 0.0f
         },
         {
             VGet(right, SU_LANE_Y_GROUND, z),
             VGet(0, 0, -1),
             GetColorU8(255, 255, 255, 255),
             GetColorU8(0, 0, 0, 0),
-            1.0f, role + 0.5f, 0.0f, 0.0f
+            1.0f, roll + 0.5f, 0.0f, 0.0f
         },
         {
             VGet(left, SU_LANE_Y_GROUND, z),
             VGet(0, 0, -1),
             GetColorU8(255, 255, 255, 255),
             GetColorU8(0, 0, 0, 0),
-            0.0f, role + 0.5f, 0.0f, 0.0f
+            0.0f, roll + 0.5f, 0.0f, 0.0f
         }
     };
     Prepare3DDrawCall();
