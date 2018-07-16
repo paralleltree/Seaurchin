@@ -141,6 +141,7 @@ void ScenePlayer::Draw()
         auto &type = note->Type;
         if (type[(size_t)SusNoteType::Tap]) DrawShortNotes(note);
         if (type[(size_t)SusNoteType::ExTap]) DrawShortNotes(note);
+        if (type[(size_t)SusNoteType::AwesomeExTap]) DrawShortNotes(note);
         if (type[(size_t)SusNoteType::Flick]) DrawShortNotes(note);
         if (type[(size_t)SusNoteType::HellTap]) DrawShortNotes(note);
         if (type[(size_t)SusNoteType::Air] && type[(size_t)SusNoteType::Grounded]) DrawShortNotes(note);
@@ -379,6 +380,8 @@ void ScenePlayer::DrawShortNotes(shared_ptr<SusDrawableNoteData> note)
     if (note->Type.test((size_t)SusNoteType::Tap)) {
         handleToDraw = imageTap;
     } else if (note->Type.test((size_t)SusNoteType::ExTap)) {
+        handleToDraw = imageExTap;
+    } else if (note->Type.test((size_t)SusNoteType::AwesomeExTap)) {
         handleToDraw = imageExTap;
     } else if (note->Type.test((size_t)SusNoteType::Flick)) {
         handleToDraw = imageFlick;
