@@ -793,7 +793,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
             }
             // Air接地処理
             // オート接地条件: 下に別ノーツがあってそれがロング終点 or 下に別ノーツがない
-            if (info.Type[(size_t)SusNoteType::Air] && info.Type[(size_t)SusNoteType::Up] && !info.Type[(size_t)SusNoteType::Grounded]) {
+            if (info.Type[(size_t)SusNoteType::Air] && !info.Type[(size_t)SusNoteType::Grounded]) {
                 bool found = false;
                 for (const auto &target : Notes) {
                     auto gtime = get<0>(target);
