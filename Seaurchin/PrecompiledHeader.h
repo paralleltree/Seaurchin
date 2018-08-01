@@ -43,6 +43,7 @@
 #include <exception>
 #include <future>
 #include <thread>
+#include <numeric>
 
 //Boost
 #include <boost/config.hpp>

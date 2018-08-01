@@ -119,6 +119,7 @@ void ScenePlayer::Finalize()
     fontCombo->Release();
     DeleteGraph(hGroundBuffer);
     DeleteGraph(hBlank);
+    DeleteGraph(imageExtendedSlideStrut);
     if (movieBackground) DeleteGraph(movieBackground);
     judgeSoundThread.join();
 }
@@ -137,6 +138,7 @@ void ScenePlayer::LoadWorker()
     analyzer->LoadFromFile(scorefile.wstring());
     MetronomeAvailable = !analyzer->SharedMetaData.ExtraFlags[(size_t)SusMetaDataFlags::DisableMetronome];
     analyzer->RenderScoreData(data, curveData);
+    segmentsPerSecond = analyzer->SharedMetaData.SegmentsPerSecond;
     usePrioritySort = analyzer->SharedMetaData.ExtraFlags[(size_t)SusMetaDataFlags::EnableDrawPriority];
     processor->Reset();
     State = PlayingState::BgmNotLoaded;

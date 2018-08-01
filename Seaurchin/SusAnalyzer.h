@@ -137,7 +137,7 @@ struct SusMetaData {
         Level = 0;
         ShowBpm = -1;
         ScoreDuration = 0;
-        SegmentsPerSecond = 20;
+        SegmentsPerSecond = 100;
         DifficultyType = 0;
         UExtraDifficulty = u8"";
         ExtraFlags.reset();

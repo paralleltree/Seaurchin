@@ -125,6 +125,7 @@ protected:
     SImage *imageHold, *imageHoldStrut;
     SImage *imageSlide, *imageSlideStrut;
     SImage *imageAirAction;
+    int imageExtendedSlideStrut;
     SFont *fontCombo;
     SAnimatedImage *animeTap, *animeExTap, *animeSlideTap, *animeSlideLoop, *animeAirAction;
     STextSprite *textCombo;
@@ -135,6 +136,7 @@ protected:
     unsigned int slideLineColor = GetColor(0, 200, 255);
     unsigned int airActionJudgeColor = GetColor(128, 255, 160);
     bool showSlideLine, showAirActionJudge;
+    int segmentsPerSecond;
 
     //Slide‚Ìd‚İ‚ªáŠ±ˆá‚¤‚ç‚µ‚¢‚¯‚Ç‚»‚Ì‚Ö‚ñ‹–‚µ‚Ä‚Ë
     std::shared_ptr<Result> CurrentResult;
