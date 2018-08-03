@@ -82,7 +82,8 @@ private:
 
 public:
     SusHispeedTimeline(std::function<double(uint32_t, uint32_t)> func);
-    void AddKeysByString(const std::string &def, std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)> resolver);
+    void AddKeysByString(const std::string &def, const std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)>&
+                         resolver);
     void AddKeyByData(uint32_t meas, uint32_t tick, double hs);
     void AddKeyByData(uint32_t meas, uint32_t tick, bool vis);
     void Finialize();
@@ -213,7 +214,7 @@ private:
     void ProcessData(const boost::xpressive::smatch &result, uint32_t line);
     void MakeMessage(uint32_t line, const std::string &message);
     void MakeMessage(uint32_t meas, uint32_t tick, uint32_t lane, const std::string &message);
-    void CalculateCurves(std::shared_ptr<SusDrawableNoteData> note, NoteCurvesList &curveData);
+    void CalculateCurves(std::shared_ptr<SusDrawableNoteData> note, NoteCurvesList &curveData) const;
 
 public:
     SusMetaData SharedMetaData;

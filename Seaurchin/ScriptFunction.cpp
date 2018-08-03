@@ -82,5 +82,5 @@ void EnumerateInstalledFonts()
     logfont.lfCharSet = DEFAULT_CHARSET;
     memcpy_s(logfont.lfFaceName, sizeof(logfont.lfFaceName), "", 1);
     logfont.lfPitchAndFamily = 0;
-    EnumFontFamiliesEx(hdc, &logfont, FONTENUMPROC(FontEnumerationProc), LPARAM(nullptr), 0);
+    EnumFontFamiliesEx(hdc, &logfont, FONTENUMPROC(FontEnumerationProc), LPARAM(0), 0);
 }

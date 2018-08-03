@@ -4,7 +4,8 @@
 
 using namespace std;
 
-CharacterInstance::CharacterInstance(shared_ptr<CharacterParameter> character, shared_ptr<SkillParameter> skill, shared_ptr<AngelScript> script, std::shared_ptr<Result> result)
+CharacterInstance::CharacterInstance(shared_ptr<CharacterParameter> character, shared_ptr<SkillParameter> skill, shared_ptr<AngelScript> script, std::shared_ptr<Result> result):
+    ImageSet(nullptr)
 {
     CharacterSource = character;
     SkillSource = skill;
@@ -38,7 +39,7 @@ void CharacterInstance::LoadAbilities()
     using namespace boost::algorithm;
     using namespace boost::filesystem;
     auto log = spdlog::get("main");
-    auto abroot = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_ABILITY_DIR;
+    const auto abroot = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_ABILITY_DIR;
 
     for (const auto &def : SkillSource->Abilities) {
         vector<string> params;
@@ -59,12 +60,12 @@ void CharacterInstance::LoadAbilities()
         AbilityTypes.push_back(abt);
         AbilityEvents.push_back(funcs);
 
-        auto init = abt->GetMethodByDecl("void Initialize(dictionary@, " SU_IF_SKILL_INDICATORS "@)");
+        const auto init = abt->GetMethodByDecl("void Initialize(dictionary@, " SU_IF_SKILL_INDICATORS "@)");
         if (!init) continue;
 
         auto args = CScriptDictionary::Create(ScriptInterface->GetEngine());
         for (const auto &arg : def.Arguments) {
-            auto key = arg.first;
+            const auto key = arg.first;
             auto value = arg.second;
             auto &vid = value.type();
             if (vid == typeid(int)) {
@@ -116,13 +117,13 @@ asIScriptObject* CharacterInstance::LoadAbilityObject(boost::filesystem::path fi
     }
 
     //エントリポイント検索
-    int cnt = mod->GetObjectTypeCount();
+    const int cnt = mod->GetObjectTypeCount();
     asITypeInfo *type = nullptr;
     for (int i = 0; i < cnt; i++) {
-        auto cti = mod->GetObjectTypeByIndex(i);
+        const auto cti = mod->GetObjectTypeByIndex(i);
         if (!(ScriptInterface->CheckMetaData(cti, "EntryPoint") || cti->GetUserData(SU_UDTYPE_ENTRYPOINT))) continue;
         type = cti;
-        type->SetUserData((void*)0xFFFFFFFF, SU_UDTYPE_ENTRYPOINT);
+        type->SetUserData(reinterpret_cast<void*>(0xFFFFFFFF), SU_UDTYPE_ENTRYPOINT);
         type->AddRef();
         break;
     }
@@ -131,13 +132,13 @@ asIScriptObject* CharacterInstance::LoadAbilityObject(boost::filesystem::path fi
         return nullptr;
     }
 
-    auto obj = ScriptInterface->InstantiateObject(type);
+    const auto obj = ScriptInterface->InstantiateObject(type);
     obj->AddRef();
     type->Release();
     return obj;
 }
 
-void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunction *func)
+void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunction *func) const
 {
     context->Prepare(func);
     context->SetObject(obj);
@@ -145,30 +146,30 @@ void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunctio
     context->Execute();
 }
 
-void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunction *func, AbilityNoteType type)
+void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunction *func, AbilityNoteType type) const
 {
     context->Prepare(func);
     context->SetObject(obj);
     context->SetArgAddress(0, TargetResult.get());
-    context->SetArgDWord(1, (asDWORD)type);
+    context->SetArgDWord(1, asDWORD(type));
     context->Execute();
 }
 
-void CharacterInstance::CallJudgeCallback(AbilityJudgeType judge, AbilityNoteType type)
+void CharacterInstance::CallJudgeCallback(AbilityJudgeType judge, AbilityNoteType type) const
 {
     if (!JudgeCallback) return;
     JudgeCallback->Context->Prepare(JudgeCallback->Function);
     JudgeCallback->Context->SetObject(JudgeCallback->Object);
-    JudgeCallback->Context->SetArgDWord(0, (asDWORD)judge);
-    JudgeCallback->Context->SetArgDWord(1, (asDWORD)type);
+    JudgeCallback->Context->SetArgDWord(0, asDWORD(judge));
+    JudgeCallback->Context->SetArgDWord(1, asDWORD(type));
     JudgeCallback->Context->Execute();
 }
 
 void CharacterInstance::OnStart()
 {
     for (int i = 0; i < Abilities.size(); ++i) {
-        auto func = AbilityEvents[i].OnStart;
-        auto obj = Abilities[i];
+        const auto func = AbilityEvents[i].OnStart;
+        const auto obj = Abilities[i];
         CallEventFunction(obj, func);
     }
 }
@@ -176,8 +177,8 @@ void CharacterInstance::OnStart()
 void CharacterInstance::OnFinish()
 {
     for (int i = 0; i < Abilities.size(); ++i) {
-        auto func = AbilityEvents[i].OnFinish;
-        auto obj = Abilities[i];
+        const auto func = AbilityEvents[i].OnFinish;
+        const auto obj = Abilities[i];
         CallEventFunction(obj, func);
     }
 }
@@ -185,8 +186,8 @@ void CharacterInstance::OnFinish()
 void CharacterInstance::OnJusticeCritical(AbilityNoteType type)
 {
     for (int i = 0; i < Abilities.size(); ++i) {
-        auto func = AbilityEvents[i].OnJusticeCritical;
-        auto obj = Abilities[i];
+        const auto func = AbilityEvents[i].OnJusticeCritical;
+        const auto obj = Abilities[i];
         CallEventFunction(obj, func, type);
     }
     CallJudgeCallback(AbilityJudgeType::JusticeCritical, type);
@@ -195,8 +196,8 @@ void CharacterInstance::OnJusticeCritical(AbilityNoteType type)
 void CharacterInstance::OnJustice(AbilityNoteType type)
 {
     for (int i = 0; i < Abilities.size(); ++i) {
-        auto func = AbilityEvents[i].OnJustice;
-        auto obj = Abilities[i];
+        const auto func = AbilityEvents[i].OnJustice;
+        const auto obj = Abilities[i];
         CallEventFunction(obj, func, type);
     }
     CallJudgeCallback(AbilityJudgeType::Justice, type);
@@ -205,8 +206,8 @@ void CharacterInstance::OnJustice(AbilityNoteType type)
 void CharacterInstance::OnAttack(AbilityNoteType type)
 {
     for (int i = 0; i < Abilities.size(); ++i) {
-        auto func = AbilityEvents[i].OnAttack;
-        auto obj = Abilities[i];
+        const auto func = AbilityEvents[i].OnAttack;
+        const auto obj = Abilities[i];
         CallEventFunction(obj, func, type);
     }
     CallJudgeCallback(AbilityJudgeType::Attack, type);
@@ -215,8 +216,8 @@ void CharacterInstance::OnAttack(AbilityNoteType type)
 void CharacterInstance::OnMiss(AbilityNoteType type)
 {
     for (int i = 0; i < Abilities.size(); ++i) {
-        auto func = AbilityEvents[i].OnMiss;
-        auto obj = Abilities[i];
+        const auto func = AbilityEvents[i].OnMiss;
+        const auto obj = Abilities[i];
         CallEventFunction(obj, func, type);
     }
     CallJudgeCallback(AbilityJudgeType::Miss, type);
@@ -229,22 +230,22 @@ void CharacterInstance::SetCallback(asIScriptFunction *func)
     JudgeCallback = new CallbackObject(func);
 }
 
-CharacterParameter* CharacterInstance::GetCharacterParameter()
+CharacterParameter* CharacterInstance::GetCharacterParameter() const
 {
     return CharacterSource.get();
 }
 
-SkillParameter* CharacterInstance::GetSkillParameter()
+SkillParameter* CharacterInstance::GetSkillParameter() const
 {
     return SkillSource.get();
 }
 
-SkillIndicators* CharacterInstance::GetSkillIndicators()
+SkillIndicators* CharacterInstance::GetSkillIndicators() const
 {
     return Indicators.get();
 }
 
-CharacterImageSet* CharacterInstance::GetCharacterImages()
+CharacterImageSet* CharacterInstance::GetCharacterImages() const
 {
     ImageSet->AddRef();
     return ImageSet;

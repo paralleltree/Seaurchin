@@ -20,7 +20,7 @@ unique_ptr<ExecutionManager> manager;
 WNDPROC dxlibWndProc;
 HWND hDxlibWnd;
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int WINAPI WinMain(const HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
     PreInitialize(hInstance);
     Initialize();
@@ -38,8 +38,8 @@ void PreInitialize(HINSTANCE hInstance)
 
     setting = make_shared<Setting>(hInstance);
     setting->Load(SU_SETTING_FILE);
-    auto vs = setting->ReadValue<bool>("Graphic", "WaitVSync", false);
-    auto fs = setting->ReadValue<bool>("Graphic", "Fullscreen", false);
+    const auto vs = setting->ReadValue<bool>("Graphic", "WaitVSync", false);
+    const auto fs = setting->ReadValue<bool>("Graphic", "Fullscreen", false);
 
     SetUseCharCodeFormat(DX_CHARCODEFORMAT_UTF16LE);
     ChangeWindowMode(fs ? FALSE : TRUE);
@@ -59,14 +59,14 @@ void Initialize()
     
     //WndProcç∑Çµë÷Ç¶
     hDxlibWnd = GetMainWindowHandle();
-    dxlibWndProc = (WNDPROC)GetWindowLong(hDxlibWnd, GWL_WNDPROC);
-    SetWindowLong(hDxlibWnd, GWL_WNDPROC, (LONG)CustomWindowProc);
+    dxlibWndProc = WNDPROC(GetWindowLong(hDxlibWnd, GWL_WNDPROC));
+    SetWindowLong(hDxlibWnd, GWL_WNDPROC, LONG(CustomWindowProc));
     //D3Dê›íË
     SetUseZBuffer3D(TRUE);
     SetWriteZBuffer3D(TRUE);
     SetDrawScreen(DX_SCREEN_BACK);
 
-    manager = unique_ptr<ExecutionManager>(new ExecutionManager(setting));
+    manager = make_unique<ExecutionManager>(setting);
     manager->Initialize();
 }
 
@@ -81,7 +81,7 @@ void Run()
         manager->EnumerateSkins();
         manager->ExecuteSkin();
     }
-    manager->AddScene(shared_ptr<Scene>(new SceneDebug()));
+    manager->AddScene(static_pointer_cast<Scene>(make_shared<SceneDebug>()));
 
 
     auto start = high_resolution_clock::now();
@@ -90,7 +90,7 @@ void Run()
     {
         pstart = start;
         start = high_resolution_clock::now();
-        double delta = duration_cast<nanoseconds>(start - pstart).count() / 1000000000.0;
+        const auto delta = duration_cast<nanoseconds>(start - pstart).count() / 1000000000.0;
         manager->Tick(delta);
         manager->Draw();
     }
@@ -106,7 +106,7 @@ void Terminate()
     logger->Terminate();
 }
 
-LRESULT CALLBACK CustomWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK CustomWindowProc(const HWND hWnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)
 {
     bool processed;
     LRESULT result;

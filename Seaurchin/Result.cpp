@@ -2,116 +2,116 @@
 
 void Result::SetAllNotes(uint32_t notes)
 {
-    Notes = notes ? notes : 1;
-    GaugePerJusticeCritical = 60000.0 / Notes;
-    ScorePerJusticeCritical = 1010000.0 / Notes;
+    notes = notes ? notes : 1;
+    gaugePerJusticeCritical = 60000.0 / notes;
+    scorePerJusticeCritical = 1010000.0 / notes;
     Reset();
 }
 
 void Result::Reset()
 {
-    JusticeCritical = 0;
-    Justice = 0;
-    Attack = 0;
-    Miss = 0;
-    GaugeValue = GaugeBoostBySkill = 0;
-    CurrentScore = 0;
-    CurrentCombo = MaxCombo = 0;
+    justiceCritical = 0;
+    justice = 0;
+    attack = 0;
+    miss = 0;
+    gaugeValue = gaugeBoostBySkill = 0;
+    currentScore = 0;
+    currentCombo = maxCombo = 0;
 }
 
 void Result::PerformJusticeCritical()
 {
-    JusticeCritical++;
-    CurrentCombo++;
-    MaxCombo = CurrentCombo > MaxCombo ? CurrentCombo : MaxCombo;
-    GaugeValue += GaugePerJusticeCritical;
-    CurrentScore += ScorePerJusticeCritical;
-    GaugeValue = std::max(0.0, GaugeValue);
+    justiceCritical++;
+    currentCombo++;
+    maxCombo = currentCombo > maxCombo ? currentCombo : maxCombo;
+    gaugeValue += gaugePerJusticeCritical;
+    currentScore += scorePerJusticeCritical;
+    gaugeValue = std::max(0.0, gaugeValue);
 }
 
 void Result::PerformJustice()
 {
-    Justice++;
-    CurrentCombo++;
-    MaxCombo = CurrentCombo > MaxCombo ? CurrentCombo : MaxCombo;
-    GaugeValue += GaugePerJusticeCritical * 0.8;
-    CurrentScore += ScorePerJusticeCritical / 1.01;
-    GaugeValue = std::max(0.0, GaugeValue);
+    justice++;
+    currentCombo++;
+    maxCombo = currentCombo > maxCombo ? currentCombo : maxCombo;
+    gaugeValue += gaugePerJusticeCritical * 0.8;
+    currentScore += scorePerJusticeCritical / 1.01;
+    gaugeValue = std::max(0.0, gaugeValue);
 }
 
 void Result::PerformAttack()
 {
-    Attack++;
-    CurrentCombo++;
-    MaxCombo = CurrentCombo > MaxCombo ? CurrentCombo : MaxCombo;
-    GaugeValue += GaugePerJusticeCritical * 0.1;
-    CurrentScore += ScorePerJusticeCritical / 1.01 * 0.5;
-    GaugeValue = std::max(0.0, GaugeValue);
+    attack++;
+    currentCombo++;
+    maxCombo = currentCombo > maxCombo ? currentCombo : maxCombo;
+    gaugeValue += gaugePerJusticeCritical * 0.1;
+    currentScore += scorePerJusticeCritical / 1.01 * 0.5;
+    gaugeValue = std::max(0.0, gaugeValue);
 }
 
 void Result::PerformMiss()
 {
-    Miss++;
-    CurrentCombo = 0;
+    miss++;
+    currentCombo = 0;
 }
 
-void Result::BoostGaugeByValue(int value)
+void Result::BoostGaugeByValue(const int value)
 {
-    GaugeValue += value;
-    GaugeBoostBySkill += value;
-    GaugeValue = std::max(0.0, GaugeValue);
+    gaugeValue += value;
+    gaugeBoostBySkill += value;
+    gaugeValue = std::max(0.0, gaugeValue);
 }
 
-void Result::BoostGaugeJusticeCritical(double ratio)
+void Result::BoostGaugeJusticeCritical(const double ratio)
 {
-    double value = GaugePerJusticeCritical * ratio;
+    const auto value = gaugePerJusticeCritical * ratio;
     BoostGaugeByValue(value);
 }
 
-void Result::BoostGaugeJustice(double ratio)
+void Result::BoostGaugeJustice(const double ratio)
 {
-    double value = GaugePerJusticeCritical * ratio * 0.5;
+    const auto value = gaugePerJusticeCritical * ratio * 0.5;
     BoostGaugeByValue(value);
 }
 
-void Result::BoostGaugeAttack(double ratio)
+void Result::BoostGaugeAttack(const double ratio)
 {
-    double value = GaugePerJusticeCritical * ratio * 0.1;
+    const auto value = gaugePerJusticeCritical * ratio * 0.1;
     BoostGaugeByValue(value);
 }
 
 void Result::BoostGaugeMiss(double ratio)
 {
-    GaugeValue = std::max(0.0, GaugeValue);
+    gaugeValue = std::max(0.0, gaugeValue);
 }
 
-void Result::GetCurrentResult(DrawableResult *result)
+void Result::GetCurrentResult(DrawableResult *result) const
 {
     if (!result) return;
-    result->JusticeCritical = JusticeCritical;
-    result->Justice = Justice;
-    result->Attack = Attack;
-    result->Miss = Miss;
-    result->Combo = CurrentCombo;
-    result->MaxCombo = MaxCombo;
-    result->Score = round(CurrentScore);
+    result->JusticeCritical = justiceCritical;
+    result->Justice = justice;
+    result->Attack = attack;
+    result->Miss = miss;
+    result->Combo = currentCombo;
+    result->MaxCombo = maxCombo;
+    result->Score = round(currentScore);
 
-    result->Notes = Notes;
-    result->PastNotes = JusticeCritical + Justice + Attack + Miss;
+    result->Notes = notes;
+    result->PastNotes = justiceCritical + justice + attack + miss;
 
     result->FulfilledGauges = 0;
     result->CurrentGaugeRatio = 0;
-    result->RawGaugeValue = GaugeValue;
-    result->GaugeBySkill = GaugeBoostBySkill;
-    auto cg = round(GaugeValue);
+    result->RawGaugeValue = gaugeValue;
+    result->GaugeBySkill = gaugeBoostBySkill;
+    auto cg = round(gaugeValue);
     auto ng = 12000;
-    auto delta = 2000;
+    const auto delta = 2000;
     while (cg >= ng) {
         cg -= ng;
         result->FulfilledGauges++;
         ng += delta;
     }
-    result->CurrentGaugeRatio = (double)cg / (double)ng;
+    result->CurrentGaugeRatio = double(cg) / double(ng);
 }
 
 void RegisterResultTypes(asIScriptEngine *engine)

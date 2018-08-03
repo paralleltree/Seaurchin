@@ -8,48 +8,48 @@ using namespace std;
 SkillManager::SkillManager(ExecutionManager *exm)
 {
     manager = exm;
-    Selected = -1;
+    selected = -1;
 }
 
 void SkillManager::LoadAllSkills()
 {
     using namespace boost;
-    using namespace boost::filesystem;
-    path skillroot = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_SKILL_DIR;
+    using namespace filesystem;
+    const auto skillroot = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_SKILL_DIR;
 
-    directory_iterator dit(skillroot);
+    const directory_iterator dit(skillroot);
     for (const auto& fdata : make_iterator_range(dit, {})) {
         if (is_directory(fdata)) continue;
-        auto filename = ConvertUnicodeToUTF8(fdata.path().wstring());
+        const auto filename = ConvertUnicodeToUTF8(fdata.path().wstring());
         if (!ends_with(filename, ".toml")) continue;
         LoadFromToml(fdata.path());
     }
-    spdlog::get("main")->info(u8"スキル総数: {0:d}", Skills.size());
-    Selected = Skills.size() ? 0 : -1;
+    spdlog::get("main")->info(u8"スキル総数: {0:d}", skills.size());
+    selected = skills.size() ? 0 : -1;
 }
 
 void SkillManager::Next()
 {
-    Selected = (Selected + Skills.size() + 1) % Skills.size();
+    selected = (selected + skills.size() + 1) % skills.size();
 }
 
 void SkillManager::Previous()
 {
-    Selected = (Selected + Skills.size() - 1) % Skills.size();
+    selected = (selected + skills.size() - 1) % skills.size();
 }
 
 SkillParameter *SkillManager::GetSkillParameter(int relative)
 {
-    int ri = Selected + relative;
-    while (ri < 0) ri += Skills.size();
-    return Skills[ri % Skills.size()].get();
+    int ri = selected + relative;
+    while (ri < 0) ri += skills.size();
+    return skills[ri % skills.size()].get();
 }
 
 shared_ptr<SkillParameter> SkillManager::GetSkillParameterSafe(int relative)
 {
-    int ri = Selected + relative;
-    while (ri < 0) ri += Skills.size();
-    return Skills[ri % Skills.size()];
+    int ri = selected + relative;
+    while (ri < 0) ri += skills.size();
+    return skills[ri % skills.size()];
 }
 
 void SkillManager::LoadFromToml(boost::filesystem::path file)
@@ -57,7 +57,7 @@ void SkillManager::LoadFromToml(boost::filesystem::path file)
     using namespace boost::filesystem;
     auto log = spdlog::get("main");
     auto result = make_shared<SkillParameter>();
-    auto iconRoot = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_ICON_DIR;
+    const auto iconRoot = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_ICON_DIR;
 
     std::ifstream ifs(file.wstring(), ios::in);
     auto pr = toml::parse(ifs);
@@ -100,23 +100,23 @@ void SkillManager::LoadFromToml(boost::filesystem::path file)
         log->error(u8"スキル {0} の読み込みに失敗しました", ConvertUnicodeToUTF8(file.wstring()));
         return;
     }
-    Skills.push_back(result);
+    skills.push_back(result);
 }
 
 
 SkillIndicators::SkillIndicators()
 {
-    CallbackFunction = nullptr;
+    callbackFunction = nullptr;
 }
 
 SkillIndicators::~SkillIndicators()
 {
-    for (const auto &i : IndicatorIcons) i->Release();
-    if (CallbackFunction) {
-        auto engine = CallbackContext->GetEngine();
-        CallbackContext->Release();
-        CallbackFunction->Release();
-        engine->ReleaseScriptObject(CallbackObject, CallbackObjectType);
+    for (const auto &i : indicatorIcons) i->Release();
+    if (callbackFunction) {
+        auto engine = callbackContext->GetEngine();
+        callbackContext->Release();
+        callbackFunction->Release();
+        engine->ReleaseScriptObject(callbackObject, callbackObjectType);
     }
 }
 
@@ -124,49 +124,49 @@ void SkillIndicators::SetCallback(asIScriptFunction *func)
 {
     if (!func || func->GetFuncType() != asFUNC_DELEGATE) return;
 
-    if (CallbackFunction) {
-        auto engine = CallbackContext->GetEngine();
-        CallbackContext->Release();
-        CallbackFunction->Release();
-        engine->ReleaseScriptObject(CallbackObject, CallbackObjectType);
+    if (callbackFunction) {
+        auto engine = callbackContext->GetEngine();
+        callbackContext->Release();
+        callbackFunction->Release();
+        engine->ReleaseScriptObject(callbackObject, callbackObjectType);
     }
 
-    auto ctx = asGetActiveContext();
+    const auto ctx = asGetActiveContext();
     auto engine = ctx->GetEngine();
-    CallbackContext = engine->CreateContext();
-    CallbackFunction = func->GetDelegateFunction();
-    CallbackFunction->AddRef();
-    CallbackObject = (asIScriptObject*)func->GetDelegateObject();
-    CallbackObjectType = func->GetDelegateObjectType();
+    callbackContext = engine->CreateContext();
+    callbackFunction = func->GetDelegateFunction();
+    callbackFunction->AddRef();
+    callbackObject = static_cast<asIScriptObject*>(func->GetDelegateObject());
+    callbackObjectType = func->GetDelegateObjectType();
 }
 
 int SkillIndicators::AddSkillIndicator(const string &icon)
 {
     using namespace boost::filesystem;
     auto path = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_ICON_DIR / ConvertUTF8ToUnicode(icon);
-    auto image = SImage::CreateLoadedImageFromFile(ConvertUnicodeToUTF8(path.wstring()), true);
-    IndicatorIcons.push_back(image);
-    return IndicatorIcons.size() - 1;
+    const auto image = SImage::CreateLoadedImageFromFile(ConvertUnicodeToUTF8(path.wstring()), true);
+    indicatorIcons.push_back(image);
+    return indicatorIcons.size() - 1;
 }
 
-void SkillIndicators::TriggerSkillIndicator(int index)
+void SkillIndicators::TriggerSkillIndicator(int index) const
 {
-    CallbackContext->Prepare(CallbackFunction);
-    CallbackContext->SetObject(CallbackObject);
-    CallbackContext->SetArgDWord(0, index);
-    CallbackContext->Execute();
+    callbackContext->Prepare(callbackFunction);
+    callbackContext->SetObject(callbackObject);
+    callbackContext->SetArgDWord(0, index);
+    callbackContext->Execute();
     // CallbackContext->Unprepare();
 }
 
-int SkillIndicators::GetSkillIndicatorCount()
+int SkillIndicators::GetSkillIndicatorCount() const
 {
-    return IndicatorIcons.size();
+    return indicatorIcons.size();
 }
 
 SImage* SkillIndicators::GetSkillIndicatorImage(int index)
 {
-    if (index >= IndicatorIcons.size()) return nullptr;
-    auto result = IndicatorIcons[index];
+    if (index >= indicatorIcons.size()) return nullptr;
+    auto result = indicatorIcons[index];
     result->AddRef();
     return result;
 }
@@ -174,21 +174,21 @@ SImage* SkillIndicators::GetSkillIndicatorImage(int index)
 void RegisterSkillTypes(asIScriptEngine *engine)
 {
     engine->RegisterEnum(SU_IF_NOTETYPE);
-    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Tap", (int)AbilityNoteType::Tap);
-    engine->RegisterEnumValue(SU_IF_NOTETYPE, "ExTap", (int)AbilityNoteType::ExTap);
-    engine->RegisterEnumValue(SU_IF_NOTETYPE, "AwesomeExTap", (int)AbilityNoteType::AwesomeExTap);
-    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Flick", (int)AbilityNoteType::Flick);
-    engine->RegisterEnumValue(SU_IF_NOTETYPE, "HellTap", (int)AbilityNoteType::HellTap);
-    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Air", (int)AbilityNoteType::Air);
-    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Hold", (int)AbilityNoteType::Hold);
-    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Slide", (int)AbilityNoteType::Slide);
-    engine->RegisterEnumValue(SU_IF_NOTETYPE, "AirAction", (int)AbilityNoteType::AirAction);
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Tap", int(AbilityNoteType::Tap));
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "ExTap", int(AbilityNoteType::ExTap));
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "AwesomeExTap", int(AbilityNoteType::AwesomeExTap));
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Flick", int(AbilityNoteType::Flick));
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "HellTap", int(AbilityNoteType::HellTap));
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Air", int(AbilityNoteType::Air));
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Hold", int(AbilityNoteType::Hold));
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "Slide", int(AbilityNoteType::Slide));
+    engine->RegisterEnumValue(SU_IF_NOTETYPE, "AirAction", int(AbilityNoteType::AirAction));
 
     engine->RegisterEnum(SU_IF_JUDGETYPE);
-    engine->RegisterEnumValue(SU_IF_JUDGETYPE, "JusticeCritical", (int)AbilityJudgeType::JusticeCritical);
-    engine->RegisterEnumValue(SU_IF_JUDGETYPE, "Justice", (int)AbilityJudgeType::Justice);
-    engine->RegisterEnumValue(SU_IF_JUDGETYPE, "Attack", (int)AbilityJudgeType::Attack);
-    engine->RegisterEnumValue(SU_IF_JUDGETYPE, "Miss", (int)AbilityJudgeType::Miss);
+    engine->RegisterEnumValue(SU_IF_JUDGETYPE, "JusticeCritical", int(AbilityJudgeType::JusticeCritical));
+    engine->RegisterEnumValue(SU_IF_JUDGETYPE, "Justice", int(AbilityJudgeType::Justice));
+    engine->RegisterEnumValue(SU_IF_JUDGETYPE, "Attack", int(AbilityJudgeType::Attack));
+    engine->RegisterEnumValue(SU_IF_JUDGETYPE, "Miss", int(AbilityJudgeType::Miss));
 
     engine->RegisterFuncdef("void " SU_IF_SKILL_CALLBACK "(int)");
     engine->RegisterObjectType(SU_IF_SKILL_INDICATORS, 0, asOBJ_REF | asOBJ_NOCOUNT);

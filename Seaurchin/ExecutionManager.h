@@ -49,19 +49,19 @@ public:
     void AddScene(std::shared_ptr<Scene> scene);
     std::shared_ptr<ScriptScene> CreateSceneFromScriptType(asITypeInfo *type);
     std::shared_ptr<ScriptScene> CreateSceneFromScriptObject(asIScriptObject *obj);
-    inline int GetSceneCount() { return Scenes.size(); }
+    int GetSceneCount() { return Scenes.size(); }
 
-    inline std::shared_ptr<MusicsManager> GetMusicsManager() { return Musics; }
-    inline std::shared_ptr<ControlState> GetControlStateSafe() { return SharedControlState; }
-    inline std::shared_ptr<Setting> GetSettingInstanceSafe() { return SharedSetting; }
-    inline std::shared_ptr<AngelScript> GetScriptInterfaceSafe() { return ScriptInterface; }
-    inline ControlState* GetControlStateUnsafe() { return SharedControlState.get(); }
-    inline AngelScript* GetScriptInterfaceUnsafe() { return ScriptInterface.get(); }
-    inline SoundManager* GetSoundManagerUnsafe() { return Sound.get(); }
-    inline std::shared_ptr<CharacterManager> GetCharacterManagerSafe() { return Characters; }
-    inline std::shared_ptr<SkillManager> GetSkillManagerSafe() { return Skills; }
-    inline CharacterManager* GetCharacterManagerUnsafe() { return Characters.get(); }
-    inline SkillManager* GetSkillManagerUnsafe() { return Skills.get(); }
+    std::shared_ptr<MusicsManager> GetMusicsManager() { return Musics; }
+    std::shared_ptr<ControlState> GetControlStateSafe() { return SharedControlState; }
+    std::shared_ptr<Setting> GetSettingInstanceSafe() { return SharedSetting; }
+    std::shared_ptr<AngelScript> GetScriptInterfaceSafe() { return ScriptInterface; }
+    ControlState* GetControlStateUnsafe() { return SharedControlState.get(); }
+    AngelScript* GetScriptInterfaceUnsafe() { return ScriptInterface.get(); }
+    SoundManager* GetSoundManagerUnsafe() { return Sound.get(); }
+    std::shared_ptr<CharacterManager> GetCharacterManagerSafe() { return Characters; }
+    std::shared_ptr<SkillManager> GetSkillManagerSafe() { return Skills; }
+    CharacterManager* GetCharacterManagerUnsafe() { return Characters.get(); }
+    SkillManager* GetSkillManagerUnsafe() { return Skills.get(); }
 
     std::tuple<bool, LRESULT> CustomWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
     void ExecuteSkin();

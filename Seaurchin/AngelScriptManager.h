@@ -10,7 +10,7 @@ private:
     CWScriptBuilder builder;
     IncludeCallback includeFunc;
 
-    static void ScriptMessageCallback(const asSMessageInfo *message);
+    void ScriptMessageCallback(const asSMessageInfo *message) const;
 
 public:
     AngelScript();

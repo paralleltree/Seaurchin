@@ -1,7 +1,6 @@
 #pragma once
 
 #include "AngelScriptManager.h"
-#include "ScriptResource.h"
 #include "Character.h"
 #include "Skill.h"
 #include "Result.h"
@@ -45,9 +44,9 @@ private:
 
     asIScriptObject* LoadAbilityObject(boost::filesystem::path filepath);
 
-    void CallEventFunction(asIScriptObject *obj, asIScriptFunction* func);
-    void CallEventFunction(asIScriptObject *obj, asIScriptFunction* func, AbilityNoteType type);
-    void CallJudgeCallback(AbilityJudgeType judge, AbilityNoteType type);
+    void CallEventFunction(asIScriptObject *obj, asIScriptFunction* func) const;
+    void CallEventFunction(asIScriptObject *obj, asIScriptFunction* func, AbilityNoteType type) const;
+    void CallJudgeCallback(AbilityJudgeType judge, AbilityNoteType type) const;
 
 public:
     void AddRef() { reference++; }
@@ -64,10 +63,10 @@ public:
     void OnMiss(AbilityNoteType type);
     void SetCallback(asIScriptFunction *func);
 
-    CharacterParameter* GetCharacterParameter();
-    CharacterImageSet* GetCharacterImages();
-    SkillParameter* GetSkillParameter();
-    SkillIndicators* GetSkillIndicators();
+    CharacterParameter* GetCharacterParameter() const;
+    CharacterImageSet* GetCharacterImages() const;
+    SkillParameter* GetSkillParameter() const;
+    SkillIndicators* GetSkillIndicators() const;
 
     static std::shared_ptr<CharacterInstance> CreateInstance(std::shared_ptr<CharacterParameter> character, std::shared_ptr<SkillParameter> skill, std::shared_ptr<AngelScript> script, std::shared_ptr<Result> result);
 };

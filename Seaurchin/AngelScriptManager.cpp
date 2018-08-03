@@ -69,18 +69,19 @@ asIScriptObject *AngelScript::InstantiateObject(asITypeInfo * type) const
     return *static_cast<asIScriptObject**>(sharedContext->GetAddressOfReturnValue());
 }
 
-void AngelScript::ScriptMessageCallback(const asSMessageInfo * message)
+// ReSharper disable once CppMemberFunctionMayBeStatic
+void AngelScript::ScriptMessageCallback(const asSMessageInfo * message) const
 {
     using namespace std;
     auto log = spdlog::get("main");
     switch (message->type) {
-        case asEMsgType::asMSGTYPE_INFORMATION:
+        case asMSGTYPE_INFORMATION:
             log->info(u8"{0} ({1:d}s{2:d}—ñ): {3}", message->section, message->row, message->col, message->message);
             break;
-        case asEMsgType::asMSGTYPE_WARNING:
+        case asMSGTYPE_WARNING:
             log->warn(u8"{0} ({1:d}s{2:d}—ñ): {3}", message->section, message->row, message->col, message->message);
             break;
-        case asEMsgType::asMSGTYPE_ERROR:
+        case asMSGTYPE_ERROR:
             log->error(u8"{0} ({1:d}s{2:d}—ñ): {3}", message->section, message->row, message->col, message->message);
             break;
     }

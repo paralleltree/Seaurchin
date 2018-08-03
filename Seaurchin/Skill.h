@@ -48,13 +48,13 @@ enum class AbilityJudgeType {
 class SkillManager final {
 private:
     ExecutionManager *manager;
-    std::vector<std::shared_ptr<SkillParameter>> Skills;
-    int Selected;
+    std::vector<std::shared_ptr<SkillParameter>> skills;
+    int selected;
 
     void LoadFromToml(boost::filesystem::path file);
 
 public:
-    SkillManager(ExecutionManager *exm);
+    explicit SkillManager(ExecutionManager *exm);
 
     void LoadAllSkills();
 
@@ -66,21 +66,21 @@ public:
 
 class SkillIndicators final {
 private:
-    std::vector<SImage*> IndicatorIcons;
-    asIScriptFunction *CallbackFunction;
-    asIScriptObject *CallbackObject;
-    asIScriptContext *CallbackContext;
-    asITypeInfo *CallbackObjectType;
+    std::vector<SImage*> indicatorIcons;
+    asIScriptFunction *callbackFunction;
+    asIScriptObject *callbackObject;
+    asIScriptContext *callbackContext;
+    asITypeInfo *callbackObjectType;
 
 public:
     SkillIndicators();
     ~SkillIndicators();
 
-    int GetSkillIndicatorCount();
+    int GetSkillIndicatorCount() const;
     SImage* GetSkillIndicatorImage(int index);
     void SetCallback(asIScriptFunction *func);
     int AddSkillIndicator(const std::string &icon);
-    void TriggerSkillIndicator(int index);
+    void TriggerSkillIndicator(int index) const;
 };
 
 void RegisterSkillTypes(asIScriptEngine *engine);

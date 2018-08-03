@@ -1,9 +1,6 @@
 #pragma once
 
-#include "AngelScriptManager.h"
 #include "ScriptSprite.h"
-#include "Result.h"
-
 
 #define SU_IF_CHARACTER_METRIC "CharacterMetric"
 #define SU_IF_CHARACTER_PARAM "Character"
@@ -16,9 +13,9 @@ struct CharacterImageMetric final {
     int SmallRange[4];
     int FaceRange[4];
 
-    int get_FaceOrigin(uint32_t index) { return index < 2 ? FaceOrigin[index] : 0; }
-    int get_SmallRange(uint32_t index) { return index < 4 ? SmallRange[index] : 0; }
-    int get_FaceRange(uint32_t index) { return index < 4 ? FaceRange[index] : 0; }
+    int GetFaceOrigin(const uint32_t index) { return index < 2 ? FaceOrigin[index] : 0; }
+    int GetSmallRange(const uint32_t index) { return index < 4 ? SmallRange[index] : 0; }
+    int GetFaceRange(const uint32_t index) { return index < 4 ? FaceRange[index] : 0; }
 };
 
 class CharacterParameter final {
@@ -32,22 +29,22 @@ class CharacterImageSet final {
 private:
     int reference = 0;
 
-    std::shared_ptr<CharacterParameter> Parameter;
-    SImage *ImageFull;
-    SImage *ImageSmall;
-    SImage *ImageFace;
+    std::shared_ptr<CharacterParameter> parameter;
+    SImage *imageFull;
+    SImage *imageSmall;
+    SImage *imageFace;
 
     void LoadAllImage();
 
 public:
     void AddRef() { reference++; }
     void Release() { if (--reference == 0) delete this; }
-    CharacterImageSet(std::shared_ptr<CharacterParameter> param);
+    explicit CharacterImageSet(std::shared_ptr<CharacterParameter> param);
     ~CharacterImageSet();
 
-    void ApplyFullImage(SSprite *sprite);
-    void ApplySmallImage(SSprite *sprite);
-    void ApplyFaceImage(SSprite *sprite);
+    void ApplyFullImage(SSprite *sprite) const;
+    void ApplySmallImage(SSprite *sprite) const;
+    void ApplyFaceImage(SSprite *sprite) const;
 
     static CharacterImageSet* CreateImageSet(std::shared_ptr<CharacterParameter> param);
     static void RegisterType(asIScriptEngine *engine);
@@ -60,12 +57,12 @@ private:
     ExecutionManager * manager;
     std::vector<std::shared_ptr<CharacterParameter>> Characters;
 
-    int Selected;
+    int selected;
 
     void LoadFromToml(boost::filesystem::path file);
 
 public:
-    CharacterManager(ExecutionManager *exm);
+    explicit CharacterManager(ExecutionManager *exm);
 
     void LoadAllCharacters();
 

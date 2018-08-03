@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Crc32.h"
-
 #define BEGIN_DRAW_TRANSACTION(h) SetDrawScreen(h)
 #define FINISH_DRAW_TRANSACTION SetDrawScreen(DX_SCREEN_BACK);
 
@@ -30,10 +28,8 @@ To* CastReferenceType(From *from)
 
 using PropList = std::vector<std::tuple<std::string, std::string>>;
 
-//std::string ConvertUTF8ToShiftJis(const std::string &utf8str);
-//std::string ConvertShiftJisToUTF8(const std::string &sjisstr);
-std::wstring ConvertUTF8ToUnicode(const std::string &utf8str);
-std::string ConvertUnicodeToUTF8(const std::wstring &utf16str);
+std::wstring ConvertUTF8ToUnicode(const std::string &utf8Str);
+std::string ConvertUnicodeToUTF8(const std::wstring &utf16Str);
 void ScriptSceneWarnOutOf(const std::string &type, asIScriptContext *ctx);
 double ToDouble(const char *str);
 double NormalizedFmod(double x, double y);

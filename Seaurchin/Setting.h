@@ -5,22 +5,22 @@
 
 class Setting final {
 private:
-    static std::wstring RootDirectory;
+    static std::wstring rootDirectory;
     std::wstring file;
-    toml::Value SettingTree;
+    toml::Value settingTree;
 
 public:
     Setting();
-    Setting(HMODULE hModule);
+    explicit Setting(HMODULE hModule);
     void Load(const std::wstring &filename);
-    inline void Reload() { Load(file); }
+    void Reload() { Load(file); }
     void Save() const;
-    static const std::wstring GetRootDirectory();
+    static std::wstring GetRootDirectory();
 
     template<typename T>
     T ReadValue(const std::string &group, const std::string &key, T defValue)
     {
-        auto v = SettingTree.find(group + "." + key);
+        auto v = settingTree.find(group + "." + key);
         if (v && v->is<T>()) {
             return v->as<T>();
         } else {
@@ -32,7 +32,7 @@ public:
     template<typename T>
     void WriteValue(const std::string &group, const std::string &key, T value)
     {
-        SettingTree.set(group + "." + key, value);
+        settingTree.set(group + "." + key, value);
     }
 };
 
@@ -51,17 +51,18 @@ enum class SettingItemType {
 
 class SettingItem {
 protected:
-    std::shared_ptr<Setting> SettingInstance;
-    SettingItemType Type;
-    std::string Description;
-    std::string Group;
-    std::string Key;
-    std::string FindName;
+    std::shared_ptr<Setting> settingInstance;
+    SettingItemType type;
+    std::string description;
+    std::string group;
+    std::string key;
+    std::string findName;
 
 public:
+    virtual ~SettingItem() = default;
     SettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
-    std::string GetSettingName();
-    std::string GetDescription();
+    std::string GetSettingName() const;
+    std::string GetDescription() const;
 
     virtual std::string GetItemString() = 0;
     virtual void MoveNext() = 0;
@@ -73,11 +74,11 @@ public:
 
 class IntegerSettingItem final : public SettingItem {
 private:
-    int64_t Value;
-    int64_t MinValue;
-    int64_t MaxValue;
-    int64_t Step;
-    int64_t Default;
+    int64_t value;
+    int64_t minValue;
+    int64_t maxValue;
+    int64_t step;
+    int64_t defaultValue;
 
 public:
     IntegerSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
@@ -91,11 +92,11 @@ public:
 
 class FloatSettingItem final : public SettingItem {
 private:
-    double Value;
-    double MinValue;
-    double MaxValue;
-    double Step;
-    double Default;
+    double value;
+    double minValue;
+    double maxValue;
+    double step;
+    double defaultValue;
 
 public:
     FloatSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
@@ -109,10 +110,10 @@ public:
 
 class BooleanSettingItem final : public SettingItem {
 private:
-    bool Value;
-    std::string Truthy;
-    std::string Falsy;
-    bool Default;
+    bool value;
+    std::string truthy;
+    std::string falsy;
+    bool defaultValue;
 
 public:
     BooleanSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
@@ -126,8 +127,8 @@ public:
 
 class StringSettingItem final : public SettingItem {
 private:
-    std::string Value;
-    std::string Default;
+    std::string value;
+    std::string defaultValue;
 
 public:
     StringSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
@@ -141,10 +142,10 @@ public:
 
 class IntegerSelectSettingItem final : public SettingItem {
 private:
-    int64_t Value;
-    int64_t Default;
-    int Selected = -1;
-    std::vector<int64_t> Values;
+    int64_t value;
+    int64_t defaultValue;
+    int selected = -1;
+    std::vector<int64_t> values;
 
 public:
     IntegerSelectSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
@@ -158,10 +159,10 @@ public:
 
 class FloatSelectSettingItem final : public SettingItem {
 private:
-    double Value;
-    double Default;
-    int Selected = -1;
-    std::vector<double> Values;
+    double value;
+    double defaultValue;
+    int selected = -1;
+    std::vector<double> values;
 
 public:
     FloatSelectSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
@@ -175,10 +176,10 @@ public:
 
 class StringSelectSettingItem final : public SettingItem {
 private:
-    std::string Value;
-    std::string Default;
-    int Selected = -1;
-    std::vector<std::string> Values;
+    std::string value;
+    std::string defaultValue;
+    int selected = -1;
+    std::vector<std::string> values;
 
 public:
     StringSelectSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
@@ -193,11 +194,11 @@ public:
 
 class SettingItemManager final {
 private:
-    std::shared_ptr<Setting> SettingInstance;
-    std::unordered_map<std::string, std::shared_ptr<SettingItem>> Items;
+    std::shared_ptr<Setting> settingInstance;
+    std::unordered_map<std::string, std::shared_ptr<SettingItem>> items;
 
 public:
-    SettingItemManager(std::shared_ptr<Setting> setting);
+    explicit SettingItemManager(std::shared_ptr<Setting> setting);
     void LoadItemsFromToml(boost::filesystem::path file);
     void RetrieveAllValues();
     void SaveAllValues();

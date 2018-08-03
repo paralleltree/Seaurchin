@@ -1,6 +1,5 @@
 #include "Character.h"
 #include "ExecutionManager.h"
-#include "Result.h"
 #include "Misc.h"
 #include "Setting.h"
 
@@ -9,57 +8,57 @@ using namespace std;
 CharacterManager::CharacterManager(ExecutionManager *exm)
 {
     manager = exm;
-    Selected = -1;
+    selected = -1;
 }
 
 void CharacterManager::LoadAllCharacters()
 {
     using namespace boost;
-    using namespace boost::filesystem;
-    using namespace boost::xpressive;
+    using namespace filesystem;
+    using namespace xpressive;
     auto log = spdlog::get("main");
 
-    path sepath = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_CHARACTER_DIR;
+    const auto sepath = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_CHARACTER_DIR;
 
     for (const auto& fdata : make_iterator_range(directory_iterator(sepath), {})) {
         if (is_directory(fdata)) continue;
-        auto filename = ConvertUnicodeToUTF8(fdata.path().wstring());
+        const auto filename = ConvertUnicodeToUTF8(fdata.path().wstring());
         if (!ends_with(filename, ".toml")) continue;
         LoadFromToml(fdata.path());
     }
     log->info(u8"キャラクター総数: {0:d}", Characters.size());
-    Selected = 0;
+    selected = 0;
 }
 
 void CharacterManager::Next()
 {
-    Selected = (Selected + Characters.size() + 1) % Characters.size();
+    selected = (selected + Characters.size() + 1) % Characters.size();
 }
 
 void CharacterManager::Previous()
 {
-    Selected = (Selected + Characters.size() - 1) % Characters.size();
+    selected = (selected + Characters.size() - 1) % Characters.size();
 }
 
 CharacterParameter* CharacterManager::GetCharacterParameter(int relative)
 {
-    int ri = Selected + relative;
+    auto ri = selected + relative;
     while (ri < 0) ri += Characters.size();
     return Characters[ri % Characters.size()].get();
 }
 
 shared_ptr<CharacterParameter> CharacterManager::GetCharacterParameterSafe(int relative)
 {
-    int ri = Selected + relative;
+    auto ri = selected + relative;
     while (ri < 0) ri += Characters.size();
     return Characters[ri % Characters.size()];
 }
 
 CharacterImageSet* CharacterManager::CreateCharacterImages(int relative)
 {
-    int ri = Selected + relative;
+    auto ri = selected + relative;
     while (ri < 0) ri += Characters.size();
-    auto cp = Characters[ri % Characters.size()];
+    const auto cp = Characters[ri % Characters.size()];
     return CharacterImageSet::CreateImageSet(cp);
 }
 
@@ -86,10 +85,10 @@ void CharacterManager::LoadFromToml(boost::filesystem::path file)
         auto imgpath = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_CHARACTER_DIR / ConvertUTF8ToUnicode(root.get<string>("Image"));
         result->ImagePath = ConvertUnicodeToUTF8(imgpath.wstring());
 
-        auto ws = root.find("Metric.WholeScale");
+        const auto ws = root.find("Metric.WholeScale");
         result->Metric.WholeScale = (ws && ws->is<double>()) ? ws->as<double>() : 1.0;
-        
-        auto fo = root.find("Metric.Face");
+
+        const auto fo = root.find("Metric.Face");
         if (fo && fo->is<vector<int>>()) {
             auto arr = fo->as<vector<int>>();
             for (int i = 0; i < 2; i++) result->Metric.FaceOrigin[i] = arr[i];
@@ -98,7 +97,7 @@ void CharacterManager::LoadFromToml(boost::filesystem::path file)
             result->Metric.FaceOrigin[1] = 0;
         }
 
-        auto sr = root.find("Metric.SmallRange");
+        const auto sr = root.find("Metric.SmallRange");
         if (sr && sr->is<vector<int>>()) {
             auto arr = sr->as<vector<int>>();
             for (int i = 0; i < 4; i++) result->Metric.SmallRange[i] = arr[i];
@@ -109,7 +108,7 @@ void CharacterManager::LoadFromToml(boost::filesystem::path file)
             result->Metric.SmallRange[3] = 170;
         }
 
-        auto fr = root.find("Metric.FaceRange");
+        const auto fr = root.find("Metric.FaceRange");
         if (fr && fr->is<vector<int>>()) {
             auto arr = fr->as<vector<int>>();
             for (int i = 0; i < 4; i++) result->Metric.FaceRange[i] = arr[i];
@@ -129,41 +128,42 @@ void CharacterManager::LoadFromToml(boost::filesystem::path file)
 
 CharacterImageSet::CharacterImageSet(shared_ptr<CharacterParameter> param)
 {
-    Parameter = param;
+    parameter = param;
     LoadAllImage();
 }
 
 CharacterImageSet::~CharacterImageSet()
 {
-    ImageFull->Release();
-    ImageSmall->Release();
-    ImageFace->Release();
+    imageFull->Release();
+    imageSmall->Release();
+    imageFace->Release();
 }
 
-void CharacterImageSet::ApplyFullImage(SSprite *sprite)
+void CharacterImageSet::ApplyFullImage(SSprite *sprite) const
 {
-    auto cx = Parameter->Metric.FaceOrigin[0], cy = Parameter->Metric.FaceOrigin[1];
-    auto sc = Parameter->Metric.WholeScale;
+    const auto cx = parameter->Metric.FaceOrigin[0];
+    const auto cy = parameter->Metric.FaceOrigin[1];
+    const auto sc = parameter->Metric.WholeScale;
     ostringstream ss;
     ss << "origX:" << cx << ", origY:" << cy << ", scaleX:" << sc << ", scaleY:" << sc;
 
-    ImageFull->AddRef();
-    sprite->set_Image(ImageFull);
+    imageFull->AddRef();
+    sprite->set_Image(imageFull);
     sprite->Apply(ss.str());
     sprite->Release();
 }
 
-void CharacterImageSet::ApplySmallImage(SSprite *sprite)
+void CharacterImageSet::ApplySmallImage(SSprite *sprite) const
 {
-    ImageSmall->AddRef();
-    sprite->set_Image(ImageSmall);
+    imageSmall->AddRef();
+    sprite->set_Image(imageSmall);
     sprite->Release();
 }
 
-void CharacterImageSet::ApplyFaceImage(SSprite *sprite)
+void CharacterImageSet::ApplyFaceImage(SSprite *sprite) const
 {
-    ImageFace->AddRef();
-    sprite->set_Image(ImageFace);
+    imageFace->AddRef();
+    sprite->set_Image(imageFace);
     sprite->Release();
 }
 
@@ -176,29 +176,29 @@ CharacterImageSet *CharacterImageSet::CreateImageSet(std::shared_ptr<CharacterPa
 
 void CharacterImageSet::LoadAllImage()
 {
-    auto root = ConvertUTF8ToUnicode(Parameter->ImagePath);
-    int hBase = LoadGraph(reinterpret_cast<const char*>(root.c_str()));
-    int hSmall = MakeScreen(SU_CHAR_SMALL_WIDTH, SU_CHAR_SMALL_WIDTH, 1);
-    int hFace = MakeScreen(SU_CHAR_FACE_SIZE, SU_CHAR_FACE_SIZE, 1);
+    auto root = ConvertUTF8ToUnicode(parameter->ImagePath);
+    const auto hBase = LoadGraph(reinterpret_cast<const char*>(root.c_str()));
+    const auto hSmall = MakeScreen(SU_CHAR_SMALL_WIDTH, SU_CHAR_SMALL_WIDTH, 1);
+    const auto hFace = MakeScreen(SU_CHAR_FACE_SIZE, SU_CHAR_FACE_SIZE, 1);
     BEGIN_DRAW_TRANSACTION(hSmall);
     DrawRectExtendGraph(
         0, 0, SU_CHAR_SMALL_WIDTH, SU_CHAR_SMALL_HEIGHT,
-        Parameter->Metric.SmallRange[0], Parameter->Metric.SmallRange[1],
-        Parameter->Metric.SmallRange[2], Parameter->Metric.SmallRange[3],
+        parameter->Metric.SmallRange[0], parameter->Metric.SmallRange[1],
+        parameter->Metric.SmallRange[2], parameter->Metric.SmallRange[3],
         hBase, TRUE);
     BEGIN_DRAW_TRANSACTION(hFace);
     DrawRectExtendGraph(
         0, 0, SU_CHAR_FACE_SIZE, SU_CHAR_FACE_SIZE,
-        Parameter->Metric.FaceRange[0], Parameter->Metric.FaceRange[1],
-        Parameter->Metric.FaceRange[2], Parameter->Metric.FaceRange[3],
+        parameter->Metric.FaceRange[0], parameter->Metric.FaceRange[1],
+        parameter->Metric.FaceRange[2], parameter->Metric.FaceRange[3],
         hBase, TRUE);
     FINISH_DRAW_TRANSACTION;
-    ImageFull = new SImage(hBase);
-    ImageFull->AddRef();
-    ImageSmall = new SImage(hSmall);
-    ImageSmall->AddRef();
-    ImageFace = new SImage(hFace);
-    ImageFace->AddRef();
+    imageFull = new SImage(hBase);
+    imageFull->AddRef();
+    imageSmall = new SImage(hSmall);
+    imageSmall->AddRef();
+    imageFace = new SImage(hFace);
+    imageFace->AddRef();
 }
 
 void CharacterImageSet::RegisterType(asIScriptEngine *engine)
@@ -217,9 +217,9 @@ void RegisterCharacterTypes(asIScriptEngine *engine)
 
     engine->RegisterObjectType(SU_IF_CHARACTER_METRIC, sizeof(CharacterImageMetric), asOBJ_VALUE | asOBJ_POD);
     engine->RegisterObjectProperty(SU_IF_CHARACTER_METRIC, "double WholeScale", asOFFSET(CharacterImageMetric, WholeScale));
-    engine->RegisterObjectMethod(SU_IF_CHARACTER_METRIC, "int get_FaceOrigin(uint)", asMETHOD(CharacterImageMetric, get_FaceOrigin), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_CHARACTER_METRIC, "int get_SmalLRange(uint)", asMETHOD(CharacterImageMetric, get_SmallRange), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_CHARACTER_METRIC, "int get_FaceRange(uint)", asMETHOD(CharacterImageMetric, get_FaceRange), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_METRIC, "int get_FaceOrigin(uint)", asMETHOD(CharacterImageMetric, GetFaceOrigin), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_METRIC, "int get_SmalLRange(uint)", asMETHOD(CharacterImageMetric, GetSmallRange), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_METRIC, "int get_FaceRange(uint)", asMETHOD(CharacterImageMetric, GetFaceRange), asCALL_THISCALL);
 
     engine->RegisterObjectType(SU_IF_CHARACTER_PARAM, 0, asOBJ_REF | asOBJ_NOCOUNT);
     engine->RegisterObjectProperty(SU_IF_CHARACTER_PARAM, "string Name", asOFFSET(CharacterParameter, Name));

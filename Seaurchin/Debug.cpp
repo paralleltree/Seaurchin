@@ -22,7 +22,7 @@ void Logger::Initialize()
     register_logger(loggerMain);
 }
 
-void Logger::Terminate()
+void Logger::Terminate() const
 {
     spdlog::drop_all();
 #ifdef _DEBUG
@@ -48,10 +48,10 @@ StandardOutputUnicodeSink::StandardOutputUnicodeSink()
 
 void StandardOutputUnicodeSink::_sink_it(const spdlog::details::log_msg & msg)
 {
-    auto color = colors[msg.level];
-    auto u16msg = ConvertUTF8ToUnicode(msg.formatted.str());
+    const auto color = colors[msg.level];
+    auto u16Msg = ConvertUTF8ToUnicode(msg.formatted.str());
     DWORD written;
     SetConsoleTextAttribute(hStdout, color);
-    WriteConsoleW(hStdout, u16msg.c_str(), u16msg.length(), &written, nullptr);
+    WriteConsoleW(hStdout, u16Msg.c_str(), u16Msg.length(), &written, nullptr);
     SetConsoleTextAttribute(hStdout, 0);
 }
