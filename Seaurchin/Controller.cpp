@@ -1,5 +1,4 @@
 #include "Controller.h"
-#include "Debug.h"
 
 using namespace std;
 
@@ -7,135 +6,135 @@ static int WacomFingerCallback(WacomMTFingerCollection *fingerPacket, void *user
 
 void ControlState::Initialize()
 {
-    ZeroMemory(KeyboardCurrent, sizeof(char) * 256);
-    ZeroMemory(KeyboardLast, sizeof(char) * 256);
-    ZeroMemory(KeyboardTrigger, sizeof(char) * 256);
-    ZeroMemory(IntegratedSliderCurrent, sizeof(char) * 16);
-    ZeroMemory(IntegratedSliderLast, sizeof(char) * 16);
-    ZeroMemory(IntegratedSliderTrigger, sizeof(char) * 16);
-    ZeroMemory(IntegratedAir, sizeof(char) * 4);
+    ZeroMemory(keyboardCurrent, sizeof(char) * 256);
+    ZeroMemory(keyboardLast, sizeof(char) * 256);
+    ZeroMemory(keyboardTrigger, sizeof(char) * 256);
+    ZeroMemory(integratedSliderCurrent, sizeof(char) * 16);
+    ZeroMemory(integratedSliderLast, sizeof(char) * 16);
+    ZeroMemory(integratedSliderTrigger, sizeof(char) * 16);
+    ZeroMemory(integratedAir, sizeof(char) * 4);
 
-    SliderKeyboardNumbers[0] = KEY_INPUT_A;
-    SliderKeyboardNumbers[1] = KEY_INPUT_Z;
-    SliderKeyboardNumbers[2] = KEY_INPUT_S;
-    SliderKeyboardNumbers[3] = KEY_INPUT_X;
-    SliderKeyboardNumbers[4] = KEY_INPUT_D;
-    SliderKeyboardNumbers[5] = KEY_INPUT_C;
-    SliderKeyboardNumbers[6] = KEY_INPUT_F;
-    SliderKeyboardNumbers[7] = KEY_INPUT_V;
-    SliderKeyboardNumbers[8] = KEY_INPUT_G;
-    SliderKeyboardNumbers[9] = KEY_INPUT_B;
-    SliderKeyboardNumbers[10] = KEY_INPUT_H;
-    SliderKeyboardNumbers[11] = KEY_INPUT_N;
-    SliderKeyboardNumbers[12] = KEY_INPUT_J;
-    SliderKeyboardNumbers[13] = KEY_INPUT_M;
-    SliderKeyboardNumbers[14] = KEY_INPUT_K;
-    SliderKeyboardNumbers[15] = KEY_INPUT_COMMA;
-    AirStringKeyboardNumbers[(size_t)AirControlSource::AirUp] = KEY_INPUT_PGUP;
-    AirStringKeyboardNumbers[(size_t)AirControlSource::AirDown] = KEY_INPUT_PGDN;
-    AirStringKeyboardNumbers[(size_t)AirControlSource::AirHold] = KEY_INPUT_HOME;
-    AirStringKeyboardNumbers[(size_t)AirControlSource::AirAction] = KEY_INPUT_END;
+    sliderKeyboardNumbers[0] = KEY_INPUT_A;
+    sliderKeyboardNumbers[1] = KEY_INPUT_Z;
+    sliderKeyboardNumbers[2] = KEY_INPUT_S;
+    sliderKeyboardNumbers[3] = KEY_INPUT_X;
+    sliderKeyboardNumbers[4] = KEY_INPUT_D;
+    sliderKeyboardNumbers[5] = KEY_INPUT_C;
+    sliderKeyboardNumbers[6] = KEY_INPUT_F;
+    sliderKeyboardNumbers[7] = KEY_INPUT_V;
+    sliderKeyboardNumbers[8] = KEY_INPUT_G;
+    sliderKeyboardNumbers[9] = KEY_INPUT_B;
+    sliderKeyboardNumbers[10] = KEY_INPUT_H;
+    sliderKeyboardNumbers[11] = KEY_INPUT_N;
+    sliderKeyboardNumbers[12] = KEY_INPUT_J;
+    sliderKeyboardNumbers[13] = KEY_INPUT_M;
+    sliderKeyboardNumbers[14] = KEY_INPUT_K;
+    sliderKeyboardNumbers[15] = KEY_INPUT_COMMA;
+    airStringKeyboardNumbers[size_t(AirControlSource::AirUp)] = KEY_INPUT_PGUP;
+    airStringKeyboardNumbers[size_t(AirControlSource::AirDown)] = KEY_INPUT_PGDN;
+    airStringKeyboardNumbers[size_t(AirControlSource::AirHold)] = KEY_INPUT_HOME;
+    airStringKeyboardNumbers[size_t(AirControlSource::AirAction)] = KEY_INPUT_END;
 
     InitializeWacomTouchDevice();
 }
 
 void ControlState::Terminate()
 {
-    if (IsWacomDeviceAvailable) {
-        WacomMTUnRegisterFingerReadCallback(WacomDeviceIds[0], NULL, WacomMTProcessingMode::WMTProcessingModeNone, this);
+    if (isWacomDeviceAvailable) {
+        WacomMTUnRegisterFingerReadCallback(wacomDeviceIds[0], nullptr, WMTProcessingModeNone, this);
         WacomMTQuit();
         UnloadWacomMTLib();
-        delete[] WacomDeviceCapabilities;
-        delete[] WacomDeviceIds;
+        delete[] wacomDeviceCapabilities;
+        delete[] wacomDeviceIds;
     }
 }
 
 void ControlState::Update()
 {
-    memcpy_s(KeyboardLast, sizeof(char) * 256, KeyboardCurrent, sizeof(char) * 256);
-    GetHitKeyStateAll(KeyboardCurrent);
-    for (int i = 0; i < 256; i++) KeyboardTrigger[i] = !KeyboardLast[i] && KeyboardCurrent[i];
+    memcpy_s(keyboardLast, sizeof(char) * 256, keyboardCurrent, sizeof(char) * 256);
+    GetHitKeyStateAll(keyboardCurrent);
+    for (int i = 0; i < 256; i++) keyboardTrigger[i] = !keyboardLast[i] && keyboardCurrent[i];
 
-    for (int i = 0; i < 16; i++) IntegratedSliderLast[i] = IntegratedSliderCurrent[i];
-    for (int i = 0; i < 16; i++) IntegratedSliderCurrent[i] = KeyboardCurrent[SliderKeyboardNumbers[i]];
-    IntegratedAir[(size_t)AirControlSource::AirUp] = KeyboardTrigger[AirStringKeyboardNumbers[(size_t)AirControlSource::AirUp]];
-    IntegratedAir[(size_t)AirControlSource::AirDown] = KeyboardTrigger[AirStringKeyboardNumbers[(size_t)AirControlSource::AirDown]];
-    IntegratedAir[(size_t)AirControlSource::AirHold] = KeyboardCurrent[AirStringKeyboardNumbers[(size_t)AirControlSource::AirHold]];
-    IntegratedAir[(size_t)AirControlSource::AirAction] = KeyboardTrigger[AirStringKeyboardNumbers[(size_t)AirControlSource::AirAction]];
+    for (int i = 0; i < 16; i++) integratedSliderLast[i] = integratedSliderCurrent[i];
+    for (int i = 0; i < 16; i++) integratedSliderCurrent[i] = keyboardCurrent[sliderKeyboardNumbers[i]];
+    integratedAir[size_t(AirControlSource::AirUp)] = keyboardTrigger[airStringKeyboardNumbers[size_t(AirControlSource::AirUp)]];
+    integratedAir[size_t(AirControlSource::AirDown)] = keyboardTrigger[airStringKeyboardNumbers[size_t(AirControlSource::AirDown)]];
+    integratedAir[size_t(AirControlSource::AirHold)] = keyboardCurrent[airStringKeyboardNumbers[size_t(AirControlSource::AirHold)]];
+    integratedAir[size_t(AirControlSource::AirAction)] = keyboardTrigger[airStringKeyboardNumbers[size_t(AirControlSource::AirAction)]];
 
     {
-        lock_guard<mutex> lock(FingerMutex);
-        for (auto &finger : CurrentFingers) IntegratedSliderCurrent[finger.second->SliderPosition] = 1;
+        lock_guard<mutex> lock(fingerMutex);
+        for (auto &finger : currentFingers) integratedSliderCurrent[finger.second->SliderPosition] = 1;
     }
 
-    for (int i = 0; i < 16; i++) IntegratedSliderTrigger[i] = !IntegratedSliderLast[i] && IntegratedSliderCurrent[i];
+    for (int i = 0; i < 16; i++) integratedSliderTrigger[i] = !integratedSliderLast[i] && integratedSliderCurrent[i];
 }
 
-bool ControlState::GetTriggerState(ControllerSource source, int number)
+bool ControlState::GetTriggerState(const ControllerSource source, const int number)
 {
     switch (source) {
         case ControllerSource::RawKeyboard:
             if (number < 0 || number >= 256) return false;
-            return KeyboardTrigger[number];
+            return keyboardTrigger[number];
         case ControllerSource::IntegratedSliders:
             if (number < 0 || number >= 16) return false;
-            return IntegratedSliderTrigger[number];
+            return integratedSliderTrigger[number];
         case ControllerSource::RawTouch:
             return false;
         case ControllerSource::IntegratedAir:
             if (number < 0 || number >= 4) return false;
-            return IntegratedAir[number];
+            return integratedAir[number];
     }
     return false;
 }
 
-bool ControlState::GetCurrentState(ControllerSource source, int number)
+bool ControlState::GetCurrentState(const ControllerSource source, const int number)
 {
     switch (source) {
         case ControllerSource::RawKeyboard:
             if (number < 0 || number >= 256) return false;
-            return KeyboardCurrent[number];
+            return keyboardCurrent[number];
         case ControllerSource::IntegratedSliders:
             if (number < 0 || number >= 16) return false;
-            return IntegratedSliderCurrent[number];
+            return integratedSliderCurrent[number];
         case ControllerSource::RawTouch:
             return false;
         case ControllerSource::IntegratedAir:
             if (number < 0 || number >= 4) return false;
-            return IntegratedAir[number];
+            return integratedAir[number];
     }
     return false;
 }
 
-bool ControlState::GetLastState(ControllerSource source, int number)
+bool ControlState::GetLastState(const ControllerSource source, const int number)
 {
     switch (source) {
         case ControllerSource::RawKeyboard:
             if (number < 0 || number >= 256) return false;
-            return KeyboardLast[number];
+            return keyboardLast[number];
         case ControllerSource::IntegratedSliders:
             if (number < 0 || number >= 16) return false;
-            return IntegratedSliderLast[number];
+            return integratedSliderLast[number];
         case ControllerSource::RawTouch:
             return false;
         case ControllerSource::IntegratedAir:
             if (number < 0 || number >= 4) return false;
-            return IntegratedAir[number];
+            return integratedAir[number];
     }
     return false;
 }
 
-void ControlState::SetSliderKey(int sliderNumber, int keyboardNumber)
+void ControlState::SetSliderKey(const int sliderNumber, const int keyboardNumber)
 {
     if (sliderNumber < 0 || sliderNumber >= 16) return;
     if (keyboardNumber < 0 || keyboardNumber >= 256) return;
-    SliderKeyboardNumbers[sliderNumber] = keyboardNumber;
+    sliderKeyboardNumbers[sliderNumber] = keyboardNumber;
 }
 
 void ControlState::InitializeWacomTouchDevice()
 {
     auto log = spdlog::get("main");
-    IsWacomDeviceAvailable = false;
+    isWacomDeviceAvailable = false;
     if (!LoadWacomMTLib()) {
         log->info(u8"Wacomドライバがありませんでした");
         return;
@@ -146,62 +145,62 @@ void ControlState::InitializeWacomTouchDevice()
     }
     log->info(u8"Wacomドライバ利用可能");
 
-    int devices = WacomMTGetAttachedDeviceIDs(nullptr, 0);
+    const auto devices = WacomMTGetAttachedDeviceIDs(nullptr, 0);
     if (devices <= 0) {
         log->info(u8"Wacomデバイスがありませんでした");
         return;
     }
-    WacomDeviceIds = new int[devices];
-    WacomDeviceCapabilities = new WacomMTCapability[devices];
-    WacomMTGetAttachedDeviceIDs(WacomDeviceIds, devices * sizeof(int));
+    wacomDeviceIds = new int[devices];
+    wacomDeviceCapabilities = new WacomMTCapability[devices];
+    WacomMTGetAttachedDeviceIDs(wacomDeviceIds, devices * sizeof(int));
     for (int i = 0; i < devices; i++) {
         WacomMTCapability cap = { 0 };
-        WacomMTGetDeviceCapabilities(WacomDeviceIds[i], &cap);
-        WacomDeviceCapabilities[i] = cap;
+        WacomMTGetDeviceCapabilities(wacomDeviceIds[i], &cap);
+        wacomDeviceCapabilities[i] = cap;
 
-        log->info(u8"デバイスID {0:2d}: {1:d}", WacomDeviceIds[i], WacomDeviceCapabilities[i].CapabilityFlags);
+        log->info(u8"デバイスID {0:2d}: {1:d}", wacomDeviceIds[i], wacomDeviceCapabilities[i].CapabilityFlags);
     }
 
-    WacomMTRegisterFingerReadCallback(WacomDeviceIds[0], nullptr, WacomMTProcessingMode::WMTProcessingModeNone, WacomFingerCallback, this);
-    IsWacomDeviceAvailable = true;
+    WacomMTRegisterFingerReadCallback(wacomDeviceIds[0], nullptr, WMTProcessingModeNone, WacomFingerCallback, this);
+    isWacomDeviceAvailable = true;
 }
 
 void ControlState::UpdateWacomTouchDeviceFinger(WacomMTFingerCollection *fingers)
 {
-    auto cap = WacomDeviceCapabilities[0];
+    const auto cap = wacomDeviceCapabilities[0];
     for (int i = 0; i < fingers->FingerCount; i++) {
-        auto finger = fingers->Fingers[i];
+        const auto finger = fingers->Fingers[i];
         if (!finger.Confidence) continue;
         switch (finger.TouchState) {
-            case WacomMTFingerState::WMTFingerStateNone:
+            case WMTFingerStateNone:
                 break;
-            case WacomMTFingerState::WMTFingerStateDown: {
-                lock_guard<mutex> lock(FingerMutex);
+            case WMTFingerStateDown: {
+                lock_guard<mutex> lock(fingerMutex);
                 auto data = make_shared<ControllerFingerState>();
                 data->Id = finger.FingerID;
-                data->State = WacomMTFingerState::WMTFingerStateDown;
+                data->State = WMTFingerStateDown;
                 data->SliderPosition = floor(finger.X / cap.LogicalWidth * 16);
-                CurrentFingers[finger.FingerID] = data;
+                currentFingers[finger.FingerID] = data;
                 break;
             }
-            case WacomMTFingerState::WMTFingerStateHold: {
-                lock_guard<mutex> lock(FingerMutex);
-                auto data = CurrentFingers[finger.FingerID];
+            case WMTFingerStateHold: {
+                lock_guard<mutex> lock(fingerMutex);
+                auto data = currentFingers[finger.FingerID];
                 if (!data) {
                     auto data = make_shared<ControllerFingerState>();
                     data->Id = finger.FingerID;
-                    data->State = WacomMTFingerState::WMTFingerStateDown;
+                    data->State = WMTFingerStateDown;
                     data->SliderPosition = floor(finger.X / cap.LogicalWidth * 16);
-                    CurrentFingers[finger.FingerID] = data;
+                    currentFingers[finger.FingerID] = data;
                     break;
                 }
-                data->State = WacomMTFingerState::WMTFingerStateHold;
+                data->State = WMTFingerStateHold;
                 data->SliderPosition = floor(finger.X / cap.LogicalWidth * 16);
                 break;
             }
-            case WacomMTFingerState::WMTFingerStateUp: {
-                lock_guard<mutex> lock(FingerMutex);
-                CurrentFingers.erase(finger.FingerID);
+            case WMTFingerStateUp: {
+                lock_guard<mutex> lock(fingerMutex);
+                currentFingers.erase(finger.FingerID);
                 break;
             }
         }

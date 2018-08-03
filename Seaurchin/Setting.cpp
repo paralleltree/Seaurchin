@@ -59,12 +59,12 @@ namespace Setting2
 
 // SettingItemManager
 
-SettingItemManager::SettingItemManager(const shared_ptr<Setting> setting)
+SettingItemManager::SettingItemManager(const shared_ptr<Setting>& setting)
 {
     settingInstance = setting;
 }
 
-void SettingItemManager::LoadItemsFromToml(path file)
+void SettingItemManager::LoadItemsFromToml(const path& file)
 {
     using namespace boost::filesystem;
     using namespace crc32_constexpr;
@@ -119,7 +119,8 @@ void SettingItemManager::LoadItemsFromToml(path file)
                 continue;
         }
         si->Build(item);
-        items[si->GetSettingName()] = si;
+        const auto name = si->GetSettingName();
+        this->items[name] = si;
     }
 }
 

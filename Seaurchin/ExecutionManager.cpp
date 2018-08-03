@@ -354,7 +354,7 @@ std::tuple<bool, LRESULT> ExecutionManager::CustomWindowProc(HWND hWnd, UINT msg
             return make_tuple(false, 0);
             */
         default:
-            return make_tuple(false, LRESULT(nullptr));
+            return make_tuple(false, LRESULT(0));
     }
 
 }

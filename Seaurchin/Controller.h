@@ -24,21 +24,21 @@ class ControlState final {
     friend int WacomFingerCallback(WacomMTFingerCollection *fingerPacket, void *userData);
 
 private:
-    char KeyboardCurrent[256];
-    char KeyboardLast[256];
-    char KeyboardTrigger[256];
-    char IntegratedSliderCurrent[16];
-    char IntegratedSliderLast[16];
-    char IntegratedSliderTrigger[16];
-    uint8_t SliderKeyboardNumbers[16];
-    uint8_t AirStringKeyboardNumbers[4];
-    char IntegratedAir[4];
+    char keyboardCurrent[256];
+    char keyboardLast[256];
+    char keyboardTrigger[256];
+    char integratedSliderCurrent[16];
+    char integratedSliderLast[16];
+    char integratedSliderTrigger[16];
+    uint8_t sliderKeyboardNumbers[16];
+    uint8_t airStringKeyboardNumbers[4];
+    char integratedAir[4];
 
-    bool IsWacomDeviceAvailable = false;
-    int *WacomDeviceIds = nullptr;
-    WacomMTCapability *WacomDeviceCapabilities = nullptr;
-    std::unordered_map<int, std::shared_ptr<ControllerFingerState>> CurrentFingers;
-    std::mutex FingerMutex;
+    bool isWacomDeviceAvailable = false;
+    int *wacomDeviceIds = nullptr;
+    WacomMTCapability *wacomDeviceCapabilities = nullptr;
+    std::unordered_map<int, std::shared_ptr<ControllerFingerState>> currentFingers;
+    std::mutex fingerMutex;
     void InitializeWacomTouchDevice();
     void UpdateWacomTouchDeviceFinger(WacomMTFingerCollection *fingers);
 

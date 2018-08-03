@@ -3,7 +3,6 @@
 #include "SusAnalyzer.h"
 #include "Controller.h"
 #include "ScriptResource.h"
-#include "Character.h"
 #include "Skill.h"
 
 enum class NoteAttribute {
@@ -17,6 +16,7 @@ enum class NoteAttribute {
 class ScenePlayer;
 class ScoreProcessor {
 public:
+    virtual ~ScoreProcessor() = default;
     static std::vector<std::shared_ptr<SusDrawableNoteData>> DefaultDataValue;
 
     virtual void Reset() = 0;
@@ -28,8 +28,8 @@ public:
 
 class PlayableProcessor : public ScoreProcessor {
 protected:
-    ScenePlayer *Player;
-    std::shared_ptr<ControlState> CurrentState;
+    ScenePlayer *player;
+    std::shared_ptr<ControlState> currentState;
     std::vector<std::shared_ptr<SusDrawableNoteData>> &data = DefaultDataValue;
     bool isInHold = false, isInSlide = false, wasInHold = false, wasInSlide = false;
     SImage *imageHoldLight;
@@ -42,18 +42,18 @@ protected:
     double judgeMultiplierAir;
     bool isAutoAir = false;
 
-    void ProcessScore(std::shared_ptr<SusDrawableNoteData> notes);
-    bool CheckJudgement(std::shared_ptr<SusDrawableNoteData> note);
-    bool CheckHellJudgement(std::shared_ptr<SusDrawableNoteData> note);
-    bool CheckAirJudgement(std::shared_ptr<SusDrawableNoteData> note);
-    bool CheckAirActionJudgement(std::shared_ptr<SusDrawableNoteData> note);
-    bool CheckHoldJudgement(std::shared_ptr<SusDrawableNoteData> note);
-    bool CheckSlideJudgement(std::shared_ptr<SusDrawableNoteData> note);
-    void IncrementCombo(std::shared_ptr<SusDrawableNoteData> note, double reltime, AbilityNoteType type);
-    void IncrementComboEx(std::shared_ptr<SusDrawableNoteData> note);
-    void IncrementComboHell(std::shared_ptr<SusDrawableNoteData> note, int state);
-    void IncrementComboAir(std::shared_ptr<SusDrawableNoteData> note, double reltime, AbilityNoteType type);
-    void ResetCombo(std::shared_ptr<SusDrawableNoteData> note, AbilityNoteType type);
+    void ProcessScore(const std::shared_ptr<SusDrawableNoteData>& notes);
+    bool CheckJudgement(const std::shared_ptr<SusDrawableNoteData>& note);
+    bool CheckHellJudgement(const std::shared_ptr<SusDrawableNoteData>& note);
+    bool CheckAirJudgement(const std::shared_ptr<SusDrawableNoteData>& note);
+    bool CheckAirActionJudgement(const std::shared_ptr<SusDrawableNoteData>& note) const;
+    bool CheckHoldJudgement(const std::shared_ptr<SusDrawableNoteData>& note) const;
+    bool CheckSlideJudgement(std::shared_ptr<SusDrawableNoteData> note) const;
+    void IncrementCombo(const std::shared_ptr<SusDrawableNoteData>& note, double reltime, AbilityNoteType type) const;
+    void IncrementComboEx(std::shared_ptr<SusDrawableNoteData> note) const;
+    void IncrementComboHell(const std::shared_ptr<SusDrawableNoteData>& note, int state) const;
+    void IncrementComboAir(const std::shared_ptr<SusDrawableNoteData>& note, double reltime, AbilityNoteType type) const;
+    void ResetCombo(const std::shared_ptr<SusDrawableNoteData>& note, AbilityNoteType type) const;
 
 public:
     PlayableProcessor(ScenePlayer *player);
@@ -71,12 +71,12 @@ public:
 
 class AutoPlayerProcessor : public ScoreProcessor {
 protected:
-    ScenePlayer *Player;
+    ScenePlayer *player;
     std::vector<std::shared_ptr<SusDrawableNoteData>> &data = DefaultDataValue;
     bool isInHold = false, isInSlide = false, isInAA = false, wasInHold = false, wasInSlide = false, wasInAA = false;
 
-    void ProcessScore(std::shared_ptr<SusDrawableNoteData> notes);
-    void IncrementCombo(AbilityNoteType type);
+    void ProcessScore(const std::shared_ptr<SusDrawableNoteData>& notes);
+    void IncrementCombo(AbilityNoteType type) const;
 
 public:
     AutoPlayerProcessor(ScenePlayer *player);

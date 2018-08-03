@@ -97,5 +97,6 @@
 #include <spdlog/sinks/sink.h>
 
 #include <toml/toml.h>
-
 #include <glm/glm.hpp>
+
+#include "Crc32.h"

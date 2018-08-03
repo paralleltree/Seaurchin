@@ -198,8 +198,8 @@ private:
     std::unordered_map<std::string, std::shared_ptr<SettingItem>> items;
 
 public:
-    explicit SettingItemManager(std::shared_ptr<Setting> setting);
-    void LoadItemsFromToml(boost::filesystem::path file);
+    explicit SettingItemManager(const std::shared_ptr<Setting>& setting);
+    void LoadItemsFromToml(const boost::filesystem::path& file);
     void RetrieveAllValues();
     void SaveAllValues();
 
