@@ -15,7 +15,7 @@ AutoPlayerProcessor::AutoPlayerProcessor(ScenePlayer *splayer)
 
 void AutoPlayerProcessor::Reset()
 {
-    player->CurrentResult->Reset();
+    player->currentResult->Reset();
     data = player->data;
     auto an = 0;
     for (auto &note : data) {
@@ -32,12 +32,12 @@ void AutoPlayerProcessor::Reset()
             an++;
         }
     }
-    player->CurrentResult->SetAllNotes(an);
+    player->currentResult->SetAllNotes(an);
 }
 
 bool AutoPlayerProcessor::ShouldJudge(const std::shared_ptr<SusDrawableNoteData> note)
 {
-    const auto current = player->CurrentTime - note->StartTime + player->SoundBufferingLatency;
+    const auto current = player->currentTime - note->StartTime + player->soundBufferingLatency;
     const auto extra = 0.5;
     if (note->Type.to_ulong() & SU_NOTE_LONG_MASK) {
         return current >= -extra && current - note->Duration <= extra;
@@ -64,7 +64,7 @@ void AutoPlayerProcessor::Update(vector<shared_ptr<SusDrawableNoteData>> &notes)
     if (wasInSlide && !slideCheck) player->EnqueueJudgeSound(JudgeSoundType::SlidingStop);
     if (!wasInHold && holdCheck) player->EnqueueJudgeSound(JudgeSoundType::Holding);
     if (wasInHold && !holdCheck) player->EnqueueJudgeSound(JudgeSoundType::HoldingStop);
-    player->AirActionShown = aaCheck;
+    player->airActionShown = aaCheck;
 
     wasInHold = holdCheck;
     wasInSlide = slideCheck;
@@ -73,8 +73,8 @@ void AutoPlayerProcessor::Update(vector<shared_ptr<SusDrawableNoteData>> &notes)
 
 void AutoPlayerProcessor::MovePosition(const double relative)
 {
-    const auto newTime = player->CurrentTime + relative;
-    player->CurrentResult->Reset();
+    const auto newTime = player->currentTime + relative;
+    player->currentResult->Reset();
 
     wasInHold = isInHold = false;
     wasInSlide = isInSlide = false;
@@ -118,7 +118,7 @@ void AutoPlayerProcessor::Draw()
 
 void AutoPlayerProcessor::ProcessScore(const shared_ptr<SusDrawableNoteData>& note)
 {
-    const auto relpos = player->CurrentTime - note->StartTime + player->SoundBufferingLatency;
+    const auto relpos = player->currentTime - note->StartTime + player->soundBufferingLatency;
     if (relpos < 0 || (note->OnTheFlyData.test(size_t(NoteAttribute::Finished)) && note->ExtraData.empty())) return;
 
     if (note->Type.test(size_t(SusNoteType::Hold))) {
@@ -131,7 +131,7 @@ void AutoPlayerProcessor::ProcessScore(const shared_ptr<SusDrawableNoteData>& no
         }
 
         for (auto &extra : note->ExtraData) {
-            const auto pos = player->CurrentTime - extra->StartTime + player->SoundBufferingLatency;
+            const auto pos = player->currentTime - extra->StartTime + player->soundBufferingLatency;
             if (pos < 0) continue;
             if (extra->Type.test(size_t(SusNoteType::End))) isInHold = false;
             if (extra->OnTheFlyData.test(size_t(NoteAttribute::Finished))) continue;
@@ -157,7 +157,7 @@ void AutoPlayerProcessor::ProcessScore(const shared_ptr<SusDrawableNoteData>& no
             return;
         }
         for (auto &extra : note->ExtraData) {
-            const auto pos = player->CurrentTime - extra->StartTime + player->SoundBufferingLatency;
+            const auto pos = player->currentTime - extra->StartTime + player->soundBufferingLatency;
             if (pos < 0) continue;
             if (extra->Type.test(size_t(SusNoteType::End))) isInSlide = false;
             if (extra->Type.test(size_t(SusNoteType::Control))) continue;
@@ -177,7 +177,7 @@ void AutoPlayerProcessor::ProcessScore(const shared_ptr<SusDrawableNoteData>& no
     } else if (note->Type.test(size_t(SusNoteType::AirAction))) {
         isInAA = true;
         for (auto &extra : note->ExtraData) {
-            const auto pos = player->CurrentTime - extra->StartTime + player->SoundBufferingLatency;
+            const auto pos = player->currentTime - extra->StartTime + player->soundBufferingLatency;
             if (pos < 0) continue;
             if (extra->Type.test(size_t(SusNoteType::End))) isInAA = false;
             if (extra->Type.test(size_t(SusNoteType::Control))) continue;
@@ -235,6 +235,6 @@ void AutoPlayerProcessor::ProcessScore(const shared_ptr<SusDrawableNoteData>& no
 
 void AutoPlayerProcessor::IncrementCombo(const AbilityNoteType type) const
 {
-    player->CurrentResult->PerformJusticeCritical();
-    player->CurrentCharacterInstance->OnJusticeCritical(type);
+    player->currentResult->PerformJusticeCritical();
+    player->currentCharacterInstance->OnJusticeCritical(type);
 }

@@ -5,8 +5,8 @@
 
 using namespace std;
 
-static const uint16_t RectVertexIndices[] = { 0, 1, 3, 3, 1, 2 };
-static VERTEX3D GroundVertices[] = {
+static const uint16_t rectVertexIndices[] = { 0, 1, 3, 3, 1, 2 };
+static VERTEX3D groundVertices[] = {
     { VGet(SU_LANE_X_MIN, SU_LANE_Y_GROUND, SU_LANE_Z_MAX), VGet(0, 1, 0), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.0f, 0.0f, 0.0f, 0.0f },
 { VGet(SU_LANE_X_MAX, SU_LANE_Y_GROUND, SU_LANE_Z_MAX), VGet(0, 1, 0), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0f, 0.0f, 0.0f, 0.0f },
 { VGet(SU_LANE_X_MAX, SU_LANE_Y_GROUND, SU_LANE_Z_MIN_EXT), VGet(0, 1, 0), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 1.0f, 1.0f, 0.0f, 0.0f },
@@ -78,11 +78,11 @@ void ScenePlayer::LoadResources()
     airActionJudgeColor = GetColor(aajcv[0].as<int>(), aajcv[1].as<int>(), aajcv[2].as<int>());
 
     // 2^x制限があるのでここで計算
-    int exty = laneBufferX * SU_LANE_ASPECT_EXT;
-    double bufferY = 2;
+    const int exty = laneBufferX * SU_LANE_ASPECT_EXT;
+    auto bufferY = 2.0;
     while (exty > bufferY) bufferY *= 2;
-    float bufferV = exty / bufferY;
-    for (int i = 2; i < 4; i++) GroundVertices[i].v = bufferV;
+    const float bufferV = exty / bufferY;
+    for (int i = 2; i < 4; i++) groundVertices[i].v = bufferV;
     hGroundBuffer = MakeScreen(laneBufferX, bufferY, TRUE);
     hBlank = MakeScreen(128, 128, FALSE);
     BEGIN_DRAW_TRANSACTION(hBlank);
@@ -100,7 +100,7 @@ void ScenePlayer::LoadResources()
     fontCombo->AddRef();
     textCombo = STextSprite::Factory(fontCombo, "0000");
     textCombo->SetAlignment(STextAlign::Center, STextAlign::Center);
-    auto size = 320.0 / fontCombo->get_Size();
+    const auto size = 320.0 / fontCombo->get_Size();
     ostringstream app;
     app << setprecision(5);
     app << "x:512, y:3200, " << "scaleX:" << size << ", scaleY:" << size;
@@ -112,9 +112,9 @@ void ScenePlayer::AddSprite(SSprite *sprite)
     spritesPending.push_back(sprite);
 }
 
-void ScenePlayer::TickGraphics(double delta)
+void ScenePlayer::TickGraphics(const double delta)
 {
-    if (Status.Combo > PreviousStatus.Combo) RefreshComboText();
+    if (status.Combo > previousStatus.Combo) RefreshComboText();
     UpdateSlideEffect();
     laneBackgroundRoll += laneBackgroundSpeed * delta;
 }
@@ -122,8 +122,7 @@ void ScenePlayer::TickGraphics(double delta)
 void ScenePlayer::Draw()
 {
     ostringstream combo;
-    int division = 8;
-    combo << Status.Combo;
+    combo << status.Combo;
     textCombo->set_Text(combo.str());
 
     if (movieBackground) DrawExtendGraph(0, 0, SU_RES_WIDTH, SU_RES_HEIGHT, movieBackground, FALSE);
@@ -134,37 +133,37 @@ void ScenePlayer::Draw()
     DrawLaneDivisionLines();
     for (auto& note : seenData) {
         auto &type = note->Type;
-        if (type[(size_t)SusNoteType::MeasureLine]) DrawMeasureLine(note);
+        if (type[size_t(SusNoteType::MeasureLine)]) DrawMeasureLine(note);
     }
 
     // 下側のロングノーツ類
     for (auto& note : seenData) {
         auto &type = note->Type;
-        if (type[(size_t)SusNoteType::Hold]) DrawHoldNotes(note);
-        if (type[(size_t)SusNoteType::Slide]) DrawSlideNotes(note);
+        if (type[size_t(SusNoteType::Hold)]) DrawHoldNotes(note);
+        if (type[size_t(SusNoteType::Slide)]) DrawSlideNotes(note);
     }
 
     // 上側のショートノーツ類
     for (auto& note : seenData) {
         auto &type = note->Type;
-        if (type[(size_t)SusNoteType::Tap]) DrawShortNotes(note);
-        if (type[(size_t)SusNoteType::ExTap]) DrawShortNotes(note);
-        if (type[(size_t)SusNoteType::AwesomeExTap]) DrawShortNotes(note);
-        if (type[(size_t)SusNoteType::Flick]) DrawShortNotes(note);
-        if (type[(size_t)SusNoteType::HellTap]) DrawShortNotes(note);
-        if (type[(size_t)SusNoteType::Air] && type[(size_t)SusNoteType::Grounded]) DrawShortNotes(note);
+        if (type[size_t(SusNoteType::Tap)]) DrawShortNotes(note);
+        if (type[size_t(SusNoteType::ExTap)]) DrawShortNotes(note);
+        if (type[size_t(SusNoteType::AwesomeExTap)]) DrawShortNotes(note);
+        if (type[size_t(SusNoteType::Flick)]) DrawShortNotes(note);
+        if (type[size_t(SusNoteType::HellTap)]) DrawShortNotes(note);
+        if (type[size_t(SusNoteType::Air)] && type[size_t(SusNoteType::Grounded)]) DrawShortNotes(note);
     }
 
     FINISH_DRAW_TRANSACTION;
     Prepare3DDrawCall();
-    DrawPolygonIndexed3D(GroundVertices, 4, RectVertexIndices, 2, hGroundBuffer, TRUE);
+    DrawPolygonIndexed3D(groundVertices, 4, rectVertexIndices, 2, hGroundBuffer, TRUE);
     for (auto& i : sprites) i->Draw();
 
     //3D系ノーツ
     Prepare3DDrawCall();
     DrawAerialNotes(seenData);
 
-    if (AirActionShown && showAirActionJudge) {
+    if (airActionShown && showAirActionJudge) {
         SetDrawBlendMode(DX_BLENDMODE_ADD, 192);
         SetUseZBuffer3D(FALSE);
         DrawTriangle3D(
@@ -180,24 +179,24 @@ void ScenePlayer::Draw()
     }
 }
 
-void ScenePlayer::DrawAerialNotes(vector<shared_ptr<SusDrawableNoteData>> notes)
+void ScenePlayer::DrawAerialNotes(const vector<shared_ptr<SusDrawableNoteData>>& notes)
 {
     vector<AirDrawQuery> airdraws, covers;
     for (const auto &note : seenData) {
-        if (note->Type.test((size_t)SusNoteType::AirAction)) {
+        if (note->Type.test(size_t(SusNoteType::AirAction))) {
             // DrawAirActionNotes(note);
             AirDrawQuery head;
             head.Type = AirDrawType::AirActionStart;
-            head.Z = 1.0 - note->ModifiedPosition / SeenDuration;
+            head.Z = 1.0 - note->ModifiedPosition / seenDuration;
             head.Note = note;
             airdraws.push_back(head);
-            shared_ptr<SusDrawableNoteData> prev = note;
-            for (const auto extra : note->ExtraData) {
-                if (extra->Type.test((size_t)SusNoteType::Control)) continue;
-                if (extra->Type.test((size_t)SusNoteType::Injection)) continue;
+            auto prev = note;
+            for (const auto &extra : note->ExtraData) {
+                if (extra->Type.test(size_t(SusNoteType::Control))) continue;
+                if (extra->Type.test(size_t(SusNoteType::Injection))) continue;
                 AirDrawQuery tail;
                 tail.Type = AirDrawType::AirActionStep;
-                tail.Z = 1.0 - extra->ModifiedPosition / SeenDuration;
+                tail.Z = 1.0 - extra->ModifiedPosition / seenDuration;
                 tail.Note = extra;
                 tail.PreviousNote = prev;
                 airdraws.push_back(tail);
@@ -205,16 +204,16 @@ void ScenePlayer::DrawAerialNotes(vector<shared_ptr<SusDrawableNoteData>> notes)
                 prev = extra;
             }
         }
-        if (note->Type.test((size_t)SusNoteType::Air)) {
+        if (note->Type.test(size_t(SusNoteType::Air))) {
             // DrawAirNotes(note);
             AirDrawQuery head;
             head.Type = AirDrawType::Air;
-            head.Z = 1.0 - note->ModifiedPosition / SeenDuration;
+            head.Z = 1.0 - note->ModifiedPosition / seenDuration;
             head.Note = note;
             airdraws.push_back(head);
         }
     }
-    stable_sort(airdraws.begin(), airdraws.end(), [](AirDrawQuery a, AirDrawQuery b) {
+    stable_sort(airdraws.begin(), airdraws.end(), [](const AirDrawQuery a, const AirDrawQuery b) {
         return a.Z < b.Z;
     });
     for (const auto &query : airdraws) {
@@ -228,6 +227,7 @@ void ScenePlayer::DrawAerialNotes(vector<shared_ptr<SusDrawableNoteData>> notes)
             case AirDrawType::AirActionStep:
                 DrawAirActionStep(query);
                 break;
+            default: break;
         }
     }
     for (const auto &query : covers) DrawAirActionCover(query);
@@ -236,9 +236,9 @@ void ScenePlayer::DrawAerialNotes(vector<shared_ptr<SusDrawableNoteData>> notes)
     }
 }
 
-void ScenePlayer::RefreshComboText()
+void ScenePlayer::RefreshComboText() const
 {
-    auto size = 320.0 / fontCombo->get_Size();
+    const auto size = 320.0 / fontCombo->get_Size();
     ostringstream app;
     textCombo->AbortMove(true);
 
@@ -252,14 +252,14 @@ void ScenePlayer::RefreshComboText()
 }
 
 // position は 0 ~ 16
-void ScenePlayer::SpawnJudgeEffect(shared_ptr<SusDrawableNoteData> target, JudgeType type)
+void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target, const JudgeType type)
 {
     Prepare3DDrawCall();
-    auto position = target->StartLane + target->Length / 2.0;
-    auto x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, position / 16.0);
+    const auto position = target->StartLane + target->Length / 2.0;
+    const auto x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, position / 16.0);
     switch (type) {
         case JudgeType::ShortNormal: {
-            auto spawnAt = ConvWorldPosToScreenPos(VGet(x, SU_LANE_Y_GROUND, SU_LANE_Z_MIN));
+            const auto spawnAt = ConvWorldPosToScreenPos(VGet(x, SU_LANE_Y_GROUND, SU_LANE_Z_MIN));
             animeTap->AddRef();
             auto sp = SAnimeSprite::Factory(animeTap);
             sp->Apply("origX:128, origY:224");
@@ -269,7 +269,7 @@ void ScenePlayer::SpawnJudgeEffect(shared_ptr<SusDrawableNoteData> target, Judge
             break;
         }
         case JudgeType::ShortEx: {
-            auto spawnAt = ConvWorldPosToScreenPos(VGet(x, SU_LANE_Y_GROUND, SU_LANE_Z_MIN));
+            const auto spawnAt = ConvWorldPosToScreenPos(VGet(x, SU_LANE_Y_GROUND, SU_LANE_Z_MIN));
             animeExTap->AddRef();
             auto sp = SAnimeSprite::Factory(animeExTap);
             sp->Apply("origX:128, origY:256");
@@ -280,7 +280,7 @@ void ScenePlayer::SpawnJudgeEffect(shared_ptr<SusDrawableNoteData> target, Judge
             break;
         }
         case JudgeType::SlideTap: {
-            auto spawnAt = ConvWorldPosToScreenPos(VGet(x, SU_LANE_Y_GROUND, SU_LANE_Z_MIN));
+            const auto spawnAt = ConvWorldPosToScreenPos(VGet(x, SU_LANE_Y_GROUND, SU_LANE_Z_MIN));
             animeSlideTap->AddRef();
             auto sp = SAnimeSprite::Factory(animeSlideTap);
             sp->Apply("origX:128, origY:224");
@@ -290,7 +290,7 @@ void ScenePlayer::SpawnJudgeEffect(shared_ptr<SusDrawableNoteData> target, Judge
             break;
         }
         case JudgeType::Action: {
-            auto spawnAt = ConvWorldPosToScreenPos(VGet(x, SU_LANE_Y_AIR, SU_LANE_Z_MIN));
+            const auto spawnAt = ConvWorldPosToScreenPos(VGet(x, SU_LANE_Y_AIR, SU_LANE_Z_MIN));
             animeAirAction->AddRef();
             auto sp = SAnimeSprite::Factory(animeAirAction);
             sp->Apply("origX:128, origY:128");
@@ -302,7 +302,7 @@ void ScenePlayer::SpawnJudgeEffect(shared_ptr<SusDrawableNoteData> target, Judge
     }
 }
 
-void ScenePlayer::SpawnSlideLoopEffect(shared_ptr<SusDrawableNoteData> target)
+void ScenePlayer::SpawnSlideLoopEffect(const shared_ptr<SusDrawableNoteData>& target)
 {
     animeSlideLoop->AddRef();
     imageTap->AddRef();
@@ -310,61 +310,61 @@ void ScenePlayer::SpawnSlideLoopEffect(shared_ptr<SusDrawableNoteData> target)
     loopefx->Apply("origX:128, origY:224");
     SpawnJudgeEffect(target, JudgeType::SlideTap);
     loopefx->SetLoopCount(-1);
-    SlideEffects[target] = loopefx;
+    slideEffects[target] = loopefx;
     AddSprite(loopefx);
 }
 
 void ScenePlayer::RemoveSlideEffect()
 {
-    auto it = SlideEffects.begin();
-    while (it != SlideEffects.end()) {
+    auto it = slideEffects.begin();
+    while (it != slideEffects.end()) {
         auto note = (*it).first;
         auto effect = (*it).second;
         effect->Dismiss();
-        it = SlideEffects.erase(it);
+        it = slideEffects.erase(it);
     }
 }
 
 void ScenePlayer::UpdateSlideEffect()
 {
     Prepare3DDrawCall();
-    auto it = SlideEffects.begin();
-    while (it != SlideEffects.end()) {
+    auto it = slideEffects.begin();
+    while (it != slideEffects.end()) {
         auto note = (*it).first;
         auto effect = (*it).second;
-        if (CurrentTime >= note->StartTime + note->Duration) {
+        if (currentTime >= note->StartTime + note->Duration) {
             effect->Dismiss();
-            it = SlideEffects.erase(it);
+            it = slideEffects.erase(it);
             continue;
         }
         auto last = note;
 
         for (auto &slideElement : note->ExtraData) {
-            if (slideElement->Type.test((size_t)SusNoteType::Control)) continue;
-            if (slideElement->Type.test((size_t)SusNoteType::Injection)) continue;
-            if (CurrentTime >= slideElement->StartTime) {
+            if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
+            if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
+            if (currentTime >= slideElement->StartTime) {
                 last = slideElement;
                 continue;
             }
             auto &segmentPositions = curveData[slideElement];
 
             auto lastSegmentPosition = segmentPositions[0];
-            double lastTimeInBlock = get<0>(lastSegmentPosition) / (slideElement->StartTime - last->StartTime);
-            bool comp = false;
+            auto lastTimeInBlock = get<0>(lastSegmentPosition) / (slideElement->StartTime - last->StartTime);
+            auto comp = false;
             for (auto &segmentPosition : segmentPositions) {
                 if (lastSegmentPosition == segmentPosition) continue;
-                double currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - last->StartTime);
-                double cst = glm::mix(last->StartTime, slideElement->StartTime, currentTimeInBlock);
-                if (CurrentTime >= cst) {
+                const auto currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - last->StartTime);
+                const auto cst = glm::mix(last->StartTime, slideElement->StartTime, currentTimeInBlock);
+                if (currentTime >= cst) {
                     lastSegmentPosition = segmentPosition;
                     lastTimeInBlock = currentTimeInBlock;
                     continue;
                 }
-                double lst = glm::mix(last->StartTime, slideElement->StartTime, lastTimeInBlock);
-                double t = (CurrentTime - lst) / (cst - lst);
-                double x = glm::mix(get<1>(lastSegmentPosition), get<1>(segmentPosition), t);
-                double absx = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, x);
-                auto at = ConvWorldPosToScreenPos(VGet(absx, SU_LANE_Y_GROUND, SU_LANE_Z_MIN));
+                const auto lst = glm::mix(last->StartTime, slideElement->StartTime, lastTimeInBlock);
+                const auto t = (currentTime - lst) / (cst - lst);
+                const auto x = glm::mix(get<1>(lastSegmentPosition), get<1>(segmentPosition), t);
+                const auto absx = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, x);
+                const auto at = ConvWorldPosToScreenPos(VGet(absx, SU_LANE_Y_GROUND, SU_LANE_Z_MIN));
                 effect->Transform.X = at.x;
                 effect->Transform.Y = at.y;
                 comp = true;
@@ -372,30 +372,30 @@ void ScenePlayer::UpdateSlideEffect()
             }
             if (comp) break;
         }
-        it++;
+        ++it;
     }
 }
 
 
-void ScenePlayer::DrawShortNotes(shared_ptr<SusDrawableNoteData> note)
+void ScenePlayer::DrawShortNotes(const shared_ptr<SusDrawableNoteData>& note) const
 {
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    double relpos = 1.0 - note->ModifiedPosition / SeenDuration;
-    auto length = note->Length;
-    auto slane = note->StartLane;
+    const auto relpos = 1.0 - note->ModifiedPosition / seenDuration;
+    const auto length = note->Length;
+    const auto slane = note->StartLane;
     SImage *handleToDraw = nullptr;
 
-    if (note->Type.test((size_t)SusNoteType::Tap)) {
+    if (note->Type.test(size_t(SusNoteType::Tap))) {
         handleToDraw = imageTap;
-    } else if (note->Type.test((size_t)SusNoteType::ExTap)) {
+    } else if (note->Type.test(size_t(SusNoteType::ExTap))) {
         handleToDraw = imageExTap;
-    } else if (note->Type.test((size_t)SusNoteType::AwesomeExTap)) {
+    } else if (note->Type.test(size_t(SusNoteType::AwesomeExTap))) {
         handleToDraw = imageExTap;
-    } else if (note->Type.test((size_t)SusNoteType::Flick)) {
+    } else if (note->Type.test(size_t(SusNoteType::Flick))) {
         handleToDraw = imageFlick;
-    } else if (note->Type.test((size_t)SusNoteType::HellTap)) {
+    } else if (note->Type.test(size_t(SusNoteType::HellTap))) {
         handleToDraw = imageHellTap;
-    } else if (note->Type.test((size_t)SusNoteType::Air)) {
+    } else if (note->Type.test(size_t(SusNoteType::Air))) {
         handleToDraw = imageAir;
     }
 
@@ -403,25 +403,25 @@ void ScenePlayer::DrawShortNotes(shared_ptr<SusDrawableNoteData> note)
     if (handleToDraw) DrawTap(slane, length, relpos, handleToDraw->GetHandle());
 }
 
-void ScenePlayer::DrawAirNotes(const AirDrawQuery &query)
+void ScenePlayer::DrawAirNotes(const AirDrawQuery &query) const
 {
     auto note = query.Note;
-    auto length = note->Length;
-    auto slane = note->StartLane;
-    double z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, query.Z);
-    auto left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, slane / 16.0);
-    auto right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, (slane + length) / 16.0);
+    const auto length = note->Length;
+    const auto slane = note->StartLane;
+    const auto z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, query.Z);
+    const auto left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, slane / 16.0);
+    const auto right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, (slane + length) / 16.0);
     double refroll;
     if (note->ExtraAttribute->RollTimeline) {
-        auto state = note->ExtraAttribute->RollTimeline->GetRawDrawStateAt(CurrentTime);
-        auto mp = note->StartTimeEx - get<1>(state);
-        refroll = NormalizedFmod(-mp * AirRollSpeed, 0.5);
+        auto state = note->ExtraAttribute->RollTimeline->GetRawDrawStateAt(currentTime);
+        const auto mp = note->StartTimeEx - get<1>(state);
+        refroll = NormalizedFmod(-mp * airRollSpeed, 0.5);
     } else {
-        refroll = NormalizedFmod(-note->ModifiedPosition * AirRollSpeed, 0.5);
+        refroll = NormalizedFmod(-note->ModifiedPosition * airRollSpeed, 0.5);
     }
-    auto roll = note->Type.test((size_t)SusNoteType::Up) ? refroll : 0.5 - refroll;
-    auto xadjust = note->Type.test((size_t)SusNoteType::Left) ? -80.0 : (note->Type.test((size_t)SusNoteType::Right) ? 80.0 : 0);
-    auto handle = note->Type.test((size_t)SusNoteType::Up) ? imageAirUp->GetHandle() : imageAirDown->GetHandle();
+    const auto roll = note->Type.test(size_t(SusNoteType::Up)) ? refroll : 0.5 - refroll;
+    const auto xadjust = note->Type.test(size_t(SusNoteType::Left)) ? -80.0 : (note->Type.test(size_t(SusNoteType::Right)) ? 80.0 : 0);
+    const auto handle = note->Type.test(size_t(SusNoteType::Up)) ? imageAirUp->GetHandle() : imageAirDown->GetHandle();
 
     VERTEX3D vertices[] = {
         {
@@ -456,23 +456,23 @@ void ScenePlayer::DrawAirNotes(const AirDrawQuery &query)
     Prepare3DDrawCall();
     SetUseZBuffer3D(FALSE);
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    DrawPolygonIndexed3D(vertices, 4, RectVertexIndices, 2, handle, TRUE);
+    DrawPolygonIndexed3D(vertices, 4, rectVertexIndices, 2, handle, TRUE);
 }
 
-void ScenePlayer::DrawHoldNotes(shared_ptr<SusDrawableNoteData> note)
+void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) const
 {
-    auto length = note->Length;
-    auto slane = note->StartLane;
-    auto endpoint = note->ExtraData.back();
-    double relpos = 1.0 - note->ModifiedPosition / SeenDuration;
-    double reltailpos = 1.0 - endpoint->ModifiedPosition / SeenDuration;
+    const auto length = note->Length;
+    const auto slane = note->StartLane;
+    const auto endpoint = note->ExtraData.back();
+    const auto relpos = 1.0 - note->ModifiedPosition / seenDuration;
+    const auto reltailpos = 1.0 - endpoint->ModifiedPosition / seenDuration;
     // 中身だけ先に描画
     // 1画面分で8分割ぐらいでよさそう
-    int segments = fabs(relpos - reltailpos) * 8 + 1;
+    const int segments = fabs(relpos - reltailpos) * 8 + 1;
     SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
     for (int i = 0; i < segments; i++) {
-        double head = glm::mix(relpos, reltailpos, (double)i / segments);
-        double tail = glm::mix(relpos, reltailpos, (double)(i + 1) / segments);
+        const auto head = glm::mix(relpos, reltailpos, double(i) / segments);
+        const auto tail = glm::mix(relpos, reltailpos, double(i + 1) / segments);
         DrawRectModiGraphF(
             slane * widthPerLane, laneBufferY * head,
             (slane + length) * widthPerLane, laneBufferY * head,
@@ -487,23 +487,23 @@ void ScenePlayer::DrawHoldNotes(shared_ptr<SusDrawableNoteData> note)
     DrawTap(slane, length, relpos, imageHold->GetHandle());
 
     for (auto &ex : note->ExtraData) {
-        if (ex->Type.test((size_t)SusNoteType::Injection)) continue;
-        double relendpos = 1.0 - ex->ModifiedPosition / SeenDuration;
+        if (ex->Type.test(size_t(SusNoteType::Injection))) continue;
+        const auto relendpos = 1.0 - ex->ModifiedPosition / seenDuration;
         DrawTap(slane, length, relendpos, imageHold->GetHandle());
     }
 }
 
-void ScenePlayer::DrawSlideNotes(shared_ptr<SusDrawableNoteData> note)
+void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 {
     auto lastStep = note;
-    double segmentLength = 128.0;   // Buffer上での最小の長さ
-    double strutBottom = 1.0;
+    const auto segmentLength = 128.0;   // Buffer上での最小の長さ
+    const auto strutBottom = 1.0;
     vector<VERTEX2D> vertices;
     vector<uint16_t> indices;
-    int reserved = accumulate(note->ExtraData.begin(), note->ExtraData.end(), 2, [this](int current, shared_ptr<SusDrawableNoteData> part) {
-        if (part->Type.test((size_t)SusNoteType::Control)) return current;
-        if (part->Type.test((size_t)SusNoteType::Injection)) return current;
-        return current + (int)curveData[part].size() * 2 + 2;
+    const auto reserved = accumulate(note->ExtraData.begin(), note->ExtraData.end(), 2, [this](const int current, const shared_ptr<SusDrawableNoteData> part) {
+        if (part->Type.test(size_t(SusNoteType::Control))) return current;
+        if (part->Type.test(size_t(SusNoteType::Injection))) return current;
+        return current + int(curveData[part].size()) * 2 + 2;
     });
     vertices.reserve(reserved);
 
@@ -511,22 +511,22 @@ void ScenePlayer::DrawSlideNotes(shared_ptr<SusDrawableNoteData> note)
     auto drawcount = 0;
     uint16_t base = 0;
     for (auto &slideElement : note->ExtraData) {
-        if (slideElement->Type.test((size_t)SusNoteType::Control)) continue;
-        if (slideElement->Type.test((size_t)SusNoteType::Injection)) continue;
-        double currentStepRelativeY = 1.0 - slideElement->ModifiedPosition / SeenDuration;
+        if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
+        if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
+        const auto currentStepRelativeY = 1.0 - slideElement->ModifiedPosition / seenDuration;
         auto &segmentPositions = curveData[slideElement];
 
         for (auto &segmentPosition : segmentPositions) {
-            double currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
-            double currentSegmentLength = glm::mix((double)lastStep->Length, (double)slideElement->Length, currentTimeInBlock);
-            double segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
-            double currentSegmentRelativeY = 1.0 - segmentExPosition / SeenDuration;
+            const auto currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
+            const auto currentSegmentLength = glm::mix(double(lastStep->Length), double(slideElement->Length), currentTimeInBlock);
+            const auto segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
+            const auto currentSegmentRelativeY = 1.0 - segmentExPosition / seenDuration;
             vertices.push_back(
                 {
                     VGet(get<1>(segmentPosition) * laneBufferX - currentSegmentLength / 2 * widthPerLane, laneBufferY * currentSegmentRelativeY, 0),
                     1.0f,
                     GetColorU8(255, 255, 255, 255),
-                    0.0f, (float)(currentTimeInBlock * strutBottom)
+                    0.0f, float(currentTimeInBlock * strutBottom)
                 }
             );
             vertices.push_back(
@@ -534,10 +534,10 @@ void ScenePlayer::DrawSlideNotes(shared_ptr<SusDrawableNoteData> note)
                     VGet(get<1>(segmentPosition) * laneBufferX + currentSegmentLength / 2 * widthPerLane, laneBufferY * currentSegmentRelativeY, 0),
                     1.0f,
                     GetColorU8(255, 255, 255, 255),
-                    1.0f, (float)(currentTimeInBlock * strutBottom)
+                    1.0f, float(currentTimeInBlock * strutBottom)
                 }
             );
-            vector<uint16_t> here = { base, (uint16_t)(base + 1), (uint16_t)(base + 2), (uint16_t)(base + 2), (uint16_t)(base + 1), (uint16_t)(base + 3) };
+            vector<uint16_t> here = { base, uint16_t(base + 1), uint16_t(base + 2), uint16_t(base + 2), uint16_t(base + 1), uint16_t(base + 3) };
             indices.insert(indices.end(), here.begin(), here.end());
             base += 2;
             drawcount += 2;
@@ -550,20 +550,19 @@ void ScenePlayer::DrawSlideNotes(shared_ptr<SusDrawableNoteData> note)
     // 中心線
     lastStep = note;
     for (auto &slideElement : note->ExtraData) {
-        if (slideElement->Type.test((size_t)SusNoteType::Control)) continue;
-        if (slideElement->Type.test((size_t)SusNoteType::Injection)) continue;
-        double currentStepRelativeY = 1.0 - slideElement->ModifiedPosition / SeenDuration;
+        if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
+        if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
         auto &segmentPositions = curveData[slideElement];
         auto lastSegmentPosition = segmentPositions[0];
-        auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / SeenDuration;
+        auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / seenDuration;
 
         uint16_t base = 0;
         for (auto &segmentPosition : segmentPositions) {
             if (lastSegmentPosition == segmentPosition) continue;
-            double currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
-            double currentSegmentLength = glm::mix((double)lastStep->Length, (double)slideElement->Length, currentTimeInBlock);
-            double segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
-            double currentSegmentRelativeY = 1.0 - segmentExPosition / SeenDuration;
+            const auto currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
+            const auto currentSegmentLength = glm::mix(double(lastStep->Length), double(slideElement->Length), currentTimeInBlock);
+            const auto segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
+            const auto currentSegmentRelativeY = 1.0 - segmentExPosition / seenDuration;
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
             if (showSlideLine) DrawLineAA(
                 get<1>(lastSegmentPosition) * laneBufferX, laneBufferY * lastSegmentRelativeY,
@@ -577,25 +576,24 @@ void ScenePlayer::DrawSlideNotes(shared_ptr<SusDrawableNoteData> note)
 
     // Tap
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    DrawTap(note->StartLane, note->Length, 1.0 - note->ModifiedPosition / SeenDuration, imageSlide->GetHandle());
+    DrawTap(note->StartLane, note->Length, 1.0 - note->ModifiedPosition / seenDuration, imageSlide->GetHandle());
     for (auto &slideElement : note->ExtraData) {
-        if (slideElement->Type.test((size_t)SusNoteType::Control)) continue;
-        if (slideElement->Type.test((size_t)SusNoteType::Injection)) continue;
-        if (slideElement->Type.test((size_t)SusNoteType::Invisible)) continue;
-        double currentStepRelativeY = 1.0 - slideElement->ModifiedPosition / SeenDuration;
+        if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
+        if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
+        if (slideElement->Type.test(size_t(SusNoteType::Invisible))) continue;
+        const auto currentStepRelativeY = 1.0 - slideElement->ModifiedPosition / seenDuration;
         DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlide->GetHandle());
     }
 }
 
-void ScenePlayer::DrawAirActionStart(const AirDrawQuery &query)
+void ScenePlayer::DrawAirActionStart(const AirDrawQuery &query) const
 {
-    auto lastStep = query.Note;
-    auto lastStepRelativeY = query.Z;
-    double segmentLength = 128.0;   // Buffer上での最小の長さ
+    const auto lastStep = query.Note;
+    const auto lastStepRelativeY = query.Z;
 
-    double aasz = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, lastStepRelativeY);
-    double cry = ((double)lastStep->StartLane + lastStep->Length / 2.0) / 16.0;
-    double center = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, cry);
+    const auto aasz = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, lastStepRelativeY);
+    const auto cry = (double(lastStep->StartLane) + lastStep->Length / 2.0) / 16.0;
+    const auto center = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, cry);
     VERTEX3D vertices[] = {
         {
             VGet(center - 10, SU_LANE_Y_GROUND, aasz),
@@ -626,24 +624,24 @@ void ScenePlayer::DrawAirActionStart(const AirDrawQuery &query)
             1.0000f, 1.0f, 0.0f, 0.0f
         },
     };
-    DrawPolygonIndexed3D(vertices, 4, RectVertexIndices, 2, imageAirAction->GetHandle(), TRUE);
+    DrawPolygonIndexed3D(vertices, 4, rectVertexIndices, 2, imageAirAction->GetHandle(), TRUE);
 }
 
-void ScenePlayer::DrawAirActionStepBox(const AirDrawQuery &query)
+void ScenePlayer::DrawAirActionStepBox(const AirDrawQuery &query) const
 {
-    auto slideElement = query.Note;
-    double currentStepRelativeY = query.Z;
+    const auto slideElement = query.Note;
+    const auto currentStepRelativeY = query.Z;
 
     SetUseZBuffer3D(TRUE);
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    if (!slideElement->Type.test((size_t)SusNoteType::Invisible)) {
-        double atLeft = (slideElement->StartLane) / 16.0;
-        double atRight = (slideElement->StartLane + slideElement->Length) / 16.0;
-        double left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atLeft) + 5;
-        double right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atRight) - 5;
-        double z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentStepRelativeY);
-        auto color = GetColorU8(255, 255, 255, 255);
-        auto yBase = SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale;
+    if (!slideElement->Type.test(size_t(SusNoteType::Invisible))) {
+        const auto atLeft = (slideElement->StartLane) / 16.0;
+        const auto atRight = (slideElement->StartLane + slideElement->Length) / 16.0;
+        const auto left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atLeft) + 5;
+        const auto right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atRight) - 5;
+        const auto z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentStepRelativeY);
+        const auto color = GetColorU8(255, 255, 255, 255);
+        const auto yBase = SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale;
         VERTEX3D vertices[] = {
             { VGet(left, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 1.0f, 0.0f, 0.0f },
         { VGet(left, yBase, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 0.0f, 0.0f, 0.0f },
@@ -708,21 +706,20 @@ void ScenePlayer::DrawAirActionStepBox(const AirDrawQuery &query)
     }
 }
 
-void ScenePlayer::DrawAirActionStep(const AirDrawQuery &query)
+void ScenePlayer::DrawAirActionStep(const AirDrawQuery &query) const
 {
-    auto slideElement = query.Note;
-    double currentStepRelativeY = query.Z;
+    const auto slideElement = query.Note;
+    const auto currentStepRelativeY = query.Z;
 
     SetUseZBuffer3D(TRUE);
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    if (!slideElement->Type.test((size_t)SusNoteType::Invisible)) {
-        double atLeft = (slideElement->StartLane) / 16.0;
-        double atRight = (slideElement->StartLane + slideElement->Length) / 16.0;
-        double left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atLeft) + 5;
-        double right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atRight) - 5;
-        double z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentStepRelativeY);
-        auto color = GetColorU8(255, 255, 255, 255);
-        auto yBase = SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale;
+    if (!slideElement->Type.test(size_t(SusNoteType::Invisible))) {
+        const auto atLeft = (slideElement->StartLane) / 16.0;
+        const auto atRight = (slideElement->StartLane + slideElement->Length) / 16.0;
+        const auto left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atLeft) + 5;
+        const auto right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atRight) - 5;
+        const auto z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentStepRelativeY);
+        const auto yBase = SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale;
         VERTEX3D vertices[] = {
             { VGet(left, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 1.0f, 0.0f, 0.0f },
         { VGet(left, yBase, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 0.0f, 0.0f, 0.0f },
@@ -741,44 +738,43 @@ void ScenePlayer::DrawAirActionStep(const AirDrawQuery &query)
 
 void ScenePlayer::DrawAirActionCover(const AirDrawQuery &query)
 {
-    auto slideElement = query.Note;
-    auto lastStep = query.PreviousNote;
+    const auto slideElement = query.Note;
+    const auto lastStep = query.PreviousNote;
     auto &segmentPositions = curveData[slideElement];
 
     auto lastSegmentPosition = segmentPositions[0];
-    double blockDuration = slideElement->StartTime - lastStep->StartTime;
-    double lastSegmentLength = lastStep->Length;
-    double lastTimeInBlock = get<0>(lastSegmentPosition) / blockDuration;
-    auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / SeenDuration;
+    const auto blockDuration = slideElement->StartTime - lastStep->StartTime;
+    auto lastSegmentLength = lastStep->Length;
+    auto lastTimeInBlock = get<0>(lastSegmentPosition) / blockDuration;
+    auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / seenDuration;
     for (auto &segmentPosition : segmentPositions) {
         if (lastSegmentPosition == segmentPosition) continue;
-        double currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
-        double currentSegmentLength = glm::mix((double)lastStep->Length, (double)slideElement->Length, currentTimeInBlock);
-        double segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
-        double currentSegmentRelativeY = 1.0 - segmentExPosition / SeenDuration;
+        const auto currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
+        const auto currentSegmentLength = glm::mix(double(lastStep->Length), double(slideElement->Length), currentTimeInBlock);
+        const auto segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
+        const auto currentSegmentRelativeY = 1.0 - segmentExPosition / seenDuration;
 
         if (currentSegmentRelativeY < cullingLimit || lastSegmentRelativeY < cullingLimit) {
             SetUseZBuffer3D(FALSE);
-            double back = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentSegmentRelativeY);
-            double front = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, lastSegmentRelativeY);
-            double backLeft = get<1>(segmentPosition) - currentSegmentLength / 32.0;
-            double backRight = get<1>(segmentPosition) + currentSegmentLength / 32.0;
-            double frontLeft = get<1>(lastSegmentPosition) - lastSegmentLength / 32.0;
-            double frontRight = get<1>(lastSegmentPosition) + lastSegmentLength / 32.0;
-            double pbl = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, backLeft);
-            double pbr = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, backRight);
-            double pfl = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, frontLeft);
-            double pfr = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, frontRight);
-            double pbz = glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, currentTimeInBlock);
-            double pfz = glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, lastTimeInBlock);
-            // TODO: 最適化しろ
+            const auto back = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentSegmentRelativeY);
+            const auto front = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, lastSegmentRelativeY);
+            const auto backLeft = get<1>(segmentPosition) - currentSegmentLength / 32.0;
+            const auto backRight = get<1>(segmentPosition) + currentSegmentLength / 32.0;
+            const auto frontLeft = get<1>(lastSegmentPosition) - lastSegmentLength / 32.0;
+            const auto frontRight = get<1>(lastSegmentPosition) + lastSegmentLength / 32.0;
+            const auto pbl = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, backLeft);
+            const auto pbr = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, backRight);
+            const auto pfl = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, frontLeft);
+            const auto pfr = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, frontRight);
+            const auto pbz = glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, currentTimeInBlock);
+            const auto pfz = glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, lastTimeInBlock);
             VERTEX3D vertices[] = {
                 { VGet(pfl, SU_LANE_Y_AIR * pfz, front), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 1.0f, 1.0f, 0.0f },
             { VGet(pbl, SU_LANE_Y_AIR * pbz, back), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 0.0f, 0.0f, 0.0f },
             { VGet(pbr, SU_LANE_Y_AIR * pbz, back), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 0.0f, 0.0f, 0.0f },
             { VGet(pfr, SU_LANE_Y_AIR * pfz, front), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.9375f, 1.0f, 0.0f, 0.0f },
             };
-            DrawPolygonIndexed3D(vertices, 4, RectVertexIndices, 2, imageAirAction->GetHandle(), TRUE);
+            DrawPolygonIndexed3D(vertices, 4, rectVertexIndices, 2, imageAirAction->GetHandle(), TRUE);
 
             vertices[0].pos.x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, get<1>(lastSegmentPosition)) - 10;
             vertices[1].pos.x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, get<1>(segmentPosition)) - 10;
@@ -788,7 +784,7 @@ void ScenePlayer::DrawAirActionCover(const AirDrawQuery &query)
             vertices[1].u = 0.9375f; vertices[1].v = 0.0f;
             vertices[2].u = 1.0000f; vertices[2].v = 0.0f;
             vertices[3].u = 1.0000f; vertices[3].v = 1.0f;
-            DrawPolygonIndexed3D(vertices, 4, RectVertexIndices, 2, imageAirAction->GetHandle(), TRUE);
+            DrawPolygonIndexed3D(vertices, 4, rectVertexIndices, 2, imageAirAction->GetHandle(), TRUE);
         }
 
         lastSegmentPosition = segmentPosition;
@@ -798,10 +794,10 @@ void ScenePlayer::DrawAirActionCover(const AirDrawQuery &query)
     }
 }
 
-void ScenePlayer::DrawTap(int lane, int length, double relpos, int handle)
+void ScenePlayer::DrawTap(const int lane, const int length, const double relpos, const int handle) const
 {
     for (int i = 0; i < length * 2; i++) {
-        int type = i ? (i == length * 2 - 1 ? 2 : 1) : 0;
+        const auto type = i ? (i == length * 2 - 1 ? 2 : 1) : 0;
         DrawRectRotaGraph3F(
             (lane * 2 + i) * widthPerLane / 2, laneBufferY * relpos,
             noteImageBlockX * type, (0),
@@ -812,15 +808,15 @@ void ScenePlayer::DrawTap(int lane, int length, double relpos, int handle)
     }
 }
 
-void ScenePlayer::DrawMeasureLine(shared_ptr<SusDrawableNoteData> note)
+void ScenePlayer::DrawMeasureLine(const shared_ptr<SusDrawableNoteData>& note) const
 {
-    auto relpos = 1.0 - note->ModifiedPosition / SeenDuration;
+    const auto relpos = 1.0 - note->ModifiedPosition / seenDuration;
     DrawLineAA(0, relpos * laneBufferY, laneBufferX, relpos * laneBufferY, GetColor(255, 255, 255), 6);
 }
 
-void ScenePlayer::DrawLaneDivisionLines()
+void ScenePlayer::DrawLaneDivisionLines() const
 {
-    int division = 8;
+    const auto division = 8;
     for (int i = 1; i < division; i++) {
         DrawLineAA(
             laneBufferX / division * i, 0,
@@ -830,14 +826,14 @@ void ScenePlayer::DrawLaneDivisionLines()
     }
 }
 
-void ScenePlayer::DrawLaneBackground()
+void ScenePlayer::DrawLaneBackground() const
 {
     ClearDrawScreen();
     // bg
-    int exty = laneBufferX * SU_LANE_ASPECT_EXT;
-    auto bgiw = imageLaneGround->get_Width();
-    double scale = laneBufferX / bgiw;
-    double cy = laneBackgroundRoll;
+    const int exty = laneBufferX * SU_LANE_ASPECT_EXT;
+    const auto bgiw = imageLaneGround->get_Width();
+    const auto scale = laneBufferX / bgiw;
+    auto cy = laneBackgroundRoll;
     while (cy > 0) cy -= imageLaneGround->get_Height() * scale;
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
@@ -858,7 +854,7 @@ void ScenePlayer::DrawLaneBackground()
     textCombo->Draw();
 }
 
-void ScenePlayer::Prepare3DDrawCall()
+void ScenePlayer::Prepare3DDrawCall() const
 {
     SetUseLighting(FALSE);
     SetCameraPositionAndTarget_UpVecY(VGet(0, cameraY, cameraZ), VGet(0, SU_LANE_Y_GROUND, cameraTargetZ));

@@ -1,13 +1,11 @@
 #pragma once
 
-#include "Config.h"
 #include "Scene.h"
 #include "ScriptSprite.h"
 #include "ScriptResource.h"
 #include "SusAnalyzer.h"
 #include "ScoreProcessor.h"
 #include "SoundManager.h"
-#include "MusicsManager.h"
 #include "Result.h"
 #include "CharacterInstance.h"
 
@@ -139,65 +137,65 @@ protected:
     int segmentsPerSecond;
 
     //SlideÇÃèdÇ›Ç™é·ä±à·Ç§ÇÁÇµÇ¢ÇØÇ«ÇªÇÃÇ÷ÇÒãñÇµÇƒÇÀ
-    std::shared_ptr<Result> CurrentResult;
-    DrawableResult PreviousStatus, Status;
+    std::shared_ptr<Result> currentResult;
+    DrawableResult previousStatus, status;
 
-    std::shared_ptr<CharacterInstance> CurrentCharacterInstance;
+    std::shared_ptr<CharacterInstance> currentCharacterInstance;
 
     // ã»ÇÃìríÜÇ≈ïœâªÇ∑ÇÈÇ‚Ç¬ÇÁ
     DrawableNotesList data;
     DrawableNotesList seenData, judgeData;
-    std::unordered_map<std::shared_ptr<SusDrawableNoteData>, SSprite*> SlideEffects;
+    std::unordered_map<std::shared_ptr<SusDrawableNoteData>, SSprite*> slideEffects;
     // éûä‘ â°à íu Exéûä‘
     NoteCurvesList curveData;
-    double CurrentTime = 0;
-    double CurrentSoundTime = 0;
-    double SeenDuration = 0.8;
-    double HispeedMultiplier = 6;
-    double PreloadingTime = 0.5;
-    double BackingTime = 0.0;
-    double NextMetronomeTime = 0.0;
-    double ScoreDuration = 0.0;
-    double SoundBufferingLatency = 0.030;   //TODO: ä¬ã´Ç…é·ä±äÒÇËìYÇ§
-    double AirRollSpeed = 1.5;
-    PlayingState State = PlayingState::ScoreNotLoaded;
-    PlayingState LastState;
-    bool AirActionShown = false;
-    bool MetronomeAvailable = true;
+    double currentTime = 0;
+    double currentSoundTime = 0;
+    double seenDuration = 0.8;
+    double hispeedMultiplier = 6;
+    double preloadingTime = 0.5;
+    double backingTime = 0.0;
+    double nextMetronomeTime = 0.0;
+    double scoreDuration = 0.0;
+    double soundBufferingLatency = 0.030;
+    double airRollSpeed = 1.5;
+    PlayingState state = PlayingState::ScoreNotLoaded;
+    PlayingState lastState;
+    bool airActionShown = false;
+    bool metronomeAvailable = true;
 
     void TickGraphics(double delta);
     void AddSprite(SSprite *sprite);
-    void SetProcessorOptions(PlayableProcessor *processor);
+    void SetProcessorOptions(PlayableProcessor *processor) const;
     void LoadResources();
     void LoadWorker();
     void RemoveSlideEffect();
     void UpdateSlideEffect();
     void CalculateNotes(double time, double duration, double preced);
-    void DrawShortNotes(std::shared_ptr<SusDrawableNoteData> note);
-    void DrawAirNotes(const AirDrawQuery &query);
-    void DrawHoldNotes(std::shared_ptr<SusDrawableNoteData> note);
-    void DrawSlideNotes(std::shared_ptr<SusDrawableNoteData> note);
-    void DrawAirActionStart(const AirDrawQuery &query);
-    void DrawAirActionStep(const AirDrawQuery &query);
-    void DrawAirActionStepBox(const AirDrawQuery &query);
+    void DrawShortNotes(const std::shared_ptr<SusDrawableNoteData>& note) const;
+    void DrawAirNotes(const AirDrawQuery &query) const;
+    void DrawHoldNotes(const std::shared_ptr<SusDrawableNoteData>& note) const;
+    void DrawSlideNotes(const std::shared_ptr<SusDrawableNoteData>& note);
+    void DrawAirActionStart(const AirDrawQuery &query) const;
+    void DrawAirActionStep(const AirDrawQuery &query) const;
+    void DrawAirActionStepBox(const AirDrawQuery &query) const;
     void DrawAirActionCover(const AirDrawQuery &query);
-    void DrawTap(int lane, int length, double relpos, int handle);
-    void DrawMeasureLine(std::shared_ptr<SusDrawableNoteData> note);
-    void DrawLaneDivisionLines();
-    void DrawLaneBackground();
-    void RefreshComboText();
-    void Prepare3DDrawCall();
-    void DrawAerialNotes(std::vector<std::shared_ptr<SusDrawableNoteData>> notes);
+    void DrawTap(int lane, int length, double relpos, int handle) const;
+    void DrawMeasureLine(const std::shared_ptr<SusDrawableNoteData>& note) const;
+    void DrawLaneDivisionLines() const;
+    void DrawLaneBackground() const;
+    void RefreshComboText() const;
+    void Prepare3DDrawCall() const;
+    void DrawAerialNotes(const std::vector<std::shared_ptr<SusDrawableNoteData>>& notes);
 
     void ProcessSound();
     void ProcessSoundQueue();
 
-    void SpawnJudgeEffect(std::shared_ptr<SusDrawableNoteData> target, JudgeType type);
-    void SpawnSlideLoopEffect(std::shared_ptr<SusDrawableNoteData> target);
+    void SpawnJudgeEffect(const std::shared_ptr<SusDrawableNoteData>& target, JudgeType type);
+    void SpawnSlideLoopEffect(const std::shared_ptr<SusDrawableNoteData>& target);
     void EnqueueJudgeSound(JudgeSoundType type);
 
 public:
-    ScenePlayer(ExecutionManager *exm);
+    explicit ScenePlayer(ExecutionManager *exm);
     ~ScenePlayer() override;
 
     void AdjustCamera(double cy, double cz, double ctz);
@@ -211,16 +209,16 @@ public:
     bool IsLoadCompleted();
     void GetReady();
     void Play();
-    double GetPlayingTime();
-    CharacterInstance* GetCharacterInstance();
-    void GetCurrentResult(DrawableResult *result);
+    double GetPlayingTime() const;
+    CharacterInstance* GetCharacterInstance() const;
+    void GetCurrentResult(DrawableResult *result) const;
     void MovePositionBySecond(double sec);
     void MovePositionByMeasure(int meas);
-    void SetJudgeCallback(asIScriptFunction *func);
+    void SetJudgeCallback(asIScriptFunction *func) const;
     void Pause();
     void Resume();
     void Reload();
-    void StoreResult();
+    void StoreResult() const;
 };
 
 void RegisterPlayerScene(ExecutionManager *exm);
