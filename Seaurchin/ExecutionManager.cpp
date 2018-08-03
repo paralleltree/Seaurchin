@@ -1,7 +1,6 @@
 #include "ExecutionManager.h"
 
 #include "Config.h"
-#include "Debug.h"
 #include "Setting.h"
 #include "Interfaces.h"
 
@@ -14,54 +13,53 @@
 using namespace boost::filesystem;
 using namespace std;
 
-
-ExecutionManager::ExecutionManager(std::shared_ptr<Setting> setting)
+ExecutionManager::ExecutionManager(const shared_ptr<Setting> setting)
 {
     random_device seed;
 
-    SharedSetting = setting;
-    SettingManager = make_unique<Setting2::SettingItemManager>(SharedSetting);
-    ScriptInterface = make_shared<AngelScript>();
-    Sound = make_shared<SoundManager>();
-    Random = make_shared<mt19937>(seed());
-    SharedControlState = make_shared<ControlState>();
-    Musics = make_shared<MusicsManager>(this);
-    Characters = make_shared<CharacterManager>(this);
-    Skills = make_shared<SkillManager>(this);
-    Extensions = make_unique<ExtensionManager>();
+    sharedSetting = setting;
+    settingManager = make_unique<Setting2::SettingItemManager>(sharedSetting);
+    scriptInterface = make_shared<AngelScript>();
+    sound = make_shared<SoundManager>();
+    random = make_shared<mt19937>(seed());
+    sharedControlState = make_shared<ControlState>();
+    musics = make_shared<MusicsManager>(this);
+    characters = make_shared<CharacterManager>(this);
+    skills = make_shared<SkillManager>(this);
+    extensions = make_unique<ExtensionManager>();
 }
 
 void ExecutionManager::Initialize()
 {
     std::ifstream slfile;
     string procline;
-    path slpath = SharedSetting->GetRootDirectory() / SU_DATA_DIR / SU_SCRIPT_DIR / SU_SETTING_DEFINITION_FILE;
-    SettingManager->LoadItemsFromToml(slpath);
-    SettingManager->RetrieveAllValues();
+    const auto slpath = sharedSetting->GetRootDirectory() / SU_DATA_DIR / SU_SCRIPT_DIR / SU_SETTING_DEFINITION_FILE;
+    settingManager->LoadItemsFromToml(slpath);
+    settingManager->RetrieveAllValues();
 
-    SharedControlState->Initialize();
-    Extensions->LoadExtensions();
-    Extensions->Initialize(ScriptInterface->GetEngine());
+    sharedControlState->Initialize();
+    extensions->LoadExtensions();
+    extensions->Initialize(scriptInterface->GetEngine());
 
-    MixerBGM = SSoundMixer::CreateMixer(Sound.get());
-    MixerSE = SSoundMixer::CreateMixer(Sound.get());
-    MixerBGM->AddRef();
-    MixerSE->AddRef();
+    mixerBgm = SSoundMixer::CreateMixer(sound.get());
+    mixerSe = SSoundMixer::CreateMixer(sound.get());
+    mixerBgm->AddRef();
+    mixerSe->AddRef();
 
     InterfacesRegisterEnum(this);
     RegisterScriptResource(this);
     RegisterScriptSprite(this);
     RegisterScriptScene(this);
     RegisterScriptSkin(this);
-    RegisterCharacterSkillTypes(ScriptInterface->GetEngine());
+    RegisterCharacterSkillTypes(scriptInterface->GetEngine());
     RegisterPlayerScene(this);
     InterfacesRegisterSceneFunction(this);
     InterfacesRegisterGlobalFunction(this);
     RegisterGlobalManagementFunction();
-    Extensions->RegisterInterfaces();
+    extensions->RegisterInterfaces();
 
-    Characters->LoadAllCharacters();
-    Skills->LoadAllSkills();
+    characters->LoadAllCharacters();
+    skills->LoadAllSkills();
 
     hCommunicationPipe = CreateNamedPipe(
         SU_NAMED_PIPE_NAME,
@@ -78,13 +76,13 @@ void ExecutionManager::Initialize()
     */
 }
 
-void ExecutionManager::Shutdown()
+void ExecutionManager::Shutdown() const
 {
-    if (Skin) Skin->Terminate();
-    SettingManager->SaveAllValues();
-    SharedControlState->Terminate();
-    MixerBGM->Release();
-    MixerSE->Release();
+    if (skin) skin->Terminate();
+    settingManager->SaveAllValues();
+    sharedControlState->Terminate();
+    mixerBgm->Release();
+    mixerSe->Release();
     if (hCommunicationPipe != INVALID_HANDLE_VALUE) {
         DisconnectNamedPipe(hCommunicationPipe);
         CloseHandle(hCommunicationPipe);
@@ -94,7 +92,7 @@ void ExecutionManager::Shutdown()
 
 void ExecutionManager::RegisterGlobalManagementFunction()
 {
-    auto engine = ScriptInterface->GetEngine();
+    auto engine = scriptInterface->GetEngine();
     MusicSelectionCursor::RegisterScriptInterface(engine);
 
     engine->RegisterGlobalFunction("void ExitApplication()", asFUNCTION(InterfacesExitApplication), asCALL_CDECL);
@@ -118,7 +116,7 @@ void ExecutionManager::RegisterGlobalManagementFunction()
     engine->RegisterGlobalFunction("bool ExecuteScene(" SU_IF_COSCENE "@)", asMETHODPR(ExecutionManager, ExecuteScene, (asIScriptObject*), bool), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("void ReloadMusic()", asMETHOD(ExecutionManager, ReloadMusic), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction(SU_IF_SOUNDMIXER "@ GetDefaultMixer(const string &in)", asMETHOD(ExecutionManager, GetDefaultMixer), asCALL_THISCALL_ASGLOBAL, this);
-    engine->RegisterObjectBehaviour(SU_IF_MSCURSOR, asBEHAVE_FACTORY, SU_IF_MSCURSOR "@ f()", asMETHOD(MusicsManager, CreateMusicSelectionCursor), asCALL_THISCALL_ASGLOBAL, Musics.get());
+    engine->RegisterObjectBehaviour(SU_IF_MSCURSOR, asBEHAVE_FACTORY, SU_IF_MSCURSOR "@ f()", asMETHOD(MusicsManager, CreateMusicSelectionCursor), asCALL_THISCALL_ASGLOBAL, musics.get());
     engine->RegisterObjectBehaviour(SU_IF_SCENE_PLAYER, asBEHAVE_FACTORY, SU_IF_SCENE_PLAYER "@ f()", asMETHOD(ExecutionManager, CreatePlayer), asCALL_THISCALL_ASGLOBAL, this);
 }
 
@@ -126,24 +124,24 @@ void ExecutionManager::RegisterGlobalManagementFunction()
 void ExecutionManager::EnumerateSkins()
 {
     using namespace boost;
-    using namespace boost::filesystem;
-    using namespace boost::xpressive;
+    using namespace filesystem;
+    using namespace xpressive;
     auto log = spdlog::get("main");
 
-    path sepath = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SKIN_DIR;
+    const auto sepath = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SKIN_DIR;
 
     for (const auto& fdata : make_iterator_range(directory_iterator(sepath), {})) {
         if (!is_directory(fdata)) continue;
         if (!CheckSkinStructure(fdata.path())) continue;
-        SkinNames.push_back(fdata.path().filename().wstring());
+        skinNames.push_back(fdata.path().filename().wstring());
     }
-    log->info(u8"スキン総数: {0:d}", SkinNames.size());
+    log->info(u8"スキン総数: {0:d}", skinNames.size());
 }
 
-bool ExecutionManager::CheckSkinStructure(boost::filesystem::path name)
+bool ExecutionManager::CheckSkinStructure(const const path& name) const
 {
     using namespace boost;
-    using namespace boost::filesystem;
+    using namespace filesystem;
 
     if (!exists(name / SU_SKIN_MAIN_FILE)) return false;
     if (!exists(name / SU_SCRIPT_DIR / SU_SKIN_TITLE_FILE)) return false;
@@ -158,20 +156,20 @@ void ExecutionManager::ExecuteSkin()
     using namespace boost::filesystem;
     auto log = spdlog::get("main");
 
-    auto sn = SharedSetting->ReadValue<string>(SU_SETTING_GENERAL, SU_SETTING_SKIN, "Default");
-    if (find(SkinNames.begin(), SkinNames.end(), ConvertUTF8ToUnicode(sn)) == SkinNames.end()) {
+    const auto sn = sharedSetting->ReadValue<string>(SU_SETTING_GENERAL, SU_SETTING_SKIN, "Default");
+    if (find(skinNames.begin(), skinNames.end(), ConvertUTF8ToUnicode(sn)) == skinNames.end()) {
         log->error(u8"スキン \"{0}\"が見つかりませんでした", sn);
         return;
     }
-    auto skincfg = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SKIN_DIR / ConvertUTF8ToUnicode(sn) / SU_SETTING_DEFINITION_FILE;
+    const auto skincfg = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SKIN_DIR / ConvertUTF8ToUnicode(sn) / SU_SETTING_DEFINITION_FILE;
     if (exists(skincfg)) {
         log->info(u8"スキンの設定定義ファイルが有効です");
-        SettingManager->LoadItemsFromToml(skincfg);
-        SettingManager->RetrieveAllValues();
+        settingManager->LoadItemsFromToml(skincfg);
+        settingManager->RetrieveAllValues();
     }
 
-    Skin = unique_ptr<SkinHolder>(new SkinHolder(ConvertUTF8ToUnicode(sn), ScriptInterface, Sound));
-    Skin->Initialize();
+    skin = make_unique<SkinHolder>(ConvertUTF8ToUnicode(sn), scriptInterface, sound);
+    skin->Initialize();
     log->info(u8"スキン読み込み完了");
     ExecuteSkin(ConvertUnicodeToUTF8(SU_SKIN_TITLE_FILE));
 }
@@ -179,12 +177,12 @@ void ExecutionManager::ExecuteSkin()
 bool ExecutionManager::ExecuteSkin(const string &file)
 {
     auto log = spdlog::get("main");
-    auto obj = Skin->ExecuteSkinScript(ConvertUTF8ToUnicode(file));
+    const auto obj = skin->ExecuteSkinScript(ConvertUTF8ToUnicode(file));
     if (!obj) {
         log->error(u8"スクリプトをコンパイルできませんでした");
         return false;
     }
-    auto s = CreateSceneFromScriptObject(obj);
+    const auto s = CreateSceneFromScriptObject(obj);
     if (!s) {
         log->error(u8"{0}にEntryPointが見つかりませんでした", file);
         return false;
@@ -196,9 +194,9 @@ bool ExecutionManager::ExecuteSkin(const string &file)
 bool ExecutionManager::ExecuteScene(asIScriptObject *sceneObject)
 {
     auto log = spdlog::get("main");
-    auto s = CreateSceneFromScriptObject(sceneObject);
+    const auto s = CreateSceneFromScriptObject(sceneObject);
     if (!s) return false;
-    sceneObject->SetUserData(Skin.get(), SU_UDTYPE_SKIN);
+    sceneObject->SetUserData(skin.get(), SU_UDTYPE_SKIN);
     AddScene(s);
     // カウンタ加算が余計なので1回戻す
     sceneObject->Release();
@@ -208,29 +206,29 @@ bool ExecutionManager::ExecuteScene(asIScriptObject *sceneObject)
 void ExecutionManager::ExecuteSystemMenu()
 {
     using namespace boost;
-    using namespace boost::filesystem;
+    using namespace filesystem;
     auto log = spdlog::get("main");
 
-    path sysmf = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SCRIPT_DIR / SU_SYSTEM_MENU_FILE;
+    auto sysmf = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SCRIPT_DIR / SU_SYSTEM_MENU_FILE;
     if (!exists(sysmf)) {
         log->error(u8"システムメニュースクリプトが見つかりませんでした");
         return;
     }
 
-    ScriptInterface->StartBuildModule("SystemMenu", [](auto inc, auto from, auto sb) { return true; });
-    ScriptInterface->LoadFile(sysmf.wstring());
-    if (!ScriptInterface->FinishBuildModule()) {
+    scriptInterface->StartBuildModule("SystemMenu", [](auto inc, auto from, auto sb) { return true; });
+    scriptInterface->LoadFile(sysmf.wstring());
+    if (!scriptInterface->FinishBuildModule()) {
         log->error(u8"システムメニュースクリプトをコンパイルできませんでした");
         return;
     }
-    auto mod = ScriptInterface->GetLastModule();
+    const auto mod = scriptInterface->GetLastModule();
 
     //エントリポイント検索
-    int cnt = mod->GetObjectTypeCount();
+    const int cnt = mod->GetObjectTypeCount();
     asITypeInfo *type = nullptr;
     for (int i = 0; i < cnt; i++) {
-        auto cti = mod->GetObjectTypeByIndex(i);
-        if (!ScriptInterface->CheckMetaData(cti, "EntryPoint")) continue;
+        const auto cti = mod->GetObjectTypeByIndex(i);
+        if (!scriptInterface->CheckMetaData(cti, "EntryPoint")) continue;
         type = cti;
         type->AddRef();
         break;
@@ -247,21 +245,21 @@ void ExecutionManager::ExecuteSystemMenu()
 
 
 //Tick
-void ExecutionManager::Tick(double delta)
+void ExecutionManager::Tick(const double delta)
 {
-    SharedControlState->Update();
+    sharedControlState->Update();
 
     //シーン操作
-    for (auto& scene : ScenesPending) Scenes.push_back(scene);
-    ScenesPending.clear();
-    sort(Scenes.begin(), Scenes.end(), [](shared_ptr<Scene> sa, shared_ptr<Scene> sb) { return sa->GetIndex() < sb->GetIndex(); });
-    auto i = Scenes.begin();
-    while (i != Scenes.end()) {
+    for (auto& scene : scenesPending) scenes.push_back(scene);
+    scenesPending.clear();
+    sort(scenes.begin(), scenes.end(), [](const shared_ptr<Scene> sa, const shared_ptr<Scene> sb) { return sa->GetIndex() < sb->GetIndex(); });
+    auto i = scenes.begin();
+    while (i != scenes.end()) {
         (*i)->Tick(delta);
         if ((*i)->IsDead()) {
-            i = Scenes.erase(i);
+            i = scenes.erase(i);
         } else {
-            i++;
+            ++i;
         }
     }
 
@@ -270,61 +268,62 @@ void ExecutionManager::Tick(double delta)
     ps += delta;
     if (ps >= 1.0) {
         ps = 0;
-        MixerBGM->Update();
-        MixerSE->Update();
+        mixerBgm->Update();
+        mixerSe->Update();
     }
-    ScriptInterface->GetEngine()->GarbageCollect(asGC_ONE_STEP);
+    scriptInterface->GetEngine()->GarbageCollect(asGC_ONE_STEP);
 }
 
 //Draw
 void ExecutionManager::Draw()
 {
     ClearDrawScreen();
-    for (const auto& s : Scenes) s->Draw();
+    for (const auto& s : scenes) s->Draw();
     ScreenFlip();
 }
 
-void ExecutionManager::AddScene(shared_ptr<Scene> scene)
+void ExecutionManager::AddScene(const shared_ptr<Scene>& scene)
 {
-    ScenesPending.push_back(scene);
+    scenesPending.push_back(scene);
     scene->SetManager(this);
     scene->Initialize();
 }
 
-shared_ptr<ScriptScene> ExecutionManager::CreateSceneFromScriptType(asITypeInfo *type)
+shared_ptr<ScriptScene> ExecutionManager::CreateSceneFromScriptType(asITypeInfo *type) const
 {
     auto log = spdlog::get("main");
     shared_ptr<ScriptScene> ret;
-    if (ScriptInterface->CheckImplementation(type, SU_IF_COSCENE)) {
-        auto obj = ScriptInterface->InstantiateObject(type);
-        return shared_ptr<ScriptScene>(new ScriptCoroutineScene(obj));
-    } else if (ScriptInterface->CheckImplementation(type, SU_IF_SCENE))  //最後
-    {
-        auto obj = ScriptInterface->InstantiateObject(type);
-        return shared_ptr<ScriptScene>(new ScriptScene(obj));
-    } else {
-        log->error("{0}クラスにScene系インターフェースが実装されていません", type->GetName());
-        return nullptr;
+    if (scriptInterface->CheckImplementation(type, SU_IF_COSCENE)) {
+        auto obj = scriptInterface->InstantiateObject(type);
+        return static_pointer_cast<ScriptScene>(make_shared<ScriptCoroutineScene>(obj));
     }
+    if (scriptInterface->CheckImplementation(type, SU_IF_SCENE))  //最後
+    {
+        auto obj = scriptInterface->InstantiateObject(type);
+        return make_shared<ScriptScene>(obj);
+    }
+    log->error(u8"{0}クラスにScene系インターフェースが実装されていません", type->GetName());
+    return nullptr;
 }
 
-shared_ptr<ScriptScene> ExecutionManager::CreateSceneFromScriptObject(asIScriptObject *obj)
+shared_ptr<ScriptScene> ExecutionManager::CreateSceneFromScriptObject(asIScriptObject *obj) const
 {
     auto log = spdlog::get("main");
     shared_ptr<ScriptScene> ret;
-    auto type = obj->GetObjectType();
-    if (ScriptInterface->CheckImplementation(type, SU_IF_COSCENE)) {
-        return shared_ptr<ScriptScene>(new ScriptCoroutineScene(obj));
-    } else if (ScriptInterface->CheckImplementation(type, SU_IF_SCENE))  //最後
-    {
-        return shared_ptr<ScriptScene>(new ScriptScene(obj));
-    } else {
-        log->error("{0}クラスにScene系インターフェースが実装されていません", type->GetName());
-        return nullptr;
+    const auto type = obj->GetObjectType();
+    if (scriptInterface->CheckImplementation(type, SU_IF_COSCENE)) {
+        return static_pointer_cast<ScriptScene>(make_shared<ScriptCoroutineScene>(obj));
     }
+    if (scriptInterface->CheckImplementation(type, SU_IF_SCENE))  //最後
+    {
+        return make_shared<ScriptScene>(obj);
+    }
+    log->error(u8"{0}クラスにScene系インターフェースが実装されていません", type->GetName());
+    return nullptr;
 }
 
-std::tuple<bool, LRESULT> ExecutionManager::CustomWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+// ReSharper disable once CppMemberFunctionMayBeStatic
+std::tuple<bool, LRESULT> ExecutionManager::CustomWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) const
 {
     ostringstream buffer;
     switch (msg) {
@@ -355,7 +354,7 @@ std::tuple<bool, LRESULT> ExecutionManager::CustomWindowProc(HWND hWnd, UINT msg
             return make_tuple(false, 0);
             */
         default:
-            return make_tuple(false, (LRESULT)nullptr);
+            return make_tuple(false, LRESULT(nullptr));
     }
 
 }

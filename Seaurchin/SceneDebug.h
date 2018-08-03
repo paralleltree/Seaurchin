@@ -1,18 +1,16 @@
 #pragma once
 
-
-#include "Config.h"
 #include "Scene.h"
 
 class SceneDebug final : public Scene
 {
 private:
-    int call;
-    double calc;
-    double fps;
+    int call = 0;
+    double calc = 0;
+    double fps = 0;
 
 public:
-    ~SceneDebug();
+    ~SceneDebug() = default;
 
     void Tick(double delta) override;
     void Draw() override;

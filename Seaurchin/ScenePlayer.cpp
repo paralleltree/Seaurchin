@@ -541,5 +541,5 @@ void ScenePlayer::AdjustCamera(double cy, double cz, double ctz)
 
 void ScenePlayer::StoreResult()
 {
-    CurrentResult->GetCurrentResult(&manager->LastResult);
+    CurrentResult->GetCurrentResult(&manager->lastResult);
 }

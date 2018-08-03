@@ -2,17 +2,18 @@
 
 using namespace std;
 
-void ExecutionManager::ReloadMusic()
+void ExecutionManager::ReloadMusic() const
 {
-    Musics->Reload(true);
+    musics->Reload(true);
 }
 
 void ExecutionManager::Fire(const string & message)
 {
-    for (auto &scene : Scenes) scene->OnEvent(message);
+    for (auto &scene : scenes) scene->OnEvent(message);
 }
 
-void ExecutionManager::WriteLog(const string &message)
+// ReSharper disable once CppMemberFunctionMayBeStatic
+void ExecutionManager::WriteLog(const string &message) const
 {
     auto log = spdlog::get("main");
     log->info(message);
@@ -25,29 +26,29 @@ ScenePlayer *ExecutionManager::CreatePlayer()
     return player;
 }
 
-SSoundMixer *ExecutionManager::GetDefaultMixer(const string &name)
+SSoundMixer *ExecutionManager::GetDefaultMixer(const string &name) const
 {
     if (name == "BGM") {
-        MixerBGM->AddRef();
-        return MixerBGM;
+        mixerBgm->AddRef();
+        return mixerBgm;
     }
     if (name == "SE") {
-        MixerSE->AddRef();
-        return MixerSE;
+        mixerSe->AddRef();
+        return mixerSe;
     }
     return nullptr;
 }
 
-SSettingItem *ExecutionManager::GetSettingItem(const string &group, const string &key)
+SSettingItem *ExecutionManager::GetSettingItem(const string &group, const string &key) const
 {
-    auto si = SettingManager->GetSettingItem(group, key);
+    const auto si = settingManager->GetSettingItem(group, key);
     if (!si) return nullptr;
     auto result = new SSettingItem(si);
     result->AddRef();
     return result;
 }
 
-void ExecutionManager::GetStoredResult(DrawableResult *result)
+void ExecutionManager::GetStoredResult(DrawableResult *result) const
 {
-    *result = LastResult;
+    *result = lastResult;
 }

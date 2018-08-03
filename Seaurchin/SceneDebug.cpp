@@ -1,17 +1,10 @@
 #include "SceneDebug.h"
-#include "Debug.h"
 
-SceneDebug::~SceneDebug()
-{
-    
-}
-
-void SceneDebug::Tick(double delta)
+void SceneDebug::Tick(const double delta)
 {
     calc += delta;
     call++;
-    if (calc >= 1.00)
-    {
+    if (calc >= 1.00) {
         fps = call / calc;
         calc = call = 0;
     }
@@ -27,4 +20,3 @@ bool SceneDebug::IsDead()
 {
     return false;
 }
-

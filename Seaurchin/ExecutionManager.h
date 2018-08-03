@@ -17,64 +17,64 @@ class ExecutionManager final {
     friend class ScenePlayer;
 
 private:
-    std::shared_ptr<Setting> SharedSetting;
-    std::unique_ptr<Setting2::SettingItemManager> SettingManager;
-    std::shared_ptr<AngelScript> ScriptInterface;
-    std::vector<std::shared_ptr<Scene>> Scenes;
-    std::vector<std::shared_ptr<Scene>> ScenesPending;
-    std::shared_ptr<ControlState> SharedControlState;
-    std::vector<std::wstring> SkinNames;
-    std::unique_ptr<SkinHolder> Skin;
-    std::unique_ptr<ExtensionManager> Extensions;
-    std::shared_ptr<std::mt19937> Random;
-    std::shared_ptr<SoundManager> Sound;
-    std::shared_ptr<MusicsManager> Musics;
-    std::shared_ptr<CharacterManager> Characters;
-    std::shared_ptr<SkillManager> Skills;
+    std::shared_ptr<Setting> sharedSetting;
+    std::unique_ptr<Setting2::SettingItemManager> settingManager;
+    std::shared_ptr<AngelScript> scriptInterface;
+    std::vector<std::shared_ptr<Scene>> scenes;
+    std::vector<std::shared_ptr<Scene>> scenesPending;
+    std::shared_ptr<ControlState> sharedControlState;
+    std::vector<std::wstring> skinNames;
+    std::unique_ptr<SkinHolder> skin;
+    std::unique_ptr<ExtensionManager> extensions;
+    std::shared_ptr<std::mt19937> random;
+    std::shared_ptr<SoundManager> sound;
+    std::shared_ptr<MusicsManager> musics;
+    std::shared_ptr<CharacterManager> characters;
+    std::shared_ptr<SkillManager> skills;
     std::unordered_map<std::string, boost::any> optionalData;
-    DrawableResult LastResult;
+    DrawableResult lastResult;
     HIMC hImc;
     HANDLE hCommunicationPipe;
-    DWORD ImmConversion, ImmSentence;
-    SSoundMixer *MixerBGM, *MixerSE;
+    DWORD immConversion, immSentence;
+    SSoundMixer *mixerBgm, *mixerSe;
 
 public:
-    ExecutionManager(std::shared_ptr<Setting> setting);
+    explicit ExecutionManager(std::shared_ptr<Setting> setting);
 
     void EnumerateSkins();
     void Tick(double delta);
     void Draw();
     void Initialize();
-    void Shutdown();
-    void AddScene(std::shared_ptr<Scene> scene);
-    std::shared_ptr<ScriptScene> CreateSceneFromScriptType(asITypeInfo *type);
-    std::shared_ptr<ScriptScene> CreateSceneFromScriptObject(asIScriptObject *obj);
-    int GetSceneCount() { return Scenes.size(); }
+    void Shutdown() const;
+    void AddScene(const std::shared_ptr<Scene>& scene);
+    std::shared_ptr<ScriptScene> CreateSceneFromScriptType(asITypeInfo *type) const;
+    std::shared_ptr<ScriptScene> CreateSceneFromScriptObject(asIScriptObject *obj) const;
+    int GetSceneCount() const { return scenes.size(); }
 
-    std::shared_ptr<MusicsManager> GetMusicsManager() { return Musics; }
-    std::shared_ptr<ControlState> GetControlStateSafe() { return SharedControlState; }
-    std::shared_ptr<Setting> GetSettingInstanceSafe() { return SharedSetting; }
-    std::shared_ptr<AngelScript> GetScriptInterfaceSafe() { return ScriptInterface; }
-    ControlState* GetControlStateUnsafe() { return SharedControlState.get(); }
-    AngelScript* GetScriptInterfaceUnsafe() { return ScriptInterface.get(); }
-    SoundManager* GetSoundManagerUnsafe() { return Sound.get(); }
-    std::shared_ptr<CharacterManager> GetCharacterManagerSafe() { return Characters; }
-    std::shared_ptr<SkillManager> GetSkillManagerSafe() { return Skills; }
-    CharacterManager* GetCharacterManagerUnsafe() { return Characters.get(); }
-    SkillManager* GetSkillManagerUnsafe() { return Skills.get(); }
+    std::shared_ptr<MusicsManager> GetMusicsManager() const { return musics; }
+    std::shared_ptr<ControlState> GetControlStateSafe() const { return sharedControlState; }
+    std::shared_ptr<Setting> GetSettingInstanceSafe() const { return sharedSetting; }
+    std::shared_ptr<AngelScript> GetScriptInterfaceSafe() const { return scriptInterface; }
+    ControlState* GetControlStateUnsafe() const { return sharedControlState.get(); }
+    AngelScript* GetScriptInterfaceUnsafe() const { return scriptInterface.get(); }
+    SoundManager* GetSoundManagerUnsafe() const { return sound.get(); }
+    std::shared_ptr<CharacterManager> GetCharacterManagerSafe() const { return characters; }
+    std::shared_ptr<SkillManager> GetSkillManagerSafe() const { return skills; }
+    CharacterManager* GetCharacterManagerUnsafe() const { return characters.get(); }
+    SkillManager* GetSkillManagerUnsafe() const { return skills.get(); }
 
-    std::tuple<bool, LRESULT> CustomWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+    std::tuple<bool, LRESULT> CustomWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) const;
     void ExecuteSkin();
     bool ExecuteSkin(const std::string &file);
     bool ExecuteScene(asIScriptObject *sceneObject);
     void ExecuteSystemMenu();
-    void ReloadMusic();
+    void ReloadMusic() const;
     void Fire(const std::string &message);
-    void WriteLog(const std::string &message);
+    void WriteLog(const std::string &message) const;
     ScenePlayer *CreatePlayer();
-    SSoundMixer *GetDefaultMixer(const std::string &name);
-    SSettingItem *GetSettingItem(const std::string &group, const std::string &key);
-    void GetStoredResult(DrawableResult *result);
+    SSoundMixer *GetDefaultMixer(const std::string &name) const;
+    SSettingItem *GetSettingItem(const std::string &group, const std::string &key) const;
+    void GetStoredResult(DrawableResult *result) const;
 
     template<typename T>
     void SetData(const std::string &name, const T& data);
@@ -85,7 +85,7 @@ public:
     bool ExistsData(const std::string &name) { return optionalData.find(name) != optionalData.end(); }
 
 private:
-    bool CheckSkinStructure(boost::filesystem::path name);
+    bool CheckSkinStructure(const boost::filesystem::path& name) const;
     void RegisterGlobalManagementFunction();
 };
 
