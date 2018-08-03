@@ -102,7 +102,7 @@ void ScriptScene::TickCoroutine(double delta)
     auto i = coroutines.begin();
     while (i != coroutines.end()) {
         auto c = *i;
-        switch (c->wait.type) {
+        switch (c->wait.Type) {
             case WaitType::Frame:
                 c->wait.frames -= 1;
                 if (c->wait.frames > 0) {
@@ -171,7 +171,7 @@ ScriptCoroutineScene::ScriptCoroutineScene(asIScriptObject *scene) : base(scene)
     runningContext = eng->CreateContext();
     runningContext->SetUserData(this, SU_UDTYPE_SCENE);
     runningContext->SetUserData(&wait, SU_UDTYPE_WAIT);
-    wait.type = WaitType::Time;
+    wait.Type = WaitType::Time;
     wait.time = 0.0;
 }
 
@@ -193,7 +193,7 @@ void ScriptCoroutineScene::Tick(double delta)
     TickSprite(delta);
     TickCoroutine(delta);
     //Run()
-    switch (wait.type) {
+    switch (wait.Type) {
         case WaitType::Frame:
             wait.frames -= 1;
             if (wait.frames > 0) return;
@@ -337,7 +337,7 @@ void ScriptSceneRunCoroutine(asIScriptFunction *cofunc, const string &name)
     c->function->AddRef();
     c->object = cofunc->GetDelegateObject();
     c->type = cofunc->GetDelegateObjectType();
-    c->wait.type = WaitType::Time;
+    c->wait.Type = WaitType::Time;
     c->wait.time = 0;
     psc->AddCoroutine(c);
 }

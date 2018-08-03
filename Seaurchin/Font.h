@@ -1,25 +1,24 @@
 #pragma once
 
+struct Rect
+{
+    int X;
+    int Y;
+    int Width;
+    int Height;
+};
+
 class RectPacker final
 {
 private:
-    int width;
-    int height;
-    int row;
+    int width = 0;
+    int height = 0;
+    int row = 0;
     int cursorX = 0;
     int cursorY = 0;
 
 public:
-    typedef struct
-    {
-        int x;
-        int y;
-        int width;
-        int height;
-    } Rect;
-
     void Init(int w, int h, int rowh);
-
     Rect Insert(int w, int h);
 };
 
@@ -60,9 +59,9 @@ class Sif2Creator final {
 private:
     const uint16_t Sif2Magic = 0xA45F;
 
-    FT_Library freetype;
-    FT_Error error;
-    FT_Face face;
+    FT_Library freetype{};
+    FT_Error error{};
+    FT_Face face{};
 
     uint8_t *faceMemory = nullptr;
     size_t faceMemorySize = 0;

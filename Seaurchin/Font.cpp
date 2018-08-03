@@ -14,7 +14,7 @@ void RectPacker::Init(int w, int h, int rowh)
     cursorY = 0;
 }
 
-RectPacker::Rect RectPacker::Insert(int w, int h)
+Rect RectPacker::Insert(int w, int h)
 {
     if (cursorX + w >= width) {
         cursorX = 0;
@@ -22,11 +22,12 @@ RectPacker::Rect RectPacker::Insert(int w, int h)
     }
     if (cursorY + h > height) return Rect { 0 };
     if (w > width) return Rect { 0 };
-    Rect r;
-    r.x = cursorX;
-    r.y = cursorY;
-    r.width = w;
-    r.height = h;
+    Rect r = {
+        cursorX,
+        cursorY,
+        w,
+        h,
+    };
     cursorX += w;
     row = max(h, row);
     return r;
@@ -44,9 +45,9 @@ void Sif2Creator::InitializeFace(string fontpath)
     faceMemorySize = fontfile.tellg();
     fontfile.seekg(ios_base::beg);
     faceMemory = new uint8_t[faceMemorySize];
-    fontfile.read((char*)faceMemory, faceMemorySize);
+    fontfile.read(reinterpret_cast<char*>(faceMemory), faceMemorySize);
     fontfile.close();
-    
+
     // error = FT_New_Face(freetype, up.string().c_str(), 0, &face);
     error = FT_New_Memory_Face(freetype, faceMemory, faceMemorySize, 0, &face);
     if (error) {
@@ -105,13 +106,13 @@ void Sif2Creator::PackImageSif2()
         fif.open(path.wstring(), ios::binary | ios::in);
         uint32_t fsize = fif.seekg(0, ios::end).tellg();
 
-        uint8_t *file = new uint8_t[fsize];
+        const auto file = new uint8_t[fsize];
         fif.seekg(ios::beg);
-        fif.read((char*)file, fsize);
+        fif.read(reinterpret_cast<char*>(file), fsize);
         fif.close();
 
-        sif2stream.write((const char*)&fsize, sizeof(uint32_t));
-        sif2stream.write((const char*)file, fsize);
+        sif2stream.write(reinterpret_cast<const char*>(&fsize), sizeof(uint32_t));
+        sif2stream.write(reinterpret_cast<const char*>(file), fsize);
         delete[] file;
     }
 
@@ -155,12 +156,11 @@ void Sif2Creator::SaveBitmapCache(boost::filesystem::path cachepath)
 bool Sif2Creator::RenderGlyph(uint32_t cp)
 {
     Sif2Glyph ginfo;
-    FT_GlyphSlot gslot;
-    FT_UInt gidx = FT_Get_Char_Index(face, cp);
-    int baseline = -face->size->metrics.descender >> 6;
+    const FT_UInt gidx = FT_Get_Char_Index(face, cp);
+    const int baseline = -face->size->metrics.descender >> 6;
 
     FT_Load_Glyph(face, gidx, FT_LOAD_DEFAULT);
-    gslot = face->glyph;
+    FT_GlyphSlot gslot = face->glyph;
     FT_Render_Glyph(gslot, FT_RENDER_MODE_NORMAL);
     ginfo.GlyphWidth = gslot->bitmap.width;
     ginfo.GlyphHeight = gslot->bitmap.rows;
@@ -174,29 +174,28 @@ bool Sif2Creator::RenderGlyph(uint32_t cp)
 
     if (ginfo.GlyphWidth * ginfo.GlyphWidth == 0) {
         //まさか' 'がグリフを持たないとは思わなかった(いや当たり前でしょ)
-        sif2stream.write((const char*)&ginfo, sizeof(Sif2Glyph));
+        sif2stream.write(reinterpret_cast<const char*>(&ginfo), sizeof(Sif2Glyph));
         writtenGlyphs++;
         return true;
     }
 
-    RectPacker::Rect rect;
-    rect = packer.Insert(ginfo.GlyphWidth, ginfo.GlyphHeight);
-    if (rect.height == 0) return false;
-    ginfo.GlyphX = rect.x;
-    ginfo.GlyphY = rect.y;
+    const auto rect = packer.Insert(ginfo.GlyphWidth, ginfo.GlyphHeight);
+    if (rect.Height == 0) return false;
+    ginfo.GlyphX = rect.X;
+    ginfo.GlyphY = rect.Y;
 
-    uint8_t *buffer = new uint8_t[rect.width * 2];
+    uint8_t *buffer = new uint8_t[rect.Width * 2];
     for (int y = 0; y < gslot->bitmap.rows; y++) {
-        for (int x = 0; x < rect.width; x++) {
+        for (int x = 0; x < rect.Width; x++) {
             buffer[x * 2] = 0xff;
-            buffer[x * 2 + 1] = gslot->bitmap.buffer[y * rect.width + x];
+            buffer[x * 2 + 1] = gslot->bitmap.buffer[y * rect.Width + x];
         }
-        int py = rect.y + y;
-        memcpy_s(bitmapMemory + (py * bitmapHeight * 2 + rect.x * 2), rect.width * 2, buffer, rect.width * 2);
+        const auto py = rect.Y + y;
+        memcpy_s(bitmapMemory + (py * bitmapHeight * 2 + rect.X * 2), rect.Width * 2, buffer, rect.Width * 2);
     }
     delete[] buffer;
 
-    sif2stream.write((const char*)&ginfo, sizeof(Sif2Glyph));
+    sif2stream.write(reinterpret_cast<const char*>(&ginfo), sizeof(Sif2Glyph));
     writtenGlyphs++;
     return true;
 }
@@ -217,7 +216,7 @@ void Sif2Creator::CreateSif2(const Sif2CreatorOption &option, boost::filesystem:
 {
     using namespace boost::filesystem;
     auto log = spdlog::get("main");
-    auto cachepath = Setting::GetRootDirectory() / SU_DATA_DIR / SU_CACHE_DIR;
+    const auto cachepath = Setting::GetRootDirectory() / SU_DATA_DIR / SU_CACHE_DIR;
 
     InitializeFace(option.FontPath);
     RequestFace(option.Size);
@@ -228,10 +227,8 @@ void Sif2Creator::CreateSif2(const Sif2CreatorOption &option, boost::filesystem:
     NewBitmap(option.ImageSize, option.ImageSize);
 
     if (option.TextSource == "") {
-        // render all
-        FT_ULong code;
         FT_UInt gidx;
-        code = FT_Get_First_Char(face, &gidx);
+        FT_ULong code = FT_Get_First_Char(face, &gidx);
         while (gidx) {
             if (!RenderGlyph(code)) {
                 ostringstream fss;

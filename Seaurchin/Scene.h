@@ -12,10 +12,10 @@ public:
     Scene();
     virtual ~Scene();
 
-    inline void SetIndex(int i) { index = i; }
-    inline int GetIndex() { return index; }
-    inline void SetManager(ExecutionManager *info) { manager = info; }
-    inline ExecutionManager* GetManager() { return manager; }
+    void SetIndex(int i) { index = i; }
+    int GetIndex() const { return index; }
+    void SetManager(ExecutionManager *info) { manager = info; }
+    ExecutionManager* GetManager() const { return manager; }
 
     virtual void Initialize();
     virtual void Tick(double delta);

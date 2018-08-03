@@ -10,19 +10,19 @@ private:
     CWScriptBuilder builder;
     IncludeCallback includeFunc;
 
-    void ScriptMessageCallback(const asSMessageInfo *message);
+    static void ScriptMessageCallback(const asSMessageInfo *message);
 
 public:
     AngelScript();
     ~AngelScript();
 
-    inline asIScriptEngine* GetEngine() { return engine; }
-    inline asIScriptContext* GetContext() { return sharedContext; }
+    inline asIScriptEngine* GetEngine() const { return engine; }
+    inline asIScriptContext* GetContext() const { return sharedContext; }
 
     //新しくModuleする
     void StartBuildModule(const std::string &name, IncludeCallback callback);
 
-    inline asIScriptModule* GetExistModule(std::string name) { return engine->GetModule(name.c_str()); }
+    inline asIScriptModule* GetExistModule(std::string name) const { return engine->GetModule(name.c_str()); }
     
     //ファイル読み込み
     void LoadFile(const std::wstring &filename);
@@ -44,13 +44,13 @@ public:
 
 
     //実装をチェック
-    inline bool CheckImplementation(asITypeInfo *type, std::string name)
+    inline bool CheckImplementation(asITypeInfo *type, std::string name) const
     {
         return type->Implements(engine->GetTypeInfoByName(name.c_str()));
     }
     
     //asITypeInfoからインスタンス作成 リファレンス無しなのでさっさとAddRefしろ
-    asIScriptObject* InstantiateObject(asITypeInfo *type);
+    asIScriptObject* InstantiateObject(asITypeInfo *type) const;
 };
 
 struct CallbackObject {
@@ -59,6 +59,6 @@ struct CallbackObject {
     asITypeInfo *Type;
     asIScriptContext *Context;
 
-    CallbackObject(asIScriptFunction *callback);
+    explicit CallbackObject(asIScriptFunction *callback);
     ~CallbackObject();
 };

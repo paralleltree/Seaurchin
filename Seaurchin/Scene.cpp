@@ -5,7 +5,7 @@ Scene
 
 */
 
-Scene::Scene()
+Scene::Scene(): index(0), manager(nullptr)
 {
 }
 

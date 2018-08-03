@@ -1,6 +1,4 @@
 #include "SoundManager.h"
-#include "Setting.h"
-#include "Debug.h"
 
 using namespace std;
 using namespace boost::algorithm;
@@ -39,12 +37,12 @@ void SoundSample::SetVolume(float vol)
 
 SoundSample *SoundSample::CreateFromFile(const wstring &fileNameW, int maxChannels)
 {
-    auto handle = BASS_SampleLoad(FALSE, fileNameW.c_str(), 0, 0, maxChannels, BASS_SAMPLE_OVER_POS | BASS_UNICODE);
-    SoundSample *result = new SoundSample(handle);
+    const auto handle = BASS_SampleLoad(FALSE, fileNameW.c_str(), 0, 0, maxChannels, BASS_SAMPLE_OVER_POS | BASS_UNICODE);
+    const auto result = new SoundSample(handle);
     return result;
 }
 
-void SoundSample::SetLoop(bool looping)
+void SoundSample::SetLoop(bool looping) const
 {
     BASS_SAMPLE info;
     BASS_SampleGetInfo(hSample, &info);
@@ -84,32 +82,32 @@ void SoundStream::SetVolume(float vol)
     BASS_ChannelSetAttribute(hStream, BASS_ATTRIB_VOL, clamp(vol, 0.0f, 1.0f));
 }
 
-void SoundStream::Pause()
+void SoundStream::Pause() const
 {
     BASS_ChannelPause(hStream);
 }
 
-void SoundStream::Resume()
+void SoundStream::Resume() const
 {
     BASS_ChannelPlay(hStream, FALSE);
 }
 
 SoundStream *SoundStream::CreateFromFile(const wstring & fileNameW)
 {
-    auto handle = BASS_StreamCreateFile(FALSE, fileNameW.c_str(), 0, 0, BASS_UNICODE);
-    SoundStream *result = new SoundStream(handle);
+    const auto handle = BASS_StreamCreateFile(FALSE, fileNameW.c_str(), 0, 0, BASS_UNICODE);
+    const auto result = new SoundStream(handle);
     return result;
 }
 
-double SoundStream::GetPlayingPosition()
+double SoundStream::GetPlayingPosition() const
 {
-    auto pos = BASS_ChannelGetPosition(hStream, BASS_POS_BYTE);
+    const auto pos = BASS_ChannelGetPosition(hStream, BASS_POS_BYTE);
     return BASS_ChannelBytes2Seconds(hStream, pos);
 }
 
-void SoundStream::SetPlayingPosition(double pos)
+void SoundStream::SetPlayingPosition(double pos) const
 {
-    auto bp = BASS_ChannelSeconds2Bytes(hStream, pos);
+    const auto bp = BASS_ChannelSeconds2Bytes(hStream, pos);
     BASS_ChannelSetPosition(hStream, bp, BASS_POS_BYTE);
 }
 
@@ -134,9 +132,9 @@ void SoundMixerStream::Update()
 
     auto snd = PlayingSounds.begin();
     while (snd != PlayingSounds.end()) {
-        auto state = BASS_ChannelIsActive(*snd);
+        const auto state = BASS_ChannelIsActive(*snd);
         if (state != BASS_ACTIVE_STOPPED) {
-            snd++;
+            ++snd;
             continue;
         }
         BASS_Mixer_ChannelRemove(*snd);
@@ -152,13 +150,13 @@ void SoundMixerStream::Play(Sound * sound)
     BASS_ChannelPlay(ch, FALSE);
 }
 
-void SoundMixerStream::Stop(Sound * sound)
+void SoundMixerStream::Stop(Sound *sound)
 {
     sound->StopSound();
     //ƒ`ƒƒƒ“ƒlƒ‹íœ‚ÍUpdate‚É”C‚¹‚é
 }
 
-void SoundMixerStream::SetVolume(float vol)
+void SoundMixerStream::SetVolume(float vol) const
 {
     BASS_ChannelSetAttribute(hMixerStream, BASS_ATTRIB_VOL, vol);
 }

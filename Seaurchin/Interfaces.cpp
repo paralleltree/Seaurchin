@@ -1,15 +1,9 @@
 #include "Interfaces.h"
 
-#include "Config.h"
-#include "Debug.h"
-#include "ScriptScene.h"
 #include "ExecutionManager.h"
 #include "ScriptFunction.h"
-#include "ScriptSprite.h"
 
 using namespace std;
-
-
 
 void InterfacesRegisterSceneFunction(ExecutionManager *exm)
 {
@@ -145,20 +139,20 @@ void InterfacesRegisterEnum(ExecutionManager *exm)
     engine->RegisterEnumValue(SU_IF_KEY, "INPUT_9", KEY_INPUT_9);
 
     engine->RegisterEnum(SU_IF_SEVERITY);
-    engine->RegisterEnumValue(SU_IF_SEVERITY, "Trace", (int)ScriptLogSeverity::Trace);
-    engine->RegisterEnumValue(SU_IF_SEVERITY, "Debug", (int)ScriptLogSeverity::Debug);
-    engine->RegisterEnumValue(SU_IF_SEVERITY, "Info", (int)ScriptLogSeverity::Info);
-    engine->RegisterEnumValue(SU_IF_SEVERITY, "Warn", (int)ScriptLogSeverity::Warning);
-    engine->RegisterEnumValue(SU_IF_SEVERITY, "Error", (int)ScriptLogSeverity::Error);
-    engine->RegisterEnumValue(SU_IF_SEVERITY, "Critical", (int)ScriptLogSeverity::Critical);
+    engine->RegisterEnumValue(SU_IF_SEVERITY, "Trace", int(ScriptLogSeverity::Trace));
+    engine->RegisterEnumValue(SU_IF_SEVERITY, "Debug", int(ScriptLogSeverity::Debug));
+    engine->RegisterEnumValue(SU_IF_SEVERITY, "Info", int(ScriptLogSeverity::Info));
+    engine->RegisterEnumValue(SU_IF_SEVERITY, "Warn", int(ScriptLogSeverity::Warning));
+    engine->RegisterEnumValue(SU_IF_SEVERITY, "Error", int(ScriptLogSeverity::Error));
+    engine->RegisterEnumValue(SU_IF_SEVERITY, "Critical", int(ScriptLogSeverity::Critical));
 }
 
 // ÇªÇÃëºìKìñÇ»ä÷êî
 
 void InterfacesExitApplication()
 {
-    auto hWnd = GetMainWindowHandle();
-    PostMessage(hWnd, WM_CLOSE, 0, 0);
+    const auto hwnd = GetMainWindowHandle();
+    PostMessage(hwnd, WM_CLOSE, 0, 0);
 }
 
 void InterfacesWriteLog(ScriptLogSeverity severity, const string & message)

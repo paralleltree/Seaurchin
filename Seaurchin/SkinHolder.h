@@ -3,23 +3,22 @@
 #include "AngelScriptManager.h"
 #include "SoundManager.h"
 #include "ScriptResource.h"
-#include "Misc.h"
 
 #define SU_IF_SKIN "Skin"
 
 class SkinHolder final {
 private:
-    std::shared_ptr<AngelScript> ScriptInterface;
-    std::shared_ptr<SoundManager> SoundInterface;
-    std::wstring SkinName;
-    boost::filesystem::path SkinRoot;
-    std::unordered_map<std::string, SImage*> Images;
-    std::unordered_map<std::string, SFont*> Fonts;
-    std::unordered_map<std::string, SSound*> Sounds;
-    std::unordered_map<std::string, SAnimatedImage*> AnimatedImages;
+    std::shared_ptr<AngelScript> scriptInterface;
+    std::shared_ptr<SoundManager> soundInterface;
+    std::wstring skinName;
+    boost::filesystem::path skinRoot;
+    std::unordered_map<std::string, SImage*> images;
+    std::unordered_map<std::string, SFont*> fonts;
+    std::unordered_map<std::string, SSound*> sounds;
+    std::unordered_map<std::string, SAnimatedImage*> animatedImages;
     //std::unordered_map<std::string, shared_ptr<Image>> Images;
 
-    bool IncludeScript(std::wstring include, std::wstring from, CWScriptBuilder *builder);
+    static bool IncludeScript(std::wstring include, std::wstring from, CWScriptBuilder *builder);
 
 public:
     SkinHolder(const std::wstring &name, std::shared_ptr<AngelScript> script, std::shared_ptr<SoundManager> sound);

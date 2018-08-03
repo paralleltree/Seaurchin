@@ -51,22 +51,22 @@ bool AngelScript::FinishBuildModule()
 
 bool AngelScript::CheckMetaData(asITypeInfo *type, std::string meta)
 {
-    auto df = builder.GetMetadataStringForType(type->GetTypeId());
+    const auto df = builder.GetMetadataStringForType(type->GetTypeId());
     return df == meta;
 }
 
 bool AngelScript::CheckMetaData(asIScriptFunction *func, std::string meta)
 {
-    auto df = builder.GetMetadataStringForFunc(func);
+    const auto df = builder.GetMetadataStringForFunc(func);
     return df == meta;
 }
 
-asIScriptObject * AngelScript::InstantiateObject(asITypeInfo * type)
+asIScriptObject *AngelScript::InstantiateObject(asITypeInfo * type) const
 {
-    auto factory = type->GetFactoryByIndex(0);
+    const auto factory = type->GetFactoryByIndex(0);
     sharedContext->Prepare(factory);
     sharedContext->Execute();
-    return *(asIScriptObject**)sharedContext->GetAddressOfReturnValue();
+    return *static_cast<asIScriptObject**>(sharedContext->GetAddressOfReturnValue());
 }
 
 void AngelScript::ScriptMessageCallback(const asSMessageInfo * message)
@@ -94,12 +94,12 @@ int ScriptIncludeCallback(const wchar_t *include, const wchar_t *from, CWScriptB
 
 CallbackObject::CallbackObject(asIScriptFunction *callback)
 {
-    auto ctx = asGetActiveContext();
+    const auto ctx = asGetActiveContext();
     auto engine = ctx->GetEngine();
     Context = engine->CreateContext();
     Function = callback->GetDelegateFunction();
     Function->AddRef();
-    Object = (asIScriptObject*)callback->GetDelegateObject();
+    Object = static_cast<asIScriptObject*>(callback->GetDelegateObject());
     Type = callback->GetDelegateObjectType();
 }
 

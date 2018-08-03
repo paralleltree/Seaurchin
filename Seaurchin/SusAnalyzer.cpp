@@ -8,8 +8,8 @@ namespace ba = boost::algorithm;
 namespace fsys = boost::filesystem;
 namespace xp = boost::xpressive;
 
-xp::sregex SusAnalyzer::RegexSusCommand = "#" >> (xp::s1 = +xp::alnum) >> !(+xp::space >> (xp::s2 = +(~xp::_n)));
-xp::sregex SusAnalyzer::RegexSusData = "#" >> (xp::s1 = xp::repeat<3, 3>(xp::alnum)) >> (xp::s2 = xp::repeat<2, 3>(xp::alnum)) >> ":" >> *xp::space >> (xp::s3 = +(~xp::_n));
+xp::sregex SusAnalyzer::regexSusCommand = "#" >> (xp::s1 = +xp::alnum) >> !(+xp::space >> (xp::s2 = +(~xp::_n)));
+xp::sregex SusAnalyzer::regexSusData = "#" >> (xp::s1 = xp::repeat<3, 3>(xp::alnum)) >> (xp::s2 = xp::repeat<2, 3>(xp::alnum)) >> ":" >> *xp::space >> (xp::s3 = +(~xp::_n));
 
 static xp::sregex AllNumeric = xp::bos >> +(xp::digit) >> xp::eos;
 
@@ -23,10 +23,10 @@ static auto ConvertRawString = [](const string &input) -> string {
         while (it != rest.end()) {
             if (*it != '\\') {
                 result << *it;
-                it++;
+                ++it;
                 continue;
             }
-            it++;
+            ++it;
             if (it == rest.end()) return "";
             switch (*it) {
                 case '"':
@@ -52,21 +52,20 @@ static auto ConvertRawString = [](const string &input) -> string {
                 default:
                     break;
             }
-            it++;
+            ++it;
         }
         return result.str();
-    } else {
-        return input;
     }
+    return input;
 };
 
 
 
-SusAnalyzer::SusAnalyzer(uint32_t tpb)
+SusAnalyzer::SusAnalyzer(const uint32_t tpb)
 {
     TicksPerBeat = tpb;
     LongInjectionPerBeat = 2;
-    TimelineResolver = [=](uint32_t number) { return HispeedDefinitions[number]; };
+    TimelineResolver = [=](const uint32_t number) { return HispeedDefinitions[number]; };
     ErrorCallbacks.push_back([this](auto type, auto message) {
         auto log = spdlog::get("main");
         log->error(message);
@@ -86,20 +85,20 @@ void SusAnalyzer::Reset()
     BeatsDefinitions.clear();
     HispeedDefinitions.clear();
     ExtraAttributes.clear();
-    TicksPerBeat = 192;  // todo
+    TicksPerBeat = 192; 
     LongInjectionPerBeat = 2;
     SharedMetaData.Reset();
 
     BpmDefinitions[1] = 120.0;
     BeatsDefinitions[1] = 4.0;
 
-    auto defhs = make_shared<SusHispeedTimeline>([&](uint32_t m, uint32_t t) { return GetAbsoluteTime(m, t); });
+    auto defhs = make_shared<SusHispeedTimeline>([&](const uint32_t m, const uint32_t t) { return GetAbsoluteTime(m, t); });
     defhs->AddKeysByString("0'0:1.0:v", TimelineResolver);
     HispeedDefinitions[DefaultHispeedNumber] = defhs;
     HispeedToApply = defhs;
     HispeedToMeasure = defhs;
 
-    auto defea = make_shared<SusNoteExtraAttribute>();
+    const auto defea = make_shared<SusNoteExtraAttribute>();
     defea->Priority = 0;
     defea->HeightScale = 1;
     ExtraAttributes[DefaultExtraAttributeNumber] = defea;
@@ -132,9 +131,9 @@ void SusAnalyzer::LoadFromFile(const wstring &fileName, bool analyzeOnlyMetaData
         line++;
         if (!rawline.length()) continue;
         if (rawline[0] != '#') continue;
-        if (xp::regex_match(rawline, match, RegexSusCommand)) {
+        if (xp::regex_match(rawline, match, regexSusCommand)) {
             ProcessCommand(match, analyzeOnlyMetaData, line);
-        } else if (xp::regex_match(rawline, match, RegexSusData)) {
+        } else if (xp::regex_match(rawline, match, regexSusData)) {
             if (!analyzeOnlyMetaData || boost::starts_with(rawline, "#BPM")) ProcessData(match, line);
         } else {
             MakeMessage(line, u8"SUS有効行ですが解析できませんでした。");

@@ -2,7 +2,7 @@
 
 class ExtensionManager final {
 private:
-    std::vector<HINSTANCE> DllInstances;
+    std::vector<HINSTANCE> dllInstances;
     void LoadDll(std::wstring path);
 
 public:

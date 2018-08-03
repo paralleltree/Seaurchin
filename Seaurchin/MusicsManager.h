@@ -7,9 +7,9 @@
 #define SU_IF_MSCSTATE "CursorState"
 
 struct MusicScoreInfo final {
-    uint16_t Difficulty;
-    uint16_t Level;
-    double BpmToShow;
+    uint16_t Difficulty = 0;
+    uint16_t Level = 0;
+    double BpmToShow = 0.0;
     std::string DifficultyName;
     std::string Designer;
     boost::filesystem::path Path;
@@ -29,17 +29,17 @@ struct MusicMetaInfo final {
 class CategoryInfo final {
 private:
 
-    std::string Name;
-    boost::filesystem::path Path;
+    std::string name;
+    boost::filesystem::path categoryPath;
 
 public:
     std::vector<std::shared_ptr<MusicMetaInfo>> Musics;
 
-    CategoryInfo(boost::filesystem::path path);
+    explicit CategoryInfo(boost::filesystem::path path);
     ~CategoryInfo();
 
-    std::string GetName() { return Name; }
-    void Reload(bool recreateCache);
+    std::string GetName() const { return name; }
+    void Reload(bool recreateCache) const;
 };
 
 //musicにsはつかないって？知るかバカ
@@ -69,16 +69,16 @@ private:
     void CreateMusicCache();
 
 public:
-    MusicsManager(ExecutionManager *exm);
+    explicit MusicsManager(ExecutionManager *exm);
     ~MusicsManager();
 
-    void Initialize();
+    static void Initialize();
     void Reload(bool recreateCache);
     bool IsReloading();
     boost::filesystem::path GetSelectedScorePath();
 
     MusicSelectionCursor *CreateMusicSelectionCursor();
-    const std::vector<std::shared_ptr<CategoryInfo>> &GetCategories() { return Categories; }
+    const std::vector<std::shared_ptr<CategoryInfo>> &GetCategories() const { return Categories; }
 };
 
 class MusicSelectionCursor final {
@@ -92,34 +92,34 @@ private:
     uint16_t VariantIndex;
     MusicSelectionState State;
 
-    std::shared_ptr<MusicMetaInfo> GetMusicAt(int32_t relative);
-    std::shared_ptr<MusicScoreInfo> GetScoreVariantAt(int32_t relative);
+    std::shared_ptr<MusicMetaInfo> GetMusicAt(int32_t relative) const;
+    std::shared_ptr<MusicScoreInfo> GetScoreVariantAt(int32_t relative) const;
 
 public:
     MusicSelectionCursor(MusicsManager *manager);
     void AddRef() { refcount++; }
     void Release() { if (--refcount == 0) delete this; }
 
-    std::string GetPrimaryString(int32_t relativeIndex);
-    std::string GetCategoryName(int32_t relativeIndex);
-    std::string GetMusicName(int32_t relativeIndex);
-    std::string GetArtistName(int32_t relativeIndex);
-    std::string GetMusicJacketFileName(int32_t relativeIndex);
-    std::string GetBackgroundFileName(int32_t relativeIndex);
-    int GetDifficulty(int32_t relativeIndex);
-    int GetLevel(int32_t relativeIndex);
-    double GetBpm(int32_t relativeIndex);
-    std::string GetExtraLevel(int32_t relativeIndex);
-    std::string GetDesignerName(int32_t relativeIndex);
+    std::string GetPrimaryString(int32_t relativeIndex) const;
+    std::string GetCategoryName(int32_t relativeIndex) const;
+    std::string GetMusicName(int32_t relativeIndex) const;
+    std::string GetArtistName(int32_t relativeIndex) const;
+    std::string GetMusicJacketFileName(int32_t relativeIndex) const;
+    std::string GetBackgroundFileName(int32_t relativeIndex) const;
+    int GetDifficulty(int32_t relativeIndex) const;
+    int GetLevel(int32_t relativeIndex) const;
+    double GetBpm(int32_t relativeIndex) const;
+    std::string GetExtraLevel(int32_t relativeIndex) const;
+    std::string GetDesignerName(int32_t relativeIndex) const;
 
     MusicSelectionState Enter();
     MusicSelectionState Exit();
-    MusicSelectionState Start();
+    static MusicSelectionState Start();
     MusicSelectionState Next();
     MusicSelectionState Previous();
     MusicSelectionState NextVariant();
     MusicSelectionState PreviousVariant();
-    MusicSelectionState GetState();
+    MusicSelectionState GetState() const;
 
     static void RegisterScriptInterface(asIScriptEngine *engine);
 };

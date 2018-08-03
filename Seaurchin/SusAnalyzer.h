@@ -188,8 +188,8 @@ using NoteCurvesList = std::unordered_map<std::shared_ptr<SusDrawableNoteData>, 
 //BMS派生フォーマットことSUS(SeaUrchinScore)の解析
 class SusAnalyzer final {
 private:
-    static boost::xpressive::sregex RegexSusCommand;
-    static boost::xpressive::sregex RegexSusData;
+    static boost::xpressive::sregex regexSusCommand;
+    static boost::xpressive::sregex regexSusData;
 
     double DefaultBeats = 4.0;
     double DefaultBpm = 120.0;

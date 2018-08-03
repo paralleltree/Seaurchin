@@ -2,7 +2,7 @@
 
 class SoundManager;
 
-enum SoundType {
+enum class SoundType {
 	Sample,
 	Stream,
 };
@@ -10,6 +10,7 @@ enum SoundType {
 class Sound {
     friend class SoundManager;
 public:
+    virtual ~Sound() = default;
     SoundType Type;
 
     virtual DWORD GetSoundHandle() = 0;
@@ -24,7 +25,7 @@ protected:
     HSAMPLE hSample;
 
 public:
-    SoundSample(HSAMPLE sample);
+    explicit SoundSample(HSAMPLE sample);
     ~SoundSample();
 
     DWORD GetSoundHandle() override;
@@ -32,7 +33,7 @@ public:
     void SetVolume(float vol) override;
 
     static SoundSample *CreateFromFile(const std::wstring &fileNameW, int maxChannels = 16);
-    void SetLoop(bool looping);
+    void SetLoop(bool looping) const;
 };
 
 class SoundStream : public Sound {
@@ -42,20 +43,20 @@ protected:
     HSTREAM hStream;
 
 public:
-    SoundStream(HSTREAM stream);
+    explicit SoundStream(HSTREAM stream);
     ~SoundStream();
 
     DWORD GetSoundHandle() override;
     void StopSound() override;
     void SetVolume(float vol) override;
     // ìKìñÇ…çlÇ¶ÇΩÇÒÇ≈Ç∑Ç™ëΩï™Pause/ResumeÇÕì∆é©Ç…Ç‚Ç¡ÇøÇ·Ç¡ÇƒokÇ≈Ç∑ÇÀ
-    void Pause();
-    void Resume();
+    void Pause() const;
+    void Resume() const;
 
     static SoundStream *CreateFromFile(const std::wstring &fileNameW);
-    double GetPlayingPosition();
-    void SetPlayingPosition(double pos);
-    inline DWORD GetStatus() { return BASS_ChannelIsActive(hStream); }
+    double GetPlayingPosition() const;
+    void SetPlayingPosition(double pos) const;
+    DWORD GetStatus() const { return BASS_ChannelIsActive(hStream); }
 };
 
 class SoundMixerStream {
@@ -68,9 +69,9 @@ public:
     ~SoundMixerStream();
 
     void Update();
-    void SetVolume(float vol);
+    void SetVolume(float vol) const;
     void Play(Sound *sound);
-    void Stop(Sound *sound);
+    static void Stop(Sound *sound);
 };
 
 class SoundManager final {
@@ -80,7 +81,7 @@ public:
 	SoundManager();
 	~SoundManager();
 
-    SoundMixerStream *CreateMixerStream();
-    void PlayGlobal(Sound *sound);
-    void StopGlobal(Sound *sound);
+    static SoundMixerStream *CreateMixerStream();
+    static void PlayGlobal(Sound *sound);
+    static void StopGlobal(Sound *sound);
 };

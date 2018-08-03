@@ -5,4 +5,4 @@
 #define SeaurchinAPI __stdcall
 
 typedef void(SeaurchinAPI *SE_InitializeExtension)(asIScriptEngine*);
-typedef void(SeaurchinAPI *SE_RegisterInterfaces)(void);
+typedef void(SeaurchinAPI *SE_RegisterInterfaces)();

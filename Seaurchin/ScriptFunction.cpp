@@ -19,13 +19,13 @@ static int CALLBACK FontEnumerationProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *
 void YieldTime(double time)
 {
     auto ctx = asGetActiveContext();
-    auto pcw = (CoroutineWait*)ctx->GetUserData(SU_UDTYPE_WAIT);
+    auto pcw = static_cast<CoroutineWait*>(ctx->GetUserData(SU_UDTYPE_WAIT));
     if (!pcw)
     {
         ScriptSceneWarnOutOf("Coroutine Function", ctx);
         return;
     }
-    pcw->type = WaitType::Time;
+    pcw->Type = WaitType::Time;
     pcw->time = time;
     ctx->Suspend();
 }
@@ -33,13 +33,13 @@ void YieldTime(double time)
 void YieldFrames(int64_t frames)
 {
     auto ctx = asGetActiveContext();
-    auto pcw = (CoroutineWait*)ctx->GetUserData(SU_UDTYPE_WAIT);
+    auto pcw = static_cast<CoroutineWait*>(ctx->GetUserData(SU_UDTYPE_WAIT));
     if (!pcw)
     {
         ScriptSceneWarnOutOf("Coroutine Function", ctx);
         return;
     }
-    pcw->type = WaitType::Frame;
+    pcw->Type = WaitType::Frame;
     pcw->frames = frames;
     ctx->Suspend();
 }
@@ -68,7 +68,7 @@ void CreateImageFont(const string &fileName, const string &saveName, int size)
     option.Size = size;
     option.ImageSize = 1024;
     option.TextSource = "";
-    boost::filesystem::path op = Setting::GetRootDirectory() / SU_DATA_DIR / SU_FONT_DIR / (ConvertUTF8ToUnicode(saveName) + L".sif");
+    const auto op = Setting::GetRootDirectory() / SU_DATA_DIR / SU_FONT_DIR / (ConvertUTF8ToUnicode(saveName) + L".sif");
 
     Sif2Creator creator;
     creator.CreateSif2(option, op);
@@ -76,11 +76,11 @@ void CreateImageFont(const string &fileName, const string &saveName, int size)
 
 void EnumerateInstalledFonts()
 {
-    //HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\Fonts
-    HDC hdc = GetDC(GetMainWindowHandle());
+    // HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\Fonts
+    const auto hdc = GetDC(GetMainWindowHandle());
     LOGFONT logfont;
     logfont.lfCharSet = DEFAULT_CHARSET;
     memcpy_s(logfont.lfFaceName, sizeof(logfont.lfFaceName), "", 1);
     logfont.lfPitchAndFamily = 0;
-    EnumFontFamiliesEx(hdc, &logfont, (FONTENUMPROC)FontEnumerationProc, (LPARAM)nullptr, 0);
+    EnumFontFamiliesEx(hdc, &logfont, FONTENUMPROC(FontEnumerationProc), LPARAM(nullptr), 0);
 }

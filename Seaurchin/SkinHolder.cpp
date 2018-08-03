@@ -12,10 +12,10 @@ bool SkinHolder::IncludeScript(std::wstring include, std::wstring from, CWScript
 
 SkinHolder::SkinHolder(const wstring &name, shared_ptr<AngelScript> script, std::shared_ptr<SoundManager> sound)
 {
-    ScriptInterface = script;
-	SoundInterface = sound;
-    SkinName = name;
-    SkinRoot = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SKIN_DIR / SkinName;
+    scriptInterface = script;
+	soundInterface = sound;
+    skinName = name;
+    skinRoot = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SKIN_DIR / skinName;
 }
 
 SkinHolder::~SkinHolder()
@@ -26,23 +26,23 @@ SkinHolder::~SkinHolder()
 void SkinHolder::Initialize()
 {
     auto log = spdlog::get("main");
-    ScriptInterface->StartBuildModule("SkinLoader",
+    scriptInterface->StartBuildModule("SkinLoader",
         [this](wstring inc, wstring from, CWScriptBuilder *b)
     {
-        if (!exists(SkinRoot / SU_SCRIPT_DIR / inc)) return false;
-        b->AddSectionFromFile((SkinRoot / SU_SCRIPT_DIR / inc).wstring().c_str());
+        if (!exists(skinRoot / SU_SCRIPT_DIR / inc)) return false;
+        b->AddSectionFromFile((skinRoot / SU_SCRIPT_DIR / inc).wstring().c_str());
         return true;
     });
-    ScriptInterface->LoadFile((SkinRoot / SU_SKIN_MAIN_FILE).wstring().c_str());
-    ScriptInterface->FinishBuildModule();
+    scriptInterface->LoadFile((skinRoot / SU_SKIN_MAIN_FILE).wstring().c_str());
+    scriptInterface->FinishBuildModule();
 
-    auto mod = ScriptInterface->GetLastModule();
-    int fc = mod->GetFunctionCount();
+    auto mod = scriptInterface->GetLastModule();
+    const int fc = mod->GetFunctionCount();
     asIScriptFunction *ep = nullptr;
     for (asUINT i = 0; i < fc; i++)
     {
-        auto func = mod->GetFunctionByIndex(i);
-        if (!ScriptInterface->CheckMetaData(func, "EntryPoint")) continue;
+        const auto func = mod->GetFunctionByIndex(i);
+        if (!scriptInterface->CheckMetaData(func, "EntryPoint")) continue;
         ep = func;
         break;
     }
@@ -53,7 +53,7 @@ void SkinHolder::Initialize()
         return;
     }
 
-    auto ctx = ScriptInterface->GetEngine()->CreateContext();
+    auto ctx = scriptInterface->GetEngine()->CreateContext();
     ctx->Prepare(ep);
     ctx->SetArgObject(0, this);
     ctx->Execute();
@@ -63,10 +63,10 @@ void SkinHolder::Initialize()
 
 void SkinHolder::Terminate()
 {
-    for (const auto &it : Images) it.second->Release();
-    for (const auto &it : Sounds) it.second->Release();
-    for (const auto &it : Fonts) it.second->Release();
-    for (const auto &it : AnimatedImages) it.second->Release();
+    for (const auto &it : images) it.second->Release();
+    for (const auto &it : sounds) it.second->Release();
+    for (const auto &it : fonts) it.second->Release();
+    for (const auto &it : animatedImages) it.second->Release();
 }
 
 asIScriptObject* SkinHolder::ExecuteSkinScript(const wstring &file)
@@ -74,35 +74,35 @@ asIScriptObject* SkinHolder::ExecuteSkinScript(const wstring &file)
     auto log = spdlog::get("main");
     //お茶を濁せ
     auto modulename = ConvertUnicodeToUTF8(file);
-    auto mod = ScriptInterface->GetExistModule(modulename);
+    auto mod = scriptInterface->GetExistModule(modulename);
     if (!mod)
     {
-        ScriptInterface->StartBuildModule(modulename.c_str(),
+        scriptInterface->StartBuildModule(modulename.c_str(),
             [this](wstring inc, wstring from, CWScriptBuilder *b)
         {
-            if (!exists(SkinRoot / SU_SCRIPT_DIR / inc)) return false;
-            b->AddSectionFromFile((SkinRoot / SU_SCRIPT_DIR / inc).wstring().c_str());
+            if (!exists(skinRoot / SU_SCRIPT_DIR / inc)) return false;
+            b->AddSectionFromFile((skinRoot / SU_SCRIPT_DIR / inc).wstring().c_str());
             return true;
         });
-        ScriptInterface->LoadFile((SkinRoot / SU_SCRIPT_DIR / file).wstring().c_str());
-        if (!ScriptInterface->FinishBuildModule()) {
-            ScriptInterface->GetLastModule()->Discard();
+        scriptInterface->LoadFile((skinRoot / SU_SCRIPT_DIR / file).wstring().c_str());
+        if (!scriptInterface->FinishBuildModule()) {
+            scriptInterface->GetLastModule()->Discard();
             return nullptr;
         }
-        mod = ScriptInterface->GetLastModule();
+        mod = scriptInterface->GetLastModule();
     }
 
     //エントリポイント検索
-    int cnt = mod->GetObjectTypeCount();
+    const int cnt = mod->GetObjectTypeCount();
     asITypeInfo *type = nullptr;
     for (int i = 0; i < cnt; i++)
     {
         // ScriptBuilderのMetaDataのテーブルは毎回破棄されるので
         // asITypeInfoに情報を保持
-        auto cti = mod->GetObjectTypeByIndex(i);
-        if (!(ScriptInterface->CheckMetaData(cti, "EntryPoint") || cti->GetUserData(SU_UDTYPE_ENTRYPOINT))) continue;
+        const auto cti = mod->GetObjectTypeByIndex(i);
+        if (!(scriptInterface->CheckMetaData(cti, "EntryPoint") || cti->GetUserData(SU_UDTYPE_ENTRYPOINT))) continue;
         type = cti;
-        type->SetUserData((void*)0xFFFFFFFF, SU_UDTYPE_ENTRYPOINT);
+        type->SetUserData(reinterpret_cast<void*>(0xFFFFFFFF), SU_UDTYPE_ENTRYPOINT);
         type->AddRef();
         break;
     }
@@ -112,7 +112,7 @@ asIScriptObject* SkinHolder::ExecuteSkinScript(const wstring &file)
         return nullptr;
     }
 
-    auto obj = ScriptInterface->InstantiateObject(type);
+    auto obj = scriptInterface->InstantiateObject(type);
     obj->SetUserData(this, SU_UDTYPE_SKIN);
     type->Release();
     return obj;
@@ -120,52 +120,52 @@ asIScriptObject* SkinHolder::ExecuteSkinScript(const wstring &file)
 
 void SkinHolder::LoadSkinImage(const string &key, const string &filename)
 {
-    Images[key] = SImage::CreateLoadedImageFromFile(ConvertUnicodeToUTF8((SkinRoot / SU_IMAGE_DIR / ConvertUTF8ToUnicode(filename)).wstring()), false);
+    images[key] = SImage::CreateLoadedImageFromFile(ConvertUnicodeToUTF8((skinRoot / SU_IMAGE_DIR / ConvertUTF8ToUnicode(filename)).wstring()), false);
 }
 
 void SkinHolder::LoadSkinFont(const string &key, const string &filename)
 {
-    Fonts[key] = SFont::CreateLoadedFontFromFile(ConvertUnicodeToUTF8((SkinRoot / SU_FONT_DIR / ConvertUTF8ToUnicode(filename)).wstring()));
+    fonts[key] = SFont::CreateLoadedFontFromFile(ConvertUnicodeToUTF8((skinRoot / SU_FONT_DIR / ConvertUTF8ToUnicode(filename)).wstring()));
 }
 
 void SkinHolder::LoadSkinSound(const std::string & key, const std::string & filename)
 {
-	Sounds[key] = SSound::CreateSoundFromFile(SoundInterface.get(), ConvertUnicodeToUTF8((SkinRoot / SU_SOUND_DIR / ConvertUTF8ToUnicode(filename)).wstring()), 1);
+	sounds[key] = SSound::CreateSoundFromFile(soundInterface.get(), ConvertUnicodeToUTF8((skinRoot / SU_SOUND_DIR / ConvertUTF8ToUnicode(filename)).wstring()), 1);
 }
 
 void SkinHolder::LoadSkinAnime(const std::string & key, const std::string & filename, int x, int y, int w, int h, int c, double time)
 {
-    AnimatedImages[key] = SAnimatedImage::CreateLoadedImageFromFile(ConvertUnicodeToUTF8((SkinRoot / SU_IMAGE_DIR / ConvertUTF8ToUnicode(filename)).wstring()), x, y, w, h, c, time);
+    animatedImages[key] = SAnimatedImage::CreateLoadedImageFromFile(ConvertUnicodeToUTF8((skinRoot / SU_IMAGE_DIR / ConvertUTF8ToUnicode(filename)).wstring()), x, y, w, h, c, time);
 }
 
 SImage* SkinHolder::GetSkinImage(const string &key)
 {
-    auto it = Images.find(key);
-    if (it == Images.end()) return nullptr;
+    auto it = images.find(key);
+    if (it == images.end()) return nullptr;
     it->second->AddRef();
     return it->second;
 }
 
 SFont* SkinHolder::GetSkinFont(const string &key)
 {
-    auto it = Fonts.find(key);
-    if (it == Fonts.end()) return nullptr;
+    auto it = fonts.find(key);
+    if (it == fonts.end()) return nullptr;
     it->second->AddRef();
     return it->second;
 }
 
 SSound* SkinHolder::GetSkinSound(const std::string & key)
 {
-	auto it = Sounds.find(key);
-	if (it == Sounds.end()) return nullptr;
+	auto it = sounds.find(key);
+	if (it == sounds.end()) return nullptr;
 	it->second->AddRef();
 	return it->second;
 }
 
 SAnimatedImage * SkinHolder::GetSkinAnime(const std::string & key)
 {
-    auto it = AnimatedImages.find(key);
-    if (it == AnimatedImages.end()) return nullptr;
+    auto it = animatedImages.find(key);
+    if (it == animatedImages.end()) return nullptr;
     it->second->AddRef();
     return it->second;
 }
@@ -191,17 +191,17 @@ void RegisterScriptSkin(ExecutionManager *exm)
 SkinHolder* GetSkinObject()
 {
     auto ctx = asGetActiveContext();
-    auto obj = (asIScriptObject*)ctx->GetThisPointer();
+    const auto obj = static_cast<asIScriptObject*>(ctx->GetThisPointer());
     if (!obj)
     {
         ScriptSceneWarnOutOf("Instance Method", ctx);
         return nullptr;
     }
-    auto skin = obj->GetUserData(SU_UDTYPE_SKIN);
+    const auto skin = obj->GetUserData(SU_UDTYPE_SKIN);
     if (!skin)
     {
         ScriptSceneWarnOutOf("Skin-Related Scene", ctx);
         return nullptr;
     }
-    return (SkinHolder*)skin;
+    return static_cast<SkinHolder*>(skin);
 }
