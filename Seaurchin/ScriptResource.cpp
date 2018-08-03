@@ -1,54 +1,53 @@
 #include "ScriptResource.h"
-#include "Interfaces.h"
 #include "ExecutionManager.h"
 #include "Misc.h"
 
 using namespace std;
 
 SResource::SResource()
-{}
+= default;
 
 SResource::~SResource()
-{}
+= default;
 
 void SResource::AddRef()
 {
-    Reference++;
+    reference++;
 }
 
 void SResource::Release()
 {
-    if (--Reference == 0) delete this;
+    if (--reference == 0) delete this;
 }
 
 // SImage ----------------------
 
 void SImage::ObtainSize()
 {
-    GetGraphSize(Handle, &Width, &Height);
+    GetGraphSize(handle, &width, &height);
 }
 
-SImage::SImage(int ih)
+SImage::SImage(const int ih)
 {
-    Handle = ih;
+    handle = ih;
 }
 
 SImage::~SImage()
 {
-    if (Handle) DeleteGraph(Handle);
-    Handle = 0;
+    if (handle) DeleteGraph(handle);
+    handle = 0;
 }
 
-int SImage::get_Width()
+int SImage::GetWidth()
 {
-    if (!Width) ObtainSize();
-    return Width;
+    if (!width) ObtainSize();
+    return width;
 }
 
-int SImage::get_Height()
+int SImage::GetHeight()
 {
-    if (!Height) ObtainSize();
-    return Height;
+    if (!height) ObtainSize();
+    return height;
 }
 
 SImage * SImage::CreateBlankImage()
@@ -58,7 +57,7 @@ SImage * SImage::CreateBlankImage()
     return result;
 }
 
-SImage * SImage::CreateLoadedImageFromFile(const string &file, bool async)
+SImage * SImage::CreateLoadedImageFromFile(const string &file, const bool async)
 {
     if (async) SetUseASyncLoadFlag(TRUE);
     auto result = new SImage(LoadGraph(reinterpret_cast<const char*>(ConvertUTF8ToUnicode(file).c_str())));
@@ -67,7 +66,7 @@ SImage * SImage::CreateLoadedImageFromFile(const string &file, bool async)
     return result;
 }
 
-SImage * SImage::CreateLoadedImageFromMemory(void * buffer, size_t size)
+SImage * SImage::CreateLoadedImageFromMemory(void * buffer, const size_t size)
 {
     auto result = new SImage(CreateGraphFromMem(buffer, size));
     result->AddRef();
@@ -76,14 +75,14 @@ SImage * SImage::CreateLoadedImageFromMemory(void * buffer, size_t size)
 
 // SRenderTarget -----------------------------
 
-SRenderTarget::SRenderTarget(int w, int h) : SImage(0)
+SRenderTarget::SRenderTarget(const int w, const int h) : SImage(0)
 {
-    Width = w;
-    Height = h;
-    if (w * h) Handle = MakeScreen(w, h, TRUE);
+    width = w;
+    height = h;
+    if (w * h) handle = MakeScreen(w, h, TRUE);
 }
 
-SRenderTarget * SRenderTarget::CreateBlankTarget(int w, int h)
+SRenderTarget * SRenderTarget::CreateBlankTarget(const int w, const int h)
 {
     auto result = new SRenderTarget(w, h);
     result->AddRef();
@@ -91,44 +90,44 @@ SRenderTarget * SRenderTarget::CreateBlankTarget(int w, int h)
 }
 
 // SNinePatchImage ----------------------------
-SNinePatchImage::SNinePatchImage(int ih) : SImage(ih)
+SNinePatchImage::SNinePatchImage(const int ih) : SImage(ih)
 {}
 
 SNinePatchImage::~SNinePatchImage()
 {
-    DeleteGraph(Handle);
-    Handle = 0;
-    LeftSideWidth = TopSideHeight = BodyWidth = BodyHeight = 0;
+    DeleteGraph(handle);
+    handle = 0;
+    leftSideWidth = topSideHeight = bodyWidth = bodyHeight = 0;
 }
 
-void SNinePatchImage::SetArea(int leftw, int toph, int bodyw, int bodyh)
+void SNinePatchImage::SetArea(const int leftw, const int toph, const int bodyw, const int bodyh)
 {
-    LeftSideWidth = leftw;
-    TopSideHeight = toph;
-    BodyWidth = bodyw;
-    BodyHeight = bodyh;
+    leftSideWidth = leftw;
+    topSideHeight = toph;
+    bodyWidth = bodyw;
+    bodyHeight = bodyh;
 }
 
 // SAnimatedImage --------------------------------
 
-SAnimatedImage::SAnimatedImage(int w, int h, int count, double time) : SImage(0)
+SAnimatedImage::SAnimatedImage(const int w, const int h, const int count, const double time) : SImage(0)
 {
-    CellWidth = Width = w;
-    CellHeight = Height = h;
-    FrameCount = count;
-    SecondsPerFrame = time;
+    cellWidth = width = w;
+    cellHeight = height = h;
+    frameCount = count;
+    secondsPerFrame = time;
 }
 
 SAnimatedImage::~SAnimatedImage()
 {
-    for (auto &img : Images) DeleteGraph(img);
+    for (auto &img : images) DeleteGraph(img);
 }
 
-SAnimatedImage * SAnimatedImage::CreateLoadedImageFromFile(const std::string & file, int xc, int yc, int w, int h, int count, double time)
+SAnimatedImage * SAnimatedImage::CreateLoadedImageFromFile(const std::string & file, const int xc, const int yc, const int w, const int h, const int count, const double time)
 {
     auto result = new SAnimatedImage(w, h, count, time);
-    result->Images.resize(count);
-    LoadDivGraph(reinterpret_cast<const char*>(ConvertUTF8ToUnicode(file).c_str()), count, xc, yc, w, h, result->Images.data());
+    result->images.resize(count);
+    LoadDivGraph(reinterpret_cast<const char*>(ConvertUTF8ToUnicode(file).c_str()), count, xc, yc, w, h, result->images.data());
     result->AddRef();
     return result;
 }
@@ -137,28 +136,26 @@ SAnimatedImage * SAnimatedImage::CreateLoadedImageFromFile(const std::string & f
 // SFont --------------------------------------
 
 SFont::SFont()
-{
-
-}
+= default;
 
 SFont::~SFont()
 {
-    for (auto &i : Glyphs) if (i.second) delete i.second;
+    for (auto &i : glyphs) delete i.second;
     for (auto &i : Images) i->Release();
 }
 
-tuple<double, double, int> SFont::RenderRaw(SRenderTarget *rt, const string &utf8str)
+tuple<double, double, int> SFont::RenderRaw(SRenderTarget *rt, const string &utf8Str)
 {
     double cx = 0, cy = 0;
     double mx = 0, my = 0;
-    int line = 1;
+    auto line = 1;
     if (rt) {
         BEGIN_DRAW_TRANSACTION(rt->GetHandle());
         ClearDrawScreen();
         SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
         SetDrawBright(255, 255, 255);
     }
-    const uint8_t *ccp = (const uint8_t*)utf8str.c_str();
+    const auto *ccp = reinterpret_cast<const uint8_t*>(utf8Str.c_str());
     while (*ccp) {
         uint32_t gi = 0;
         if (*ccp >= 0xF0) {
@@ -177,12 +174,12 @@ tuple<double, double, int> SFont::RenderRaw(SRenderTarget *rt, const string &utf
         if (gi == 0x0A) {
             line++;
             mx = max(mx, cx);
-            my = line * Size;
+            my = line * size;
             cx = 0;
-            cy += Size;
+            cy += size;
             continue;
         }
-        auto sg = Glyphs[gi];
+        const auto sg = glyphs[gi];
         if (!sg) continue;
         if (rt) DrawRectGraph(
             cx + sg->BearX, cy + sg->BearY,
@@ -196,21 +193,21 @@ tuple<double, double, int> SFont::RenderRaw(SRenderTarget *rt, const string &utf
         FINISH_DRAW_TRANSACTION;
     }
     mx = max(mx, cx);
-    my = line * Size;
+    my = line * size;
     return make_tuple(mx, my, line);
 }
 
-tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &utf8str, const ColorTint &defcol)
+tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &utf8Str, const ColorTint &defcol)
 {
     namespace bx = boost::xpressive;
     using namespace crc32_constexpr;
 
-    bx::sregex cmd = bx::bos >> "${" >> (bx::s1 = -+bx::_w) >> "}";
+    const bx::sregex cmd = bx::bos >> "${" >> (bx::s1 = -+bx::_w) >> "}";
     double cx = 0, cy = 0;
     double mx = 0, my = 0;
-    int line = 1;
+    auto line = 1;
 
-    uint8_t cr = defcol.R, cg = defcol.G, cb = defcol.B;
+    auto cr = defcol.R, cg = defcol.G, cb = defcol.B;
     double cw = 1;
 
     if (rt) {
@@ -220,12 +217,11 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
         SetDrawBright(cr, cg, cb);
         SetDrawMode(DX_DRAWMODE_ANISOTROPIC);
     }
-    auto ccp = utf8str.begin();
+    auto ccp = utf8Str.begin();
     bx::smatch match;
-    while (ccp != utf8str.end()) {
-        boost::sub_range<const string> sr(ccp, utf8str.end());
+    while (ccp != utf8Str.end()) {
+        boost::sub_range<const string> sr(ccp, utf8Str.end());
         if (bx::regex_search(sr, match, cmd)) {
-            auto al = match.length();
             auto cmd = match[1].str();
             switch (crc32_rec(0xffffffff, cmd.c_str())) {
                 case "reset"_crc32:
@@ -257,34 +253,35 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
                 case "normal"_crc32:
                     cw = 1;
                     break;
+                default: break;
             }
             ccp += match[0].length();
             continue;
         }
 
         uint32_t gi = 0;
-        if ((uint8_t)*ccp >= 0xF0) {
-            gi = ((uint8_t)*ccp & 0x07) << 18 | ((uint8_t)*(ccp + 1) & 0x3F) << 12 | ((uint8_t)*(ccp + 2) & 0x3F) << 6 | ((uint8_t)*(ccp + 3) & 0x3F);
+        if (uint8_t(*ccp) >= 0xF0) {
+            gi = (uint8_t(*ccp) & 0x07) << 18 | (uint8_t(*(ccp + 1)) & 0x3F) << 12 | (uint8_t(*(ccp + 2)) & 0x3F) << 6 | (uint8_t(*(ccp + 3)) & 0x3F);
             ccp += 4;
-        } else if ((uint8_t)*ccp >= 0xE0) {
-            gi = ((uint8_t)*ccp & 0x0F) << 12 | ((uint8_t)*(ccp + 1) & 0x3F) << 6 | ((uint8_t)*(ccp + 2) & 0x3F);
+        } else if (uint8_t(*ccp) >= 0xE0) {
+            gi = (uint8_t(*ccp) & 0x0F) << 12 | (uint8_t(*(ccp + 1)) & 0x3F) << 6 | (uint8_t(*(ccp + 2)) & 0x3F);
             ccp += 3;
-        } else if ((uint8_t)*ccp >= 0xC2) {
-            gi = ((uint8_t)*ccp & 0x1F) << 6 | ((uint8_t)*(ccp + 1) & 0x3F);
+        } else if (uint8_t(*ccp) >= 0xC2) {
+            gi = (uint8_t(*ccp) & 0x1F) << 6 | (uint8_t(*(ccp + 1)) & 0x3F);
             ccp += 2;
         } else {
-            gi = (uint8_t)*ccp & 0x7F;
-            ccp++;
+            gi = uint8_t(*ccp) & 0x7F;
+            ++ccp;
         }
         if (gi == 0x0A) {
             line++;
             mx = max(mx, cx);
-            my = line * Size;
+            my = line * size;
             cx = 0;
-            cy += Size;
+            cy += size;
             continue;
         }
-        auto sg = Glyphs[gi];
+        const auto sg = glyphs[gi];
         if (!sg) continue;
         if (rt) {
             SetDrawBright(cr, cg, cb);
@@ -292,7 +289,7 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
                 cx + sg->BearX - (cw - 1.0) * 0.5 * sg->GlyphWidth, cy + sg->BearY,
                 sg->GlyphX, sg->GlyphY,
                 sg->GlyphWidth, sg->GlyphHeight,
-                0, 0, 
+                0, 0,
                 cw, 1, 0,
                 Images[sg->ImageNumber]->GetHandle(),
                 TRUE, FALSE);
@@ -304,7 +301,7 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
         FINISH_DRAW_TRANSACTION;
     }
     mx = max(mx, cx);
-    my = line * Size;
+    my = line * size;
     return make_tuple(mx, my, line);
 }
 
@@ -322,19 +319,19 @@ SFont * SFont::CreateLoadedFontFromFile(const string & file)
     ifstream font(ConvertUTF8ToUnicode(file), ios::in | ios::binary);
 
     Sif2Header header;
-    font.read((char*)&header, sizeof(Sif2Header));
-    result->Size = header.FontSize;
+    font.read(reinterpret_cast<char*>(&header), sizeof(Sif2Header));
+    result->size = header.FontSize;
 
     for (int i = 0; i < header.Glyphs; i++) {
-        Sif2Glyph *info = new Sif2Glyph();
-        font.read((char*)info, sizeof(Sif2Glyph));
-        result->Glyphs[info->Codepoint] = info;
+        const auto info = new Sif2Glyph();
+        font.read(reinterpret_cast<char*>(info), sizeof(Sif2Glyph));
+        result->glyphs[info->Codepoint] = info;
     }
     uint32_t size;
-    for (int i = 0; i < header.Images; i++) {
-        font.read((char*)&size, sizeof(uint32_t));
-        uint8_t *pngdata = new uint8_t[size];
-        font.read((char*)pngdata, size);
+    for (auto i = 0; i < header.Images; i++) {
+        font.read(reinterpret_cast<char*>(&size), sizeof(uint32_t));
+        const auto pngdata = new uint8_t[size];
+        font.read(reinterpret_cast<char*>(pngdata), size);
         result->Images.push_back(SImage::CreateLoadedImageFromMemory(pngdata, size));
         delete[] pngdata;
     }
@@ -354,24 +351,25 @@ SSoundMixer::~SSoundMixer()
     delete mixer;
 }
 
-void SSoundMixer::Update()
+void SSoundMixer::Update() const
 {
     mixer->Update();
 }
 
-void SSoundMixer::Play(SSound * sound)
+void SSoundMixer::Play(SSound *sound) const
 {
     mixer->Play(sound->sample);
 }
 
-void SSoundMixer::Stop(SSound * sound)
+// ReSharper disable once CppMemberFunctionMayBeStatic
+void SSoundMixer::Stop(SSound *sound) const
 {
-    mixer->Stop(sound->sample);
+    SoundMixerStream::Stop(sound->sample);
 }
 
 SSoundMixer * SSoundMixer::CreateMixer(SoundManager * manager)
 {
-    auto result = new SSoundMixer(manager->CreateMixerStream());
+    auto result = new SSoundMixer(SoundManager::CreateMixerStream());
     result->AddRef();
     return result;
 }
@@ -388,12 +386,12 @@ SSound::~SSound()
     delete sample;
 }
 
-void SSound::SetLoop(bool looping)
+void SSound::SetLoop(const bool looping) const
 {
     sample->SetLoop(looping);
 }
 
-void SSound::SetVolume(float vol)
+void SSound::SetVolume(const float vol) const
 {
     sample->SetVolume(vol);
 }
@@ -405,9 +403,9 @@ SSound * SSound::CreateSound(SoundManager *smanager)
     return result;
 }
 
-SSound * SSound::CreateSoundFromFile(SoundManager *smanager, const std::string & file, int simul)
+SSound * SSound::CreateSoundFromFile(SoundManager *smanager, const std::string & file, const int simul)
 {
-    auto hs = SoundSample::CreateFromFile(ConvertUTF8ToUnicode(file), simul);
+    const auto hs = SoundSample::CreateFromFile(ConvertUTF8ToUnicode(file), simul);
     auto result = new SSound(hs);
     result->AddRef();
     return result;
@@ -415,7 +413,7 @@ SSound * SSound::CreateSoundFromFile(SoundManager *smanager, const std::string &
 
 // SSettingItem --------------------------------------------
 
-SSettingItem::SSettingItem(shared_ptr<Setting2::SettingItem> s) : setting(s)
+SSettingItem::SSettingItem(const shared_ptr<Setting2::SettingItem> s) : setting(s)
 {
 
 }
@@ -425,27 +423,27 @@ SSettingItem::~SSettingItem()
     setting->SaveValue();
 }
 
-void SSettingItem::Save()
+void SSettingItem::Save() const
 {
     setting->SaveValue();
 }
 
-void SSettingItem::MoveNext()
+void SSettingItem::MoveNext() const
 {
     setting->MoveNext();
 }
 
-void SSettingItem::MovePrevious()
+void SSettingItem::MovePrevious() const
 {
     setting->MovePrevious();
 }
 
-std::string SSettingItem::GetItemText()
+std::string SSettingItem::GetItemText() const
 {
     return setting->GetItemString();
 }
 
-std::string SSettingItem::GetDescription()
+std::string SSettingItem::GetDescription() const
 {
     return setting->GetDescription();
 }
@@ -460,15 +458,15 @@ void RegisterScriptResource(ExecutionManager *exm)
     engine->RegisterObjectBehaviour(SU_IF_IMAGE, asBEHAVE_FACTORY, SU_IF_IMAGE "@ f(const string &in, bool = false)", asFUNCTION(SImage::CreateLoadedImageFromFile), asCALL_CDECL);
     engine->RegisterObjectBehaviour(SU_IF_IMAGE, asBEHAVE_ADDREF, "void f()", asMETHOD(SImage, AddRef), asCALL_THISCALL);
     engine->RegisterObjectBehaviour(SU_IF_IMAGE, asBEHAVE_RELEASE, "void f()", asMETHOD(SImage, Release), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_IMAGE, "int get_Width()", asMETHOD(SImage, get_Width), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_IMAGE, "int get_Height()", asMETHOD(SImage, get_Height), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_IMAGE, "int get_Width()", asMETHOD(SImage, GetWidth), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_IMAGE, "int get_Height()", asMETHOD(SImage, GetHeight), asCALL_THISCALL);
     //engine->RegisterObjectMethod(SU_IF_IMAGE, SU_IF_IMAGE "& opAssign(" SU_IF_IMAGE "&)", asFUNCTION(asAssign<SImage>), asCALL_CDECL_OBJFIRST);
 
     engine->RegisterObjectType(SU_IF_FONT, 0, asOBJ_REF);
     engine->RegisterObjectBehaviour(SU_IF_FONT, asBEHAVE_FACTORY, SU_IF_FONT "@ f()", asFUNCTION(SFont::CreateBlankFont), asCALL_CDECL);
     engine->RegisterObjectBehaviour(SU_IF_FONT, asBEHAVE_ADDREF, "void f()", asMETHOD(SFont, AddRef), asCALL_THISCALL);
     engine->RegisterObjectBehaviour(SU_IF_FONT, asBEHAVE_RELEASE, "void f()", asMETHOD(SFont, Release), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_FONT, "int get_Size()", asMETHOD(SFont, get_Size), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_FONT, "int get_Size()", asMETHOD(SFont, GetSize), asCALL_THISCALL);
 
     engine->RegisterObjectType(SU_IF_SOUND, 0, asOBJ_REF);
     engine->RegisterObjectBehaviour(SU_IF_SOUND, asBEHAVE_ADDREF, "void f()", asMETHOD(SSound, AddRef), asCALL_THISCALL);

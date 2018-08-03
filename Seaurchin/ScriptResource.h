@@ -17,36 +17,39 @@
 
 //interface 自動解放対象
 class ISResouceAutoRelease {
+public:
+    virtual ~ISResouceAutoRelease() = default;
+private:
     virtual bool Dispose() = 0;
 };
 
 //リソース基底クラス
 class SResource {
 protected:
-    int Reference = 0;
-    int Handle = 0;
+    int reference = 0;
+    int handle = 0;
 public:
     SResource();
     virtual ~SResource();
     void AddRef();
     void Release();
 
-    inline int GetHandle() { return Handle; }
+    int GetHandle() const { return handle; }
 };
 
 //画像
 class SImage : public SResource {
 protected:
-    int Width = 0;
-    int Height = 0;
+    int width = 0;
+    int height = 0;
 
     void ObtainSize();
 public:
-    SImage(int ih);
+    explicit SImage(int ih);
     ~SImage() override;
 
-    int get_Width();
-    int get_Height();
+    int GetWidth();
+    int GetHeight();
 
     static SImage* CreateBlankImage();
     static SImage* CreateLoadedImageFromFile(const std::string &file, bool async);
@@ -64,34 +67,34 @@ public:
 //9patch描画用
 class SNinePatchImage : public SImage {
 protected:
-    int LeftSideWidth = 8;
-    int TopSideHeight = 8;
-    int BodyWidth = 32;
-    int BodyHeight = 32;
+    int leftSideWidth = 8;
+    int topSideHeight = 8;
+    int bodyWidth = 32;
+    int bodyHeight = 32;
 
 public:
-    SNinePatchImage(int ih);
+    explicit SNinePatchImage(int ih);
     ~SNinePatchImage() override;
     void SetArea(int leftw, int toph, int bodyw, int bodyh);
-    std::tuple<int, int, int, int> GetArea() { return std::make_tuple(LeftSideWidth, TopSideHeight, BodyWidth, BodyHeight); }
+    std::tuple<int, int, int, int> GetArea() { return std::make_tuple(leftSideWidth, topSideHeight, bodyWidth, bodyHeight); }
 };
 
 //アニメーション用
 class SAnimatedImage : public SImage {
 protected:
-    int CellWidth = 0;
-    int CellHeight = 0;
-    int FrameCount = 0;
-    double SecondsPerFrame = 0.1;
-    std::vector<int> Images;
+    int cellWidth = 0;
+    int cellHeight = 0;
+    int frameCount = 0;
+    double secondsPerFrame = 0.1;
+    std::vector<int> images;
 
 public:
     SAnimatedImage(int w, int h, int count, double time);
     ~SAnimatedImage() override;
 
-    double get_CellTime() { return SecondsPerFrame; }
-    int get_FrameCount() { return FrameCount; }
-    int GetImageHandleAt(double time) { return Images[(int)(time / SecondsPerFrame) % FrameCount]; }
+    double GetCellTime() const { return secondsPerFrame; }
+    int GetFrameCount() const { return frameCount; }
+    int GetImageHandleAt(const double time) { return images[int(time / secondsPerFrame) % frameCount]; }
 
     static SAnimatedImage *CreateLoadedImageFromFile(const std::string &file, int xc, int yc, int w, int h, int count, double time);
 };
@@ -99,15 +102,15 @@ public:
 //フォント
 class SFont : public SResource {
 protected:
-    int Size = 0;
-    std::unordered_map<uint32_t, Sif2Glyph*> Glyphs;
+    int size = 0;
+    std::unordered_map<uint32_t, Sif2Glyph*> glyphs;
 
 public:
     std::vector<SImage*> Images;
     SFont();
     ~SFont() override;
 
-    inline int get_Size() { return Size; }
+    int GetSize() const { return size; }
     std::tuple<double, double, int> RenderRaw(SRenderTarget *rt, const std::string& utf8str);
     std::tuple<double, double, int> RenderRich(SRenderTarget *rt, const std::string& utf8str, const ColorTint &defcol);
 
@@ -125,9 +128,9 @@ public:
     SSound(SoundSample *smp);
     ~SSound() override;
 
-    inline SoundSample *GetSample() { return sample; }
-    void SetLoop(bool looping);
-    void SetVolume(float vol);
+    SoundSample *GetSample() const { return sample; }
+    void SetLoop(bool looping) const;
+    void SetVolume(float vol) const;
 
     static SSound* CreateSound(SoundManager *smanager);
     static SSound* CreateSoundFromFile(SoundManager *smanager, const std::string &file, int simul);
@@ -141,9 +144,9 @@ public:
     SSoundMixer(SoundMixerStream *mixer);
     ~SSoundMixer() override;
 
-    void Update();
-    void Play(SSound *sound);
-    void Stop(SSound *sound);
+    void Update() const;
+    void Play(SSound *sound) const;
+    void Stop(SSound *sound) const;
 
     static SSoundMixer *CreateMixer(SoundManager *manager);
 };
@@ -156,11 +159,11 @@ public:
     SSettingItem(std::shared_ptr<Setting2::SettingItem> s);
     ~SSettingItem() override;
 
-    void Save();
-    void MoveNext();
-    void MovePrevious();
-    std::string GetItemText();
-    std::string GetDescription();
+    void Save() const;
+    void MoveNext() const;
+    void MovePrevious() const;
+    std::string GetItemText() const;
+    std::string GetDescription() const;
 };
 
 class ExecutionManager;

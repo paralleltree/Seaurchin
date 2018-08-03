@@ -148,7 +148,7 @@ void CharacterImageSet::ApplyFullImage(SSprite *sprite) const
     ss << "origX:" << cx << ", origY:" << cy << ", scaleX:" << sc << ", scaleY:" << sc;
 
     imageFull->AddRef();
-    sprite->set_Image(imageFull);
+    sprite->SetImage(imageFull);
     sprite->Apply(ss.str());
     sprite->Release();
 }
@@ -156,14 +156,14 @@ void CharacterImageSet::ApplyFullImage(SSprite *sprite) const
 void CharacterImageSet::ApplySmallImage(SSprite *sprite) const
 {
     imageSmall->AddRef();
-    sprite->set_Image(imageSmall);
+    sprite->SetImage(imageSmall);
     sprite->Release();
 }
 
 void CharacterImageSet::ApplyFaceImage(SSprite *sprite) const
 {
     imageFace->AddRef();
-    sprite->set_Image(imageFace);
+    sprite->SetImage(imageFace);
     sprite->Release();
 }
 

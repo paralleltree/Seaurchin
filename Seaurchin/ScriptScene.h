@@ -10,17 +10,17 @@
 
 typedef struct
 {
-    std::string name;
-    void *object;
-    asIScriptContext *context;
-    asITypeInfo *type;
-    asIScriptFunction *function;
-    CoroutineWait wait;
+    std::string Name;
+    void *Object;
+    asIScriptContext *Context;
+    asITypeInfo *Type;
+    asIScriptFunction *Function;
+    CoroutineWait Wait;
 } Coroutine;
 
 class ScriptScene : public Scene
 {
-    typedef Scene base;
+    typedef Scene Base;
 protected:
     asIScriptContext *context;
     asIScriptObject *sceneObject;
@@ -53,7 +53,7 @@ public:
 
 class ScriptCoroutineScene : public ScriptScene
 {
-    typedef ScriptScene base;
+    typedef ScriptScene Base;
 protected:
     asIScriptContext *runningContext;
     CoroutineWait wait;

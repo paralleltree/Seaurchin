@@ -6,7 +6,7 @@ using namespace std;
 
 namespace MoverFunction
 {
-unordered_map<string, Action> Actions =
+unordered_map<string, Action> actions =
 {
     { "move_to", ActionMoveTo },
     { "move_by", ActionMoveBy },
@@ -17,7 +17,7 @@ unordered_map<string, Action> Actions =
     { "death", ActionDeath }
 };
 
-bool ActionMoveTo(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, double delta)
+bool ActionMoveTo(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, const double delta)
 {
     if (delta == 0) {
         data.Extra1 = target->Transform.X;
@@ -34,7 +34,7 @@ bool ActionMoveTo(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &d
     }
 }
 
-bool ActionMoveBy(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, double delta)
+bool ActionMoveBy(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, const double delta)
 {
     if (delta == 0) {
         data.Extra1 = target->Transform.X;
@@ -51,7 +51,7 @@ bool ActionMoveBy(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &d
     }
 }
 
-bool ActionAngleTo(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, double delta)
+bool ActionAngleTo(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, const double delta)
 {
     if (delta == 0) {
         if (isnan(args.X)) return true;
@@ -66,7 +66,7 @@ bool ActionAngleTo(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &
     }
 }
 
-bool ActionAngleBy(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, double delta)
+bool ActionAngleBy(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, const double delta)
 {
     if (delta == 0) {
         if (isnan(args.X)) return true;
@@ -81,7 +81,7 @@ bool ActionAngleBy(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &
     }
 }
 
-bool ActionScaleTo(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, double delta)
+bool ActionScaleTo(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, const double delta)
 {
     if (delta == 0) {
         data.Extra1 = target->Transform.ScaleX;
@@ -98,7 +98,7 @@ bool ActionScaleTo(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &
     }
 }
 
-bool ActionColor(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, double delta)
+bool ActionColor(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, const double delta)
 {
     if (delta == 0) {
         if (!isnan(args.X)) data.Extra1 = target->Color.R;
@@ -106,34 +106,34 @@ bool ActionColor(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &da
         if (!isnan(args.Z)) data.Extra3 = target->Color.B;
         return false;
     } else if (delta >= 0) {
-        if (!isnan(args.X)) target->Color.R = (uint8_t)args.Ease(data.Now, args.Duration, data.Extra1, args.X - data.Extra1);
-        if (!isnan(args.Y)) target->Color.G = (uint8_t)args.Ease(data.Now, args.Duration, data.Extra2, args.Y - data.Extra2);
-        if (!isnan(args.Z)) target->Color.B = (uint8_t)args.Ease(data.Now, args.Duration, data.Extra3, args.Z - data.Extra3);
+        if (!isnan(args.X)) target->Color.R = uint8_t(args.Ease(data.Now, args.Duration, data.Extra1, args.X - data.Extra1));
+        if (!isnan(args.Y)) target->Color.G = uint8_t(args.Ease(data.Now, args.Duration, data.Extra2, args.Y - data.Extra2));
+        if (!isnan(args.Z)) target->Color.B = uint8_t(args.Ease(data.Now, args.Duration, data.Extra3, args.Z - data.Extra3));
         return false;
     } else {
-        if (!isnan(args.X)) target->Color.R = (uint8_t)args.X;
-        if (!isnan(args.Y)) target->Color.G = (uint8_t)args.Y;
-        if (!isnan(args.Z)) target->Color.B = (uint8_t)args.Z;
+        if (!isnan(args.X)) target->Color.R = uint8_t(args.X);
+        if (!isnan(args.Y)) target->Color.G = uint8_t(args.Y);
+        if (!isnan(args.Z)) target->Color.B = uint8_t(args.Z);
         return true;
     }
 }
 
-bool ActionAlpha(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, double delta)
+bool ActionAlpha(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, const double delta)
 {
     if (delta == 0) {
         if (isnan(args.X) || isnan(args.Y)) return true;
-        target->Color.A = (uint8_t)(args.X * 255.0);
+        target->Color.A = uint8_t(args.X * 255.0);
         return false;
     } else if (delta >= 0) {
-        target->Color.A = (uint8_t)(255.0 * args.Ease(data.Now, args.Duration, args.X, args.Y - args.X));
+        target->Color.A = uint8_t(255.0 * args.Ease(data.Now, args.Duration, args.X, args.Y - args.X));
         return false;
     } else {
-        target->Color.A = (uint8_t)(args.Y * 255.0);
+        target->Color.A = uint8_t(args.Y * 255.0);
         return true;
     }
 }
 
-bool ActionDeath(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, double delta)
+bool ActionDeath(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, const double delta)
 {
     if (delta >= 0) {
         return false;

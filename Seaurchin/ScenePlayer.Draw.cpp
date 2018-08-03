@@ -100,7 +100,7 @@ void ScenePlayer::LoadResources()
     fontCombo->AddRef();
     textCombo = STextSprite::Factory(fontCombo, "0000");
     textCombo->SetAlignment(STextAlign::Center, STextAlign::Center);
-    const auto size = 320.0 / fontCombo->get_Size();
+    const auto size = 320.0 / fontCombo->GetSize();
     ostringstream app;
     app << setprecision(5);
     app << "x:512, y:3200, " << "scaleX:" << size << ", scaleY:" << size;
@@ -123,7 +123,7 @@ void ScenePlayer::Draw()
 {
     ostringstream combo;
     combo << status.Combo;
-    textCombo->set_Text(combo.str());
+    textCombo->SetText(combo.str());
 
     if (movieBackground) DrawExtendGraph(0, 0, SU_RES_WIDTH, SU_RES_HEIGHT, movieBackground, FALSE);
 
@@ -238,7 +238,7 @@ void ScenePlayer::DrawAerialNotes(const vector<shared_ptr<SusDrawableNoteData>>&
 
 void ScenePlayer::RefreshComboText() const
 {
-    const auto size = 320.0 / fontCombo->get_Size();
+    const auto size = 320.0 / fontCombo->GetSize();
     ostringstream app;
     textCombo->AbortMove(true);
 
@@ -831,23 +831,23 @@ void ScenePlayer::DrawLaneBackground() const
     ClearDrawScreen();
     // bg
     const int exty = laneBufferX * SU_LANE_ASPECT_EXT;
-    const auto bgiw = imageLaneGround->get_Width();
+    const auto bgiw = imageLaneGround->GetWidth();
     const auto scale = laneBufferX / bgiw;
     auto cy = laneBackgroundRoll;
-    while (cy > 0) cy -= imageLaneGround->get_Height() * scale;
+    while (cy > 0) cy -= imageLaneGround->GetHeight() * scale;
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
     while (cy <= exty) {
         DrawRotaGraph2F(0, cy, 0, 0, scale, 0, imageLaneGround->GetHandle(), TRUE, FALSE);
-        cy += imageLaneGround->get_Height() * scale;
+        cy += imageLaneGround->GetHeight() * scale;
     }
 
     SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
     DrawRectRotaGraph3F(
         0, laneBufferY,
         0, 0,
-        imageLaneJudgeLine->get_Width(), imageLaneJudgeLine->get_Height(),
-        0, imageLaneJudgeLine->get_Height() / 2,
+        imageLaneJudgeLine->GetWidth(), imageLaneJudgeLine->GetHeight(),
+        0, imageLaneJudgeLine->GetHeight() / 2,
         1, 1, 0,
         imageLaneJudgeLine->GetHandle(), TRUE, FALSE);
     processor->Draw();

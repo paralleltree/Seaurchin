@@ -37,5 +37,5 @@ public:
     static double InOutBounce(double time, double timeDuration, double startValue, double valueDuration);
 };
 using EasingFunction = double(*)(double, double, double, double);
-extern std::unordered_map<std::string, EasingFunction> Easings;
+extern std::unordered_map<std::string, EasingFunction> easings;
 }

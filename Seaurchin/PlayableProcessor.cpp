@@ -155,8 +155,8 @@ void PlayableProcessor::Draw()
             DrawRectRotaGraph3F(
                 player->widthPerLane * i, player->laneBufferY,
                 0, 0,
-                imageHoldLight->get_Width(), imageHoldLight->get_Height(),
-                0, imageHoldLight->get_Height(),
+                imageHoldLight->GetWidth(), imageHoldLight->GetHeight(),
+                0, imageHoldLight->GetHeight(),
                 1, 2, 0,
                 imageHoldLight->GetHandle(), TRUE, FALSE);
 }

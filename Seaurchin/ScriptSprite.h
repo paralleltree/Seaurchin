@@ -23,10 +23,10 @@ struct Mover;
 //基底がImageSpriteでもいい気がしてるんだよね正直
 class SSprite {
 private:
-    void DrawBy(const Transform2D &tf, const ColorTint &ct);
+    virtual void DrawBy(const Transform2D &tf, const ColorTint &ct);
 
 protected:
-    int Reference;
+    int reference;
     ScriptSpriteMover2 *mover;
 
     void CopyParameterFrom(SSprite *original);
@@ -40,8 +40,8 @@ public:
     bool HasAlpha = true;
     //参照(手動コピー)
     SImage *Image = nullptr;
-    void set_Image(SImage *img);
-    const SImage* get_Image();
+    void SetImage(SImage *img);
+    const SImage* GetImage();
 
     SSprite();
     virtual ~SSprite();
@@ -58,7 +58,7 @@ public:
     virtual void Tick(double delta);
     virtual void Draw();
     virtual void Draw(const Transform2D &parent, const ColorTint &color);
-    SSprite* Clone();
+    virtual SSprite* Clone();
 
     static SSprite* Factory();
     static SSprite* Factory(SImage *img);
@@ -82,7 +82,7 @@ enum SShapeType {
 //任意の多角形などを表示できる
 class SShape : public SSprite {
 private:
-    void DrawBy(const Transform2D &tf, const ColorTint &ct);
+    void DrawBy(const Transform2D &tf, const ColorTint &ct) override;
 
 public:
     SShapeType Type = SShapeType::BoxFill;
@@ -107,17 +107,17 @@ enum class STextAlign {
 //文字列をスプライトとして扱います
 class STextSprite : public SSprite {
 protected:
-    SRenderTarget * Target = nullptr;
-    SRenderTarget *ScrollBuffer = nullptr;
-    std::tuple<double, double, int> Size;
-    STextAlign HorizontalAlignment = STextAlign::Left;
-    STextAlign VerticalAlignment = STextAlign::Top;
-    bool IsScrolling = false;
-    int ScrollWidth = 0;
-    int ScrollMargin = 0;
-    double ScrollSpeed = 0;
-    double ScrollPosition = 0;
-    bool IsRich = false;
+    SRenderTarget * target = nullptr;
+    SRenderTarget *scrollBuffer = nullptr;
+    std::tuple<double, double, int> size;
+    STextAlign horizontalAlignment = STextAlign::Left;
+    STextAlign verticalAlignment = STextAlign::Top;
+    bool isScrolling = false;
+    int scrollWidth = 0;
+    int scrollMargin = 0;
+    double scrollSpeed = 0;
+    double scrollPosition = 0;
+    bool isRich = false;
 
     void Refresh();
     void DrawNormal(const Transform2D &tf, const ColorTint &ct);
@@ -126,8 +126,8 @@ protected:
 public:
     SFont * Font = nullptr;
     std::string Text = "";
-    void set_Font(SFont* font);
-    void set_Text(const std::string &txt);
+    void SetFont(SFont* font);
+    void SetText(const std::string &txt);
     void SetAlignment(STextAlign hori, STextAlign vert);
     void SetRangeScroll(int width, int margin, double pps);
     void SetRich(bool enabled);
@@ -136,7 +136,7 @@ public:
     void Tick(double delta) override;
     void Draw() override;
     void Draw(const Transform2D &parent, const ColorTint &color) override;
-    STextSprite *Clone();
+    STextSprite *Clone() override;
 
     static STextSprite* Factory();
     static STextSprite* Factory(SFont *img, const std::string &str);
@@ -147,16 +147,16 @@ public:
 //他と違ってDXライブラリのリソースをナマで取得するのであんまりボコボコ使わないでください。
 class STextInput : public SSprite {
 protected:
-    int InputHandle = 0;
-    SFont *Font = nullptr;
-    int SelectionStart = -1, SelectionEnd = -1;
-    int Cursor = 0;
-    std::string CurrentRawString = "";
+    int inputHandle = 0;
+    SFont *font = nullptr;
+    int selectionStart = -1, selectionEnd = -1;
+    int cursor = 0;
+    std::string currentRawString = "";
 
 public:
     STextInput();
     ~STextInput() override;
-    void set_Font(SFont *font);
+    void SetFont(SFont *font);
 
     void Activate();
     void Draw() override;
@@ -172,23 +172,23 @@ public:
 //画像を任意のスプライトから合成してウェイできます
 class SSynthSprite : public SSprite {
 protected:
-    SRenderTarget * Target = nullptr;
-    int Width = 0;
-    int Height = 0;
-    void DrawBy(const Transform2D &tf, const ColorTint &ct);
+    SRenderTarget * target = nullptr;
+    int width = 0;
+    int height = 0;
+    void DrawBy(const Transform2D &tf, const ColorTint &ct) override;
 
 public:
     SSynthSprite(int w, int h);
     ~SSynthSprite() override;
-    inline int get_Width() { return Width; }
-    inline int get_Height() { return Height; }
+    int GetWidth() const { return width; }
+    int GetHeight() const { return height; }
 
     void Clear();
     void Transfer(SSprite *sprite);
     void Transfer(SImage *image, double x, double y);
     void Draw() override;
     void Draw(const Transform2D &parent, const ColorTint &color) override;
-    SSynthSprite *Clone();
+    SSynthSprite *Clone() override;
 
     static SSynthSprite *Factory(int w, int h);
     static void RegisterType(asIScriptEngine *engine);
@@ -197,12 +197,12 @@ public:
 //画像を任意のスプライトから合成してウェイできます
 class SClippingSprite : public SSynthSprite {
 protected:
-    double U1;
-    double V1;
-    double U2;
-    double V2;
-    SRenderTarget *ActualTarget = nullptr;
-    void DrawBy(const Transform2D &tf, const ColorTint &ct);
+    double u1;
+    double v1;
+    double u2;
+    double v2;
+    SRenderTarget *actualTarget = nullptr;
+    void DrawBy(const Transform2D &tf, const ColorTint &ct) override;
 
     static bool ActionMoveRangeTo(SSprite *thisObj, SpriteMoverArgument &args, SpriteMoverData &data, double delta);
 
@@ -221,11 +221,11 @@ public:
 
 class SAnimeSprite : public SSprite {
 protected:
-    SAnimatedImage * Images;
-    int LoopCount;
-    double Speed;
-    double Time;
-    void DrawBy(const Transform2D &tf, const ColorTint &ct);
+    SAnimatedImage *images;
+    int loopCount;
+    double speed;
+    double time;
+    void DrawBy(const Transform2D &tf, const ColorTint &ct) override;
 
 public:
     SAnimeSprite(SAnimatedImage *img);

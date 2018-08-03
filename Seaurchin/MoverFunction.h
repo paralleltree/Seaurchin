@@ -7,7 +7,7 @@ struct SpriteMoverArgument;
 namespace MoverFunction
 {
 using Action = std::function<bool(SSprite*, SpriteMoverArgument&,  SpriteMoverData&, double)>;
-extern std::unordered_map<std::string, Action> Actions;
+extern std::unordered_map<std::string, Action> actions;
 
 bool ActionMoveTo(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, double delta);
 bool ActionMoveBy(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, double delta);

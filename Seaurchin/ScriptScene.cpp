@@ -30,7 +30,7 @@ ScriptScene::~ScriptScene()
 
 void ScriptScene::Initialize()
 {
-    auto func = sceneType->GetMethodByDecl("void Initialize()");
+    const auto func = sceneType->GetMethodByDecl("void Initialize()");
     context->Prepare(func);
     context->SetObject(sceneObject);
     context->Execute();
@@ -47,11 +47,11 @@ void ScriptScene::AddCoroutine(Coroutine * co)
     coroutinesPending.push_back(co);
 }
 
-void ScriptScene::Tick(double delta)
+void ScriptScene::Tick(const double delta)
 {
     TickSprite(delta);
     TickCoroutine(delta);
-    auto func = sceneType->GetMethodByDecl("void Tick(double)");
+    const auto func = sceneType->GetMethodByDecl("void Tick(double)");
     context->Prepare(func);
     context->SetObject(sceneObject);
     context->Execute();
@@ -59,13 +59,14 @@ void ScriptScene::Tick(double delta)
 
 void ScriptScene::OnEvent(const string &message)
 {
-    auto func = sceneType->GetMethodByDecl("void OnEvent(const string &in)");
+    auto msg = message;
+    const auto func = sceneType->GetMethodByDecl("void OnEvent(const string &in)");
     if (!func) return;
     auto evc = manager->GetScriptInterfaceUnsafe()->GetEngine()->CreateContext();
     evc->Prepare(func);
     evc->SetUserData(this, SU_UDTYPE_SCENE);
     evc->SetObject(sceneObject);
-    evc->SetArgAddress(0, (void*)&message);
+    evc->SetArgAddress(0, static_cast<void*>(&msg));
     evc->Execute();
     evc->Release();
 }
@@ -73,7 +74,7 @@ void ScriptScene::OnEvent(const string &message)
 void ScriptScene::Draw()
 {
     DrawSprite();
-    auto func = sceneType->GetMethodByDecl("void Draw()");
+    const auto func = sceneType->GetMethodByDecl("void Draw()");
     context->Prepare(func);
     context->SetObject(sceneObject);
     context->Execute();
@@ -87,14 +88,14 @@ bool ScriptScene::IsDead()
 void ScriptScene::Disappear()
 {}
 
-void ScriptScene::TickCoroutine(double delta)
+void ScriptScene::TickCoroutine(const double delta)
 {
     for (auto& coroutine : coroutinesPending) {
-        coroutine->context = context->GetEngine()->CreateContext();
-        coroutine->context->SetUserData(this, SU_UDTYPE_SCENE);
-        coroutine->context->SetUserData(&coroutine->wait, SU_UDTYPE_WAIT);
-        coroutine->context->Prepare(coroutine->function);
-        coroutine->context->SetObject(coroutine->object);
+        coroutine->Context = context->GetEngine()->CreateContext();
+        coroutine->Context->SetUserData(this, SU_UDTYPE_SCENE);
+        coroutine->Context->SetUserData(&coroutine->Wait, SU_UDTYPE_WAIT);
+        coroutine->Context->Prepare(coroutine->Function);
+        coroutine->Context->SetObject(coroutine->Object);
         coroutines.push_back(coroutine);
     }
     coroutinesPending.clear();
@@ -102,18 +103,18 @@ void ScriptScene::TickCoroutine(double delta)
     auto i = coroutines.begin();
     while (i != coroutines.end()) {
         auto c = *i;
-        switch (c->wait.Type) {
+        switch (c->Wait.Type) {
             case WaitType::Frame:
-                c->wait.frames -= 1;
-                if (c->wait.frames > 0) {
-                    i++;
+                c->Wait.frames -= 1;
+                if (c->Wait.frames > 0) {
+                    ++i;
                     continue;
                 }
                 break;
             case WaitType::Time:
-                c->wait.time -= delta;
-                if (c->wait.time > 0.0) {
-                    i++;
+                c->Wait.time -= delta;
+                if (c->Wait.time > 0.0) {
+                    ++i;
                     continue;
                 }
                 break;
@@ -122,29 +123,29 @@ void ScriptScene::TickCoroutine(double delta)
                 abort();
                 break;
         }
-        auto result = c->context->Execute();
+        const auto result = c->Context->Execute();
         if (result == asEXECUTION_FINISHED) {
-            auto e = c->context->GetEngine();
-            c->context->Release();
-            c->function->Release();
-            e->ReleaseScriptObject(c->object, c->type);
+            auto e = c->Context->GetEngine();
+            c->Context->Release();
+            c->Function->Release();
+            e->ReleaseScriptObject(c->Object, c->Type);
             delete c;
             i = coroutines.erase(i);
         } else if (result == asEXECUTION_EXCEPTION) {
             auto log = spdlog::get("main");
-            int col, row;
+            int col;
             const char *at;
-            row = c->context->GetExceptionLineNumber(&col, &at);
+            const auto row = c->Context->GetExceptionLineNumber(&col, &at);
             ostringstream str;
-            log->error(u8"{0} ({1:d}行{2:d}列): {3}", at, row, col, c->context->GetExceptionString());
+            log->error(u8"{0} ({1:d}行{2:d}列): {3}", at, row, col, c->Context->GetExceptionString());
             abort();
         } else {
-            i++;
+            ++i;
         }
     }
 }
 
-void ScriptScene::TickSprite(double delta)
+void ScriptScene::TickSprite(const double delta)
 {
     for (auto& sprite : spritesPending) sprites.emplace(sprite);
     spritesPending.clear();
@@ -155,7 +156,7 @@ void ScriptScene::TickSprite(double delta)
             (*i)->Release();
             i = sprites.erase(i);
         } else {
-            i++;
+            ++i;
         }
     }
 }
@@ -165,7 +166,7 @@ void ScriptScene::DrawSprite()
     for (auto& i : sprites) i->Draw();
 }
 
-ScriptCoroutineScene::ScriptCoroutineScene(asIScriptObject *scene) : base(scene)
+ScriptCoroutineScene::ScriptCoroutineScene(asIScriptObject *scene) : Base(scene)
 {
     auto eng = sceneObject->GetEngine();
     runningContext = eng->CreateContext();
@@ -179,16 +180,16 @@ ScriptCoroutineScene::~ScriptCoroutineScene()
 {
     runningContext->Release();
     for (auto& i : coroutines) {
-        auto e = i->context->GetEngine();
-        i->context->Release();
-        i->function->Release();
-        e->ReleaseScriptObject(i->object, i->type);
+        auto e = i->Context->GetEngine();
+        i->Context->Release();
+        i->Function->Release();
+        e->ReleaseScriptObject(i->Object, i->Type);
         delete i;
     }
     coroutines.clear();
 }
 
-void ScriptCoroutineScene::Tick(double delta)
+void ScriptCoroutineScene::Tick(const double delta)
 {
     TickSprite(delta);
     TickCoroutine(delta);
@@ -203,15 +204,15 @@ void ScriptCoroutineScene::Tick(double delta)
             if (wait.time > 0.0) return;
             break;
     }
-    auto result = runningContext->Execute();
+    const auto result = runningContext->Execute();
     if (result != asEXECUTION_SUSPENDED)
         finished = true;
 }
 
 void ScriptCoroutineScene::Initialize()
 {
-    base::Initialize();
-    auto func = sceneType->GetMethodByDecl("void Run()");
+    Base::Initialize();
+    const auto func = sceneType->GetMethodByDecl("void Run()");
     runningContext->Prepare(func);
     runningContext->SetObject(sceneObject);
 }
@@ -254,10 +255,10 @@ void RegisterScriptScene(ExecutionManager *exm)
     engine->RegisterGlobalFunction("void AddScene(" SU_IF_COSCENE "@)", asFUNCTION(ScriptSceneAddScene), asCALL_CDECL);
 }
 
-void ScriptSceneSetIndex(int index)
+void ScriptSceneSetIndex(const int index)
 {
-    auto ctx = asGetActiveContext();
-    auto psc = static_cast<ScriptScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
+    const auto ctx = asGetActiveContext();
+    const auto psc = static_cast<ScriptScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
         ScriptSceneWarnOutOf("Scene Class", ctx);
         return;
@@ -267,8 +268,8 @@ void ScriptSceneSetIndex(int index)
 
 int ScriptSceneGetIndex()
 {
-    auto ctx = asGetActiveContext();
-    auto psc = static_cast<ScriptScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
+    const auto ctx = asGetActiveContext();
+    const auto psc = static_cast<ScriptScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
         ScriptSceneWarnOutOf("Scene Class", ctx);
         return 0;
@@ -278,10 +279,10 @@ int ScriptSceneGetIndex()
 
 // Scene用メソッド
 
-bool ScriptSceneIsKeyHeld(int keynum)
+bool ScriptSceneIsKeyHeld(const int keynum)
 {
-    auto ctx = asGetActiveContext();
-    auto psc = static_cast<ScriptScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
+    const auto ctx = asGetActiveContext();
+    const auto psc = static_cast<ScriptScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
         ScriptSceneWarnOutOf("Scene Class", ctx);
         return false;
@@ -289,10 +290,10 @@ bool ScriptSceneIsKeyHeld(int keynum)
     return psc->GetManager()->GetControlStateUnsafe()->GetCurrentState(ControllerSource::RawKeyboard, keynum);
 }
 
-bool ScriptSceneIsKeyTriggered(int keynum)
+bool ScriptSceneIsKeyTriggered(const int keynum)
 {
-    auto ctx = asGetActiveContext();
-    auto psc = static_cast<ScriptScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
+    const auto ctx = asGetActiveContext();
+    const auto psc = static_cast<ScriptScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
         ScriptSceneWarnOutOf("Scene Class", ctx);
         return false;
@@ -302,8 +303,8 @@ bool ScriptSceneIsKeyTriggered(int keynum)
 
 void ScriptSceneAddScene(asIScriptObject *sceneObject)
 {
-    auto ctx = asGetActiveContext();
-    auto psc = static_cast<ScriptScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
+    const auto ctx = asGetActiveContext();
+    const auto psc = static_cast<ScriptScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
         ScriptSceneWarnOutOf("Scene Class", ctx);
         return;
@@ -313,7 +314,7 @@ void ScriptSceneAddScene(asIScriptObject *sceneObject)
 
 void ScriptSceneAddSprite(SSprite * sprite)
 {
-    auto ctx = asGetActiveContext();
+    const auto ctx = asGetActiveContext();
     auto psc = static_cast<ScriptCoroutineScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
         ScriptSceneWarnOutOf("Scene Class", ctx);
@@ -324,7 +325,7 @@ void ScriptSceneAddSprite(SSprite * sprite)
 
 void ScriptSceneRunCoroutine(asIScriptFunction *cofunc, const string &name)
 {
-    auto ctx = asGetActiveContext();
+    const auto ctx = asGetActiveContext();
     auto psc = static_cast<ScriptCoroutineScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
         ScriptSceneWarnOutOf("Scene Class", ctx);
@@ -332,42 +333,42 @@ void ScriptSceneRunCoroutine(asIScriptFunction *cofunc, const string &name)
     }
     if (!cofunc || cofunc->GetFuncType() != asFUNC_DELEGATE) return;
     auto *c = new Coroutine;
-    c->name = name;
-    c->function = cofunc->GetDelegateFunction();
-    c->function->AddRef();
-    c->object = cofunc->GetDelegateObject();
-    c->type = cofunc->GetDelegateObjectType();
-    c->wait.Type = WaitType::Time;
-    c->wait.time = 0;
+    c->Name = name;
+    c->Function = cofunc->GetDelegateFunction();
+    c->Function->AddRef();
+    c->Object = cofunc->GetDelegateObject();
+    c->Type = cofunc->GetDelegateObjectType();
+    c->Wait.Type = WaitType::Time;
+    c->Wait.time = 0;
     psc->AddCoroutine(c);
 }
 
 void ScriptSceneKillCoroutine(const std::string &name)
 {
-    auto ctx = asGetActiveContext();
+    const auto ctx = asGetActiveContext();
     auto psc = static_cast<ScriptCoroutineScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
         ScriptSceneWarnOutOf("Scene Class", ctx);
         return;
     }
-    if (name == "") {
+    if (name.empty()) {
         for (auto& i : psc->coroutines) {
-            auto e = i->context->GetEngine();
-            i->context->Release();
-            i->function->Release();
-            e->ReleaseScriptObject(i->object, i->type);
+            auto e = i->Context->GetEngine();
+            i->Context->Release();
+            i->Function->Release();
+            e->ReleaseScriptObject(i->Object, i->Type);
             delete i;
         }
         psc->coroutines.clear();
     } else {
         auto i = psc->coroutines.begin();
         while (i != psc->coroutines.end()) {
-            auto c = *i;
-            if (c->name == name) {
-                auto e = c->context->GetEngine();
-                c->context->Release();
-                c->function->Release();
-                e->ReleaseScriptObject(c->object, c->type);
+            const auto c = *i;
+            if (c->Name == name) {
+                auto e = c->Context->GetEngine();
+                c->Context->Release();
+                c->Function->Release();
+                e->ReleaseScriptObject(c->Object, c->Type);
                 delete c;
                 i = psc->coroutines.erase(i);
             } else {
@@ -379,7 +380,7 @@ void ScriptSceneKillCoroutine(const std::string &name)
 
 void ScriptSceneDisappear()
 {
-    auto ctx = asGetActiveContext();
+    const auto ctx = asGetActiveContext();
     auto psc = static_cast<ScriptCoroutineScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
         ScriptSceneWarnOutOf("Scene Class", ctx);

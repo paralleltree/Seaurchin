@@ -144,8 +144,8 @@ std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const st
 {
     auto result = make_unique<SpriteMoverObject>();
     // MoverFunction‚ðŒˆ’è
-    if (MoverFunction::Actions.find(func) != MoverFunction::Actions.end()) {
-        result->Function = MoverFunction::Actions[func];
+    if (MoverFunction::actions.find(func) != MoverFunction::actions.end()) {
+        result->Function = MoverFunction::actions[func];
     } else {
         // TODO: ƒJƒXƒ^ƒ€Mover‚É‘Î‰ž
         auto custom = Target->GetCustomAction(func);
@@ -174,7 +174,7 @@ std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const st
                 result->Argument.Wait = ToDouble(get<1>(prop).c_str());
                 break;
             case "ease"_crc32:
-                result->Argument.Ease = Easing::Easings[get<1>(prop)];
+                result->Argument.Ease = Easing::easings[get<1>(prop)];
                 break;
         }
     }
