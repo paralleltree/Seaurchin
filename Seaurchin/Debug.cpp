@@ -22,6 +22,7 @@ void Logger::Initialize()
     register_logger(loggerMain);
 }
 
+// ReSharper disable once CppMemberFunctionMayBeStatic
 void Logger::Terminate() const
 {
     spdlog::drop_all();

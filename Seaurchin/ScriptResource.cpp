@@ -411,7 +411,7 @@ SSound * SSound::CreateSoundFromFile(SoundManager *smanager, const std::string &
 
 // SSettingItem --------------------------------------------
 
-SSettingItem::SSettingItem(const shared_ptr<Setting2::SettingItem> s) : setting(s)
+SSettingItem::SSettingItem(const shared_ptr<setting2::SettingItem> s) : setting(s)
 {
 
 }

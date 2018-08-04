@@ -18,7 +18,7 @@ class ExecutionManager final {
 
 private:
     std::shared_ptr<Setting> sharedSetting;
-    std::unique_ptr<Setting2::SettingItemManager> settingManager;
+    std::unique_ptr<setting2::SettingItemManager> settingManager;
     std::shared_ptr<AngelScript> scriptInterface;
     std::vector<std::shared_ptr<Scene>> scenes;
     std::vector<std::shared_ptr<Scene>> scenesPending;

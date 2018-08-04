@@ -36,7 +36,7 @@ public:
     }
 };
 
-namespace Setting2
+namespace setting2
 {
 
 enum class SettingItemType {

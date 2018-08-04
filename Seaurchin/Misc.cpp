@@ -67,8 +67,9 @@ double ConvertFloat(const string &input)
 
 bool ConvertBoolean(const string &input)
 {
+    const auto toLower = [](const char c) { return char(tolower(c)); };
     auto test = input;
-    transform(test.cbegin(), test.cend(), test.begin(), tolower);
+    transform(test.cbegin(), test.cend(), test.begin(), toLower);
     return
         input == "1"
         || input == "true"

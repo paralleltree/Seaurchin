@@ -54,7 +54,7 @@ void Setting::Save() const
     ofs.close();
 }
 
-namespace Setting2
+namespace setting2
 {
 
 // SettingItemManager
@@ -80,7 +80,7 @@ void SettingItemManager::LoadItemsFromToml(const path& file)
         return;
     }
     auto &root = pr.value;
-    auto items = root.find("SettingItems");
+    const auto items = root.find("SettingItems");
     if (!items || !items->is<toml::Array>()) {
         log->warn(u8"İ’è’è‹` {0} ‚Éİ’è€–Ú‚ª‚ ‚è‚Ü‚¹‚ñ", ConvertUnicodeToUTF8(file.wstring()));
         return;

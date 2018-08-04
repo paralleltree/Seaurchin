@@ -18,7 +18,7 @@ ExecutionManager::ExecutionManager(const shared_ptr<Setting> setting)
     random_device seed;
 
     sharedSetting = setting;
-    settingManager = make_unique<Setting2::SettingItemManager>(sharedSetting);
+    settingManager = make_unique<setting2::SettingItemManager>(sharedSetting);
     scriptInterface = make_shared<AngelScript>();
     sound = make_shared<SoundManager>();
     random = make_shared<mt19937>(seed());
@@ -226,7 +226,7 @@ void ExecutionManager::ExecuteSystemMenu()
     //エントリポイント検索
     const int cnt = mod->GetObjectTypeCount();
     asITypeInfo *type = nullptr;
-    for (int i = 0; i < cnt; i++) {
+    for (auto i = 0; i < cnt; i++) {
         const auto cti = mod->GetObjectTypeByIndex(i);
         if (!scriptInterface->CheckMetaData(cti, "EntryPoint")) continue;
         type = cti;
@@ -323,7 +323,7 @@ shared_ptr<ScriptScene> ExecutionManager::CreateSceneFromScriptObject(asIScriptO
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
-std::tuple<bool, LRESULT> ExecutionManager::CustomWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) const
+std::tuple<bool, LRESULT> ExecutionManager::CustomWindowProc(const HWND hWnd, const UINT msg, const WPARAM wParam, const LPARAM lParam) const
 {
     ostringstream buffer;
     switch (msg) {
