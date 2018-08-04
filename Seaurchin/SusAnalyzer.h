@@ -67,7 +67,7 @@ struct SusHispeedData {
         Invisible,
         Visible,
     };
-    const static double KeepSpeed;
+    const static double keepSpeed;
 
     Visibility VisibilityState = Visibility::Visible;
     double Speed = 1.0;
@@ -77,11 +77,11 @@ struct SusHispeedData {
 class SusHispeedTimeline final {
 private:
     std::vector<std::pair<SusRelativeNoteTime, SusHispeedData>> keys;
-    std::vector<std::tuple<double, double, SusHispeedData>> Data;
-    std::function<double(uint32_t, uint32_t)> RelToAbs;
+    std::vector<std::tuple<double, double, SusHispeedData>> data;
+    std::function<double(uint32_t, uint32_t)> relToAbs;
 
 public:
-    SusHispeedTimeline(std::function<double(uint32_t, uint32_t)> func);
+    SusHispeedTimeline(const std::function<double(uint32_t, uint32_t)>& func);
     void AddKeysByString(const std::string &def, const std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)>&
                          resolver);
     void AddKeyByData(uint32_t meas, uint32_t tick, double hs);
@@ -145,7 +145,6 @@ struct SusMetaData {
     }
 };
 
-
 struct SusRawNoteData {
     std::bitset<32> Type;
     std::shared_ptr<SusHispeedTimeline> Timeline;
@@ -165,17 +164,17 @@ struct SusDrawableNoteData {
     std::bitset<8> OnTheFlyData;
     std::shared_ptr<SusHispeedTimeline> Timeline;
     std::shared_ptr<SusNoteExtraAttribute> ExtraAttribute;
-    uint8_t StartLane;
-    uint8_t Length;
+    uint8_t StartLane = 0;
+    uint8_t Length = 0;
 
     //実描画位置
-    double ModifiedPosition;
-    double StartTimeEx;
-    double DurationEx;
+    double ModifiedPosition = 0;
+    double StartTimeEx = 0;
+    double DurationEx = 0;
     //描画"始める"時刻
-    double StartTime;
+    double StartTime = 0;
     //描画が"続く"時刻
-    double Duration;
+    double Duration = 0;
     //スライド・AA用制御データ
     std::vector<std::shared_ptr<SusDrawableNoteData>> ExtraData;
 
@@ -186,50 +185,50 @@ struct SusDrawableNoteData {
 using DrawableNotesList = std::vector<std::shared_ptr<SusDrawableNoteData>>;
 using NoteCurvesList = std::unordered_map<std::shared_ptr<SusDrawableNoteData>, std::vector<std::tuple<double, double>>>;
 
-//BMS派生フォーマットことSUS(SeaUrchinScore)の解析
+// BMS派生フォーマットことSUS(SeaUrchinScore)の解析
 class SusAnalyzer final {
 private:
     static boost::xpressive::sregex regexSusCommand;
     static boost::xpressive::sregex regexSusData;
 
-    double DefaultBeats = 4.0;
-    double DefaultBpm = 120.0;
-    uint32_t DefaultHispeedNumber = std::numeric_limits<uint32_t>::max();
-    uint32_t DefaultExtraAttributeNumber = std::numeric_limits<uint32_t>::max();
-    uint32_t TicksPerBeat;
-    double LongInjectionPerBeat;
-    std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)> TimelineResolver = nullptr;
-    std::vector<std::function<void(std::string, std::string)>> ErrorCallbacks;
-    std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> Notes;
-    std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> BpmChanges;
-    std::unordered_map<uint32_t, double> BpmDefinitions;
-	std::unordered_map<uint32_t, float> BeatsDefinitions;
-    std::unordered_map<uint32_t, std::shared_ptr<SusHispeedTimeline>> HispeedDefinitions;
-    std::shared_ptr<SusHispeedTimeline> HispeedToApply, HispeedToMeasure;
-    std::unordered_map<uint32_t, std::shared_ptr<SusNoteExtraAttribute>> ExtraAttributes;
-    std::shared_ptr<SusNoteExtraAttribute> ExtraAttributeToApply;
+    double defaultBeats = 4.0;
+    double defaultBpm = 120.0;
+    uint32_t defaultHispeedNumber = std::numeric_limits<uint32_t>::max();
+    uint32_t defaultExtraAttributeNumber = std::numeric_limits<uint32_t>::max();
+    uint32_t ticksPerBeat;
+    double longInjectionPerBeat;
+    std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)> timelineResolver = nullptr;
+    std::vector<std::function<void(std::string, std::string)>> errorCallbacks;
+    std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> notes;
+    std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> bpmChanges;
+    std::unordered_map<uint32_t, double> bpmDefinitions;
+	std::unordered_map<uint32_t, float> beatsDefinitions;
+    std::unordered_map<uint32_t, std::shared_ptr<SusHispeedTimeline>> hispeedDefinitions;
+    std::shared_ptr<SusHispeedTimeline> hispeedToApply, hispeedToMeasure;
+    std::unordered_map<uint32_t, std::shared_ptr<SusNoteExtraAttribute>> extraAttributes;
+    std::shared_ptr<SusNoteExtraAttribute> extraAttributeToApply;
 
     void ProcessCommand(const boost::xpressive::smatch &result, bool onlyMeta, uint32_t line);
     void ProcessRequest(const std::string &cmd, uint32_t line);
     void ProcessData(const boost::xpressive::smatch &result, uint32_t line);
     void MakeMessage(uint32_t line, const std::string &message);
     void MakeMessage(uint32_t meas, uint32_t tick, uint32_t lane, const std::string &message);
-    void CalculateCurves(std::shared_ptr<SusDrawableNoteData> note, NoteCurvesList &curveData) const;
+    void CalculateCurves(const std::shared_ptr<SusDrawableNoteData>& note, NoteCurvesList &curveData) const;
 
 public:
     SusMetaData SharedMetaData;
     std::vector<std::tuple<double, double>> SharedBpmChanges;
 
-    SusAnalyzer(uint32_t tpb);
+    explicit SusAnalyzer(uint32_t tpb);
     ~SusAnalyzer();
 
     void Reset();
-    void SetMessageCallBack(std::function<void(std::string, std::string)> func);
+    void SetMessageCallBack(const std::function<void(std::string, std::string)>& func);
     void LoadFromFile(const std::wstring &fileName, bool analyzeOnlyMetaData = false);
     void RenderScoreData(DrawableNotesList &data, NoteCurvesList &curveData);
     float GetBeatsAt(uint32_t measure);
     double GetBpmAt(uint32_t measure, uint32_t tick);
-    double GetAbsoluteTime(uint32_t measure, uint32_t tick);
+    double GetAbsoluteTime(uint32_t meas, uint32_t tick);
     std::tuple<uint32_t, uint32_t> GetRelativeTime(double time);
     uint32_t GetRelativeTicks(uint32_t measure, uint32_t tick);
 };

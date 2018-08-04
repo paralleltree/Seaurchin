@@ -5,7 +5,7 @@ using namespace boost::algorithm;
 using namespace boost::filesystem;
 
 // SoundSample ------------------------
-SoundSample::SoundSample(HSAMPLE sample)
+SoundSample::SoundSample(const HSAMPLE sample)
 {
     Type = SoundType::Sample;
     hSample = sample;
@@ -27,7 +27,7 @@ void SoundSample::StopSound()
     BASS_SampleStop(hSample);
 }
 
-void SoundSample::SetVolume(float vol)
+void SoundSample::SetVolume(const float vol)
 {
     BASS_SAMPLE si = { 0 };
     BASS_SampleGetInfo(hSample, &si);
@@ -35,14 +35,14 @@ void SoundSample::SetVolume(float vol)
     BASS_SampleSetInfo(hSample, &si);
 }
 
-SoundSample *SoundSample::CreateFromFile(const wstring &fileNameW, int maxChannels)
+SoundSample *SoundSample::CreateFromFile(const wstring &fileNameW, const int maxChannels)
 {
     const auto handle = BASS_SampleLoad(FALSE, fileNameW.c_str(), 0, 0, maxChannels, BASS_SAMPLE_OVER_POS | BASS_UNICODE);
     const auto result = new SoundSample(handle);
     return result;
 }
 
-void SoundSample::SetLoop(bool looping) const
+void SoundSample::SetLoop(const bool looping) const
 {
     BASS_SAMPLE info;
     BASS_SampleGetInfo(hSample, &info);
@@ -55,7 +55,7 @@ void SoundSample::SetLoop(bool looping) const
 }
 
 // SoundStream ------------------------
-SoundStream::SoundStream(HSTREAM stream)
+SoundStream::SoundStream(const HSTREAM stream)
 {
     Type = SoundType::Stream;
     hStream = stream;
@@ -77,7 +77,7 @@ void SoundStream::StopSound()
     BASS_ChannelStop(hStream);
 }
 
-void SoundStream::SetVolume(float vol)
+void SoundStream::SetVolume(const float vol)
 {
     BASS_ChannelSetAttribute(hStream, BASS_ATTRIB_VOL, clamp(vol, 0.0f, 1.0f));
 }
@@ -92,7 +92,7 @@ void SoundStream::Resume() const
     BASS_ChannelPlay(hStream, FALSE);
 }
 
-SoundStream *SoundStream::CreateFromFile(const wstring & fileNameW)
+SoundStream *SoundStream::CreateFromFile(const wstring &fileNameW)
 {
     const auto handle = BASS_StreamCreateFile(FALSE, fileNameW.c_str(), 0, 0, BASS_UNICODE);
     const auto result = new SoundStream(handle);
@@ -105,14 +105,14 @@ double SoundStream::GetPlayingPosition() const
     return BASS_ChannelBytes2Seconds(hStream, pos);
 }
 
-void SoundStream::SetPlayingPosition(double pos) const
+void SoundStream::SetPlayingPosition(const double pos) const
 {
     const auto bp = BASS_ChannelSeconds2Bytes(hStream, pos);
     BASS_ChannelSetPosition(hStream, bp, BASS_POS_BYTE);
 }
 
 // SoundMixerStream ------------------------
-SoundMixerStream::SoundMixerStream(int ch, int freq)
+SoundMixerStream::SoundMixerStream(const int ch, const int freq)
 {
     hMixerStream = BASS_Mixer_StreamCreate(freq, ch, 0);
 }
@@ -120,7 +120,7 @@ SoundMixerStream::SoundMixerStream(int ch, int freq)
 SoundMixerStream::~SoundMixerStream()
 {
     if (hMixerStream) {
-        for (auto &ch : PlayingSounds) BASS_Mixer_ChannelRemove(ch);
+        for (auto &ch : playingSounds) BASS_Mixer_ChannelRemove(ch);
         BASS_StreamFree(hMixerStream);
         hMixerStream = 0;
     }
@@ -130,22 +130,22 @@ void SoundMixerStream::Update()
 {
     if (!hMixerStream) return;
 
-    auto snd = PlayingSounds.begin();
-    while (snd != PlayingSounds.end()) {
+    auto snd = playingSounds.begin();
+    while (snd != playingSounds.end()) {
         const auto state = BASS_ChannelIsActive(*snd);
         if (state != BASS_ACTIVE_STOPPED) {
             ++snd;
             continue;
         }
         BASS_Mixer_ChannelRemove(*snd);
-        snd = PlayingSounds.erase(snd);
+        snd = playingSounds.erase(snd);
     }
 }
 
 void SoundMixerStream::Play(Sound * sound)
 {
     auto ch = sound->GetSoundHandle();
-    PlayingSounds.emplace(ch);
+    playingSounds.emplace(ch);
     BASS_Mixer_StreamAddChannel(hMixerStream, ch, 0);
     BASS_ChannelPlay(ch, FALSE);
 }
@@ -156,7 +156,7 @@ void SoundMixerStream::Stop(Sound *sound)
     //ƒ`ƒƒƒ“ƒlƒ‹íœ‚ÍUpdate‚É”C‚¹‚é
 }
 
-void SoundMixerStream::SetVolume(float vol) const
+void SoundMixerStream::SetVolume(const float vol) const
 {
     BASS_ChannelSetAttribute(hMixerStream, BASS_ATTRIB_VOL, vol);
 }
@@ -166,7 +166,7 @@ SoundManager::SoundManager()
 {
     auto log = spdlog::get("main");
     //‚æ‚ë‚µ‚­‚È‚¢
-    if (!BASS_Init(-1, 44100, 0, GetMainWindowHandle(), NULL)) {
+    if (!BASS_Init(-1, 44100, 0, GetMainWindowHandle(), nullptr)) {
         log->critical(u8"BASS Library‚Ì‰Šú‰»‚ÉŽ¸”s‚µ‚Ü‚µ‚½");
         abort();
     }
@@ -183,12 +183,12 @@ SoundMixerStream *SoundManager::CreateMixerStream()
     return new SoundMixerStream(2, 44100);
 }
 
-void SoundManager::PlayGlobal(Sound * sound)
+void SoundManager::PlayGlobal(Sound *sound)
 {
     BASS_ChannelPlay(sound->GetSoundHandle(), FALSE);
 }
 
-void SoundManager::StopGlobal(Sound * sound)
+void SoundManager::StopGlobal(Sound *sound)
 {
     sound->StopSound();
 }

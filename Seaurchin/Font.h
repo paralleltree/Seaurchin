@@ -57,17 +57,17 @@ struct Sif2CreatorOption {
 
 class Sif2Creator final {
 private:
-    const uint16_t Sif2Magic = 0xA45F;
+    const uint16_t sif2Magic = 0xA45F;
 
-    FT_Library freetype{};
-    FT_Error error{};
-    FT_Face face{};
+    FT_Library freetype = nullptr;
+    FT_Error error = 0;
+    FT_Face face = nullptr;
 
     uint8_t *faceMemory = nullptr;
     size_t faceMemorySize = 0;
 
     RectPacker packer;
-    std::ofstream sif2stream;
+    std::ofstream sif2Stream;
 
     uint8_t *bitmapMemory = nullptr;
     uint16_t bitmapWidth = 0;
@@ -77,16 +77,16 @@ private:
     uint32_t writtenGlyphs = 0;
     float currentSize = 0.0f;
 
-    void InitializeFace(std::string fontpath);
+    void InitializeFace(const std::string& fontpath);
     void FinalizeFace();
-    void RequestFace(float size);
+    void RequestFace(float size) const;
 
-    void OpenSif2(boost::filesystem::path sif2path);
+    void OpenSif2(boost::filesystem::path sif2Path);
     void PackImageSif2();
     void CloseSif2();
 
     void NewBitmap(uint16_t width, uint16_t height);
-    void SaveBitmapCache(boost::filesystem::path cachepath);
+    void SaveBitmapCache(boost::filesystem::path cachepath) const;
 
     bool RenderGlyph(uint32_t cp);
 

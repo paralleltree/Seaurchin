@@ -8,7 +8,7 @@ using namespace crc32_constexpr;
 
 void RegisterScriptSprite(ExecutionManager *exm)
 {
-    auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
+    const auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
 
     SSprite::RegisterType(engine);
     SShape::RegisterType(engine);
@@ -36,7 +36,7 @@ void SSprite::SetImage(SImage * img)
     Image = img;
 }
 
-const SImage *SSprite::GetImage()
+const SImage *SSprite::GetImage() const
 {
     if (Image) Image->AddRef();
     return Image;
@@ -44,14 +44,14 @@ const SImage *SSprite::GetImage()
 
 SSprite::SSprite()
 {
-    //ZIndex = 0;
+    // ZIndex = 0;
     Color = Colors::White;
     mover = new ScriptSpriteMover2(this);
 }
 
 SSprite::~SSprite()
 {
-    //WriteDebugConsole("Destructing ScriptSprite\n");
+    // WriteDebugConsole("Destructing ScriptSprite\n");
     if (Image) Image->Release();
     Image = nullptr;
     delete mover;
@@ -72,40 +72,41 @@ MoverFunction::Action SSprite::GetCustomAction(const string & name)
     return nullptr;
 }
 
-void SSprite::AddMove(const string & move)
+void SSprite::AddMove(const string & move) const
 {
     mover->AddMove(move);
 }
 
-void SSprite::AbortMove(bool terminate)
+void SSprite::AbortMove(const bool terminate) const
 {
     mover->Abort(terminate);
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
 void SSprite::Apply(const string & dict)
 {
     mover->Apply(dict);
 }
 
-void SSprite::Apply(const CScriptDictionary & dict)
+void SSprite::Apply(const CScriptDictionary &dict)
 {
     using namespace crc32_constexpr;
     ostringstream aps;
 
     auto i = dict.begin();
     while (i != dict.end()) {
-        auto key = i.GetKey();
+        const auto key = i.GetKey();
         aps << key << ":";
         double dv = 0;
         i.GetValue(dv);
         aps << dv << ", ";
-        i++;
+        ++i;
     }
 
     Apply(aps.str());
 }
 
-void SSprite::Tick(double delta)
+void SSprite::Tick(const double delta)
 {
     mover->Tick(delta);
 }
@@ -117,8 +118,8 @@ void SSprite::Draw()
 
 void SSprite::Draw(const Transform2D &parent, const ColorTint &color)
 {
-    auto tf = Transform.ApplyFrom(parent);
-    auto cl = Color.ApplyFrom(color);
+    const auto tf = Transform.ApplyFrom(parent);
+    const auto cl = Color.ApplyFrom(color);
     DrawBy(tf, cl);
 }
 
@@ -148,7 +149,7 @@ SSprite * SSprite::Clone()
     return clone;
 }
 
-SSprite * SSprite::Factory()
+SSprite *SSprite::Factory()
 {
     auto result = new SSprite();
     result->AddRef();
@@ -163,7 +164,7 @@ SSprite * SSprite::Factory(SImage * img)
     return result;
 }
 
-ColorTint GetColor(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+ColorTint GetColor(const uint8_t r, const uint8_t g, const uint8_t b, const uint8_t a)
 {
     return ColorTint { a, r, g, b };
 }
@@ -193,19 +194,19 @@ void SSprite::RegisterType(asIScriptEngine * engine)
 
     //ShapeType
     engine->RegisterEnum(SU_IF_SHAPETYPE);
-    engine->RegisterEnumValue(SU_IF_SHAPETYPE, "Pixel", SShapeType::Pixel);
-    engine->RegisterEnumValue(SU_IF_SHAPETYPE, "Box", SShapeType::Box);
-    engine->RegisterEnumValue(SU_IF_SHAPETYPE, "BoxFill", SShapeType::BoxFill);
-    engine->RegisterEnumValue(SU_IF_SHAPETYPE, "Oval", SShapeType::Oval);
-    engine->RegisterEnumValue(SU_IF_SHAPETYPE, "OvalFill", SShapeType::OvalFill);
+    engine->RegisterEnumValue(SU_IF_SHAPETYPE, "Pixel", int(SShapeType::Pixel));
+    engine->RegisterEnumValue(SU_IF_SHAPETYPE, "Box", int(SShapeType::Box));
+    engine->RegisterEnumValue(SU_IF_SHAPETYPE, "BoxFill", int(SShapeType::BoxFill));
+    engine->RegisterEnumValue(SU_IF_SHAPETYPE, "Oval", int(SShapeType::Oval));
+    engine->RegisterEnumValue(SU_IF_SHAPETYPE, "OvalFill", int(SShapeType::OvalFill));
 
     //ShapeType
     engine->RegisterEnum(SU_IF_TEXTALIGN);
-    engine->RegisterEnumValue(SU_IF_TEXTALIGN, "Top", (int)STextAlign::Top);
-    engine->RegisterEnumValue(SU_IF_TEXTALIGN, "Bottom", (int)STextAlign::Bottom);
-    engine->RegisterEnumValue(SU_IF_TEXTALIGN, "Left", (int)STextAlign::Left);
-    engine->RegisterEnumValue(SU_IF_TEXTALIGN, "Right", (int)STextAlign::Right);
-    engine->RegisterEnumValue(SU_IF_TEXTALIGN, "Center", (int)STextAlign::Center);
+    engine->RegisterEnumValue(SU_IF_TEXTALIGN, "Top", int(STextAlign::Top));
+    engine->RegisterEnumValue(SU_IF_TEXTALIGN, "Bottom", int(STextAlign::Bottom));
+    engine->RegisterEnumValue(SU_IF_TEXTALIGN, "Left", int(STextAlign::Left));
+    engine->RegisterEnumValue(SU_IF_TEXTALIGN, "Right", int(STextAlign::Right));
+    engine->RegisterEnumValue(SU_IF_TEXTALIGN, "Center", int(STextAlign::Center));
 
     RegisterSpriteBasic<SSprite>(engine, SU_IF_SPRITE);
     engine->RegisterObjectBehaviour(SU_IF_SPRITE, asBEHAVE_FACTORY, SU_IF_SPRITE "@ f()", asFUNCTIONPR(SSprite::Factory, (), SSprite*), asCALL_CDECL);
@@ -254,10 +255,10 @@ void SShape::Draw()
     DrawBy(Transform, Color);
 }
 
-void SShape::Draw(const Transform2D & parent, const ColorTint & color)
+void SShape::Draw(const Transform2D &parent, const ColorTint &color)
 {
-    auto tf = Transform.ApplyFrom(parent);
-    auto cl = Color.ApplyFrom(color);
+    const auto tf = Transform.ApplyFrom(parent);
+    const auto cl = Color.ApplyFrom(color);
     DrawBy(tf, cl);
 }
 
@@ -284,15 +285,15 @@ void SShape::RegisterType(asIScriptEngine * engine)
 void STextSprite::Refresh()
 {
     if (!Font) return;
-    if (target) delete target;
-    if (scrollBuffer) delete scrollBuffer;
-    
+    delete target;
+    delete scrollBuffer;
+
     size = isRich ? Font->RenderRich(nullptr, Text, Color) : Font->RenderRaw(nullptr, Text);
     if (isScrolling) {
-        scrollBuffer = new SRenderTarget(scrollWidth, (int)get<1>(size));
+        scrollBuffer = new SRenderTarget(scrollWidth, int(get<1>(size)));
     }
-    
-    target = new SRenderTarget((int)get<0>(size), (int)get<1>(size));
+
+    target = new SRenderTarget(int(get<0>(size)), int(get<1>(size)));
     if (isRich) {
         Font->RenderRich(target, Text, Color);
     } else {
@@ -309,8 +310,8 @@ void STextSprite::DrawNormal(const Transform2D &tf, const ColorTint &ct)
     } else {
         SetDrawBright(ct.R, ct.G, ct.B);
     }
-    double tox = get<0>(size) / 2 * (int)horizontalAlignment;
-    double toy = get<1>(size) / 2 * (int)verticalAlignment;
+    const auto tox = get<0>(size) / 2 * int(horizontalAlignment);
+    const auto toy = get<1>(size) / 2 * int(verticalAlignment);
     DrawRotaGraph3F(
         tf.X, tf.Y,
         tf.OriginX + tox, tf.OriginY + toy,
@@ -320,13 +321,13 @@ void STextSprite::DrawNormal(const Transform2D &tf, const ColorTint &ct)
 
 void STextSprite::DrawScroll(const Transform2D &tf, const ColorTint &ct)
 {
-    int pds = GetDrawScreen();
+    const auto pds = GetDrawScreen();
     SetDrawScreen(scrollBuffer->GetHandle());
     SetDrawBright(255, 255, 255);
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
     ClearDrawScreen();
     if (scrollSpeed >= 0) {
-        double reach = -scrollPosition + (int)(scrollPosition / (get<0>(size) + scrollMargin)) * (get<0>(size) + scrollMargin);
+        auto reach = -scrollPosition + int(scrollPosition / (get<0>(size) + scrollMargin)) * (get<0>(size) + scrollMargin);
         while (reach < scrollWidth) {
             DrawRectGraphF(
                 reach, 0,
@@ -335,7 +336,7 @@ void STextSprite::DrawScroll(const Transform2D &tf, const ColorTint &ct)
             reach += get<0>(size) + scrollMargin;
         }
     } else {
-        double reach = -scrollPosition - (int)(scrollPosition / (get<0>(size) + scrollMargin)) * (get<0>(size) + scrollMargin);
+        auto reach = -scrollPosition - int(scrollPosition / (get<0>(size) + scrollMargin)) * (get<0>(size) + scrollMargin);
         while (reach > 0) {
             DrawRectGraphF(
                 reach, 0,
@@ -353,8 +354,8 @@ void STextSprite::DrawScroll(const Transform2D &tf, const ColorTint &ct)
     }
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, ct.A);
     SetDrawMode(DX_DRAWMODE_ANISOTROPIC);
-    double tox = scrollWidth / 2 * (int)horizontalAlignment;
-    double toy = get<1>(size) / 2 * (int)verticalAlignment;
+    const double tox = scrollWidth / 2 * int(horizontalAlignment);
+    const auto toy = get<1>(size) / 2 * int(verticalAlignment);
     DrawRotaGraph3F(
         tf.X, tf.Y,
         tf.OriginX + tox, tf.OriginY + toy,
@@ -375,13 +376,13 @@ void STextSprite::SetText(const string & txt)
     Refresh();
 }
 
-void STextSprite::SetAlignment(STextAlign hori, STextAlign vert)
+void STextSprite::SetAlignment(const STextAlign hori, const STextAlign vert)
 {
     horizontalAlignment = hori;
     verticalAlignment = vert;
 }
 
-void STextSprite::SetRangeScroll(int width, int margin, double pps)
+void STextSprite::SetRangeScroll(const int width, const int margin, const double pps)
 {
     isScrolling = width > 0;
     scrollWidth = width;
@@ -391,7 +392,7 @@ void STextSprite::SetRangeScroll(int width, int margin, double pps)
     Refresh();
 }
 
-void STextSprite::SetRich(bool enabled)
+void STextSprite::SetRich(const bool enabled)
 {
     isRich = enabled;
     Refresh();
@@ -400,11 +401,11 @@ void STextSprite::SetRich(bool enabled)
 STextSprite::~STextSprite()
 {
     if (Font) Font->Release();
-    if (target) delete target;
-    if (scrollBuffer) delete scrollBuffer;
+    delete target;
+    delete scrollBuffer;
 }
 
-void STextSprite::Tick(double delta)
+void STextSprite::Tick(const double delta)
 {
     SSprite::Tick(delta);
     if (isScrolling) scrollPosition += scrollSpeed * delta;
@@ -422,8 +423,8 @@ void STextSprite::Draw()
 
 void STextSprite::Draw(const Transform2D & parent, const ColorTint & color)
 {
-    auto tf = Transform.ApplyFrom(parent);
-    auto cl = Color.ApplyFrom(color);
+    const auto tf = Transform.ApplyFrom(parent);
+    const auto cl = Color.ApplyFrom(color);
     if (!target) return;
     if (isScrolling && target->GetWidth() >= scrollWidth) {
         DrawScroll(tf, cl);
@@ -455,7 +456,7 @@ STextSprite *STextSprite::Factory()
     return result;
 }
 
-STextSprite *STextSprite::Factory(SFont * img, const string & str)
+STextSprite *STextSprite::Factory(SFont *img, const string &str)
 {
     auto result = new STextSprite();
     result->SetFont(img);
@@ -464,7 +465,7 @@ STextSprite *STextSprite::Factory(SFont * img, const string & str)
     return result;
 }
 
-void STextSprite::RegisterType(asIScriptEngine * engine)
+void STextSprite::RegisterType(asIScriptEngine *engine)
 {
     RegisterSpriteBasic<STextSprite>(engine, SU_IF_TXTSPRITE);
     engine->RegisterObjectBehaviour(SU_IF_TXTSPRITE, asBEHAVE_FACTORY, SU_IF_TXTSPRITE "@ f()", asFUNCTIONPR(STextSprite::Factory, (), STextSprite*), asCALL_CDECL);
@@ -492,25 +493,22 @@ STextInput::~STextInput()
     if (inputHandle) DeleteKeyInput(inputHandle);
 }
 
-void STextInput::SetFont(SFont * font)
+void STextInput::SetFont(SFont *sfont)
 {
     if (font) font->Release();
-    font = font;
+    font = sfont;
 }
 
-void STextInput::Activate()
+void STextInput::Activate() const
 {
     SetActiveKeyInput(inputHandle);
 }
 
 void STextInput::Draw()
 {
-    int wcc = MultiByteToWideChar(CP_OEMCP, 0, currentRawString.c_str(), 1024, nullptr, 0);
-    wchar_t *widestr = new wchar_t[wcc];
+    const auto wcc = MultiByteToWideChar(CP_OEMCP, 0, currentRawString.c_str(), 1024, nullptr, 0);
+    const auto widestr = new wchar_t[wcc];
     MultiByteToWideChar(CP_OEMCP, 0, currentRawString.c_str(), 1024, widestr, 0);
-    for (int i = 0; i < wcc; i++) {
-
-    }
     delete[] widestr;
 }
 
@@ -531,22 +529,23 @@ void STextInput::Tick(double delta)
     }
 }
 
-std::string STextInput::GetUTF8String()
+// ReSharper disable once CppMemberFunctionMayBeStatic
+std::string STextInput::GetUTF8String() const
 {
     return std::string();
 }
 
-STextInput * STextInput::Factory()
+STextInput *STextInput::Factory()
 {
     return nullptr;
 }
 
-STextInput * STextInput::Factory(SFont * img)
+STextInput *STextInput::Factory(SFont *img)
 {
     return nullptr;
 }
 
-void STextInput::RegisterType(asIScriptEngine * engine)
+void STextInput::RegisterType(asIScriptEngine *engine)
 {}
 
 
@@ -565,7 +564,7 @@ void SSynthSprite::DrawBy(const Transform2D & tf, const ColorTint & ct)
         HasAlpha ? TRUE : FALSE, FALSE);
 }
 
-SSynthSprite::SSynthSprite(int w, int h)
+SSynthSprite::SSynthSprite(const int w, const int h)
 {
     width = w;
     height = h;
@@ -573,12 +572,12 @@ SSynthSprite::SSynthSprite(int w, int h)
 
 SSynthSprite::~SSynthSprite()
 {
-    if (target) delete target;
+    delete target;
 }
 
 void SSynthSprite::Clear()
 {
-    if (target) delete target;
+    delete target;
     target = new SRenderTarget(width, height);
 }
 
@@ -591,7 +590,7 @@ void SSynthSprite::Transfer(SSprite *sprite)
     sprite->Release();
 }
 
-void SSynthSprite::Transfer(SImage * image, double x, double y)
+void SSynthSprite::Transfer(SImage * image, const double x, const double y)
 {
     if (!image) return;
     BEGIN_DRAW_TRANSACTION(target->GetHandle());
@@ -609,8 +608,8 @@ void SSynthSprite::Draw()
 
 void SSynthSprite::Draw(const Transform2D & parent, const ColorTint & color)
 {
-    auto tf = Transform.ApplyFrom(parent);
-    auto cl = Color.ApplyFrom(color);
+    const auto tf = Transform.ApplyFrom(parent);
+    const auto cl = Color.ApplyFrom(color);
     DrawBy(tf, cl);
 }
 
@@ -625,7 +624,7 @@ SSynthSprite* SSynthSprite::Clone()
     return clone;
 }
 
-SSynthSprite *SSynthSprite::Factory(int w, int h)
+SSynthSprite *SSynthSprite::Factory(const int w, const int h)
 {
     auto result = new SSynthSprite(w, h);
     result->Clear();
@@ -651,7 +650,10 @@ void SSynthSprite::RegisterType(asIScriptEngine * engine)
 void SClippingSprite::DrawBy(const Transform2D & tf, const ColorTint & ct)
 {
     if (!target) return;
-    double x = width * u1, y = height * v1, w = width * u2, h = height * v2;
+    const auto x = width * u1;
+    const auto y = height * v1;
+    const auto w = width * u2;
+    const auto h = height * v2;
     SetDrawBright(ct.R, ct.G, ct.B);
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, ct.A);
     DrawRectRotaGraph3F(
@@ -663,22 +665,22 @@ void SClippingSprite::DrawBy(const Transform2D & tf, const ColorTint & ct)
         HasAlpha ? TRUE : FALSE, FALSE);
 }
 
-bool SClippingSprite::ActionMoveRangeTo(SSprite *thisObj, SpriteMoverArgument &args, SpriteMoverData &data, double delta)
+bool SClippingSprite::ActionMoveRangeTo(SSprite *thisObj, SpriteMoverArgument &args, SpriteMoverData &data, const double delta)
 {
-    auto target = static_cast<SClippingSprite*>(thisObj);
+    const auto target = dynamic_cast<SClippingSprite*>(thisObj);
     if (delta == 0) {
         data.Extra1 = target->u2;
         data.Extra2 = target->v2;
         return false;
-    } else if (delta >= 0) {
+    }
+    if (delta >= 0) {
         target->u2 = args.Ease(data.Now, args.Duration, data.Extra1, args.X - data.Extra1);
         target->v2 = args.Ease(data.Now, args.Duration, data.Extra2, args.Y - data.Extra2);
         return false;
-    } else {
-        target->u2 = args.X;
-        target->v2 = args.Y;
-        return true;
     }
+    target->u2 = args.X;
+    target->v2 = args.Y;
+    return true;
 }
 
 SClippingSprite::SClippingSprite(int w, int h) : SSynthSprite(w, h)
@@ -691,11 +693,12 @@ MoverFunction::Action SClippingSprite::GetCustomAction(const string & name)
     switch (crc32_rec(0xffffffff, name.c_str())) {
         case "range_size"_crc32:
             return ActionMoveRangeTo;
+        default: break;
     }
     return nullptr;
 }
 
-void SClippingSprite::SetRange(double tx, double ty, double w, double h)
+void SClippingSprite::SetRange(const double tx, const double ty, const double w, const double h)
 {
     u1 = tx;
     v1 = ty;
@@ -710,8 +713,8 @@ void SClippingSprite::Draw()
 
 void SClippingSprite::Draw(const Transform2D & parent, const ColorTint & color)
 {
-    auto tf = Transform.ApplyFrom(parent);
-    auto cl = Color.ApplyFrom(color);
+    const auto tf = Transform.ApplyFrom(parent);
+    const auto cl = Color.ApplyFrom(color);
     DrawBy(tf, cl);
 }
 
@@ -730,7 +733,7 @@ SClippingSprite *SClippingSprite::Clone()
     return clone;
 }
 
-SClippingSprite *SClippingSprite::Factory(int w, int h)
+SClippingSprite *SClippingSprite::Factory(const int w, const int h)
 {
     auto result = new SClippingSprite(w, h);
     result->Clear();
@@ -753,10 +756,10 @@ void SClippingSprite::RegisterType(asIScriptEngine * engine)
 }
 
 // SAnimeSprite -------------------------------------------
-void SAnimeSprite::DrawBy(const Transform2D & tf, const ColorTint & ct)
+void SAnimeSprite::DrawBy(const Transform2D &tf, const ColorTint &ct)
 {
-    double at = images->GetCellTime() * images->GetFrameCount() - time;
-    auto ih = images->GetImageHandleAt(at);
+    const auto at = images->GetCellTime() * images->GetFrameCount() - time;
+    const auto ih = images->GetImageHandleAt(at);
     if (!ih) return;
     SetDrawBright(Color.R, Color.G, Color.B);
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, Color.A);
@@ -786,14 +789,14 @@ void SAnimeSprite::Draw()
     DrawBy(Transform, Color);
 }
 
-void SAnimeSprite::Draw(const Transform2D & parent, const ColorTint & color)
+void SAnimeSprite::Draw(const Transform2D &parent, const ColorTint &color)
 {
-    auto tf = Transform.ApplyFrom(parent);
-    auto cl = Color.ApplyFrom(color);
+    const auto tf = Transform.ApplyFrom(parent);
+    const auto cl = Color.ApplyFrom(color);
     DrawBy(tf, cl);
 }
 
-void SAnimeSprite::Tick(double delta)
+void SAnimeSprite::Tick(const double delta)
 {
     time -= delta * speed;
     if (time > 0) return;
@@ -802,24 +805,24 @@ void SAnimeSprite::Tick(double delta)
     time = images->GetCellTime() * images->GetFrameCount();
 }
 
-void SAnimeSprite::SetSpeed(double speed)
+void SAnimeSprite::SetSpeed(const double nspeed)
 {
-    speed = speed;
+    speed = nspeed;
 }
 
-void SAnimeSprite::SetLoopCount(int lc)
+void SAnimeSprite::SetLoopCount(const int lc)
 {
     loopCount = lc;
 }
 
-SAnimeSprite * SAnimeSprite::Factory(SAnimatedImage * image)
+SAnimeSprite * SAnimeSprite::Factory(SAnimatedImage *image)
 {
     auto result = new SAnimeSprite(image);
     result->AddRef();
     return result;
 }
 
-void SAnimeSprite::RegisterType(asIScriptEngine * engine)
+void SAnimeSprite::RegisterType(asIScriptEngine *engine)
 {
     RegisterSpriteBasic<SAnimeSprite>(engine, SU_IF_ANIMESPRITE);
     engine->RegisterObjectBehaviour(SU_IF_ANIMESPRITE, asBEHAVE_FACTORY, SU_IF_ANIMESPRITE "@ f(" SU_IF_ANIMEIMAGE "@)", asFUNCTIONPR(SAnimeSprite::Factory, (SAnimatedImage*), SAnimeSprite*), asCALL_CDECL);
@@ -830,8 +833,7 @@ void SAnimeSprite::RegisterType(asIScriptEngine * engine)
 }
 
 SContainer::SContainer() : SSprite()
-{
-}
+{}
 
 SContainer::~SContainer()
 {
@@ -844,7 +846,7 @@ void SContainer::AddChild(SSprite *child)
     children.emplace(child);
 }
 
-void SContainer::Tick(double delta)
+void SContainer::Tick(const double delta)
 {
     mover->Tick(delta);
     for (const auto &s : children) s->Tick(delta);
@@ -857,8 +859,8 @@ void SContainer::Draw()
 
 void SContainer::Draw(const Transform2D & parent, const ColorTint &color)
 {
-    auto tf = Transform.ApplyFrom(parent);
-    auto cl = Color.ApplyFrom(color);
+    const auto tf = Transform.ApplyFrom(parent);
+    const auto cl = Color.ApplyFrom(color);
     for (const auto &s : children) s->Draw(tf, cl);
 }
 

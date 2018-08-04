@@ -16,13 +16,13 @@ public:
     AngelScript();
     ~AngelScript();
 
-    inline asIScriptEngine* GetEngine() const { return engine; }
-    inline asIScriptContext* GetContext() const { return sharedContext; }
+    asIScriptEngine* GetEngine() const { return engine; }
+    asIScriptContext* GetContext() const { return sharedContext; }
 
     //新しくModuleする
     void StartBuildModule(const std::string &name, IncludeCallback callback);
 
-    inline asIScriptModule* GetExistModule(std::string name) const { return engine->GetModule(name.c_str()); }
+    asIScriptModule* GetExistModule(std::string name) const { return engine->GetModule(name.c_str()); }
     
     //ファイル読み込み
     void LoadFile(const std::wstring &filename);
@@ -34,17 +34,17 @@ public:
     bool FinishBuildModule();
     
     //FinishしたModuleを取得
-    inline asIScriptModule* GetLastModule() { return builder.GetModule(); }
+    asIScriptModule* GetLastModule() { return builder.GetModule(); }
 
     //特定クラスにメタデータが付与されてるか
-    bool CheckMetaData(asITypeInfo *type, std::string meta);
+    bool CheckMetaData(asITypeInfo *type, const std::string &meta);
     
     //特定グロ関に(ry
-    bool CheckMetaData(asIScriptFunction *type, std::string meta);
+    bool CheckMetaData(asIScriptFunction *type, const std::string &meta);
 
 
     //実装をチェック
-    inline bool CheckImplementation(asITypeInfo *type, std::string name) const
+    bool CheckImplementation(asITypeInfo *type, std::string name) const
     {
         return type->Implements(engine->GetTypeInfoByName(name.c_str()));
     }

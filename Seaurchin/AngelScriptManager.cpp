@@ -1,8 +1,6 @@
 #include "AngelScriptManager.h"
-#include "Debug.h"
 
 using namespace std;
-
 static int ScriptIncludeCallback(const wchar_t *include, const wchar_t *from, CWScriptBuilder *builder, void *userParam);
 
 AngelScript::AngelScript()
@@ -28,7 +26,7 @@ AngelScript::~AngelScript()
     // engine->ShutDownAndRelease();
 }
 
-void AngelScript::StartBuildModule(const string &name, IncludeCallback callback)
+void AngelScript::StartBuildModule(const string &name, const IncludeCallback callback)
 {
     includeFunc = callback;
     builder.StartNewModule(engine, name.c_str());
@@ -49,13 +47,13 @@ bool AngelScript::FinishBuildModule()
     return builder.BuildModule() >= 0;
 }
 
-bool AngelScript::CheckMetaData(asITypeInfo *type, std::string meta)
+bool AngelScript::CheckMetaData(asITypeInfo *type, const string &meta)
 {
     const auto df = builder.GetMetadataStringForType(type->GetTypeId());
     return df == meta;
 }
 
-bool AngelScript::CheckMetaData(asIScriptFunction *func, std::string meta)
+bool AngelScript::CheckMetaData(asIScriptFunction *func, const string &meta)
 {
     const auto df = builder.GetMetadataStringForFunc(func);
     return df == meta;

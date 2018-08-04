@@ -41,18 +41,18 @@ public:
     //参照(手動コピー)
     SImage *Image = nullptr;
     void SetImage(SImage *img);
-    const SImage* GetImage();
+    const SImage* GetImage() const;
 
     SSprite();
     virtual ~SSprite();
     void AddRef();
     void Release();
 
-    inline void Dismiss() { IsDead = true; }
-    inline void Revive() { IsDead = false; }
+    void Dismiss() { IsDead = true; }
+    void Revive() { IsDead = false; }
     virtual MoverFunction::Action GetCustomAction(const std::string &name);
-    void AddMove(const std::string &move);
-    void AbortMove(bool terminate);
+    void AddMove(const std::string &move) const;
+    void AbortMove(bool terminate) const;
     void Apply(const std::string &dict);
     void Apply(const CScriptDictionary &dict);
     virtual void Tick(double delta);
@@ -64,14 +64,14 @@ public:
     static SSprite* Factory(SImage *img);
     static void RegisterType(asIScriptEngine *engine);
     struct Comparator {
-        inline bool operator()(const SSprite* lhs, const SSprite* rhs) const
+        bool operator()(const SSprite* lhs, const SSprite* rhs) const
         {
             return lhs->ZIndex < rhs->ZIndex;
         }
     };
 };
 
-enum SShapeType {
+enum class SShapeType {
     Pixel,
     Box,
     BoxFill,
@@ -158,11 +158,11 @@ public:
     ~STextInput() override;
     void SetFont(SFont *font);
 
-    void Activate();
+    void Activate() const;
     void Draw() override;
     void Tick(double delta) override;
 
-    std::string GetUTF8String();
+    std::string GetUTF8String() const;
 
     static STextInput* Factory();
     static STextInput* Factory(SFont *img);
@@ -277,7 +277,7 @@ void RegisterSpriteBasic(asIScriptEngine *engine, const char *name)
     engine->RegisterObjectProperty(name, "bool HasAlpha", asOFFSET(T, HasAlpha));
     engine->RegisterObjectProperty(name, "int Z", asOFFSET(T, ZIndex));
     engine->RegisterObjectProperty(name, SU_IF_TF2D " Transform", asOFFSET(T, Transform));
-    engine->RegisterObjectMethod(name, "void SetImage(" SU_IF_IMAGE "@)", asMETHOD(T, set_Image), asCALL_THISCALL);
+    engine->RegisterObjectMethod(name, "void SetImage(" SU_IF_IMAGE "@)", asMETHOD(T, SetImage), asCALL_THISCALL);
     //engine->RegisterObjectMethod(name, SU_IF_IMAGE "@ get_Image()", asMETHOD(T, get_Image), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void Dismiss()", asMETHOD(T, Dismiss), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void Apply(const string &in)", asMETHODPR(T, Apply, (const std::string&), void), asCALL_THISCALL);

@@ -35,7 +35,7 @@ private:
 public:
     std::vector<std::shared_ptr<MusicMetaInfo>> Musics;
 
-    explicit CategoryInfo(boost::filesystem::path path);
+    explicit CategoryInfo(boost::filesystem::path cpath);
     ~CategoryInfo();
 
     std::string GetName() const { return name; }
@@ -59,13 +59,13 @@ class ExecutionManager;
 class MusicsManager final {
     friend class MusicSelectionCursor;
 private:
-    std::shared_ptr<Setting> SharedSetting;
-    ExecutionManager *Manager;
+    std::shared_ptr<Setting> sharedSetting;
+    ExecutionManager *manager;
 
-    bool Loading = false;
-    std::mutex FlagMutex;
-    std::unique_ptr<SusAnalyzer> Analyzer;
-    std::vector<std::shared_ptr<CategoryInfo>> Categories;
+    bool loading = false;
+    std::mutex flagMutex;
+    std::unique_ptr<SusAnalyzer> analyzer;
+    std::vector<std::shared_ptr<CategoryInfo>> categories;
     void CreateMusicCache();
 
 public:
@@ -78,7 +78,7 @@ public:
     boost::filesystem::path GetSelectedScorePath();
 
     MusicSelectionCursor *CreateMusicSelectionCursor();
-    const std::vector<std::shared_ptr<CategoryInfo>> &GetCategories() const { return Categories; }
+    const std::vector<std::shared_ptr<CategoryInfo>> &GetCategories() const { return categories; }
 };
 
 class MusicSelectionCursor final {
@@ -86,11 +86,11 @@ class MusicSelectionCursor final {
 private:
     int refcount = 0;
 
-    MusicsManager *Manager;
-    int32_t CategoryIndex;
-    int32_t MusicIndex;
-    uint16_t VariantIndex;
-    MusicSelectionState State;
+    MusicsManager *manager;
+    int32_t categoryIndex;
+    int32_t musicIndex;
+    uint16_t variantIndex;
+    MusicSelectionState state;
 
     std::shared_ptr<MusicMetaInfo> GetMusicAt(int32_t relative) const;
     std::shared_ptr<MusicScoreInfo> GetScoreVariantAt(int32_t relative) const;

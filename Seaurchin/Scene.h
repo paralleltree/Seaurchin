@@ -12,7 +12,7 @@ public:
     Scene();
     virtual ~Scene();
 
-    void SetIndex(int i) { index = i; }
+    void SetIndex(const int i) { index = i; }
     int GetIndex() const { return index; }
     void SetManager(ExecutionManager *info) { manager = info; }
     ExecutionManager* GetManager() const { return manager; }

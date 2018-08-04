@@ -26,44 +26,44 @@ void CharacterManager::LoadAllCharacters()
         if (!ends_with(filename, ".toml")) continue;
         LoadFromToml(fdata.path());
     }
-    log->info(u8"キャラクター総数: {0:d}", Characters.size());
+    log->info(u8"キャラクター総数: {0:d}", characters.size());
     selected = 0;
 }
 
 void CharacterManager::Next()
 {
-    selected = (selected + Characters.size() + 1) % Characters.size();
+    selected = (selected + characters.size() + 1) % characters.size();
 }
 
 void CharacterManager::Previous()
 {
-    selected = (selected + Characters.size() - 1) % Characters.size();
+    selected = (selected + characters.size() - 1) % characters.size();
 }
 
-CharacterParameter* CharacterManager::GetCharacterParameter(int relative)
+CharacterParameter* CharacterManager::GetCharacterParameter(const int relative)
 {
     auto ri = selected + relative;
-    while (ri < 0) ri += Characters.size();
-    return Characters[ri % Characters.size()].get();
+    while (ri < 0) ri += characters.size();
+    return characters[ri % characters.size()].get();
 }
 
-shared_ptr<CharacterParameter> CharacterManager::GetCharacterParameterSafe(int relative)
+shared_ptr<CharacterParameter> CharacterManager::GetCharacterParameterSafe(const int relative)
 {
     auto ri = selected + relative;
-    while (ri < 0) ri += Characters.size();
-    return Characters[ri % Characters.size()];
+    while (ri < 0) ri += characters.size();
+    return characters[ri % characters.size()];
 }
 
-CharacterImageSet* CharacterManager::CreateCharacterImages(int relative)
+CharacterImageSet* CharacterManager::CreateCharacterImages(const int relative)
 {
     auto ri = selected + relative;
-    while (ri < 0) ri += Characters.size();
-    const auto cp = Characters[ri % Characters.size()];
+    while (ri < 0) ri += characters.size();
+    const auto cp = characters[ri % characters.size()];
     return CharacterImageSet::CreateImageSet(cp);
 }
 
 
-void CharacterManager::LoadFromToml(boost::filesystem::path file)
+void CharacterManager::LoadFromToml(const boost::filesystem::path& file)
 {
     using namespace boost::filesystem;
 
@@ -91,7 +91,7 @@ void CharacterManager::LoadFromToml(boost::filesystem::path file)
         const auto fo = root.find("Metric.Face");
         if (fo && fo->is<vector<int>>()) {
             auto arr = fo->as<vector<int>>();
-            for (int i = 0; i < 2; i++) result->Metric.FaceOrigin[i] = arr[i];
+            for (auto i = 0; i < 2; i++) result->Metric.FaceOrigin[i] = arr[i];
         } else {
             result->Metric.FaceOrigin[0] = 0;
             result->Metric.FaceOrigin[1] = 0;
@@ -100,7 +100,7 @@ void CharacterManager::LoadFromToml(boost::filesystem::path file)
         const auto sr = root.find("Metric.SmallRange");
         if (sr && sr->is<vector<int>>()) {
             auto arr = sr->as<vector<int>>();
-            for (int i = 0; i < 4; i++) result->Metric.SmallRange[i] = arr[i];
+            for (auto i = 0; i < 4; i++) result->Metric.SmallRange[i] = arr[i];
         } else {
             result->Metric.SmallRange[0] = 0;
             result->Metric.SmallRange[1] = 0;
@@ -111,22 +111,22 @@ void CharacterManager::LoadFromToml(boost::filesystem::path file)
         const auto fr = root.find("Metric.FaceRange");
         if (fr && fr->is<vector<int>>()) {
             auto arr = fr->as<vector<int>>();
-            for (int i = 0; i < 4; i++) result->Metric.FaceRange[i] = arr[i];
+            for (auto i = 0; i < 4; i++) result->Metric.FaceRange[i] = arr[i];
         } else {
             result->Metric.FaceRange[0] = 0;
             result->Metric.FaceRange[1] = 0;
             result->Metric.FaceRange[2] = 128;
             result->Metric.FaceRange[3] = 128;
         }
-    } catch (exception) {
+    } catch (exception ex) {
         log->error(u8"キャラクター {0} の読み込みに失敗しました", ConvertUnicodeToUTF8(file.wstring()));
         return;
     }
-    Characters.push_back(result);
+    characters.push_back(result);
 }
 
 
-CharacterImageSet::CharacterImageSet(shared_ptr<CharacterParameter> param)
+CharacterImageSet::CharacterImageSet(const shared_ptr<CharacterParameter> param)
 {
     parameter = param;
     LoadAllImage();
@@ -167,7 +167,7 @@ void CharacterImageSet::ApplyFaceImage(SSprite *sprite) const
     sprite->Release();
 }
 
-CharacterImageSet *CharacterImageSet::CreateImageSet(std::shared_ptr<CharacterParameter> param)
+CharacterImageSet *CharacterImageSet::CreateImageSet(const shared_ptr<CharacterParameter> param)
 {
     auto result = new CharacterImageSet(param);
     result->AddRef();

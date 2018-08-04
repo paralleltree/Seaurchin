@@ -16,7 +16,7 @@ static int CALLBACK FontEnumerationProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *
     return 0;
 }
 
-void YieldTime(double time)
+void YieldTime(const double time)
 {
     auto ctx = asGetActiveContext();
     auto pcw = static_cast<CoroutineWait*>(ctx->GetUserData(SU_UDTYPE_WAIT));
@@ -30,7 +30,7 @@ void YieldTime(double time)
     ctx->Suspend();
 }
 
-void YieldFrames(int64_t frames)
+void YieldFrames(const int64_t frames)
 {
     auto ctx = asGetActiveContext();
     auto pcw = static_cast<CoroutineWait*>(ctx->GetUserData(SU_UDTYPE_WAIT));
@@ -44,24 +44,24 @@ void YieldFrames(int64_t frames)
     ctx->Suspend();
 }
 
-SImage* LoadSystemImage(const string & file)
+SImage* LoadSystemImage(const string &file)
 {
-    path p = Setting::GetRootDirectory() / SU_DATA_DIR / SU_IMAGE_DIR / ConvertUTF8ToUnicode(file);
+    auto p = Setting::GetRootDirectory() / SU_DATA_DIR / SU_IMAGE_DIR / ConvertUTF8ToUnicode(file);
     return SImage::CreateLoadedImageFromFile(ConvertUnicodeToUTF8(p.wstring()), false);
 }
 
-SFont* LoadSystemFont(const std::string & file)
+SFont* LoadSystemFont(const std::string &file)
 {
-    path p = Setting::GetRootDirectory() / SU_DATA_DIR / SU_FONT_DIR / (ConvertUTF8ToUnicode(file) + L".sif");
+    auto p = Setting::GetRootDirectory() / SU_DATA_DIR / SU_FONT_DIR / (ConvertUTF8ToUnicode(file) + L".sif");
     return SFont::CreateLoadedFontFromFile(ConvertUnicodeToUTF8(p.wstring()));
 }
 
 SSound *LoadSystemSound(SoundManager *smng, const std::string & file) {
-	path p = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SOUND_DIR / ConvertUTF8ToUnicode(file);
+    auto p = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SOUND_DIR / ConvertUTF8ToUnicode(file);
 	return SSound::CreateSoundFromFile(smng, ConvertUnicodeToUTF8(p.wstring()), 4);
 }
 
-void CreateImageFont(const string &fileName, const string &saveName, int size)
+void CreateImageFont(const string &fileName, const string &saveName, const int size)
 {
     Sif2CreatorOption option;
     option.FontPath = fileName;

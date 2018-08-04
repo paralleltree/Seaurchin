@@ -34,11 +34,11 @@ class SSprite;
 
 class ScriptSpriteMover2 final {
 private:
-    SSprite *Target;
+    SSprite *target;
     std::list<std::unique_ptr<SpriteMoverObject>> moves;
 
-    void ApplyProperty(const std::string &prop, const std::string &value);
-    std::unique_ptr<SpriteMoverObject> BuildMoverObject(const std::string &func, const PropList &props);
+    void ApplyProperty(const std::string &prop, const std::string &value) const;
+    std::unique_ptr<SpriteMoverObject> BuildMoverObject(const std::string &func, const PropList &props) const;
 
 public:
     ScriptSpriteMover2(SSprite *target);
@@ -46,7 +46,7 @@ public:
 
     void Tick(double delta);
 
-    void Apply(const std::string &application);
+    void Apply(const std::string &application) const;
     void AddMove(const std::string &params);
     void Abort(bool completeMove);
 };

@@ -30,9 +30,9 @@ private:
     int reference = 0;
 
     std::shared_ptr<CharacterParameter> parameter;
-    SImage *imageFull;
-    SImage *imageSmall;
-    SImage *imageFace;
+    SImage *imageFull = nullptr;
+    SImage *imageSmall = nullptr;
+    SImage *imageFace = nullptr;
 
     void LoadAllImage();
 
@@ -55,11 +55,11 @@ class ExecutionManager;
 class CharacterManager final {
 private:
     ExecutionManager * manager;
-    std::vector<std::shared_ptr<CharacterParameter>> Characters;
+    std::vector<std::shared_ptr<CharacterParameter>> characters;
 
     int selected;
 
-    void LoadFromToml(boost::filesystem::path file);
+    void LoadFromToml(const boost::filesystem::path& file);
 
 public:
     explicit CharacterManager(ExecutionManager *exm);

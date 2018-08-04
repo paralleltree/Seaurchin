@@ -5,7 +5,7 @@
 
 using namespace std;
 
-void RectPacker::Init(int w, int h, int rowh)
+void RectPacker::Init(const int w, const int h, int rowh)
 {
     width = w;
     height = h;
@@ -14,15 +14,15 @@ void RectPacker::Init(int w, int h, int rowh)
     cursorY = 0;
 }
 
-Rect RectPacker::Insert(int w, int h)
+Rect RectPacker::Insert(const int w, const int h)
 {
     if (cursorX + w >= width) {
         cursorX = 0;
         cursorY += row;
     }
-    if (cursorY + h > height) return Rect { 0 };
-    if (w > width) return Rect { 0 };
-    Rect r = {
+    if (cursorY + h > height) return {};
+    if (w > width) return {};
+    const Rect r = {
         cursorX,
         cursorY,
         w,
@@ -35,7 +35,7 @@ Rect RectPacker::Insert(int w, int h)
 
 // Sif2Creator ----------------------------------------------
 
-void Sif2Creator::InitializeFace(string fontpath)
+void Sif2Creator::InitializeFace(const string& fontpath)
 {
     // boost::filesystem::path up = ConvertUTF8ToUnicode(fontpath);
     auto log = spdlog::get("main");
@@ -66,11 +66,11 @@ void Sif2Creator::FinalizeFace()
     faceMemory = nullptr;
 }
 
-void Sif2Creator::RequestFace(float size)
+void Sif2Creator::RequestFace(const float size) const
 {
     FT_Size_RequestRec req;
     req.width = 0;
-    req.height = (int)(size * 64.0f);
+    req.height = int(size * 64.0f);
     req.horiResolution = 0;
     req.vertResolution = 0;
     req.type = FT_SIZE_REQUEST_TYPE_BBOX;
@@ -79,10 +79,10 @@ void Sif2Creator::RequestFace(float size)
     FT_Select_Charmap(face, FT_ENCODING_UNICODE);
 }
 
-void Sif2Creator::OpenSif2(boost::filesystem::path sif2path)
+void Sif2Creator::OpenSif2(boost::filesystem::path sif2Path)
 {
-    sif2stream.open(sif2path.wstring(), ios::out | ios::trunc | ios::binary);
-    sif2stream.seekp(sizeof(Sif2Header));
+    sif2Stream.open(sif2Path.wstring(), ios::out | ios::trunc | ios::binary);
+    sif2Stream.seekp(sizeof(Sif2Header));
     imageIndex = 0;
     writtenGlyphs = 0;
 }
@@ -92,12 +92,12 @@ void Sif2Creator::PackImageSif2()
     using namespace boost::filesystem;
 
     Sif2Header header;
-    header.Magic = Sif2Magic;
+    header.Magic = sif2Magic;
     header.FontSize = currentSize;
     header.Images = imageIndex;
     header.Glyphs = writtenGlyphs;
 
-    for (int i = 0; i < imageIndex; ++i) {
+    for (auto i = 0; i < imageIndex; ++i) {
         ostringstream fss;
         fss << "FontCache" << i << ".png";
         auto path = Setting::GetRootDirectory() / SU_DATA_DIR / SU_CACHE_DIR / fss.str();
@@ -111,31 +111,31 @@ void Sif2Creator::PackImageSif2()
         fif.read(reinterpret_cast<char*>(file), fsize);
         fif.close();
 
-        sif2stream.write(reinterpret_cast<const char*>(&fsize), sizeof(uint32_t));
-        sif2stream.write(reinterpret_cast<const char*>(file), fsize);
+        sif2Stream.write(reinterpret_cast<const char*>(&fsize), sizeof(uint32_t));
+        sif2Stream.write(reinterpret_cast<const char*>(file), fsize);
         delete[] file;
     }
 
-    sif2stream.seekp(0, ios::beg);
-    sif2stream.write((const char*)&header, sizeof(header));
+    sif2Stream.seekp(0, ios::beg);
+    sif2Stream.write(reinterpret_cast<const char*>(&header), sizeof(header));
 }
 
 void Sif2Creator::CloseSif2()
 {
-    sif2stream.close();
+    sif2Stream.close();
 }
 
 void Sif2Creator::NewBitmap(uint16_t width, uint16_t height)
 {
     bitmapWidth = width;
     bitmapHeight = height;
-    if (bitmapMemory) delete[] bitmapMemory;
+    delete[] bitmapMemory;
     bitmapMemory = new uint8_t[width * height * 2];
     memset(bitmapMemory, 0, width * height * 2);
     packer.Init(width, height, 0);
 }
 
-void Sif2Creator::SaveBitmapCache(boost::filesystem::path cachepath)
+void Sif2Creator::SaveBitmapCache(boost::filesystem::path cachepath) const
 {
     FILE *file;
     fopen_s(&file, cachepath.string().c_str(), "wb");
@@ -144,8 +144,8 @@ void Sif2Creator::SaveBitmapCache(boost::filesystem::path cachepath)
     auto info = png_create_info_struct(png);
     png_init_io(png, file);
     png_set_IHDR(png, info, bitmapWidth, bitmapHeight, 8, PNG_COLOR_TYPE_GRAY_ALPHA, NULL, PNG_COMPRESSION_TYPE_DEFAULT, NULL);
-    auto rows = new png_byte*[bitmapHeight];
-    for (int i = 0; i < bitmapHeight; i++) rows[i] = bitmapMemory + bitmapWidth * i * 2;
+    const auto rows = new png_byte*[bitmapHeight];
+    for (auto i = 0; i < bitmapHeight; i++) rows[i] = bitmapMemory + bitmapWidth * i * 2;
     png_set_rows(png, info, rows);
     png_write_png(png, info, PNG_TRANSFORM_IDENTITY, nullptr);
     png_destroy_write_struct(&png, &info);
@@ -156,11 +156,11 @@ void Sif2Creator::SaveBitmapCache(boost::filesystem::path cachepath)
 bool Sif2Creator::RenderGlyph(uint32_t cp)
 {
     Sif2Glyph ginfo;
-    const FT_UInt gidx = FT_Get_Char_Index(face, cp);
+    const auto gidx = FT_Get_Char_Index(face, cp);
     const int baseline = -face->size->metrics.descender >> 6;
 
     FT_Load_Glyph(face, gidx, FT_LOAD_DEFAULT);
-    FT_GlyphSlot gslot = face->glyph;
+    auto gslot = face->glyph;
     FT_Render_Glyph(gslot, FT_RENDER_MODE_NORMAL);
     ginfo.GlyphWidth = gslot->bitmap.width;
     ginfo.GlyphHeight = gslot->bitmap.rows;
@@ -174,7 +174,7 @@ bool Sif2Creator::RenderGlyph(uint32_t cp)
 
     if (ginfo.GlyphWidth * ginfo.GlyphWidth == 0) {
         //まさか' 'がグリフを持たないとは思わなかった(いや当たり前でしょ)
-        sif2stream.write(reinterpret_cast<const char*>(&ginfo), sizeof(Sif2Glyph));
+        sif2Stream.write(reinterpret_cast<const char*>(&ginfo), sizeof(Sif2Glyph));
         writtenGlyphs++;
         return true;
     }
@@ -184,9 +184,9 @@ bool Sif2Creator::RenderGlyph(uint32_t cp)
     ginfo.GlyphX = rect.X;
     ginfo.GlyphY = rect.Y;
 
-    uint8_t *buffer = new uint8_t[rect.Width * 2];
-    for (int y = 0; y < gslot->bitmap.rows; y++) {
-        for (int x = 0; x < rect.Width; x++) {
+    const auto buffer = new uint8_t[rect.Width * 2];
+    for (auto y = 0; y < gslot->bitmap.rows; y++) {
+        for (auto x = 0; x < rect.Width; x++) {
             buffer[x * 2] = 0xff;
             buffer[x * 2 + 1] = gslot->bitmap.buffer[y * rect.Width + x];
         }
@@ -195,7 +195,7 @@ bool Sif2Creator::RenderGlyph(uint32_t cp)
     }
     delete[] buffer;
 
-    sif2stream.write(reinterpret_cast<const char*>(&ginfo), sizeof(Sif2Glyph));
+    sif2Stream.write(reinterpret_cast<const char*>(&ginfo), sizeof(Sif2Glyph));
     writtenGlyphs++;
     return true;
 }
@@ -207,12 +207,12 @@ Sif2Creator::Sif2Creator()
 
 Sif2Creator::~Sif2Creator()
 {
-    if (bitmapMemory) delete[] bitmapMemory;
+    delete[] bitmapMemory;
     FinalizeFace();
     FT_Done_FreeType(freetype);
 }
 
-void Sif2Creator::CreateSif2(const Sif2CreatorOption &option, boost::filesystem::path outputPath)
+void Sif2Creator::CreateSif2(const Sif2CreatorOption &option, const boost::filesystem::path outputPath)
 {
     using namespace boost::filesystem;
     auto log = spdlog::get("main");
@@ -228,7 +228,7 @@ void Sif2Creator::CreateSif2(const Sif2CreatorOption &option, boost::filesystem:
 
     if (option.TextSource == "") {
         FT_UInt gidx;
-        FT_ULong code = FT_Get_First_Char(face, &gidx);
+        auto code = FT_Get_First_Char(face, &gidx);
         while (gidx) {
             if (!RenderGlyph(code)) {
                 ostringstream fss;

@@ -22,9 +22,9 @@ SpriteMoverData::SpriteMoverData()
     IsStarted = false;
 }
 
-ScriptSpriteMover2::ScriptSpriteMover2(SSprite *target)
+ScriptSpriteMover2::ScriptSpriteMover2(SSprite *starget)
 {
-    Target = target;
+    target = starget;
 }
 
 ScriptSpriteMover2::~ScriptSpriteMover2()
@@ -32,9 +32,9 @@ ScriptSpriteMover2::~ScriptSpriteMover2()
     moves.clear();
 }
 
-void ScriptSpriteMover2::Tick(double delta)
+void ScriptSpriteMover2::Tick(const double delta)
 {
-    
+
     auto i = moves.begin();
     while (i != moves.end()) {
         auto mobj = i->get();
@@ -43,24 +43,25 @@ void ScriptSpriteMover2::Tick(double delta)
             mobj->Data.Now += delta;
             ++i;
             continue;
-        } else if (!mobj->Data.IsStarted) {
+        }
+        if (!mobj->Data.IsStarted) {
             //多分初期化処理はこのタイミングの方がいい
             mobj->Data.IsStarted = true;
-            mobj->Function(Target, mobj->Argument, mobj->Data, 0);
+            mobj->Function(target, mobj->Argument, mobj->Data, 0);
         }
-        bool result = mobj->Function(Target, mobj->Argument, mobj->Data, delta);
+        const auto result = mobj->Function(target, mobj->Argument, mobj->Data, delta);
         mobj->Data.Now += delta;
         if (mobj->Data.Now >= mobj->Argument.Duration || result) {
-            mobj->Function(Target, mobj->Argument, mobj->Data, -1);
+            mobj->Function(target, mobj->Argument, mobj->Data, -1);
             i = moves.erase(i);
         } else {
             ++i;
         }
     }
-    
+
 }
 
-void ScriptSpriteMover2::Apply(const string &application)
+void ScriptSpriteMover2::Apply(const string &application) const
 {
     auto source = application;
     source.erase(remove(source.begin(), source.end(), ' '), source.end());
@@ -68,71 +69,71 @@ void ScriptSpriteMover2::Apply(const string &application)
     vector<tuple<string, string>> params;
     params.reserve(8);
     SplitProps(source, params);
-    for(const auto &param : params) ApplyProperty(get<0>(param), get<1>(param));
+    for (const auto &param : params) ApplyProperty(get<0>(param), get<1>(param));
 }
 
 void ScriptSpriteMover2::AddMove(const string &mover)
 {
     auto source = mover;
     source.erase(remove(source.begin(), source.end(), ' '), source.end());
-    auto lpp = source.find('('), rpp = source.find(')');
+    const auto lpp = source.find('('), rpp = source.find(')');
     if (lpp == string::npos || rpp == string::npos) return;
-    
-    auto funcname = source.substr(0, lpp);
-    auto paramstr = source.substr(lpp + 1, rpp - lpp - 1);
+
+    const auto funcname = source.substr(0, lpp);
+    const auto paramstr = source.substr(lpp + 1, rpp - lpp - 1);
     vector<tuple<string, string>> params;
     params.reserve(8);
     SplitProps(paramstr, params);
-    
+
     auto mobj = BuildMoverObject(funcname, params);
     if (!mobj) return;
     moves.push_back(move(mobj));
 }
 
-void ScriptSpriteMover2::Abort(bool completeMove)
+void ScriptSpriteMover2::Abort(const bool completeMove)
 {
-    if (completeMove) for (const auto &mobj : moves) mobj->Function(Target, mobj->Argument, mobj->Data, -1);
+    if (completeMove) for (const auto &mobj : moves) mobj->Function(target, mobj->Argument, mobj->Data, -1);
     moves.clear();
 }
 
-void ScriptSpriteMover2::ApplyProperty(const string &prop, const string &value)
+void ScriptSpriteMover2::ApplyProperty(const string &prop, const string &value) const
 {
     switch (crc32_rec(0xffffffff, prop.c_str())) {
         case "x"_crc32:
-            Target->Transform.X = ToDouble(value.c_str());
+            target->Transform.X = ToDouble(value.c_str());
             break;
         case "y"_crc32:
-            Target->Transform.Y = ToDouble(value.c_str());
+            target->Transform.Y = ToDouble(value.c_str());
             break;
         case "z"_crc32:
-            Target->ZIndex = (int)ToDouble(value.c_str());
+            target->ZIndex = int(ToDouble(value.c_str()));
             break;
         case "origX"_crc32:
-            Target->Transform.OriginX = ToDouble(value.c_str());
+            target->Transform.OriginX = ToDouble(value.c_str());
             break;
         case "origY"_crc32:
-            Target->Transform.OriginY = ToDouble(value.c_str());
+            target->Transform.OriginY = ToDouble(value.c_str());
             break;
         case "scaleX"_crc32:
-            Target->Transform.ScaleX = ToDouble(value.c_str());
+            target->Transform.ScaleX = ToDouble(value.c_str());
             break;
         case "scaleY"_crc32:
-            Target->Transform.ScaleY = ToDouble(value.c_str());
+            target->Transform.ScaleY = ToDouble(value.c_str());
             break;
         case "angle"_crc32:
-            Target->Transform.Angle = ToDouble(value.c_str());
+            target->Transform.Angle = ToDouble(value.c_str());
             break;
         case "alpha"_crc32:
-            Target->Color.A = (unsigned char)(ToDouble(value.c_str()) * 255.0);
+            target->Color.A = static_cast<unsigned char>(ToDouble(value.c_str()) * 255.0);
             break;
         case "r"_crc32:
-            Target->Color.R = (unsigned char)ToDouble(value.c_str());
+            target->Color.R = static_cast<unsigned char>(ToDouble(value.c_str()));
             break;
         case "g"_crc32:
-            Target->Color.G = (unsigned char)ToDouble(value.c_str());
+            target->Color.G = static_cast<unsigned char>(ToDouble(value.c_str()));
             break;
         case "b"_crc32:
-            Target->Color.B = (unsigned char)ToDouble(value.c_str());
+            target->Color.B = static_cast<unsigned char>(ToDouble(value.c_str()));
             break;
         default:
             // TODO SSpriteにカスタム実装
@@ -140,7 +141,7 @@ void ScriptSpriteMover2::ApplyProperty(const string &prop, const string &value)
     }
 }
 
-std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const string &func, const PropList &props)
+std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const string &func, const PropList &props) const
 {
     auto result = make_unique<SpriteMoverObject>();
     // MoverFunctionを決定
@@ -148,7 +149,7 @@ std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const st
         result->Function = MoverFunction::actions[func];
     } else {
         // TODO: カスタムMoverに対応
-        auto custom = Target->GetCustomAction(func);
+        const auto custom = target->GetCustomAction(func);
         if (!custom) return nullptr;
         result->Function = custom;
     }
@@ -176,11 +177,12 @@ std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const st
             case "ease"_crc32:
                 result->Argument.Ease = Easing::easings[get<1>(prop)];
                 break;
+            default: break;
         }
     }
 
     result->Data.Now = -result->Argument.Wait;
 
-    return move(result);
+    return result;
 }
 

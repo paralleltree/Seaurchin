@@ -62,7 +62,7 @@ public:
 class SoundMixerStream {
 protected:
     HSTREAM hMixerStream;
-    std::unordered_set<HCHANNEL> PlayingSounds;
+    std::unordered_set<HCHANNEL> playingSounds;
 
 public:
     SoundMixerStream(int ch, int freq);
