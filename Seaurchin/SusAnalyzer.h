@@ -81,7 +81,7 @@ private:
     std::function<double(uint32_t, uint32_t)> relToAbs;
 
 public:
-    SusHispeedTimeline(const std::function<double(uint32_t, uint32_t)>& func);
+    SusHispeedTimeline(std::function<double(uint32_t, uint32_t)> func);
     void AddKeysByString(const std::string &def, const std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)>&
                          resolver);
     void AddKeyByData(uint32_t meas, uint32_t tick, double hs);
@@ -196,6 +196,7 @@ private:
     uint32_t defaultHispeedNumber = std::numeric_limits<uint32_t>::max();
     uint32_t defaultExtraAttributeNumber = std::numeric_limits<uint32_t>::max();
     uint32_t ticksPerBeat;
+    uint32_t measureCountOffset;
     double longInjectionPerBeat;
     std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)> timelineResolver = nullptr;
     std::vector<std::function<void(std::string, std::string)>> errorCallbacks;

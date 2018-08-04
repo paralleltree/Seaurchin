@@ -1,4 +1,5 @@
 ﻿#include "SusAnalyzer.h"
+#include <utility>
 #include "Misc.h"
 
 using namespace std;
@@ -12,8 +13,7 @@ xp::sregex SusAnalyzer::regexSusData = "#" >> (xp::s1 = xp::repeat<3, 3>(xp::aln
 
 static xp::sregex allNumeric = xp::bos >> +(xp::digit) >> xp::eos;
 
-auto toUpper = [](const char c)
-{
+auto toUpper = [](const char c) {
     return (c >= 'a' && c <= 'z') ? char(c - 0x20) : c;
 };
 
@@ -69,6 +69,7 @@ SusAnalyzer::SusAnalyzer(const uint32_t tpb)
 {
     ticksPerBeat = tpb;
     longInjectionPerBeat = 2;
+    measureCountOffset = 0;
     timelineResolver = [=](const uint32_t number) { return hispeedDefinitions[number]; };
     errorCallbacks.emplace_back([](auto type, auto message) {
         auto log = spdlog::get("main");
@@ -91,6 +92,7 @@ void SusAnalyzer::Reset()
     extraAttributes.clear();
     ticksPerBeat = 192;
     longInjectionPerBeat = 2;
+    measureCountOffset = 0;
     SharedMetaData.Reset();
 
     bpmDefinitions[1] = 120.0;
@@ -307,6 +309,18 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
             break;
         }
 
+        case "MEASUREBS"_crc32: {
+            if (onlyMeta) break;
+            const auto bsc = ConvertInteger(result[2]);
+            if (bsc < 0)
+            {
+                MakeMessage(line, u8"小節オフセットの値が不正です");
+                break;
+            }
+            measureCountOffset = bsc;
+            break;
+        }
+
         default:
             MakeMessage(line, u8"SUSコマンドが無効です");
             break;
@@ -399,14 +413,14 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
         switch (lane[1]) {
             case '2':
                 // 小節長
-                beatsDefinitions[ConvertInteger(meas)] = ConvertFloat(pattern);
+                beatsDefinitions[measureCountOffset + ConvertInteger(meas)] = ConvertFloat(pattern);
                 break;
             case '8': {
                 // BPM
                 for (auto i = 0u; i < noteCount; i++) {
                     const auto note = pattern.substr(i * 2, 2);
                     SusRawNoteData noteData;
-                    SusRelativeNoteTime time = { ConvertInteger(meas), step * i };
+                    SusRelativeNoteTime time = { measureCountOffset + ConvertInteger(meas), step * i };
                     noteData.Type.set(size_t(SusNoteType::Undefined));
                     noteData.DefinitionNumber = ConvertHexatridecimal(note);
                     if (noteData.DefinitionNumber) notes.emplace_back(time, noteData);
@@ -422,7 +436,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
         for (auto i = 0u; i < noteCount; i++) {
             auto note = pattern.substr(i * 2, 2);
             SusRawNoteData noteData;
-            SusRelativeNoteTime time = { ConvertInteger(meas), step * i };
+            SusRelativeNoteTime time = { measureCountOffset + ConvertInteger(meas), step * i };
             noteData.NotePosition.StartLane = ConvertHexatridecimal(lane.substr(1, 1));
             noteData.NotePosition.Length = ConvertHexatridecimal(note.substr(1, 1));
             noteData.Timeline = hispeedToApply;
@@ -456,7 +470,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
         for (auto i = 0u; i < noteCount; i++) {
             auto note = pattern.substr(i * 2, 2);
             SusRawNoteData noteData;
-            SusRelativeNoteTime time = { ConvertInteger(meas), step * i };
+            SusRelativeNoteTime time = { measureCountOffset + ConvertInteger(meas), step * i };
             noteData.NotePosition.StartLane = ConvertHexatridecimal(lane.substr(1, 1));
             noteData.NotePosition.Length = ConvertHexatridecimal(note.substr(1, 1));
             noteData.Timeline = hispeedToApply;
@@ -520,7 +534,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
         for (auto i = 0u; i < noteCount; i++) {
             auto note = pattern.substr(i * 2, 2);
             SusRawNoteData noteData;
-            SusRelativeNoteTime time = { ConvertInteger(meas), step * i };
+            SusRelativeNoteTime time = { measureCountOffset + ConvertInteger(meas), step * i };
             noteData.NotePosition.StartLane = ConvertHexatridecimal(lane.substr(1, 1));
             noteData.NotePosition.Length = ConvertHexatridecimal(note.substr(1, 1));
             noteData.Extra = ConvertHexatridecimal(lane.substr(2, 1));
@@ -877,7 +891,7 @@ void SusAnalyzer::CalculateCurves(const shared_ptr<SusDrawableNoteData>& note, N
 
 const double SusHispeedData::keepSpeed = numeric_limits<double>::quiet_NaN();
 
-SusHispeedTimeline::SusHispeedTimeline(const function<double(uint32_t, uint32_t)>& func) : relToAbs(func)
+SusHispeedTimeline::SusHispeedTimeline(function<double(uint32_t, uint32_t)> func) : relToAbs(std::move(func))
 {
     keys.emplace_back(SusRelativeNoteTime { 0, 0 }, SusHispeedData { SusHispeedData::Visibility::Visible, 1.0 });
 }
