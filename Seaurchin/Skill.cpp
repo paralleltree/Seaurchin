@@ -38,16 +38,16 @@ void SkillManager::Previous()
     selected = (selected + skills.size() - 1) % skills.size();
 }
 
-SkillParameter *SkillManager::GetSkillParameter(int relative)
+SkillParameter *SkillManager::GetSkillParameter(const int relative)
 {
-    int ri = selected + relative;
+    auto ri = selected + relative;
     while (ri < 0) ri += skills.size();
     return skills[ri % skills.size()].get();
 }
 
-shared_ptr<SkillParameter> SkillManager::GetSkillParameterSafe(int relative)
+shared_ptr<SkillParameter> SkillManager::GetSkillParameterSafe(const int relative)
 {
-    int ri = selected + relative;
+    auto ri = selected + relative;
     while (ri < 0) ri += skills.size();
     return skills[ri % skills.size()];
 }
@@ -104,9 +104,8 @@ void SkillManager::LoadFromToml(boost::filesystem::path file)
 }
 
 
-SkillIndicators::SkillIndicators()
+SkillIndicators::SkillIndicators(): callbackFunction(nullptr), callbackObject(nullptr), callbackContext(nullptr), callbackObjectType(nullptr)
 {
-    callbackFunction = nullptr;
 }
 
 SkillIndicators::~SkillIndicators()
@@ -149,7 +148,7 @@ int SkillIndicators::AddSkillIndicator(const string &icon)
     return indicatorIcons.size() - 1;
 }
 
-void SkillIndicators::TriggerSkillIndicator(int index) const
+void SkillIndicators::TriggerSkillIndicator(const int index) const
 {
     callbackContext->Prepare(callbackFunction);
     callbackContext->SetObject(callbackObject);
@@ -163,7 +162,7 @@ int SkillIndicators::GetSkillIndicatorCount() const
     return indicatorIcons.size();
 }
 
-SImage* SkillIndicators::GetSkillIndicatorImage(int index)
+SImage* SkillIndicators::GetSkillIndicatorImage(const int index)
 {
     if (index >= indicatorIcons.size()) return nullptr;
     auto result = indicatorIcons[index];

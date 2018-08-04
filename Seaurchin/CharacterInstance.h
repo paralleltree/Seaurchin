@@ -25,19 +25,18 @@ class CharacterInstance final {
 private:
     int reference = 0;
 
-    std::shared_ptr<AngelScript> ScriptInterface;
+    std::shared_ptr<AngelScript> scriptInterface;
+    std::shared_ptr<CharacterParameter> characterSource;
+    std::shared_ptr<SkillParameter> skillSource;
+    CharacterImageSet *imageSet;
+    std::shared_ptr<SkillIndicators> indicators;
+    std::shared_ptr<Result> targetResult;
 
-    std::shared_ptr<CharacterParameter> CharacterSource;
-    std::shared_ptr<SkillParameter> SkillSource;
-    CharacterImageSet *ImageSet;
-    std::shared_ptr<SkillIndicators> Indicators;
-    std::shared_ptr<Result> TargetResult;
-
-    std::vector<asIScriptObject*> Abilities;
-    std::vector<asITypeInfo*> AbilityTypes;
-    std::vector<AbilityFunctions> AbilityEvents;
+    std::vector<asIScriptObject*> abilities;
+    std::vector<asITypeInfo*> abilityTypes;
+    std::vector<AbilityFunctions> abilityEvents;
     asIScriptContext *context;
-    CallbackObject *JudgeCallback;
+    CallbackObject *judgeCallback;
 
     void LoadAbilities();
     void CreateImageSet();
