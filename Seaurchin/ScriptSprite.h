@@ -26,16 +26,16 @@ private:
     virtual void DrawBy(const Transform2D &tf, const ColorTint &ct);
 
 protected:
-    int reference;
-    ScriptSpriteMover2 *mover;
+    int reference = 0;
+    ScriptSpriteMover2 *mover = nullptr;
 
     void CopyParameterFrom(SSprite *original);
 
 public:
     //値(CopyParameterFromで一括)
     Transform2D Transform;
-    int32_t ZIndex;
-    ColorTint Color;
+    int32_t ZIndex = 0;
+    ColorTint Color = Colors::white;
     bool IsDead = false;
     bool HasAlpha = true;
     //参照(手動コピー)

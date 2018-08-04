@@ -45,7 +45,7 @@ const SImage *SSprite::GetImage() const
 SSprite::SSprite()
 {
     // ZIndex = 0;
-    Color = Colors::White;
+    Color = Colors::white;
     mover = new ScriptSpriteMover2(this);
 }
 

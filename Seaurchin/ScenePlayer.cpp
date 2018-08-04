@@ -146,10 +146,10 @@ void ScenePlayer::LoadWorker()
     scoreDuration = analyzer->SharedMetaData.ScoreDuration;
 
     auto file = boost::filesystem::path(scorefile).parent_path() / ConvertUTF8ToUnicode(analyzer->SharedMetaData.UWaveFileName);
-    bgmStream = SoundStream::CreateFromFile(file.wstring().c_str());
+    bgmStream = SoundStream::CreateFromFile(file.wstring());
     state = PlayingState::ReadyToStart;
 
-    if (analyzer->SharedMetaData.UMovieFileName != "") {
+    if (!analyzer->SharedMetaData.UMovieFileName.empty()) {
         movieFileName = (boost::filesystem::path(scorefile).parent_path() / ConvertUTF8ToUnicode(analyzer->SharedMetaData.UMovieFileName)).wstring();
     }
 

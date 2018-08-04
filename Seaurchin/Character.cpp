@@ -2,6 +2,7 @@
 #include "ExecutionManager.h"
 #include "Misc.h"
 #include "Setting.h"
+#include "Config.h"
 
 using namespace std;
 

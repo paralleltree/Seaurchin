@@ -1,8 +1,8 @@
 #include "Result.h"
 
-void Result::SetAllNotes(uint32_t notes)
+void Result::SetAllNotes(const uint32_t hnotes)
 {
-    notes = notes ? notes : 1;
+    notes = hnotes ? hnotes : 1;
     gaugePerJusticeCritical = 60000.0 / notes;
     scorePerJusticeCritical = 1010000.0 / notes;
     Reset();
