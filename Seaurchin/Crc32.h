@@ -4,7 +4,7 @@
 namespace crc32_constexpr
 {
 
-constexpr unsigned int crc32_table[] = {
+constexpr unsigned int crc32Table[] = {
     0, 0x77073096, 0xEE0E612C, 0x990951BA,
     0x076DC419, 0x706AF48F, 0xE963A535, 0x9E6495A3,
     0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988,
@@ -71,32 +71,32 @@ constexpr unsigned int crc32_table[] = {
     0xB40BBE37, 0xC30C8EA1, 0x5A05DF1B, 0x2D02EF8D
 };
 
-template<unsigned int CRC, char ...Chars> struct Crc32Impl {};
+template<unsigned int Crc, char ...Chars> struct Crc32Impl {};
 
-template<unsigned int CRC, char Head, char ...Tail> struct Crc32Impl<CRC, Head, Tail...> {
+template<unsigned int Crc, char Head, char ...Tail> struct Crc32Impl<Crc, Head, Tail...> {
     static constexpr unsigned int value = Crc32Impl<
-        crc32_table[static_cast<unsigned char>(CRC) ^ static_cast<unsigned char>(Head)]
-        ^ (CRC >> 8), Tail...>::value;
+        crc32Table[static_cast<unsigned char>(Crc) ^ static_cast<unsigned char>(Head)]
+        ^ (Crc >> 8), Tail...>::value;
 };
 
-template<unsigned int CRC> struct Crc32Impl<CRC> {
-    static constexpr unsigned int value = CRC ^ 0xFFFFFFFF;
+template<unsigned int Crc> struct Crc32Impl<Crc> {
+    static constexpr unsigned int value = Crc ^ 0xFFFFFFFF;
 };
 
 
 template<char ...Chars> using Crc32 = Crc32Impl<0xFFFFFFFF, Chars...>;
 
-constexpr unsigned int crc32_rec(unsigned int crc, const char *s)
+constexpr unsigned int Crc32Rec(const unsigned int crc, const char *s)
 {
     return *s == 0 ? crc ^ 0xFFFFFFFF :
-        crc32_rec(crc32_table[static_cast<unsigned char>(crc) ^
+        Crc32Rec(crc32Table[static_cast<unsigned char>(crc) ^
             static_cast<unsigned char>(*s)]
             ^ (crc >> 8), s + 1);
 }
 
 constexpr unsigned int operator "" _crc32(const char *s, size_t len)
 {
-    return crc32_rec(0xFFFFFFFF, s);
+    return Crc32Rec(0xFFFFFFFF, s);
 }
 
 }

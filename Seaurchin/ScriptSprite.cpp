@@ -692,7 +692,7 @@ SClippingSprite::SClippingSprite(const int w, const int h) : SSynthSprite(w, h),
 
 mover_function::Action SClippingSprite::GetCustomAction(const string & name)
 {
-    switch (crc32_rec(0xffffffff, name.c_str())) {
+    switch (Crc32Rec(0xffffffff, name.c_str())) {
         case "range_size"_crc32:
             return ActionMoveRangeTo;
         default: break;

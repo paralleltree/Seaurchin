@@ -1,8 +1,5 @@
 #pragma once
 
-
-#include "Config.h"
-
 class Logger {
 private:
     std::vector<spdlog::sink_ptr> sinks;

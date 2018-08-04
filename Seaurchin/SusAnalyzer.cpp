@@ -195,7 +195,7 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
         if (SharedMetaData.ShowBpm < 0) SharedMetaData.ShowBpm = value;
         return;
     }
-    switch (crc32_rec(0xffffffff, name.c_str())) {
+    switch (Crc32Rec(0xffffffff, name.c_str())) {
         case "TITLE"_crc32:
             SharedMetaData.UTitle = convertRawString(result[2]);
             break;
@@ -322,7 +322,7 @@ void SusAnalyzer::ProcessRequest(const string &cmd, const uint32_t line)
     ba::split(params, str, ba::is_any_of(" "), b::token_compress_on);
 
     if (params.empty()) return;
-    switch (crc32_rec(0xffffffff, params[0].c_str())) {
+    switch (Crc32Rec(0xffffffff, params[0].c_str())) {
         case "mertonome"_crc32:
             if (!ConvertBoolean(params[1])) {
                 SharedMetaData.ExtraFlags.set(size_t(SusMetaDataFlags::DisableMetronome));
@@ -1045,7 +1045,7 @@ void SusNoteExtraAttribute::Apply(const string &props)
         pr.clear();
         split(pr, p, is_any_of(":"));
         if (pr.size() != 2) continue;
-        switch (crc32_rec(0xffffffff, pr[0].c_str())) {
+        switch (Crc32Rec(0xffffffff, pr[0].c_str())) {
             case "priority"_crc32:
             case "pr"_crc32:
                 Priority = uint32_t(strtol(pr[1].c_str(), nullptr, 10));

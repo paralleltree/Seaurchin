@@ -92,7 +92,7 @@ void SettingItemManager::LoadItemsFromToml(const path& file)
         auto key = item.get<string>("Key");
         auto type = item.get<string>("Type");
 
-        switch (crc32_rec(0xffffffff, type.c_str())) {
+        switch (Crc32Rec(0xffffffff, type.c_str())) {
             case "Integer"_crc32:
                 si = make_shared<IntegerSettingItem>(settingInstance, group, key);
                 break;

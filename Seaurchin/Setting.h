@@ -23,10 +23,9 @@ public:
         auto v = settingTree.find(group + "." + key);
         if (v && v->is<T>()) {
             return v->as<T>();
-        } else {
-            WriteValue(group, key, defValue);
-            return defValue;
         }
+        WriteValue(group, key, defValue);
+        return defValue;
     }
 
     template<typename T>

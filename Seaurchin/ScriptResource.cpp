@@ -222,7 +222,7 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
         boost::sub_range<const string> sr(ccp, utf8Str.end());
         if (bx::regex_search(sr, match, cmd)) {
             auto tcmd = match[1].str();
-            switch (crc32_rec(0xffffffff, tcmd.c_str())) {
+            switch (Crc32Rec(0xffffffff, tcmd.c_str())) {
                 case "reset"_crc32:
                     cr = defcol.R;
                     cg = defcol.G;

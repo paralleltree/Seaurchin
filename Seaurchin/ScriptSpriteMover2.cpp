@@ -98,7 +98,7 @@ void ScriptSpriteMover2::Abort(const bool completeMove)
 
 void ScriptSpriteMover2::ApplyProperty(const string &prop, const string &value) const
 {
-    switch (crc32_rec(0xffffffff, prop.c_str())) {
+    switch (Crc32Rec(0xffffffff, prop.c_str())) {
         case "x"_crc32:
             target->Transform.X = ToDouble(value.c_str());
             break;
@@ -155,7 +155,7 @@ std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const st
     }
 
     for (const auto &prop : props) {
-        switch (crc32_rec(0xffffffff, get<0>(prop).c_str())) {
+        switch (Crc32Rec(0xffffffff, get<0>(prop).c_str())) {
             case "x"_crc32:
             case "r"_crc32:
                 result->Argument.X = ToDouble(get<1>(prop).c_str());
