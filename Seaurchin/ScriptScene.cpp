@@ -121,7 +121,6 @@ void ScriptScene::TickCoroutine(const double delta)
             default:
                 spdlog::get("main")->critical(u8"コルーチンのWaitステータスが不正です");
                 abort();
-                break;
         }
         const auto result = c->Context->Execute();
         if (result == asEXECUTION_FINISHED) {

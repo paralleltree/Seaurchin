@@ -147,7 +147,7 @@ SFont::~SFont()
 tuple<double, double, int> SFont::RenderRaw(SRenderTarget *rt, const string &utf8Str)
 {
     double cx = 0, cy = 0;
-    double mx = 0, my = 0;
+    double mx = 0;
     auto line = 1;
     if (rt) {
         BEGIN_DRAW_TRANSACTION(rt->GetHandle());
@@ -174,7 +174,6 @@ tuple<double, double, int> SFont::RenderRaw(SRenderTarget *rt, const string &utf
         if (gi == 0x0A) {
             line++;
             mx = max(mx, cx);
-            my = line * size;
             cx = 0;
             cy += size;
             continue;
@@ -193,7 +192,7 @@ tuple<double, double, int> SFont::RenderRaw(SRenderTarget *rt, const string &utf
         FINISH_DRAW_TRANSACTION;
     }
     mx = max(mx, cx);
-    my = line * size;
+    double my = line * size;
     return make_tuple(mx, my, line);
 }
 
@@ -204,7 +203,7 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
 
     const bx::sregex cmd = bx::bos >> "${" >> (bx::s1 = -+bx::_w) >> "}";
     double cx = 0, cy = 0;
-    double mx = 0, my = 0;
+    double mx = 0;
     auto line = 1;
 
     auto cr = defcol.R, cg = defcol.G, cb = defcol.B;
@@ -222,8 +221,8 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
     while (ccp != utf8Str.end()) {
         boost::sub_range<const string> sr(ccp, utf8Str.end());
         if (bx::regex_search(sr, match, cmd)) {
-            auto cmd = match[1].str();
-            switch (crc32_rec(0xffffffff, cmd.c_str())) {
+            auto tcmd = match[1].str();
+            switch (crc32_rec(0xffffffff, tcmd.c_str())) {
                 case "reset"_crc32:
                     cr = defcol.R;
                     cg = defcol.G;
@@ -276,7 +275,6 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
         if (gi == 0x0A) {
             line++;
             mx = max(mx, cx);
-            my = line * size;
             cx = 0;
             cy += size;
             continue;
@@ -301,7 +299,7 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
         FINISH_DRAW_TRANSACTION;
     }
     mx = max(mx, cx);
-    my = line * size;
+    double my = line * size;
     return make_tuple(mx, my, line);
 }
 
@@ -322,7 +320,7 @@ SFont * SFont::CreateLoadedFontFromFile(const string & file)
     font.read(reinterpret_cast<char*>(&header), sizeof(Sif2Header));
     result->size = header.FontSize;
 
-    for (int i = 0; i < header.Glyphs; i++) {
+    for (auto i = 0; i < header.Glyphs; i++) {
         const auto info = new Sif2Glyph();
         font.read(reinterpret_cast<char*>(info), sizeof(Sif2Glyph));
         result->glyphs[info->Codepoint] = info;
@@ -403,7 +401,7 @@ SSound * SSound::CreateSound(SoundManager *smanager)
     return result;
 }
 
-SSound * SSound::CreateSoundFromFile(SoundManager *smanager, const std::string & file, const int simul)
+SSound * SSound::CreateSoundFromFile(SoundManager *smanager, const std::string &file, const int simul)
 {
     const auto hs = SoundSample::CreateFromFile(ConvertUTF8ToUnicode(file), simul);
     auto result = new SSound(hs);

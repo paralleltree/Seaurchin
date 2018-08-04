@@ -12,7 +12,7 @@ SpriteMoverArgument::SpriteMoverArgument()
 {
     X = Y = Z = qNaN;
     Duration = Wait = 0;
-    Ease = Easing::Easing::Linear;
+    Ease = easing::Easing::Linear;
 }
 
 SpriteMoverData::SpriteMoverData()
@@ -145,8 +145,8 @@ std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const st
 {
     auto result = make_unique<SpriteMoverObject>();
     // MoverFunction‚ðŒˆ’è
-    if (MoverFunction::actions.find(func) != MoverFunction::actions.end()) {
-        result->Function = MoverFunction::actions[func];
+    if (mover_function::actions.find(func) != mover_function::actions.end()) {
+        result->Function = mover_function::actions[func];
     } else {
         // TODO: ƒJƒXƒ^ƒ€Mover‚É‘Î‰ž
         const auto custom = target->GetCustomAction(func);
@@ -175,7 +175,7 @@ std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const st
                 result->Argument.Wait = ToDouble(get<1>(prop).c_str());
                 break;
             case "ease"_crc32:
-                result->Argument.Ease = Easing::easings[get<1>(prop)];
+                result->Argument.Ease = easing::easings[get<1>(prop)];
                 break;
             default: break;
         }

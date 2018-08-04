@@ -67,7 +67,7 @@ void SSprite::Release()
     if (--reference == 0) delete this;
 }
 
-MoverFunction::Action SSprite::GetCustomAction(const string & name)
+mover_function::Action SSprite::GetCustomAction(const string & name)
 {
     return nullptr;
 }
@@ -526,6 +526,7 @@ void STextInput::Tick(double delta)
         case 2:
             selectionStart = selectionEnd = cursor = -1;
             return;
+        default: break;
     }
 }
 
@@ -581,6 +582,7 @@ void SSynthSprite::Clear()
     target = new SRenderTarget(width, height);
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
 void SSynthSprite::Transfer(SSprite *sprite)
 {
     if (!sprite) return;
@@ -590,6 +592,7 @@ void SSynthSprite::Transfer(SSprite *sprite)
     sprite->Release();
 }
 
+// ReSharper disable once CppMemberFunctionMayBeConst
 void SSynthSprite::Transfer(SImage * image, const double x, const double y)
 {
     if (!image) return;
@@ -683,12 +686,11 @@ bool SClippingSprite::ActionMoveRangeTo(SSprite *thisObj, SpriteMoverArgument &a
     return true;
 }
 
-SClippingSprite::SClippingSprite(int w, int h) : SSynthSprite(w, h)
+SClippingSprite::SClippingSprite(const int w, const int h) : SSynthSprite(w, h), u1(0), v1(0), u2(1), v2(0)
 {
-
 }
 
-MoverFunction::Action SClippingSprite::GetCustomAction(const string & name)
+mover_function::Action SClippingSprite::GetCustomAction(const string & name)
 {
     switch (crc32_rec(0xffffffff, name.c_str())) {
         case "range_size"_crc32:

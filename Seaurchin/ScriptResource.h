@@ -1,9 +1,7 @@
 #pragma once
 
-#include "Debug.h"
 #include "Font.h"
 #include "SoundManager.h"
-#include "Misc.h"
 #include "Setting.h"
 #include "ScriptSpriteMisc.h"
 
@@ -16,9 +14,9 @@
 #define SU_IF_SETTING_ITEM "SettingItem"
 
 //interface é©ìÆâï˙ëŒè€
-class ISResouceAutoRelease {
+class SResouceAutoRelease {
 public:
-    virtual ~ISResouceAutoRelease() = default;
+    virtual ~SResouceAutoRelease() = default;
 private:
     virtual bool Dispose() = 0;
 };
@@ -111,8 +109,8 @@ public:
     ~SFont() override;
 
     int GetSize() const { return size; }
-    std::tuple<double, double, int> RenderRaw(SRenderTarget *rt, const std::string& utf8str);
-    std::tuple<double, double, int> RenderRich(SRenderTarget *rt, const std::string& utf8str, const ColorTint &defcol);
+    std::tuple<double, double, int> RenderRaw(SRenderTarget *rt, const std::string& utf8Str);
+    std::tuple<double, double, int> RenderRich(SRenderTarget *rt, const std::string& utf8Str, const ColorTint &defcol);
 
     static SFont* CreateBlankFont();
     static SFont* CreateLoadedFontFromFile(const std::string &file);

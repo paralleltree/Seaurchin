@@ -53,10 +53,10 @@ void ControlState::Update()
 {
     memcpy_s(keyboardLast, sizeof(char) * 256, keyboardCurrent, sizeof(char) * 256);
     GetHitKeyStateAll(keyboardCurrent);
-    for (int i = 0; i < 256; i++) keyboardTrigger[i] = !keyboardLast[i] && keyboardCurrent[i];
+    for (auto i = 0; i < 256; i++) keyboardTrigger[i] = !keyboardLast[i] && keyboardCurrent[i];
 
-    for (int i = 0; i < 16; i++) integratedSliderLast[i] = integratedSliderCurrent[i];
-    for (int i = 0; i < 16; i++) integratedSliderCurrent[i] = keyboardCurrent[sliderKeyboardNumbers[i]];
+    for (auto i = 0; i < 16; i++) integratedSliderLast[i] = integratedSliderCurrent[i];
+    for (auto i = 0; i < 16; i++) integratedSliderCurrent[i] = keyboardCurrent[sliderKeyboardNumbers[i]];
     integratedAir[size_t(AirControlSource::AirUp)] = keyboardTrigger[airStringKeyboardNumbers[size_t(AirControlSource::AirUp)]];
     integratedAir[size_t(AirControlSource::AirDown)] = keyboardTrigger[airStringKeyboardNumbers[size_t(AirControlSource::AirDown)]];
     integratedAir[size_t(AirControlSource::AirHold)] = keyboardCurrent[airStringKeyboardNumbers[size_t(AirControlSource::AirHold)]];
@@ -67,7 +67,7 @@ void ControlState::Update()
         for (auto &finger : currentFingers) integratedSliderCurrent[finger.second->SliderPosition] = 1;
     }
 
-    for (int i = 0; i < 16; i++) integratedSliderTrigger[i] = !integratedSliderLast[i] && integratedSliderCurrent[i];
+    for (auto i = 0; i < 16; i++) integratedSliderTrigger[i] = !integratedSliderLast[i] && integratedSliderCurrent[i];
 }
 
 bool ControlState::GetTriggerState(const ControllerSource source, const int number)
@@ -153,7 +153,7 @@ void ControlState::InitializeWacomTouchDevice()
     wacomDeviceIds = new int[devices];
     wacomDeviceCapabilities = new WacomMTCapability[devices];
     WacomMTGetAttachedDeviceIDs(wacomDeviceIds, devices * sizeof(int));
-    for (int i = 0; i < devices; i++) {
+    for (auto i = 0; i < devices; i++) {
         WacomMTCapability cap = { 0 };
         WacomMTGetDeviceCapabilities(wacomDeviceIds[i], &cap);
         wacomDeviceCapabilities[i] = cap;
@@ -168,7 +168,7 @@ void ControlState::InitializeWacomTouchDevice()
 void ControlState::UpdateWacomTouchDeviceFinger(WacomMTFingerCollection *fingers)
 {
     const auto cap = wacomDeviceCapabilities[0];
-    for (int i = 0; i < fingers->FingerCount; i++) {
+    for (auto i = 0; i < fingers->FingerCount; i++) {
         const auto finger = fingers->Fingers[i];
         if (!finger.Confidence) continue;
         switch (finger.TouchState) {
@@ -187,11 +187,11 @@ void ControlState::UpdateWacomTouchDeviceFinger(WacomMTFingerCollection *fingers
                 lock_guard<mutex> lock(fingerMutex);
                 auto data = currentFingers[finger.FingerID];
                 if (!data) {
-                    auto data = make_shared<ControllerFingerState>();
-                    data->Id = finger.FingerID;
-                    data->State = WMTFingerStateDown;
-                    data->SliderPosition = floor(finger.X / cap.LogicalWidth * 16);
-                    currentFingers[finger.FingerID] = data;
+                    auto fdata = make_shared<ControllerFingerState>();
+                    fdata->Id = finger.FingerID;
+                    fdata->State = WMTFingerStateDown;
+                    fdata->SliderPosition = floor(finger.X / cap.LogicalWidth * 16);
+                    currentFingers[finger.FingerID] = fdata;
                     break;
                 }
                 data->State = WMTFingerStateHold;

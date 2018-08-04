@@ -4,7 +4,7 @@
 #include "MoverFunction.h"
 
 struct SpriteMoverArgument {
-    Easing::EasingFunction Ease;
+    easing::EasingFunction Ease;
     float X;
     float Y;
     float Z;
@@ -25,7 +25,7 @@ struct SpriteMoverData {
 };
 
 struct SpriteMoverObject {
-    MoverFunction::Action Function;
+    mover_function::Action Function;
     SpriteMoverArgument Argument;
     SpriteMoverData Data;
 };

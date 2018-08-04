@@ -2,7 +2,7 @@
 
 using namespace std;
 
-namespace Easing
+namespace easing
 {
 
 unordered_map<string, EasingFunction> easings = {
@@ -159,7 +159,7 @@ double Easing::InOutCircle(double time, const double timeDuration, const double 
 
 double Easing::InElastic(double time, const double timeDuration, const double startValue, const double valueDuration)
 {
-    auto s = 1.70158;
+    double s;
     auto p = 0.0;
     auto a = valueDuration;
     if (time == 0) return startValue; if ((time /= timeDuration) == 1) return startValue + valueDuration; if (p == 0) p = timeDuration * .3;
@@ -173,7 +173,7 @@ double Easing::InElastic(double time, const double timeDuration, const double st
 
 double Easing::OutElastic(double time, const double timeDuration, const double startValue, const double valueDuration)
 {
-    auto s = 1.70158;
+    double s;
     auto p = 0.0;
     auto a = valueDuration;
     if (time == 0) return startValue; if ((time /= timeDuration) == 1) return startValue + valueDuration; if (p == 0) p = timeDuration * .3;
@@ -187,7 +187,7 @@ double Easing::OutElastic(double time, const double timeDuration, const double s
 
 double Easing::InOutElastic(double time, const double timeDuration, const double startValue, const double valueDuration)
 {
-    auto s = 1.70158;
+    double s;
     auto p = 0.0;
     auto a = valueDuration;
     if (time == 0) return startValue; if ((time /= timeDuration / 2) == 2) return startValue + valueDuration; if (p == 0) p = timeDuration * (.3 * 1.5);

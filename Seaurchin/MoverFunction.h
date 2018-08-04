@@ -4,7 +4,7 @@ class SSprite;
 struct SpriteMoverData;
 struct SpriteMoverArgument;
 
-namespace MoverFunction
+namespace mover_function
 {
 using Action = std::function<bool(SSprite*, SpriteMoverArgument&,  SpriteMoverData&, double)>;
 extern std::unordered_map<std::string, Action> actions;

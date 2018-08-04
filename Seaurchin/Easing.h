@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Easing
+namespace easing
 {
 class Easing {
 public:

@@ -50,7 +50,7 @@ public:
 
     void Dismiss() { IsDead = true; }
     void Revive() { IsDead = false; }
-    virtual MoverFunction::Action GetCustomAction(const std::string &name);
+    virtual mover_function::Action GetCustomAction(const std::string &name);
     void AddMove(const std::string &move) const;
     void AbortMove(bool terminate) const;
     void Apply(const std::string &dict);
@@ -209,11 +209,11 @@ protected:
 public:
     SClippingSprite(int w, int h);
 
-    MoverFunction::Action GetCustomAction(const std::string &name) override;
+    mover_function::Action GetCustomAction(const std::string &name) override;
     void SetRange(double tx, double ty, double w, double h);
     void Draw() override;
     void Draw(const Transform2D &parent, const ColorTint &color) override;
-    SClippingSprite *Clone();
+    SClippingSprite *Clone() override;
 
     static SClippingSprite *Factory(int w, int h);
     static void RegisterType(asIScriptEngine *engine);
