@@ -150,7 +150,7 @@ void PlayableProcessor::Draw()
 {
     if (!imageHoldLight) return;
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    for (int i = 0; i < 16; i++)
+    for (auto i = 0; i < 16; i++)
         if (currentState->GetCurrentState(ControllerSource::IntegratedSliders, i))
             DrawRectRotaGraph3F(
                 player->widthPerLane * i, player->laneBufferY,
@@ -164,7 +164,6 @@ void PlayableProcessor::Draw()
 void PlayableProcessor::ProcessScore(const shared_ptr<SusDrawableNoteData>& note)
 {
     if (note->OnTheFlyData.test(size_t(NoteAttribute::Finished)) && note->ExtraData.empty()) return;
-    auto state = note->Type.to_ulong();
 
     if (note->Type.test(size_t(SusNoteType::Hold))) {
         isInHold = CheckHoldJudgement(note);
@@ -207,7 +206,7 @@ void PlayableProcessor::ProcessScore(const shared_ptr<SusDrawableNoteData>& note
 }
 
 
-bool PlayableProcessor::CheckJudgement(const shared_ptr<SusDrawableNoteData>& note)
+bool PlayableProcessor::CheckJudgement(const shared_ptr<SusDrawableNoteData>& note) const
 {
     auto reltime = player->currentTime - note->StartTime - judgeAdjustSlider;
     reltime /= judgeMultiplierSlider;
@@ -237,7 +236,7 @@ bool PlayableProcessor::CheckJudgement(const shared_ptr<SusDrawableNoteData>& no
     return false;
 }
 
-bool PlayableProcessor::CheckHellJudgement(const shared_ptr<SusDrawableNoteData>& note)
+bool PlayableProcessor::CheckHellJudgement(const shared_ptr<SusDrawableNoteData>& note) const
 {
     auto reltime = player->currentTime - note->StartTime - judgeAdjustSlider;
     reltime *= judgeMultiplierSlider;  // Hell‚¾‚©‚ç‚Ë
@@ -264,7 +263,7 @@ bool PlayableProcessor::CheckHellJudgement(const shared_ptr<SusDrawableNoteData>
     return false;
 }
 
-bool PlayableProcessor::CheckAirJudgement(const shared_ptr<SusDrawableNoteData>& note)
+bool PlayableProcessor::CheckAirJudgement(const shared_ptr<SusDrawableNoteData>& note) const
 {
     auto reltime = player->currentTime - note->StartTime - judgeAdjustAirString;
     reltime /= judgeMultiplierAir;
@@ -303,7 +302,7 @@ bool PlayableProcessor::CheckHoldJudgement(const shared_ptr<SusDrawableNoteData>
     const auto right = left + note->Length;
     // left <= i < right ‚Å”»’è
     auto held = false, trigger = false, release = false;
-    for (int i = left; i < right; i++) {
+    for (auto i = left; i < right; i++) {
         held |= currentState->GetCurrentState(ControllerSource::IntegratedSliders, i);
         trigger |= currentState->GetTriggerState(ControllerSource::IntegratedSliders, i);
         release |= currentState->GetLastState(ControllerSource::IntegratedSliders, i) && !currentState->GetCurrentState(ControllerSource::IntegratedSliders, i);
@@ -370,7 +369,7 @@ bool PlayableProcessor::CheckSlideJudgement(shared_ptr<SusDrawableNoteData> note
     //Œ»Ý‚Ì”»’èˆÊ’u‚ð’²‚×‚é
     auto lastStep = note;
     auto refNote = note;
-    auto left = 0, right = 0;
+    int left, right;
     for (const auto &extra : note->ExtraData) {
         if (extra->Type[size_t(SusNoteType::Control)]) continue;
         if (extra->Type[size_t(SusNoteType::Injection)]) continue;
@@ -411,7 +410,7 @@ bool PlayableProcessor::CheckSlideJudgement(shared_ptr<SusDrawableNoteData> note
     }
     // left <= i < right ‚Å”»’è
     auto held = false, trigger = false, release = false;
-    for (int i = left; i < right; i++) {
+    for (auto i = left; i < right; i++) {
         held |= currentState->GetCurrentState(ControllerSource::IntegratedSliders, i);
         trigger |= currentState->GetTriggerState(ControllerSource::IntegratedSliders, i);
         release |= currentState->GetLastState(ControllerSource::IntegratedSliders, i) && !currentState->GetCurrentState(ControllerSource::IntegratedSliders, i);
@@ -473,19 +472,14 @@ bool PlayableProcessor::CheckAirActionJudgement(const shared_ptr<SusDrawableNote
     if (reltime < -judgeWidthAttack * judgeMultiplierAir) return false;
     if (note->OnTheFlyData[size_t(NoteAttribute::Completed)]) return false;
 
-    auto held = false, trigger = false;
-    held = currentState->GetCurrentState(ControllerSource::IntegratedAir, int(AirControlSource::AirHold)) || isAutoAir;
-    trigger = currentState->GetTriggerState(ControllerSource::IntegratedAir, int(AirControlSource::AirAction));
-
-    auto judgeTime = player->currentTime - note->StartTime - judgeAdjustAirString;
-    judgeTime /= judgeMultiplierAir;
+    const auto held = currentState->GetCurrentState(ControllerSource::IntegratedAir, int(AirControlSource::AirHold)) || isAutoAir;
 
     // Start”»’è
     // ‚È‚µ
 
     // Step~End”»’è
     for (const auto &extra : note->ExtraData) {
-        judgeTime = player->currentTime - extra->StartTime - judgeAdjustAirString;
+        auto judgeTime = player->currentTime - extra->StartTime - judgeAdjustAirString;
         judgeTime /= judgeMultiplierAir;
 
         if (extra->OnTheFlyData[size_t(NoteAttribute::Finished)]) continue;

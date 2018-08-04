@@ -5,6 +5,7 @@
 #include "Character.h"
 #include "Setting.h"
 #include "Misc.h"
+#include "Config.h"
 
 using namespace std;
 
@@ -177,7 +178,6 @@ void ScenePlayer::CalculateNotes(double time, double duration, double preced)
 
     seenData.clear();
     copy_if(data.begin(), data.end(), back_inserter(seenData), [&](shared_ptr<SusDrawableNoteData> n) {
-        auto ptime = time - preced;
         const auto types = n->Type.to_ulong();
         if (types & SU_NOTE_LONG_MASK) {
             // ƒƒ“ƒO
@@ -460,7 +460,6 @@ void ScenePlayer::MovePositionBySecond(const double sec)
     const auto gap = analyzer->SharedMetaData.WaveOffset - soundBufferingLatency;
     const auto oldBgmPos = bgmStream->GetPlayingPosition();
     const auto oldTime = currentTime;
-    int oldMeas = get<0>(analyzer->GetRelativeTime(currentTime));
     const auto newTime = oldTime + sec;
     auto newBgmPos = oldBgmPos + (newTime - oldTime);
     newBgmPos = max(0.0, newBgmPos);
@@ -533,7 +532,7 @@ void ScenePlayer::SetJudgeCallback(asIScriptFunction *func) const
     currentCharacterInstance->SetCallback(func);
 }
 
-void ScenePlayer::AdjustCamera(double cy, double cz, double ctz)
+void ScenePlayer::AdjustCamera(const double cy, const double cz, const double ctz)
 {
     cameraY += cy;
     cameraZ += cz;

@@ -2,6 +2,7 @@
 #include "ScriptSprite.h"
 #include "ExecutionManager.h"
 #include "Setting.h"
+#include "Config.h"
 
 using namespace std;
 
@@ -82,7 +83,7 @@ void ScenePlayer::LoadResources()
     auto bufferY = 2.0;
     while (exty > bufferY) bufferY *= 2;
     const float bufferV = exty / bufferY;
-    for (int i = 2; i < 4; i++) groundVertices[i].v = bufferV;
+    for (auto i = 2; i < 4; i++) groundVertices[i].v = bufferV;
     hGroundBuffer = MakeScreen(laneBufferX, bufferY, TRUE);
     hBlank = MakeScreen(128, 128, FALSE);
     BEGIN_DRAW_TRANSACTION(hBlank);
@@ -470,7 +471,7 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
     // 1âÊñ ï™Ç≈8ï™äÑÇÆÇÁÇ¢Ç≈ÇÊÇ≥ÇªÇ§
     const int segments = fabs(relpos - reltailpos) * 8 + 1;
     SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
-    for (int i = 0; i < segments; i++) {
+    for (auto i = 0; i < segments; i++) {
         const auto head = glm::mix(relpos, reltailpos, double(i) / segments);
         const auto tail = glm::mix(relpos, reltailpos, double(i + 1) / segments);
         DrawRectModiGraphF(
@@ -496,7 +497,6 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
 void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 {
     auto lastStep = note;
-    const auto segmentLength = 128.0;   // Bufferè„Ç≈ÇÃç≈è¨ÇÃí∑Ç≥
     const auto strutBottom = 1.0;
     vector<VERTEX2D> vertices;
     vector<uint16_t> indices;
@@ -513,7 +513,6 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
     for (auto &slideElement : note->ExtraData) {
         if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
-        const auto currentStepRelativeY = 1.0 - slideElement->ModifiedPosition / seenDuration;
         auto &segmentPositions = curveData[slideElement];
 
         for (auto &segmentPosition : segmentPositions) {
@@ -556,11 +555,9 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
         auto lastSegmentPosition = segmentPositions[0];
         auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / seenDuration;
 
-        uint16_t base = 0;
         for (auto &segmentPosition : segmentPositions) {
             if (lastSegmentPosition == segmentPosition) continue;
             const auto currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
-            const auto currentSegmentLength = glm::mix(double(lastStep->Length), double(slideElement->Length), currentTimeInBlock);
             const auto segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
             const auto currentSegmentRelativeY = 1.0 - segmentExPosition / seenDuration;
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
@@ -796,7 +793,7 @@ void ScenePlayer::DrawAirActionCover(const AirDrawQuery &query)
 
 void ScenePlayer::DrawTap(const int lane, const int length, const double relpos, const int handle) const
 {
-    for (int i = 0; i < length * 2; i++) {
+    for (auto i = 0; i < length * 2; i++) {
         const auto type = i ? (i == length * 2 - 1 ? 2 : 1) : 0;
         DrawRectRotaGraph3F(
             (lane * 2 + i) * widthPerLane / 2, laneBufferY * relpos,
@@ -817,7 +814,7 @@ void ScenePlayer::DrawMeasureLine(const shared_ptr<SusDrawableNoteData>& note) c
 void ScenePlayer::DrawLaneDivisionLines() const
 {
     const auto division = 8;
-    for (int i = 1; i < division; i++) {
+    for (auto i = 1; i < division; i++) {
         DrawLineAA(
             laneBufferX / division * i, 0,
             laneBufferX / division * i, laneBufferY * cullingLimit,

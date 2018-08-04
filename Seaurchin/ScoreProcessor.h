@@ -43,9 +43,9 @@ protected:
     bool isAutoAir = false;
 
     void ProcessScore(const std::shared_ptr<SusDrawableNoteData>& notes);
-    bool CheckJudgement(const std::shared_ptr<SusDrawableNoteData>& note);
-    bool CheckHellJudgement(const std::shared_ptr<SusDrawableNoteData>& note);
-    bool CheckAirJudgement(const std::shared_ptr<SusDrawableNoteData>& note);
+    bool CheckJudgement(const std::shared_ptr<SusDrawableNoteData>& note) const;
+    bool CheckHellJudgement(const std::shared_ptr<SusDrawableNoteData>& note) const;
+    bool CheckAirJudgement(const std::shared_ptr<SusDrawableNoteData>& note) const;
     bool CheckAirActionJudgement(const std::shared_ptr<SusDrawableNoteData>& note) const;
     bool CheckHoldJudgement(const std::shared_ptr<SusDrawableNoteData>& note) const;
     bool CheckSlideJudgement(std::shared_ptr<SusDrawableNoteData> note) const;
