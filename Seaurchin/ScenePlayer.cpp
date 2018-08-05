@@ -247,9 +247,12 @@ void ScenePlayer::Tick(const double delta)
         // ----------------------
 
         auto cbpm = get<1>(analyzer->SharedBpmChanges[0]);
-        for (const auto &bc : analyzer->SharedBpmChanges) {
-            if (get<0>(bc) < currentTime) break;
-            cbpm = get<1>(bc);
+        if (currentTime >= 0)
+        {
+            for (const auto &bc : analyzer->SharedBpmChanges) {
+                if (get<0>(bc) < currentTime) break;
+                cbpm = get<1>(bc);
+            }
         }
         const auto bpmMultiplier = (cbpm / analyzer->SharedMetaData.BaseBpm);
         const auto sizeFor4Beats = bpmMultiplier * hispeedMultiplier * 1000.0;
