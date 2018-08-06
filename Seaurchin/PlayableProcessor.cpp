@@ -88,20 +88,26 @@ void PlayableProcessor::Update(vector<shared_ptr<SusDrawableNoteData>>& notes)
 {
     auto slideCheck = false;
     auto holdCheck = false;
+    auto aaCheck = false;
     isInHold = false;
     for (auto& note : notes) {
         ProcessScore(note);
         slideCheck = isInSlide || slideCheck;
         holdCheck = isInHold || holdCheck;
+        aaCheck = isInAA || aaCheck;
     }
 
     if (!wasInSlide && slideCheck) player->EnqueueJudgeSound(JudgeSoundType::Sliding);
     if (wasInSlide && !slideCheck) player->EnqueueJudgeSound(JudgeSoundType::SlidingStop);
     if (!wasInHold && holdCheck) player->EnqueueJudgeSound(JudgeSoundType::Holding);
     if (wasInHold && !holdCheck) player->EnqueueJudgeSound(JudgeSoundType::HoldingStop);
+    if (!wasInAA && aaCheck) player->EnqueueJudgeSound(JudgeSoundType::AirHolding);
+    if (wasInAA && !aaCheck) player->EnqueueJudgeSound(JudgeSoundType::AirHoldingStop);
+    player->airActionShown = aaCheck;
 
     wasInHold = holdCheck;
     wasInSlide = slideCheck;
+    wasInAA = aaCheck;
 }
 
 void PlayableProcessor::MovePosition(const double relative)
@@ -111,8 +117,10 @@ void PlayableProcessor::MovePosition(const double relative)
 
     wasInHold = isInHold = false;
     wasInSlide = isInSlide = false;
+    wasInAA = isInAA = false;
     player->EnqueueJudgeSound(JudgeSoundType::HoldingStop);
     player->EnqueueJudgeSound(JudgeSoundType::SlidingStop);
+    player->EnqueueJudgeSound(JudgeSoundType::AirHoldingStop);
     player->RemoveSlideEffect();
 
     // ‘—‚è: ”ò‚Î‚µ‚½•”•ª‚ðFinished‚É
@@ -170,7 +178,7 @@ void PlayableProcessor::ProcessScore(const shared_ptr<SusDrawableNoteData>& note
     } else if (note->Type.test(size_t(SusNoteType::Slide))) {
         isInSlide = CheckSlideJudgement(note);
     } else if (note->Type.test(size_t(SusNoteType::AirAction))) {
-        CheckAirActionJudgement(note);
+        isInAA = CheckAirActionJudgement(note);
     } else if (note->Type.test(size_t(SusNoteType::Air))) {
         if (!CheckAirJudgement(note)) return;
         if (note->Type[size_t(SusNoteType::Up)]) {

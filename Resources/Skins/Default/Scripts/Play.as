@@ -60,6 +60,7 @@ class Play : CoroutineScene {
     player.SetResource("SoundAir", skin.GetSound("*Sound-Air"));
     player.SetResource("SoundAirDown", skin.GetSound("*Sound-AirDown"));
     player.SetResource("SoundAirAction", skin.GetSound("*Sound-AirAction"));
+    player.SetResource("SoundAirHoldLoop", skin.GetSound("*Sound-AirHoldLoop"));
     player.SetResource("SoundHoldLoop", skin.GetSound("*Sound-SlideLoop"));
     player.SetResource("SoundSlideLoop", skin.GetSound("*Sound-HoldLoop"));
     player.SetResource("SoundHoldStep", skin.GetSound("*Sound-HoldStep"));

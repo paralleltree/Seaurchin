@@ -64,6 +64,8 @@ void AutoPlayerProcessor::Update(vector<shared_ptr<SusDrawableNoteData>> &notes)
     if (wasInSlide && !slideCheck) player->EnqueueJudgeSound(JudgeSoundType::SlidingStop);
     if (!wasInHold && holdCheck) player->EnqueueJudgeSound(JudgeSoundType::Holding);
     if (wasInHold && !holdCheck) player->EnqueueJudgeSound(JudgeSoundType::HoldingStop);
+    if (!wasInAA && aaCheck) player->EnqueueJudgeSound(JudgeSoundType::AirHolding);
+    if (wasInAA && !aaCheck) player->EnqueueJudgeSound(JudgeSoundType::AirHoldingStop);
     player->airActionShown = aaCheck;
 
     wasInHold = holdCheck;
@@ -78,8 +80,10 @@ void AutoPlayerProcessor::MovePosition(const double relative)
 
     wasInHold = isInHold = false;
     wasInSlide = isInSlide = false;
+    wasInAA = isInAA = false;
     player->EnqueueJudgeSound(JudgeSoundType::HoldingStop);
     player->EnqueueJudgeSound(JudgeSoundType::SlidingStop);
+    player->EnqueueJudgeSound(JudgeSoundType::AirHoldingStop);
     player->RemoveSlideEffect();
 
     // ‘—‚è: ”ò‚Î‚µ‚½•”•ª‚ðFinished‚É

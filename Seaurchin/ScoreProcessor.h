@@ -31,7 +31,8 @@ protected:
     ScenePlayer *player;
     std::shared_ptr<ControlState> currentState;
     std::vector<std::shared_ptr<SusDrawableNoteData>> &data = DefaultDataValue;
-    bool isInHold = false, isInSlide = false, wasInHold = false, wasInSlide = false;
+    bool isInHold = false, isInSlide = false, isInAA = false, isInAir = false;
+    bool wasInHold = false, wasInSlide = false, wasInAA = false, wasInAir = false;
     SImage *imageHoldLight;
     double judgeWidthAttack;
     double judgeWidthJustice;
@@ -73,7 +74,8 @@ class AutoPlayerProcessor : public ScoreProcessor {
 protected:
     ScenePlayer *player;
     std::vector<std::shared_ptr<SusDrawableNoteData>> &data = DefaultDataValue;
-    bool isInHold = false, isInSlide = false, isInAA = false, wasInHold = false, wasInSlide = false, wasInAA = false;
+    bool isInHold = false, isInSlide = false, isInAA = false;
+    bool wasInHold = false, wasInSlide = false, wasInAA = false;
 
     void ProcessScore(const std::shared_ptr<SusDrawableNoteData>& notes);
     void IncrementCombo(AbilityNoteType type, const std::string& extra) const;

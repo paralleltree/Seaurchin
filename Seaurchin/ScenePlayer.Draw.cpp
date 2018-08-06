@@ -43,6 +43,7 @@ void ScenePlayer::LoadResources()
     soundAir = dynamic_cast<SSound*>(resources["SoundAir"]);
     soundAirDown = dynamic_cast<SSound*>(resources["SoundAirDown"]);
     soundAirAction = dynamic_cast<SSound*>(resources["SoundAirAction"]);
+    soundAirLoop = dynamic_cast<SSound*>(resources["SoundAirHoldLoop"]);
     soundSlideLoop = dynamic_cast<SSound*>(resources["SoundSlideLoop"]);
     soundHoldLoop = dynamic_cast<SSound*>(resources["SoundHoldLoop"]);
     soundSlideStep = dynamic_cast<SSound*>(resources["SoundSlideStep"]);
@@ -53,12 +54,14 @@ void ScenePlayer::LoadResources()
     auto setting = manager->GetSettingInstanceSafe();
     if (soundHoldLoop) soundHoldLoop->SetLoop(true);
     if (soundSlideLoop) soundSlideLoop->SetLoop(true);
+    if (soundAirLoop) soundAirLoop->SetLoop(true);
     if (soundTap) soundTap->SetVolume(setting->ReadValue("Sound", "VolumeTap", 1.0));
     if (soundExTap) soundExTap->SetVolume(setting->ReadValue("Sound", "VolumeExTap", 1.0));
     if (soundFlick) soundFlick->SetVolume(setting->ReadValue("Sound", "VolumeFlick", 1.0));
     if (soundAir) soundAir->SetVolume(setting->ReadValue("Sound", "VolumeAir", 1.0));
     if (soundAirDown) soundAirDown->SetVolume(setting->ReadValue("Sound", "VolumeAir", 1.0));
     if (soundAirAction) soundAirAction->SetVolume(setting->ReadValue("Sound", "VolumeAirAction", 1.0));
+    if (soundAirLoop) soundAirLoop->SetVolume(setting->ReadValue("Sound", "VolumeAirAction", 1.0));
     if (soundHoldLoop) soundHoldLoop->SetVolume(setting->ReadValue("Sound", "VolumeHold", 1.0));
     if (soundSlideLoop) soundSlideLoop->SetVolume(setting->ReadValue("Sound", "VolumeSlide", 1.0));
     if (soundHoldStep) soundHoldStep->SetVolume(setting->ReadValue("Sound", "VolumeHold", 1.0));

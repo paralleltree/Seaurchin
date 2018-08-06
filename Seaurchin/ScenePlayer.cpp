@@ -384,6 +384,12 @@ void ScenePlayer::ProcessSoundQueue()
             case JudgeSoundType::SlidingStop:
                 if (soundSlideLoop) SoundManager::StopGlobal(soundSlideLoop->GetSample());
                 break;
+            case JudgeSoundType::AirHolding:
+                if (soundAirLoop) SoundManager::PlayGlobal(soundAirLoop->GetSample());
+                break;
+            case JudgeSoundType::AirHoldingStop:
+                if (soundAirLoop) SoundManager::StopGlobal(soundAirLoop->GetSample());
+                break;
             default: break;
         }
     }

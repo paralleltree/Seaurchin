@@ -63,6 +63,7 @@ void InitializeSkin(Skin@ skin) {
   skin.LoadSound("*Sound-Air", "Air.wav");
   skin.LoadSound("*Sound-AirDown", "AirDown.wav");
   skin.LoadSound("*Sound-AirAction", "AirAction.wav");
+  skin.LoadSound("*Sound-AirHoldLoop", "AirHoldLoop.wav");
   skin.LoadSound("*Sound-SlideLoop", "SlideLoop.wav");
   skin.LoadSound("*Sound-HoldLoop", "SlideLoop.wav");
   skin.LoadSound("*Sound-HoldStep", "HoldStep.wav");

@@ -44,6 +44,8 @@ enum class JudgeSoundType {
     Sliding,
     SlideStep,
     SlidingStop,
+    AirHolding,
+    AirHoldingStop,
     Metronome,
 };
 
@@ -114,7 +116,7 @@ protected:
     double actualNoteScaleX = (widthPerLane / 2) / noteImageBlockX;
     double actualNoteScaleY = actualNoteScaleX * scaleNoteY;
 
-    SSound *soundTap, *soundExTap, *soundFlick, *soundAir, *soundAirDown, *soundAirAction;
+    SSound *soundTap, *soundExTap, *soundFlick, *soundAir, *soundAirDown, *soundAirAction, *soundAirLoop;
     SSound *soundHoldLoop, *soundSlideLoop, *soundHoldStep, *soundSlideStep;
     SSound *soundMetronome;
     SImage *imageLaneGround, *imageLaneJudgeLine;
