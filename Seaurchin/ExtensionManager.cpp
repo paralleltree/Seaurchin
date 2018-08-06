@@ -16,7 +16,7 @@ ExtensionManager::~ExtensionManager()
 void ExtensionManager::LoadExtensions()
 {
     using namespace boost;
-    using namespace boost::filesystem;
+    using namespace filesystem;
     const auto root = Setting::GetRootDirectory() / SU_DATA_DIR / SU_EXTENSION_DIR;
     for (const auto& fdata : make_iterator_range(directory_iterator(root), {})) {
         if (is_directory(fdata)) continue;

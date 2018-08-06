@@ -501,14 +501,8 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 {
     auto lastStep = note;
     const auto strutBottom = 1.0;
-    vector<VERTEX2D> vertices;
-    vector<uint16_t> indices;
-    const auto reserved = accumulate(note->ExtraData.begin(), note->ExtraData.end(), 2, [this](const int current, const shared_ptr<SusDrawableNoteData> part) {
-        if (part->Type.test(size_t(SusNoteType::Control))) return current;
-        if (part->Type.test(size_t(SusNoteType::Injection))) return current;
-        return current + int(curveData[part].size()) * 2 + 2;
-    });
-    vertices.reserve(reserved);
+    slideVertices.clear();
+    slideIndices.clear();
 
     // Žx’Œ
     auto drawcount = 0;
@@ -518,60 +512,95 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
         if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
         auto &segmentPositions = curveData[slideElement];
 
-        for (auto &segmentPosition : segmentPositions) {
+        auto lastSegmentPosition = segmentPositions[0];
+        auto lastSegmentLength = double(lastStep->Length);
+        auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / seenDuration;
+        auto lastTimeInBlock = get<0>(lastSegmentPosition) / (slideElement->StartTime - lastStep->StartTime);
+
+        for (const auto &segmentPosition : segmentPositions) {
+            if (lastSegmentPosition == segmentPosition) continue;
             const auto currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
             const auto currentSegmentLength = glm::mix(double(lastStep->Length), double(slideElement->Length), currentTimeInBlock);
             const auto segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
             const auto currentSegmentRelativeY = 1.0 - segmentExPosition / seenDuration;
-            vertices.push_back(
-                {
-                    VGet(get<1>(segmentPosition) * laneBufferX - currentSegmentLength / 2 * widthPerLane, laneBufferY * currentSegmentRelativeY, 0),
-                    1.0f,
-                    GetColorU8(255, 255, 255, 255),
-                    0.0f, float(currentTimeInBlock * strutBottom)
-                }
-            );
-            vertices.push_back(
-                {
-                    VGet(get<1>(segmentPosition) * laneBufferX + currentSegmentLength / 2 * widthPerLane, laneBufferY * currentSegmentRelativeY, 0),
-                    1.0f,
-                    GetColorU8(255, 255, 255, 255),
-                    1.0f, float(currentTimeInBlock * strutBottom)
-                }
-            );
-            vector<uint16_t> here = { base, uint16_t(base + 1), uint16_t(base + 2), uint16_t(base + 2), uint16_t(base + 1), uint16_t(base + 3) };
-            indices.insert(indices.end(), here.begin(), here.end());
-            base += 2;
-            drawcount += 2;
+            if ((currentSegmentRelativeY >= 0 || lastSegmentRelativeY >= 0)
+                && (currentSegmentRelativeY < cullingLimit || lastSegmentRelativeY < cullingLimit)) {
+                slideVertices.push_back(
+                    {
+                        VGet(get<1>(lastSegmentPosition) * laneBufferX - lastSegmentLength / 2 * widthPerLane, laneBufferY * lastSegmentRelativeY, 0),
+                        1.0f,
+                        GetColorU8(255, 255, 255, 255),
+                        0.0f, float(lastTimeInBlock * strutBottom)
+                    }
+                );
+                slideVertices.push_back(
+                    {
+                        VGet(get<1>(lastSegmentPosition) * laneBufferX + lastSegmentLength / 2 * widthPerLane, laneBufferY * lastSegmentRelativeY, 0),
+                        1.0f,
+                        GetColorU8(255, 255, 255, 255),
+                        0.0f, float(lastTimeInBlock * strutBottom)
+                    }
+                );
+                slideVertices.push_back(
+                    {
+                        VGet(get<1>(segmentPosition) * laneBufferX - currentSegmentLength / 2 * widthPerLane, laneBufferY * currentSegmentRelativeY, 0),
+                        1.0f,
+                        GetColorU8(255, 255, 255, 255),
+                        0.0f, float(currentTimeInBlock * strutBottom)
+                    }
+                );
+                slideVertices.push_back(
+                    {
+                        VGet(get<1>(segmentPosition) * laneBufferX + currentSegmentLength / 2 * widthPerLane, laneBufferY * currentSegmentRelativeY, 0),
+                        1.0f,
+                        GetColorU8(255, 255, 255, 255),
+                        1.0f, float(currentTimeInBlock * strutBottom)
+                    }
+                );
+                vector<uint16_t> here = { base, uint16_t(base + 1), uint16_t(base + 2), uint16_t(base + 2), uint16_t(base + 1), uint16_t(base + 3) };
+                slideIndices.insert(slideIndices.end(), here.begin(), here.end());
+                base += 4;
+                drawcount += 2;
+            }
+            lastSegmentPosition = segmentPosition;
+            lastSegmentLength = currentSegmentLength;
+            lastSegmentRelativeY = currentSegmentRelativeY;
+            lastTimeInBlock = currentTimeInBlock;
         }
         lastStep = slideElement;
     }
     SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
-    DrawPolygonIndexed2D(vertices.data(), vertices.size(), indices.data(), drawcount - 2, imageSlideStrut->GetHandle(), TRUE);
+    DrawPolygonIndexed2D(slideVertices.data(), slideVertices.size(), slideIndices.data(), drawcount, imageSlideStrut->GetHandle(), TRUE);
 
     // ’†Sü
-    lastStep = note;
-    for (auto &slideElement : note->ExtraData) {
-        if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
-        if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
-        auto &segmentPositions = curveData[slideElement];
-        auto lastSegmentPosition = segmentPositions[0];
-        auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / seenDuration;
+    if (showSlideLine) {
+        lastStep = note;
+        for (auto &slideElement : note->ExtraData) {
+            if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
+            if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
+            auto &segmentPositions = curveData[slideElement];
+            auto lastSegmentPosition = segmentPositions[0];
+            auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / seenDuration;
 
-        for (auto &segmentPosition : segmentPositions) {
-            if (lastSegmentPosition == segmentPosition) continue;
-            const auto currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
-            const auto segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
-            const auto currentSegmentRelativeY = 1.0 - segmentExPosition / seenDuration;
-            SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-            if (showSlideLine) DrawLineAA(
-                get<1>(lastSegmentPosition) * laneBufferX, laneBufferY * lastSegmentRelativeY,
-                get<1>(segmentPosition) * laneBufferX, laneBufferY * currentSegmentRelativeY,
-                slideLineColor, 16);
-            lastSegmentPosition = segmentPosition;
-            lastSegmentRelativeY = currentSegmentRelativeY;
+            for (auto &segmentPosition : segmentPositions) {
+                if (lastSegmentPosition == segmentPosition) continue;
+                const auto currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
+                const auto segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
+                const auto currentSegmentRelativeY = 1.0 - segmentExPosition / seenDuration;
+                if ((currentSegmentRelativeY >= 0 || lastSegmentRelativeY >= 0) 
+                    && (currentSegmentRelativeY < cullingLimit || lastSegmentRelativeY < cullingLimit)) {
+                    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+                    DrawLineAA(
+                        get<1>(lastSegmentPosition) * laneBufferX, laneBufferY * lastSegmentRelativeY,
+                        get<1>(segmentPosition) * laneBufferX, laneBufferY * currentSegmentRelativeY,
+                        slideLineColor, 16
+                    );
+                }
+                lastSegmentPosition = segmentPosition;
+                lastSegmentRelativeY = currentSegmentRelativeY;
+            }
+            lastStep = slideElement;
         }
-        lastStep = slideElement;
     }
 
     // Tap
@@ -582,7 +611,8 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
         if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Invisible))) continue;
         const auto currentStepRelativeY = 1.0 - slideElement->ModifiedPosition / seenDuration;
-        DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlide->GetHandle());
+        if (currentStepRelativeY >= 0 && currentStepRelativeY < cullingLimit)
+            DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlide->GetHandle());
     }
 }
 

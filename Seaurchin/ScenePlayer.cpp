@@ -112,6 +112,7 @@ void ScenePlayer::Finalize()
     isTerminating = true;
     SoundManager::StopGlobal(soundHoldLoop->GetSample());
     SoundManager::StopGlobal(soundSlideLoop->GetSample());
+    SoundManager::StopGlobal(soundAirLoop->GetSample());
     for (auto& res : resources) if (res.second) res.second->Release();
     SoundManager::StopGlobal(bgmStream);
     delete processor;
@@ -135,16 +136,34 @@ void ScenePlayer::LoadWorker()
     auto mm = manager->GetMusicsManager();
     auto scorefile = mm->GetSelectedScorePath();
 
+    // 譜面の読み込み
     analyzer->Reset();
     analyzer->LoadFromFile(scorefile.wstring());
     metronomeAvailable = !analyzer->SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::DisableMetronome)];
     analyzer->RenderScoreData(data, curveData);
+    // 各種情報の設定
     segmentsPerSecond = analyzer->SharedMetaData.SegmentsPerSecond;
     usePrioritySort = analyzer->SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::EnableDrawPriority)];
-    processor->Reset();
     state = PlayingState::BgmNotLoaded;
     scoreDuration = analyzer->SharedMetaData.ScoreDuration;
+    // Processor
+    processor->Reset();
+    // スライド描画バッファ
+    uint32_t maxElements = 0;
+    for (const auto& note : data) {
+        if (!note->Type[size_t(SusNoteType::Slide)]) continue;
+        const auto reserved = accumulate(note->ExtraData.begin(), note->ExtraData.end(), 2, [this](const int current, const shared_ptr<SusDrawableNoteData> part) {
+            if (part->Type.test(size_t(SusNoteType::Control))) return current;
+            if (part->Type.test(size_t(SusNoteType::Injection))) return current;
+            return current + int(curveData[part].size()) + 1;
+        });
+        maxElements = max(maxElements, uint32_t(reserved));
+    }
+    slideVertices.reserve(maxElements * 4);
+    slideIndices.reserve(maxElements * 6);
 
+
+    // 動画・音声の読み込み
     auto file = boost::filesystem::path(scorefile).parent_path() / ConvertUTF8ToUnicode(analyzer->SharedMetaData.UWaveFileName);
     bgmStream = SoundStream::CreateFromFile(file.wstring());
     state = PlayingState::ReadyToStart;
@@ -186,13 +205,13 @@ void ScenePlayer::CalculateNotes(double time, double duration, double preced)
             // 先頭が見えてるならもちろん見える
             if (n->ModifiedPosition >= -preced && n->ModifiedPosition <= duration) return get<0>(st);
             // 先頭含めて全部-precedより手前なら見えない
-            if (all_of(n->ExtraData.begin(), n->ExtraData.end(), [preced, duration](const shared_ptr<SusDrawableNoteData> en) {
+            if (all_of(n->ExtraData.begin(), n->ExtraData.end(), [preced](const shared_ptr<SusDrawableNoteData> en) {
                 if (isnan(en->ModifiedPosition)) return true;
                 if (en->ModifiedPosition < -preced) return true;
                 return false;
             }) && n->ModifiedPosition < -preced) return false;
             //先頭含めて全部durationより後なら見えない
-            if (all_of(n->ExtraData.begin(), n->ExtraData.end(), [preced, duration](const shared_ptr<SusDrawableNoteData> en) {
+            if (all_of(n->ExtraData.begin(), n->ExtraData.end(), [duration](const shared_ptr<SusDrawableNoteData> en) {
                 if (isnan(en->ModifiedPosition)) return true;
                 if (en->ModifiedPosition > duration) return true;
                 return false;
@@ -247,8 +266,7 @@ void ScenePlayer::Tick(const double delta)
         // ----------------------
 
         auto cbpm = get<1>(analyzer->SharedBpmChanges[0]);
-        if (currentTime >= 0)
-        {
+        if (currentTime >= 0) {
             for (const auto &bc : analyzer->SharedBpmChanges) {
                 if (get<0>(bc) < currentTime) break;
                 cbpm = get<1>(bc);
