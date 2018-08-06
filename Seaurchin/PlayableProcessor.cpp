@@ -367,7 +367,7 @@ bool PlayableProcessor::CheckHoldJudgement(const shared_ptr<SusDrawableNoteData>
     return held;
 }
 
-bool PlayableProcessor::CheckSlideJudgement(shared_ptr<SusDrawableNoteData> note) const
+bool PlayableProcessor::CheckSlideJudgement(const shared_ptr<SusDrawableNoteData>& note) const
 {
     const auto reltime = player->currentTime - note->StartTime - judgeAdjustSlider;
     if (reltime < -judgeWidthAttack) return false;
@@ -539,7 +539,7 @@ void PlayableProcessor::IncrementCombo(const shared_ptr<SusDrawableNoteData>& no
     }
 }
 
-void PlayableProcessor::IncrementComboEx(std::shared_ptr<SusDrawableNoteData> note, const string& extra) const
+void PlayableProcessor::IncrementComboEx(const shared_ptr<SusDrawableNoteData>& note, const string& extra) const
 {
     note->OnTheFlyData.set(size_t(NoteAttribute::Finished));
     player->currentResult->PerformJusticeCritical();

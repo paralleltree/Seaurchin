@@ -48,9 +48,9 @@ protected:
     bool CheckAirJudgement(const std::shared_ptr<SusDrawableNoteData>& note) const;
     bool CheckAirActionJudgement(const std::shared_ptr<SusDrawableNoteData>& note) const;
     bool CheckHoldJudgement(const std::shared_ptr<SusDrawableNoteData>& note) const;
-    bool CheckSlideJudgement(std::shared_ptr<SusDrawableNoteData> note) const;
+    bool CheckSlideJudgement(const std::shared_ptr<SusDrawableNoteData>& note) const;
     void IncrementCombo(const std::shared_ptr<SusDrawableNoteData>& note, double reltime, AbilityNoteType type, const std::string& extra) const;
-    void IncrementComboEx(std::shared_ptr<SusDrawableNoteData> note, const std::string& extra) const;
+    void IncrementComboEx(const std::shared_ptr<SusDrawableNoteData>& note, const std::string& extra) const;
     void IncrementComboHell(const std::shared_ptr<SusDrawableNoteData>& note, int state, const std::string& extra) const;
     void IncrementComboAir(const std::shared_ptr<SusDrawableNoteData>& note, double reltime, AbilityNoteType type, const std::string& extra) const;
     void ResetCombo(const std::shared_ptr<SusDrawableNoteData>& note, AbilityNoteType type) const;

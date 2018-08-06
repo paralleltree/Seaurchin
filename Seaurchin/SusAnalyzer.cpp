@@ -457,6 +457,11 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
                     break;
                 case '5':
                     noteData.Type.set(size_t(SusNoteType::AwesomeExTap));
+                    noteData.Type.set(size_t(SusNoteType::Up));
+                    break;
+                case '6':
+                    noteData.Type.set(size_t(SusNoteType::AwesomeExTap));
+                    noteData.Type.set(size_t(SusNoteType::Down));
                     break;
                 default:
                     if (note[1] == '0') continue;
