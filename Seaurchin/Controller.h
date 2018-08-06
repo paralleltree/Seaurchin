@@ -55,4 +55,5 @@ public:
     bool GetCurrentState(ControllerSource source, int number);
     bool GetLastState(ControllerSource source, int number);
     void SetSliderKeyCombination(int sliderNumber, const std::vector<int>& keys);
+    void SetAirStringKeyCombination(int airNumber, const std::vector<int>& keys);
 };

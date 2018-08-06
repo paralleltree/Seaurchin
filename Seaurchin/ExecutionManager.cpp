@@ -13,7 +13,18 @@
 using namespace boost::filesystem;
 using namespace std;
 
-ExecutionManager::ExecutionManager(const shared_ptr<Setting> setting)
+const static toml::Array defaultSliderKeys = {
+    toml::Array { KEY_INPUT_A }, toml::Array { KEY_INPUT_Z }, toml::Array { KEY_INPUT_S }, toml::Array { KEY_INPUT_X },
+    toml::Array { KEY_INPUT_D }, toml::Array { KEY_INPUT_C }, toml::Array { KEY_INPUT_F }, toml::Array { KEY_INPUT_V },
+    toml::Array { KEY_INPUT_G }, toml::Array { KEY_INPUT_B }, toml::Array { KEY_INPUT_H }, toml::Array { KEY_INPUT_N },
+    toml::Array { KEY_INPUT_J }, toml::Array { KEY_INPUT_M }, toml::Array { KEY_INPUT_K }, toml::Array { KEY_INPUT_COMMA }
+};
+
+const static toml::Array defaultAirStringKeys = {
+    toml::Array { KEY_INPUT_PGUP }, toml::Array { KEY_INPUT_PGDN }, toml::Array { KEY_INPUT_HOME }, toml::Array { KEY_INPUT_END }
+};
+
+ExecutionManager::ExecutionManager(const shared_ptr<Setting>& setting)
 {
     random_device seed;
 
@@ -31,21 +42,42 @@ ExecutionManager::ExecutionManager(const shared_ptr<Setting> setting)
 
 void ExecutionManager::Initialize()
 {
+    auto log = spdlog::get("main");
     std::ifstream slfile;
     string procline;
+    // ルートのSettingList読み込み
     const auto slpath = sharedSetting->GetRootDirectory() / SU_DATA_DIR / SU_SCRIPT_DIR / SU_SETTING_DEFINITION_FILE;
     settingManager->LoadItemsFromToml(slpath);
     settingManager->RetrieveAllValues();
 
+    // 入力設定
     sharedControlState->Initialize();
+
+    auto loadedSliderKeys = sharedSetting->ReadValue<toml::Array>("Play", "SliderKeys", defaultSliderKeys);
+    if (loadedSliderKeys.size() >= 16) {
+        for (auto i = 0; i < 16; i++) sharedControlState->SetSliderKeyCombination(i, loadedSliderKeys[i].as<vector<int>>());
+    } else {
+        log->warn(u8"スライダーキー設定の配列が16要素未満のため、フォールバックを利用します");
+    }
+
+    auto loadedAirStringKeys = sharedSetting->ReadValue<toml::Array>("Play", "AirStringKeys", defaultAirStringKeys);
+    if (loadedAirStringKeys.size() >= 4) {
+        for (auto i = 0; i < 4; i++) sharedControlState->SetAirStringKeyCombination(i, loadedAirStringKeys[i].as<vector<int>>());
+    } else {
+        log->warn(u8"エアストリングキー設定の配列が16要素未満のため、フォールバックを利用します");
+    }
+
+    // 拡張ライブラリ読み込み
     extensions->LoadExtensions();
     extensions->Initialize(scriptInterface->GetEngine());
 
+    // サウンド初期化
     mixerBgm = SSoundMixer::CreateMixer(sound.get());
     mixerSe = SSoundMixer::CreateMixer(sound.get());
     mixerBgm->AddRef();
     mixerSe->AddRef();
 
+    // AngelScriptインターフェース登録
     InterfacesRegisterEnum(this);
     RegisterScriptResource(this);
     RegisterScriptSprite(this);
@@ -58,9 +90,11 @@ void ExecutionManager::Initialize()
     RegisterGlobalManagementFunction();
     extensions->RegisterInterfaces();
 
+    // キャラ・スキル読み込み
     characters->LoadAllCharacters();
     skills->LoadAllSkills();
 
+    // 外部通信
     hCommunicationPipe = CreateNamedPipe(
         SU_NAMED_PIPE_NAME,
         PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
@@ -87,7 +121,7 @@ void ExecutionManager::Shutdown() const
         DisconnectNamedPipe(hCommunicationPipe);
         CloseHandle(hCommunicationPipe);
     }
-    
+
 }
 
 void ExecutionManager::RegisterGlobalManagementFunction()
@@ -138,7 +172,7 @@ void ExecutionManager::EnumerateSkins()
     log->info(u8"スキン総数: {0:d}", skinNames.size());
 }
 
-bool ExecutionManager::CheckSkinStructure(const const path& name) const
+bool ExecutionManager::CheckSkinStructure(const path& name) const
 {
     using namespace boost;
     using namespace filesystem;
@@ -330,29 +364,29 @@ std::tuple<bool, LRESULT> ExecutionManager::CustomWindowProc(const HWND hWnd, co
         case WM_SEAURCHIN_ABORT:
             InterfacesExitApplication();
             return make_tuple(true, 0);
-        /*
-            //IME
-        case WM_INPUTLANGCHANGE:
-            WriteDebugConsole("Input Language Changed\n");
-            buffer << "CharSet:" << wParam << ", Locale:" << LOWORD(lParam);
-            WriteDebugConsole(buffer.str().c_str());
-            return make_tuple(true, TRUE);
-        case WM_IME_SETCONTEXT:
-            WriteDebugConsole("Input Set Context\n");
-            return make_tuple(false, 0);
-        case WM_IME_STARTCOMPOSITION:
-            WriteDebugConsole("Input Start Composition\n");
-            return make_tuple(false, 0);
-        case WM_IME_COMPOSITION:
-            WriteDebugConsole("Input Conposition\n");
-            return make_tuple(false, 0);
-        case WM_IME_ENDCOMPOSITION:
-            WriteDebugConsole("Input End Composition\n");
-            return make_tuple(false, 0);
-        case WM_IME_NOTIFY:
-            WriteDebugConsole("Input Notify\n");
-            return make_tuple(false, 0);
-            */
+            /*
+                //IME
+            case WM_INPUTLANGCHANGE:
+                WriteDebugConsole("Input Language Changed\n");
+                buffer << "CharSet:" << wParam << ", Locale:" << LOWORD(lParam);
+                WriteDebugConsole(buffer.str().c_str());
+                return make_tuple(true, TRUE);
+            case WM_IME_SETCONTEXT:
+                WriteDebugConsole("Input Set Context\n");
+                return make_tuple(false, 0);
+            case WM_IME_STARTCOMPOSITION:
+                WriteDebugConsole("Input Start Composition\n");
+                return make_tuple(false, 0);
+            case WM_IME_COMPOSITION:
+                WriteDebugConsole("Input Conposition\n");
+                return make_tuple(false, 0);
+            case WM_IME_ENDCOMPOSITION:
+                WriteDebugConsole("Input End Composition\n");
+                return make_tuple(false, 0);
+            case WM_IME_NOTIFY:
+                WriteDebugConsole("Input Notify\n");
+                return make_tuple(false, 0);
+                */
         default:
             return make_tuple(false, LRESULT(0));
     }

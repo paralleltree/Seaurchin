@@ -39,7 +39,7 @@ private:
     SSoundMixer *mixerBgm, *mixerSe;
 
 public:
-    explicit ExecutionManager(std::shared_ptr<Setting> setting);
+    explicit ExecutionManager(const std::shared_ptr<Setting>& setting);
 
     void EnumerateSkins();
     void Tick(double delta);

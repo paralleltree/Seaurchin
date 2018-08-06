@@ -169,6 +169,13 @@ void ControlState::SetSliderKeyCombination(const int sliderNumber, const vector<
     sliderKeyboardInputCombinations[sliderNumber] = keys;
 }
 
+void ControlState::SetAirStringKeyCombination(const int airNumber, const vector<int>& keys)
+{
+    if (airNumber < 0 || airNumber >= 4) return;
+    if (keys.size() > 8) return;
+    airStringKeyboardInputCombinations[airNumber] = keys;
+}
+
 void ControlState::InitializeWacomTouchDevice()
 {
     auto log = spdlog::get("main");
