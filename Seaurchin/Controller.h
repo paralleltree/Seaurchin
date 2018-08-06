@@ -30,9 +30,13 @@ private:
     char integratedSliderCurrent[16];
     char integratedSliderLast[16];
     char integratedSliderTrigger[16];
-    uint8_t sliderKeyboardNumbers[16];
-    uint8_t airStringKeyboardNumbers[4];
     char integratedAir[4];
+    std::vector<int> sliderKeyboardInputCombinations[16];
+    uint32_t sliderKeyboardPrevious[16];
+    uint32_t sliderKeyboardCurrent[16];
+    uint32_t sliderKeyboardTrigger[16];
+    std::vector<int> airStringKeyboardInputCombinations[4];
+    uint32_t airStringKeyboard[4];
 
     bool isWacomDeviceAvailable = false;
     int *wacomDeviceIds = nullptr;
@@ -50,5 +54,5 @@ public:
     bool GetTriggerState(ControllerSource source, int number);
     bool GetCurrentState(ControllerSource source, int number);
     bool GetLastState(ControllerSource source, int number);
-    void SetSliderKey(int sliderNumber, int keyboardNumber);
+    void SetSliderKeyCombination(int sliderNumber, const std::vector<int>& keys);
 };

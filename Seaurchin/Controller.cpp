@@ -14,26 +14,26 @@ void ControlState::Initialize()
     ZeroMemory(integratedSliderTrigger, sizeof(char) * 16);
     ZeroMemory(integratedAir, sizeof(char) * 4);
 
-    sliderKeyboardNumbers[0] = KEY_INPUT_A;
-    sliderKeyboardNumbers[1] = KEY_INPUT_Z;
-    sliderKeyboardNumbers[2] = KEY_INPUT_S;
-    sliderKeyboardNumbers[3] = KEY_INPUT_X;
-    sliderKeyboardNumbers[4] = KEY_INPUT_D;
-    sliderKeyboardNumbers[5] = KEY_INPUT_C;
-    sliderKeyboardNumbers[6] = KEY_INPUT_F;
-    sliderKeyboardNumbers[7] = KEY_INPUT_V;
-    sliderKeyboardNumbers[8] = KEY_INPUT_G;
-    sliderKeyboardNumbers[9] = KEY_INPUT_B;
-    sliderKeyboardNumbers[10] = KEY_INPUT_H;
-    sliderKeyboardNumbers[11] = KEY_INPUT_N;
-    sliderKeyboardNumbers[12] = KEY_INPUT_J;
-    sliderKeyboardNumbers[13] = KEY_INPUT_M;
-    sliderKeyboardNumbers[14] = KEY_INPUT_K;
-    sliderKeyboardNumbers[15] = KEY_INPUT_COMMA;
-    airStringKeyboardNumbers[size_t(AirControlSource::AirUp)] = KEY_INPUT_PGUP;
-    airStringKeyboardNumbers[size_t(AirControlSource::AirDown)] = KEY_INPUT_PGDN;
-    airStringKeyboardNumbers[size_t(AirControlSource::AirHold)] = KEY_INPUT_HOME;
-    airStringKeyboardNumbers[size_t(AirControlSource::AirAction)] = KEY_INPUT_END;
+    sliderKeyboardInputCombinations[0] = { KEY_INPUT_A };
+    sliderKeyboardInputCombinations[1] = { KEY_INPUT_Z };
+    sliderKeyboardInputCombinations[2] = { KEY_INPUT_S };
+    sliderKeyboardInputCombinations[3] = { KEY_INPUT_X };
+    sliderKeyboardInputCombinations[4] = { KEY_INPUT_D };
+    sliderKeyboardInputCombinations[5] = { KEY_INPUT_C };
+    sliderKeyboardInputCombinations[6] = { KEY_INPUT_F };
+    sliderKeyboardInputCombinations[7] = { KEY_INPUT_V };
+    sliderKeyboardInputCombinations[8] = { KEY_INPUT_G };
+    sliderKeyboardInputCombinations[9] = { KEY_INPUT_B };
+    sliderKeyboardInputCombinations[10] = { KEY_INPUT_H };
+    sliderKeyboardInputCombinations[11] = { KEY_INPUT_N };
+    sliderKeyboardInputCombinations[12] = { KEY_INPUT_J };
+    sliderKeyboardInputCombinations[13] = { KEY_INPUT_M };
+    sliderKeyboardInputCombinations[14] = { KEY_INPUT_K };
+    sliderKeyboardInputCombinations[15] = { KEY_INPUT_COMMA };
+    airStringKeyboardInputCombinations[size_t(AirControlSource::AirUp)] = { KEY_INPUT_PGUP };
+    airStringKeyboardInputCombinations[size_t(AirControlSource::AirDown)] = { KEY_INPUT_PGDN };
+    airStringKeyboardInputCombinations[size_t(AirControlSource::AirHold)] = { KEY_INPUT_HOME };
+    airStringKeyboardInputCombinations[size_t(AirControlSource::AirAction)] = { KEY_INPUT_END };
 
     InitializeWacomTouchDevice();
 }
@@ -51,23 +51,61 @@ void ControlState::Terminate()
 
 void ControlState::Update()
 {
+    // 生のキーボード入力
     memcpy_s(keyboardLast, sizeof(char) * 256, keyboardCurrent, sizeof(char) * 256);
     GetHitKeyStateAll(keyboardCurrent);
     for (auto i = 0; i < 256; i++) keyboardTrigger[i] = !keyboardLast[i] && keyboardCurrent[i];
 
-    for (auto i = 0; i < 16; i++) integratedSliderLast[i] = integratedSliderCurrent[i];
-    for (auto i = 0; i < 16; i++) integratedSliderCurrent[i] = keyboardCurrent[sliderKeyboardNumbers[i]];
-    integratedAir[size_t(AirControlSource::AirUp)] = keyboardTrigger[airStringKeyboardNumbers[size_t(AirControlSource::AirUp)]];
-    integratedAir[size_t(AirControlSource::AirDown)] = keyboardTrigger[airStringKeyboardNumbers[size_t(AirControlSource::AirDown)]];
-    integratedAir[size_t(AirControlSource::AirHold)] = keyboardCurrent[airStringKeyboardNumbers[size_t(AirControlSource::AirHold)]];
-    integratedAir[size_t(AirControlSource::AirAction)] = keyboardTrigger[airStringKeyboardNumbers[size_t(AirControlSource::AirAction)]];
-
+    // キーボード入力スライダー
+    for (auto i = 0; i < 16; i++) sliderKeyboardPrevious[i] = sliderKeyboardCurrent[i];
+    auto snum = 0;
+    for (const auto& targets : sliderKeyboardInputCombinations)
     {
-        lock_guard<mutex> lock(fingerMutex);
-        for (auto &finger : currentFingers) integratedSliderCurrent[finger.second->SliderPosition] = 1;
+        auto bit = 0;
+        uint32_t state = 0;
+        for (const auto &knum : targets)
+        {
+            state |= (keyboardCurrent[knum] ? 1 : 0) << bit;
+            ++bit;
+        }
+        sliderKeyboardCurrent[snum] = state;
+        ++snum;
+    }
+    // トリガー判定は1個でも入力キーが増えればよしとする
+    for (auto i = 0; i < 16; i++) sliderKeyboardTrigger[i] = sliderKeyboardCurrent[i] > sliderKeyboardPrevious[i];
+
+    // キーボード入力エアストリング
+    airStringKeyboard[size_t(AirControlSource::AirUp)] = 0;
+    airStringKeyboard[size_t(AirControlSource::AirDown)] = 0;
+    airStringKeyboard[size_t(AirControlSource::AirHold)] = 0;
+    airStringKeyboard[size_t(AirControlSource::AirAction)] = 0;
+    for(const auto &upkey : airStringKeyboardInputCombinations[size_t(AirControlSource::AirUp)])
+    {
+        airStringKeyboard[size_t(AirControlSource::AirUp)] |= keyboardTrigger[upkey];
+    }
+    for (const auto &downkey : airStringKeyboardInputCombinations[size_t(AirControlSource::AirDown)]) {
+        airStringKeyboard[size_t(AirControlSource::AirDown)] |= keyboardTrigger[downkey];
+    }
+    for (const auto &upkey : airStringKeyboardInputCombinations[size_t(AirControlSource::AirHold)]) {
+        airStringKeyboard[size_t(AirControlSource::AirHold)] |= keyboardCurrent[upkey];
+    }
+    for (const auto &actkey : airStringKeyboardInputCombinations[size_t(AirControlSource::AirAction)]) {
+        airStringKeyboard[size_t(AirControlSource::AirAction)] |= keyboardTrigger[actkey];
     }
 
-    for (auto i = 0; i < 16; i++) integratedSliderTrigger[i] = !integratedSliderLast[i] && integratedSliderCurrent[i];
+    // 統合化
+    for (auto i = 0; i < 16; i++) integratedSliderLast[i] = integratedSliderCurrent[i];
+    for (auto i = 0; i < 16; i++) integratedSliderCurrent[i] = !!sliderKeyboardCurrent[i];
+    for (auto i = 0; i < 16; i++) integratedSliderTrigger[i] = !!sliderKeyboardTrigger[i];
+    integratedAir[size_t(AirControlSource::AirUp)] = airStringKeyboard[size_t(AirControlSource::AirUp)];
+    integratedAir[size_t(AirControlSource::AirDown)] = airStringKeyboard[size_t(AirControlSource::AirDown)];
+    integratedAir[size_t(AirControlSource::AirHold)] = airStringKeyboard[size_t(AirControlSource::AirHold)];
+    integratedAir[size_t(AirControlSource::AirAction)] = airStringKeyboard[size_t(AirControlSource::AirAction)];
+
+    /*{
+        lock_guard<mutex> lock(fingerMutex);
+        for (auto &finger : currentFingers) integratedSliderCurrent[finger.second->SliderPosition] = 1;
+    }*/
 }
 
 bool ControlState::GetTriggerState(const ControllerSource source, const int number)
@@ -124,17 +162,19 @@ bool ControlState::GetLastState(const ControllerSource source, const int number)
     return false;
 }
 
-void ControlState::SetSliderKey(const int sliderNumber, const int keyboardNumber)
+void ControlState::SetSliderKeyCombination(const int sliderNumber, const vector<int>& keys)
 {
     if (sliderNumber < 0 || sliderNumber >= 16) return;
-    if (keyboardNumber < 0 || keyboardNumber >= 256) return;
-    sliderKeyboardNumbers[sliderNumber] = keyboardNumber;
+    if (keys.size() > 8) return;
+    sliderKeyboardInputCombinations[sliderNumber] = keys;
 }
 
 void ControlState::InitializeWacomTouchDevice()
 {
     auto log = spdlog::get("main");
     isWacomDeviceAvailable = false;
+    log->info(u8"Wacomタブレットは0.43.0から一時的に機能を削除しています");
+    /*
     if (!LoadWacomMTLib()) {
         log->info(u8"Wacomドライバがありませんでした");
         return;
@@ -163,8 +203,10 @@ void ControlState::InitializeWacomTouchDevice()
 
     WacomMTRegisterFingerReadCallback(wacomDeviceIds[0], nullptr, WMTProcessingModeNone, WacomFingerCallback, this);
     isWacomDeviceAvailable = true;
+    */
 }
 
+// 0.43.0で一旦削除したので呼ばれない
 void ControlState::UpdateWacomTouchDeviceFinger(WacomMTFingerCollection *fingers)
 {
     const auto cap = wacomDeviceCapabilities[0];
@@ -209,6 +251,7 @@ void ControlState::UpdateWacomTouchDeviceFinger(WacomMTFingerCollection *fingers
 
 // Wacom Multi-Touch Callbacks
 
+// 0.43.0で一旦削除したので呼ばれない
 int WacomFingerCallback(WacomMTFingerCollection *fingerPacket, void *userData)
 {
     auto controller = static_cast<ControlState*>(userData);
