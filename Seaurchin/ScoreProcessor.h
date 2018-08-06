@@ -49,10 +49,10 @@ protected:
     bool CheckAirActionJudgement(const std::shared_ptr<SusDrawableNoteData>& note) const;
     bool CheckHoldJudgement(const std::shared_ptr<SusDrawableNoteData>& note) const;
     bool CheckSlideJudgement(std::shared_ptr<SusDrawableNoteData> note) const;
-    void IncrementCombo(const std::shared_ptr<SusDrawableNoteData>& note, double reltime, AbilityNoteType type) const;
-    void IncrementComboEx(std::shared_ptr<SusDrawableNoteData> note) const;
-    void IncrementComboHell(const std::shared_ptr<SusDrawableNoteData>& note, int state) const;
-    void IncrementComboAir(const std::shared_ptr<SusDrawableNoteData>& note, double reltime, AbilityNoteType type) const;
+    void IncrementCombo(const std::shared_ptr<SusDrawableNoteData>& note, double reltime, AbilityNoteType type, const std::string& extra) const;
+    void IncrementComboEx(std::shared_ptr<SusDrawableNoteData> note, const std::string& extra) const;
+    void IncrementComboHell(const std::shared_ptr<SusDrawableNoteData>& note, int state, const std::string& extra) const;
+    void IncrementComboAir(const std::shared_ptr<SusDrawableNoteData>& note, double reltime, AbilityNoteType type, const std::string& extra) const;
     void ResetCombo(const std::shared_ptr<SusDrawableNoteData>& note, AbilityNoteType type) const;
 
 public:
@@ -76,7 +76,7 @@ protected:
     bool isInHold = false, isInSlide = false, isInAA = false, wasInHold = false, wasInSlide = false, wasInAA = false;
 
     void ProcessScore(const std::shared_ptr<SusDrawableNoteData>& notes);
-    void IncrementCombo(AbilityNoteType type) const;
+    void IncrementCombo(AbilityNoteType type, const std::string& extra) const;
 
 public:
     AutoPlayerProcessor(ScenePlayer *player);

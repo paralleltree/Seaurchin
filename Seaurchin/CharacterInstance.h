@@ -13,12 +13,12 @@
 #define SU_IF_JUDGE_CALLBACK "JudgeCallback"
 
 struct AbilityFunctions {
-    asIScriptFunction *OnStart;
-    asIScriptFunction *OnFinish;
-    asIScriptFunction *OnJusticeCritical;
-    asIScriptFunction *OnJustice;
-    asIScriptFunction *OnAttack;
-    asIScriptFunction *OnMiss;
+    asIScriptFunction *OnStart = nullptr;
+    asIScriptFunction *OnFinish = nullptr;
+    asIScriptFunction *OnJusticeCritical = nullptr;
+    asIScriptFunction *OnJustice = nullptr;
+    asIScriptFunction *OnAttack = nullptr;
+    asIScriptFunction *OnMiss = nullptr;
 };
 
 class CharacterInstance final {
@@ -41,25 +41,26 @@ private:
     void LoadAbilities();
     void CreateImageSet();
 
-    asIScriptObject* LoadAbilityObject(boost::filesystem::path filepath);
+    asIScriptObject* LoadAbilityObject(const boost::filesystem::path& filepath);
 
     void CallEventFunction(asIScriptObject *obj, asIScriptFunction* func) const;
     void CallEventFunction(asIScriptObject *obj, asIScriptFunction* func, AbilityNoteType type) const;
-    void CallJudgeCallback(AbilityJudgeType judge, AbilityNoteType type) const;
+    void CallJudgeCallback(AbilityJudgeType judge, AbilityNoteType type, const std::string& extra) const;
 
 public:
     void AddRef() { reference++; }
     void Release() { if (--reference == 0) delete this; }
 
-    CharacterInstance(std::shared_ptr<CharacterParameter> character, std::shared_ptr<SkillParameter> skill, std::shared_ptr<AngelScript> script, std::shared_ptr<Result> result);
+    CharacterInstance(const std::shared_ptr<CharacterParameter>& character, const std::shared_ptr<SkillParameter>& skill,
+                      const std::shared_ptr<AngelScript>& script, const std::shared_ptr<Result>& result);
     ~CharacterInstance();
 
     void OnStart();
     void OnFinish();
-    void OnJusticeCritical(AbilityNoteType type);
-    void OnJustice(AbilityNoteType type);
-    void OnAttack(AbilityNoteType type);
-    void OnMiss(AbilityNoteType type);
+    void OnJusticeCritical(AbilityNoteType type, const std::string& extra);
+    void OnJustice(AbilityNoteType type, const std::string& extra);
+    void OnAttack(AbilityNoteType type, const std::string& extra);
+    void OnMiss(AbilityNoteType type, const std::string& extra);
     void SetCallback(asIScriptFunction *func);
 
     CharacterParameter* GetCharacterParameter() const;

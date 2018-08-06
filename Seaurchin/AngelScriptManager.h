@@ -53,6 +53,8 @@ public:
     asIScriptObject* InstantiateObject(asITypeInfo *type) const;
 };
 
+// コールバックを管理する
+// デストラクタで開放するから心配いらない…はず
 struct CallbackObject {
     asIScriptObject *Object;
     asIScriptFunction *Function;

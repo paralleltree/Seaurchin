@@ -224,12 +224,19 @@ bool PlayableProcessor::CheckJudgement(const shared_ptr<SusDrawableNoteData>& no
     }
     for (int i = note->StartLane; i < note->StartLane + note->Length; i++) {
         if (!currentState->GetTriggerState(ControllerSource::IntegratedSliders, i)) continue;
-        if (note->Type[size_t(SusNoteType::ExTap)] || note->Type[size_t(SusNoteType::AwesomeExTap)]) {
-            IncrementComboEx(note);
+        if (note->Type[size_t(SusNoteType::ExTap)]) {
+            IncrementComboEx(note, "");
+        } else if (note->Type[size_t(SusNoteType::AwesomeExTap)]) {
+            IncrementComboEx(
+                note,
+                note->Type[size_t(SusNoteType::Down)]
+                ? "AwesomeExTapDown"
+                : "AwesomeExTapUp"
+            );
         } else if (note->Type[size_t(SusNoteType::Flick)]) {
-            IncrementCombo(note, reltime, AbilityNoteType::Flick);
+            IncrementCombo(note, reltime, AbilityNoteType::Flick, "");
         } else {
-            IncrementCombo(note, reltime, AbilityNoteType::Tap);
+            IncrementCombo(note, reltime, AbilityNoteType::Tap, "");
         }
         return true;
     }
@@ -243,20 +250,20 @@ bool PlayableProcessor::CheckHellJudgement(const shared_ptr<SusDrawableNoteData>
     if (note->OnTheFlyData.test(size_t(NoteAttribute::Finished))) return false;
     if (reltime < -judgeWidthAttack) return false;
     if (reltime > judgeWidthAttack) {
-        IncrementComboHell(note, -1);
+        IncrementComboHell(note, -1, "");
         return false;
     }
     if (reltime >= 0 && !note->OnTheFlyData.test(size_t(NoteAttribute::HellChecking))) {
-        IncrementComboHell(note, 0);
+        IncrementComboHell(note, 0, "");
         return true;
     }
 
     for (int i = note->StartLane; i < note->StartLane + note->Length; i++) {
         if (!currentState->GetTriggerState(ControllerSource::IntegratedSliders, i)) continue;
         if (reltime >= 0) {
-            IncrementComboHell(note, 1);
+            IncrementComboHell(note, 1, "");
         } else {
-            IncrementComboHell(note, 2);
+            IncrementComboHell(note, 2, "");
         }
         return false;
     }
@@ -276,7 +283,7 @@ bool PlayableProcessor::CheckAirJudgement(const shared_ptr<SusDrawableNoteData>&
 
     if (isAutoAir) {
         if (reltime >= 0) {
-            IncrementComboAir(note, reltime, AbilityNoteType::Air);
+            IncrementComboAir(note, reltime, AbilityNoteType::Air, "");
             return true;
         }
     } else {
@@ -284,7 +291,7 @@ bool PlayableProcessor::CheckAirJudgement(const shared_ptr<SusDrawableNoteData>&
             ControllerSource::IntegratedAir,
             note->Type[size_t(SusNoteType::Up)] ? int(AirControlSource::AirUp) : int(AirControlSource::AirDown));
         if (judged || (isAutoAir && reltime >= 0)) {
-            IncrementComboAir(note, reltime, AbilityNoteType::Air);
+            IncrementComboAir(note, reltime, AbilityNoteType::Air, "");
             return true;
         }
     }
@@ -315,7 +322,7 @@ bool PlayableProcessor::CheckHoldJudgement(const shared_ptr<SusDrawableNoteData>
         if (judgeTime >= judgeWidthAttack) {
             ResetCombo(note, AbilityNoteType::Hold);
         } else if (trigger) {
-            IncrementCombo(note, judgeTime, AbilityNoteType::Hold);
+            IncrementCombo(note, judgeTime, AbilityNoteType::Hold, "");
             player->EnqueueJudgeSound(JudgeSoundType::Tap);
             player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
         }
@@ -345,9 +352,9 @@ bool PlayableProcessor::CheckHoldJudgement(const shared_ptr<SusDrawableNoteData>
         }
         if (held) {
             if (extra->Type[size_t(SusNoteType::Injection)]) {
-                IncrementCombo(extra, judgeTime, AbilityNoteType::Hold);
+                IncrementCombo(extra, judgeTime, AbilityNoteType::Hold, "");
             } else {
-                IncrementCombo(extra, judgeTime, AbilityNoteType::Hold);
+                IncrementCombo(extra, judgeTime, AbilityNoteType::Hold, "");
                 player->EnqueueJudgeSound(JudgeSoundType::HoldStep);
                 player->SpawnJudgeEffect(extra, JudgeType::SlideTap);
             }
@@ -423,7 +430,7 @@ bool PlayableProcessor::CheckSlideJudgement(shared_ptr<SusDrawableNoteData> note
         if (judgeTime >= judgeWidthAttack) {
             ResetCombo(note, AbilityNoteType::Slide);
         } else if (trigger) {
-            IncrementCombo(note, judgeTime, AbilityNoteType::Slide);
+            IncrementCombo(note, judgeTime, AbilityNoteType::Slide, "");
             player->EnqueueJudgeSound(JudgeSoundType::SlideStep);
             player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
         }
@@ -450,9 +457,9 @@ bool PlayableProcessor::CheckSlideJudgement(shared_ptr<SusDrawableNoteData> note
         }
         if (held) {
             if (extra->Type[size_t(SusNoteType::Injection)]) {
-                IncrementCombo(extra, judgeTime, AbilityNoteType::Slide);
+                IncrementCombo(extra, judgeTime, AbilityNoteType::Slide, "");
             } else {
-                IncrementCombo(extra, judgeTime, AbilityNoteType::Slide);
+                IncrementCombo(extra, judgeTime, AbilityNoteType::Slide, "");
                 player->EnqueueJudgeSound(JudgeSoundType::Tap);
                 player->SpawnJudgeEffect(extra, JudgeType::SlideTap);
             }
@@ -498,9 +505,9 @@ bool PlayableProcessor::CheckAirActionJudgement(const shared_ptr<SusDrawableNote
         }
         if (held) {
             if (extra->Type[size_t(SusNoteType::Injection)]) {
-                IncrementCombo(extra, judgeTime, AbilityNoteType::AirAction);
+                IncrementCombo(extra, judgeTime, AbilityNoteType::AirAction, "");
             } else {
-                IncrementCombo(extra, judgeTime, AbilityNoteType::AirAction);
+                IncrementCombo(extra, judgeTime, AbilityNoteType::AirAction, "");
                 player->EnqueueJudgeSound(JudgeSoundType::AirAction);
                 player->SpawnJudgeEffect(extra, JudgeType::Action);
             }
@@ -514,36 +521,37 @@ bool PlayableProcessor::CheckAirActionJudgement(const shared_ptr<SusDrawableNote
     return held;
 }
 
-void PlayableProcessor::IncrementCombo(const shared_ptr<SusDrawableNoteData>& note, double reltime, const AbilityNoteType type) const
+void PlayableProcessor::IncrementCombo(const shared_ptr<SusDrawableNoteData>& note, double reltime, const AbilityNoteType type, const string& extra) const
 {
     reltime = fabs(reltime);
     if (reltime <= judgeWidthJusticeCritical) {
         note->OnTheFlyData.set(size_t(NoteAttribute::Finished));
         player->currentResult->PerformJusticeCritical();
-        player->currentCharacterInstance->OnJusticeCritical(type);
+        player->currentCharacterInstance->OnJusticeCritical(type, extra);
     } else if (reltime <= judgeWidthJustice) {
         note->OnTheFlyData.set(size_t(NoteAttribute::Finished));
         player->currentResult->PerformJustice();
-        player->currentCharacterInstance->OnJustice(type);
+        player->currentCharacterInstance->OnJustice(type, extra);
     } else {
         note->OnTheFlyData.set(size_t(NoteAttribute::Finished));
         player->currentResult->PerformAttack();
-        player->currentCharacterInstance->OnAttack(type);
+        player->currentCharacterInstance->OnAttack(type, extra);
     }
 }
 
-void PlayableProcessor::IncrementComboEx(std::shared_ptr<SusDrawableNoteData> note) const
+void PlayableProcessor::IncrementComboEx(std::shared_ptr<SusDrawableNoteData> note, const string& extra) const
 {
     note->OnTheFlyData.set(size_t(NoteAttribute::Finished));
     player->currentResult->PerformJusticeCritical();
     player->currentCharacterInstance->OnJusticeCritical(
         note->Type[size_t(SusNoteType::AwesomeExTap)]
         ? AbilityNoteType::AwesomeExTap
-        : AbilityNoteType::ExTap
+        : AbilityNoteType::ExTap,
+        extra
     );
 }
 
-void PlayableProcessor::IncrementComboHell(const std::shared_ptr<SusDrawableNoteData>& note, const int state) const
+void PlayableProcessor::IncrementComboHell(const std::shared_ptr<SusDrawableNoteData>& note, const int state, const string& extra) const
 {
     switch (state) {
         case -1:
@@ -555,39 +563,39 @@ void PlayableProcessor::IncrementComboHell(const std::shared_ptr<SusDrawableNote
             // ‚Æ‚è‚ ‚¦‚¸’Ê‰ß‚µ‚½‚Ì‚ÅJC
             note->OnTheFlyData.set(size_t(NoteAttribute::HellChecking));
             player->currentResult->PerformJusticeCritical();
-            player->currentCharacterInstance->OnJusticeCritical(AbilityNoteType::HellTap);
+            player->currentCharacterInstance->OnJusticeCritical(AbilityNoteType::HellTap, extra);
             break;
         case 1:
             // •’Ê‚É”»’èŽ¸”s
             player->currentResult->PerformMiss();
-            player->currentCharacterInstance->OnMiss(AbilityNoteType::HellTap);
+            player->currentCharacterInstance->OnMiss(AbilityNoteType::HellTap, extra);
             note->OnTheFlyData.set(size_t(NoteAttribute::Finished));
             break;
         case 2:
             // Œã‚©‚ç“ü‚Á‚Ä”»’èŽ¸”s
             // TODO: JC‚Ì”Œ¸‚ç‚¹
             player->currentResult->PerformMiss();
-            player->currentCharacterInstance->OnMiss(AbilityNoteType::HellTap);
+            player->currentCharacterInstance->OnMiss(AbilityNoteType::HellTap, extra);
             note->OnTheFlyData.set(size_t(NoteAttribute::Finished));
         default: break;
     }
 }
 
-void PlayableProcessor::IncrementComboAir(const std::shared_ptr<SusDrawableNoteData>& note, double reltime, const AbilityNoteType type) const
+void PlayableProcessor::IncrementComboAir(const std::shared_ptr<SusDrawableNoteData>& note, double reltime, const AbilityNoteType type, const string& extra) const
 {
     reltime = fabs(reltime);
     if (reltime <= judgeWidthJusticeCritical) {
         note->OnTheFlyData.set(size_t(NoteAttribute::Finished));
         player->currentResult->PerformJusticeCritical();
-        player->currentCharacterInstance->OnJusticeCritical(type);
+        player->currentCharacterInstance->OnJusticeCritical(type, extra);
     } else if (reltime <= judgeWidthJustice) {
         note->OnTheFlyData.set(size_t(NoteAttribute::Finished));
         player->currentResult->PerformJustice();
-        player->currentCharacterInstance->OnJustice(type);
+        player->currentCharacterInstance->OnJustice(type, extra);
     } else {
         note->OnTheFlyData.set(size_t(NoteAttribute::Finished));
         player->currentResult->PerformAttack();
-        player->currentCharacterInstance->OnAttack(type);
+        player->currentCharacterInstance->OnAttack(type, extra);
     }
 }
 
@@ -595,5 +603,5 @@ void PlayableProcessor::ResetCombo(const shared_ptr<SusDrawableNoteData>& note, 
 {
     note->OnTheFlyData.set(size_t(NoteAttribute::Finished));
     player->currentResult->PerformMiss();
-    player->currentCharacterInstance->OnMiss(type);
+    player->currentCharacterInstance->OnMiss(type, "");
 }
