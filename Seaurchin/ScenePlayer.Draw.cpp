@@ -545,7 +545,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                         VGet(get<1>(lastSegmentPosition) * laneBufferX + lastSegmentLength / 2 * widthPerLane, laneBufferY * lastSegmentRelativeY, 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
-                        0.0f, float(lastTimeInBlock * strutBottom)
+                        1.0f, float(lastTimeInBlock * strutBottom)
                     }
                 );
                 slideVertices.push_back(
@@ -564,7 +564,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                         1.0f, float(currentTimeInBlock * strutBottom)
                     }
                 );
-                vector<uint16_t> here = { base, uint16_t(base + 1), uint16_t(base + 2), uint16_t(base + 2), uint16_t(base + 1), uint16_t(base + 3) };
+                vector<uint16_t> here = { base, uint16_t(base + 2), uint16_t(base + 1), uint16_t(base + 2), uint16_t(base + 1), uint16_t(base + 3) };
                 slideIndices.insert(slideIndices.end(), here.begin(), here.end());
                 base += 4;
                 drawcount += 2;
@@ -577,6 +577,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
         lastStep = slideElement;
     }
     SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
+    SetUseBackCulling(FALSE);
     DrawPolygonIndexed2D(slideVertices.data(), slideVertices.size(), slideIndices.data(), drawcount, imageSlideStrut->GetHandle(), TRUE);
 
     // ’†Sü
@@ -768,7 +769,7 @@ void ScenePlayer::DrawAirActionStep(const AirDrawQuery &query) const
             0, 3, 2,
         };
         SetUseZBuffer3D(FALSE);
-        DrawPolygonIndexed3D(vertices, 22, indices, 2, imageAirAction->GetHandle(), TRUE);
+        DrawPolygonIndexed3D(vertices, 4, indices, 2, imageAirAction->GetHandle(), TRUE);
     }
 }
 
@@ -793,6 +794,7 @@ void ScenePlayer::DrawAirActionCover(const AirDrawQuery &query)
         if ((currentSegmentRelativeY >= 0 || lastSegmentRelativeY >= 0)
             && (currentSegmentRelativeY < cullingLimit || lastSegmentRelativeY < cullingLimit)) {
             SetUseZBuffer3D(FALSE);
+            SetUseBackCulling(FALSE);
             const auto back = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentSegmentRelativeY);
             const auto front = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, lastSegmentRelativeY);
             const auto backLeft = get<1>(segmentPosition) - currentSegmentLength / 32.0;
