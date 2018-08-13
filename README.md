@@ -1,47 +1,31 @@
 # Seaurchin
 某スライドして手を跳ね上げる音ゲーシミュレーター
 
-## 仕様ライブラリとか
-* DXライブラリ
-* AngelScript
-* Boost
-* FreeType
-* libpng
-* LZMA SDK
-* Effekseer
+## ダウンロード
+[Releases](https://github.com/kb10uy/Seaurchin/releases)
+
+## ドキュメント
+* [公式Wiki](https://seaurchin.kb10uy.org) - メインストリームドキュメント
+* [GitHub Wiki](https://github.com/kb10uy/Seaurchin/wiki) - 2018年以降更新されません
+* [非公式Wiki](https://www65.atwiki.jp/seaurchin-fan/) - 創作譜面などはこちらに
+
+## 使用ライブラリとか
+* [DXライブラリ](http://dxlib.o.oo7.jp/)
+* [AngelScript](http://www.angelcode.com/angelscript/)
+* [Boost](https://www.boost.org/)
+* [FreeType](https://www.freetype.org/)
+* [libpng](http://www.libpng.org/pub/png/libpng.html)
+* [SoLoud](http://sol.gfxile.net/soloud/)
+* [Wacom feel™ Multi-Touch SDK](http://wdnet.jp/library/feelmulti-touch)
+* [spdlog](https://github.com/gabime/spdlog)
+* [tinytoml](https://github.com/mayah/tinytoml)
+* [glm](https://glm.g-truc.net/0.9.9/index.html)
 
 # ライセンス
 本体はMIT License
-その他ライブラリは下を見ろ
+その他ライブラリは以下参照
 
 # 使用ライブラリ ライセンス
-> ### Effekseer
-> The MIT License (MIT)
-> 
-> Copyright (c) 2011 Effekseer Project
-> 
-> Permission is hereby granted, free of charge, to any person obtaining a copy of
-> this software and associated documentation files (the "Software"), to deal in
-> the Software without restriction, including without limitation the rights to
-> use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-> the Software, and to permit persons to whom the Software is furnished to do so,
-> subject to the following conditions:
-> 
-> The above copyright notice and this permission notice shall be included in all
-> copies or substantial portions of the Software.
-> 
-> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-> FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-> COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-> IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-> CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-> 
-> 
-> DirectX Tool Kit
-> https://directxtk.codeplex.com/
-> Microsoft Public License (Ms-PL)
-> 
 > ### libjpeg
 > libjpeg　Copyright (C) 1991-2013, Thomas G. Lane, Guido Vollbeding.
 > 
@@ -125,4 +109,110 @@
 > Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 > 
 > This notice may not be removed or altered from any source distribution.
-
+> 
+> ### Bass Audio Library
+> TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, BASS IS PROVIDED
+> "AS IS", WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED,
+> INCLUDING BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY
+> AND/OR FITNESS FOR A PARTICULAR PURPOSE. THE AUTHORS SHALL NOT BE HELD
+> LIABLE FOR ANY DAMAGE THAT MAY RESULT FROM THE USE OF BASS. YOU USE
+> BASS ENTIRELY AT YOUR OWN RISK.
+> 
+> Usage of BASS indicates that you agree to the above conditions.
+> 
+> All trademarks and other registered names contained in the BASS
+> package are the property of their respective owners.
+> 
+> MP3 technology is patented, and Thomson license the use of their and
+> Fraunhofer's patents. The inclusion of an MP3 decoder (eg. BASS) in a
+> commercial product requires an MP3 patent licence. Contact Thomson for
+> details:
+> 
+> 	www.mp3licensing.com
+> 
+> ### tinytoml
+> Copyright (c) 2014, MAYAH
+> All rights reserved.
+> 
+> Redistribution and use in source and binary forms, with or without
+> modification, are permitted provided that the following conditions are met:
+> 
+> * Redistributions of source code must retain the above copyright notice, this
+>   list of conditions and the following disclaimer.
+> 
+> * Redistributions in binary form must reproduce the above copyright notice,
+>   this list of conditions and the following disclaimer in the documentation
+>   and/or other materials provided with the distribution.
+> 
+> THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+> AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+> IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+> DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+> FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+> DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+> SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+> CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+> OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+> OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> 
+> ### RxCpp
+> Reactive-Extensions/RxCpp is licensed under the
+> Apache License 2.0
+> 
+> ### GLM
+> ================================================================================
+> OpenGL Mathematics (GLM)
+> --------------------------------------------------------------------------------
+> GLM is licensed under The Happy Bunny License and MIT License
+> 
+> ================================================================================
+> The Happy Bunny License (Modified MIT License)
+> --------------------------------------------------------------------------------
+> Copyright (c) 2005 - 2014 G-Truc Creation
+> 
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
+> 
+> The above copyright notice and this permission notice shall be included in
+> all copies or substantial portions of the Software.
+> 
+> Restrictions:
+>  By making use of the Software for military purposes, you choose to make a
+>  Bunny unhappy.
+> 
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+> THE SOFTWARE.
+> ### fmt
+> Copyright (c) 2012 - 2016, Victor Zverovich
+> 
+> All rights reserved.
+> 
+> Redistribution and use in source and binary forms, with or without modification,
+> are permitted provided that the following conditions are met:
+> 
+> Redistributions of source code must retain the above copyright notice,
+> this list of conditions and the following disclaimer.
+> 
+> Redistributions in binary form must reproduce the above copyright notice,
+> this list of conditions and the following disclaimer in the documentation
+> and/or other materials provided with the distribution.
+> 
+> THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+> AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+> IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+> DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+> ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+> (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
+> LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+> THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+> NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+> ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

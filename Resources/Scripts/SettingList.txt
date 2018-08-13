@@ -1,5 +1,0 @@
-#必須
-S:General.Skin,Default
-
-
-

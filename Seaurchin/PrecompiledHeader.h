@@ -1,11 +1,17 @@
 #pragma once
 
+#define _CRT_SECURE_NO_WARNINGS
+#define _USE_MATH_DEFINES
+#define _ENABLE_ATOMIC_ALIGNMENT_FIX
+
 //Windows
 #include <Windows.h>
 #include <Shlwapi.h>
+#include <Imm.h>
+#include <intrin.h>
+
 
 //C Runtime
-#define _USE_MATH_DEFINES
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
@@ -16,6 +22,7 @@
 //C++ Standard
 #include <string>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -27,41 +34,69 @@
 #include <map>
 #include <utility>
 #include <limits>
+#include <unordered_set>
 #include <unordered_map>
 #include <forward_list>
 #include <list>
 #include <tuple>
 #include <random>
 #include <exception>
+#include <future>
+#include <thread>
+#include <numeric>
 
 //Boost
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
+#include <boost/config.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <boost/regex.hpp>
 #include <boost/xpressive/xpressive.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/clamp.hpp>
 #include <boost/crc.hpp>
-#include <boost/fusion/include/std_tuple.hpp>
+#include <boost/any.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/optional.hpp>
+#include <boost/range/sub_range.hpp>
+#include <boost/lockfree/queue.hpp>
 
 //Libraries
 #include <DxLib.h>
-#include <EffekseerForDXLib.h>
 
 #include <angelscript.h>
-#include <scriptbuilder\scriptbuilder.h>
 #include <scriptarray\scriptarray.h>
 #include <scriptmath\scriptmath.h>
 #include <scriptmath\scriptmathcomplex.h>
 #include <scriptstdstring\scriptstdstring.h>
 #include <scriptdictionary\scriptdictionary.h>
-//#include "as_smart_ptr_wrapper.h"
+#include "wscriptbuilder.h"
+
+#include <WacomMultiTouch.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
 #include <zlib.h>
 #include <png.h>
+
+/*
+#define WITH_XAUDIO2
+#include <soloud.h>
+*/
+
+#include <bass.h>
+#include <bassmix.h>
+#include <bass_fx.h>
+
+#define FMT_HEADER_ONLY
+#include <fmt/format.h>
+
+#define SPDLOG_FMT_EXTERNAL
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/wincolor_sink.h>
+#include <spdlog/sinks/sink.h>
+
+#include <toml/toml.h>
+#include <glm/glm.hpp>
+
+#include "Crc32.h"

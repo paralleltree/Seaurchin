@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
       <Configuration>Debug</Configuration>
@@ -9,47 +9,28 @@
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Debug|x64">
-      <Configuration>Debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|x64">
-      <Configuration>Release</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2727EAE0-2357-4072-9DB1-CA954983DDA2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Seaurchin</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
+    <SpectreMitigation>Spectre</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v140</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>Spectre</SpectreMitigation>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -62,64 +43,41 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)x86\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)x86\$(Configuration)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>TurnOffAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Programming\DXLib\include;C:\Programming\AngelScript\angelscript\include;C:\Programming\AngelScript\add_on;C:\Programming\Boost\include\boost-1_61;C:\Programming\FreeType\include;C:\Programming\libpng\include;C:\Programming\EffekseerForDXLib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Programming\DXLib\include;C:\Programming\AngelScript\angelscript\include;C:\Programming\AngelScript\add_on;C:\Programming\Boost\include\boost-1_61;C:\Programming\FreeType\include;C:\Programming\libpng;C:\Programming\BASS\c;C:\Programming\Wacom_Feel_SDK\inc;C:\Programming\zlib;C:\Programming\spdlog\include;C:\Programming\tinytoml\include;C:\Programming\GLM;C:\Programming\fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>PrecompiledHeader.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>PrecompiledHeader.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalOptions>/MP %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm640 %(AdditionalOptions)</AdditionalOptions>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <DisableSpecificWarnings>;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Programming\DXLib\lib;C:\Programming\AngelScript\angelscript\lib;C:\Programming\Boost\lib;C:\Programming\FreeType\objs\vc2010\Win32;C:\Programming\EffekseerForDXLib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>shlwapi.lib;angelscriptd.lib;freetype27d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Programming\DXLib\lib;C:\Programming\AngelScript\angelscript\lib;C:\Programming\Boost\lib;C:\Programming\FreeType\objs\vc2010\Win32;C:\Programming\BASS\c;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>shlwapi.lib;imm32.lib;bass.lib;bass_fx.lib;bassmix.lib;angelscriptd.lib;freetype27d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmtd;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(SolutionDir)Resources" "$(TargetDir)Data" /I /E /D /Y</Command>
     </PostBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Programming\DXLib\プロジェクトに追加すべきファイル_VC用;C:\Programming\AngelScript\angelscript\include;C:\Programming\AngelScript\add_on;C:\Programming\Boost\include\boost-1_61;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Programming\DXLib\プロジェクトに追加すべきファイル_VC用;C:\Programming\AngelScript\angelscript\lib;C:\Programming\Boost\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>angelscriptd.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -130,85 +88,81 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Programming\DXLib\include;C:\Programming\AngelScript\angelscript\include;C:\Programming\AngelScript\add_on;C:\Programming\Boost\include\boost-1_61;C:\Programming\FreeType\include;C:\Programming\libpng\include;C:\Programming\EffekseerForDXLib\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Programming\DXLib\include;C:\Programming\AngelScript\angelscript\include;C:\Programming\AngelScript\add_on;C:\Programming\Boost\include\boost-1_61;C:\Programming\FreeType\include;C:\Programming\libpng;C:\Programming\BASS\c;C:\Programming\Wacom_Feel_SDK\inc;C:\Programming\zlib;C:\Programming\spdlog\include;C:\Programming\tinytoml\include;C:\Programming\GLM;C:\Programming\fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>PrecompiledHeader.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>PrecompiledHeader.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <AdditionalOptions>-Zm640 %(AdditionalOptions)</AdditionalOptions>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <DisableSpecificWarnings>;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <WarningVersion>
+      </WarningVersion>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Programming\DXLib\lib;C:\Programming\AngelScript\angelscript\lib;C:\Programming\Boost\lib;C:\Programming\FreeType\objs\vc2010\Win32;C:\Programming\EffekseerForDXLib\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>shlwapi.lib;angelscript.lib;freetype27.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Programming\DXLib\lib;C:\Programming\AngelScript\angelscript\lib;C:\Programming\Boost\lib;C:\Programming\FreeType\objs\vc2010\Win32;C:\Programming\BASS\c;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>shlwapi.lib;imm32.lib;bass.lib;bass_fx.lib;bassmix.lib;angelscript.lib;freetype27.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <TreatLinkerWarningAsErrors>
+      </TreatLinkerWarningAsErrors>
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(SolutionDir)Resources" "$(TargetDir)Data" /I /E /D /Y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Programming\DXLib\プロジェクトに追加すべきファイル_VC用;C:\Programming\AngelScript\angelscript\include;C:\Programming\AngelScript\add_on;C:\Programming\Boost\include\boost-1_61;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Programming\DXLib\プロジェクトに追加すべきファイル_VC用;C:\Programming\AngelScript\angelscript\lib;C:\Programming\Boost\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>angelscript.lib;%(AdditionalDependencies)</AdditionalDependencies>
-    </Link>
-  </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\AngelScript\add_on\scriptarray\scriptarray.cpp" />
-    <ClCompile Include="..\..\..\AngelScript\add_on\scriptbuilder\scriptbuilder.cpp" />
     <ClCompile Include="..\..\..\AngelScript\add_on\scriptdictionary\scriptdictionary.cpp" />
     <ClCompile Include="..\..\..\AngelScript\add_on\scriptmath\scriptmath.cpp" />
     <ClCompile Include="..\..\..\AngelScript\add_on\scriptmath\scriptmathcomplex.cpp" />
     <ClCompile Include="..\..\..\AngelScript\add_on\scriptstdstring\scriptstdstring.cpp" />
     <ClCompile Include="..\..\..\AngelScript\add_on\scriptstdstring\scriptstdstring_utils.cpp" />
+    <ClCompile Include="..\..\..\Wacom_Feel_SDK\src\cpp\WacomMultiTouch.cpp" />
     <ClCompile Include="AngelScriptManager.cpp" />
+    <ClCompile Include="Character.cpp" />
+    <ClCompile Include="CharacterInstance.cpp" />
+    <ClCompile Include="Controller.cpp" />
     <ClCompile Include="Debug.cpp" />
-    <ClCompile Include="DxLibResource.cpp" />
     <ClCompile Include="Easing.cpp" />
-    <ClCompile Include="EffectBuilder.cpp" />
-    <ClCompile Include="EffectData.cpp" />
-    <ClCompile Include="EffectFunction.cpp" />
     <ClCompile Include="ExecutionManager.cpp" />
+    <ClCompile Include="ExecutionManager.Interface.cpp" />
     <ClCompile Include="Font.cpp" />
     <ClCompile Include="Interfaces.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Misc.cpp" />
+    <ClCompile Include="MoverFunction.cpp" />
+    <ClCompile Include="MusicsManager.cpp" />
+    <ClCompile Include="PlayableProcessor.cpp" />
+    <ClCompile Include="ExtensionManager.cpp" />
     <ClCompile Include="PrecompiledHeader.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">PrecompiledHeader.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">PrecompiledHeader.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="Result.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneDebug.cpp" />
+    <ClCompile Include="SceneDeveloperMode.cpp" />
+    <ClCompile Include="ScenePlayer.cpp" />
+    <ClCompile Include="ScenePlayer.Draw.cpp" />
+    <ClCompile Include="AutoPlayerProcessor.cpp" />
     <ClCompile Include="ScriptResource.cpp" />
     <ClCompile Include="ScriptScene.cpp" />
     <ClCompile Include="ScriptSprite.cpp" />
-    <ClCompile Include="ScriptSpriteManager.cpp" />
+    <ClCompile Include="ScriptSpriteMover2.cpp" />
     <ClCompile Include="Setting.cpp" />
+    <ClCompile Include="Skill.cpp" />
     <ClCompile Include="SkinHolder.cpp" />
-    <ClCompile Include="Sprite.cpp" />
-    <ClCompile Include="SpriteManager.cpp" />
+    <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="ScriptFunction.cpp" />
+    <ClCompile Include="SusAnalyzer.cpp" />
+    <ClCompile Include="wscriptbuilder.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\AngelScript\add_on\scriptarray\scriptarray.h" />
-    <ClInclude Include="..\..\..\AngelScript\add_on\scriptbuilder\scriptbuilder.h" />
     <ClInclude Include="..\..\..\AngelScript\add_on\scriptdictionary\scriptdictionary.h" />
     <ClInclude Include="..\..\..\AngelScript\add_on\scriptmath\scriptmath.h" />
     <ClInclude Include="..\..\..\AngelScript\add_on\scriptmath\scriptmathcomplex.h" />
@@ -218,37 +172,43 @@
     <ClInclude Include="..\..\..\DXLib\include\DxDataTypeWin.h" />
     <ClInclude Include="..\..\..\DXLib\include\DxFunctionWin.h" />
     <ClInclude Include="..\..\..\DXLib\include\DxLib.h" />
-    <ClInclude Include="..\..\..\EffekseerForDXLib\include\Effekseer.h" />
-    <ClInclude Include="..\..\..\EffekseerForDXLib\include\EffekseerForDXLib.h" />
-    <ClInclude Include="..\..\..\EffekseerForDXLib\include\EffekseerRendererDX9.h" />
+    <ClInclude Include="CharacterInstance.h" />
+    <ClInclude Include="Crc32.h" />
+    <ClInclude Include="ExtensionManager.h" />
+    <ClInclude Include="MoverFunction.h" />
+    <ClInclude Include="ScriptSpriteMover2.h" />
+    <ClInclude Include="SeaurchinExtension.h" />
     <ClInclude Include="AngelScriptManager.h" />
-    <ClInclude Include="as_smart_ptr_wrapper.h" />
+    <ClInclude Include="Character.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="Controller.h" />
     <ClInclude Include="Debug.h" />
-    <ClInclude Include="DxLibResource.h" />
     <ClInclude Include="Easing.h" />
-    <ClInclude Include="EffectBuilder.h" />
-    <ClInclude Include="EffectData.h" />
-    <ClInclude Include="EffectFunction.h" />
-    <ClInclude Include="EffectGrammar.h" />
     <ClInclude Include="ExecutionManager.h" />
     <ClInclude Include="Font.h" />
     <ClInclude Include="Interfaces.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="Misc.h" />
+    <ClInclude Include="MusicsManager.h" />
     <ClInclude Include="PrecompiledHeader.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Result.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneDebug.h" />
+    <ClInclude Include="SceneDeveloperMode.h" />
+    <ClInclude Include="ScenePlayer.h" />
+    <ClInclude Include="ScoreProcessor.h" />
     <ClInclude Include="ScriptResource.h" />
     <ClInclude Include="ScriptScene.h" />
     <ClInclude Include="ScriptSprite.h" />
-    <ClInclude Include="ScriptSpriteManager.h" />
     <ClInclude Include="Setting.h" />
+    <ClInclude Include="Skill.h" />
     <ClInclude Include="SkinHolder.h" />
-    <ClInclude Include="Sprite.h" />
-    <ClInclude Include="SpriteManager.h" />
+    <ClInclude Include="SoundManager.h" />
     <ClInclude Include="ScriptFunction.h" />
+    <ClInclude Include="ScriptSpriteMisc.h" />
+    <ClInclude Include="SusAnalyzer.h" />
+    <ClInclude Include="wscriptbuilder.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Seaurchin.rc" />

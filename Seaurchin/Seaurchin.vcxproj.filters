@@ -34,6 +34,24 @@
     <Filter Include="インターフェース\AngelScript">
       <UniqueIdentifier>{1220e150-8ad3-43eb-b58f-b1d804884224}</UniqueIdentifier>
     </Filter>
+    <Filter Include="プレーヤー">
+      <UniqueIdentifier>{11aa0908-b61d-4bd3-a637-f3eec17d03df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="コントローラー">
+      <UniqueIdentifier>{6814a1c8-b90e-4020-9381-3099759babcb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="コントローラー\依存">
+      <UniqueIdentifier>{10ac2997-3d62-4b33-bb73-ed4bf0e4431c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="インターフェース\キャラクター">
+      <UniqueIdentifier>{5af0c5d5-f49f-4873-b9fb-b663b84c46ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="インターフェース\描画システム">
+      <UniqueIdentifier>{261a98c2-065d-4806-aae5-abe7200a0492}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\ライブラリ">
+      <UniqueIdentifier>{11261168-c68c-4cb0-a44c-605b63a7fdb2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
@@ -43,9 +61,6 @@
       <Filter>AngelScript</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\AngelScript\add_on\scriptstdstring\scriptstdstring_utils.cpp">
-      <Filter>AngelScript</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\AngelScript\add_on\scriptbuilder\scriptbuilder.cpp">
       <Filter>AngelScript</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\AngelScript\add_on\scriptmath\scriptmath.cpp">
@@ -75,41 +90,14 @@
     <ClCompile Include="Misc.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Easing.cpp">
-      <Filter>インターフェース\C++</Filter>
-    </ClCompile>
     <ClCompile Include="Scene.cpp">
-      <Filter>インターフェース\C++</Filter>
-    </ClCompile>
-    <ClCompile Include="Sprite.cpp">
-      <Filter>インターフェース\C++</Filter>
-    </ClCompile>
-    <ClCompile Include="SpriteManager.cpp">
-      <Filter>インターフェース\C++</Filter>
-    </ClCompile>
-    <ClCompile Include="ScriptScene.cpp">
-      <Filter>インターフェース\AngelScript</Filter>
-    </ClCompile>
-    <ClCompile Include="ScriptSprite.cpp">
-      <Filter>インターフェース\AngelScript</Filter>
-    </ClCompile>
-    <ClCompile Include="ScriptResource.cpp">
-      <Filter>インターフェース\AngelScript</Filter>
-    </ClCompile>
-    <ClCompile Include="Font.cpp">
       <Filter>インターフェース\C++</Filter>
     </ClCompile>
     <ClCompile Include="Interfaces.cpp">
       <Filter>インターフェース\AngelScript</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptSpriteManager.cpp">
-      <Filter>インターフェース\AngelScript</Filter>
-    </ClCompile>
     <ClCompile Include="AngelScriptManager.cpp">
       <Filter>インターフェース\AngelScript</Filter>
-    </ClCompile>
-    <ClCompile Include="DxLibResource.cpp">
-      <Filter>インターフェース\C++</Filter>
     </ClCompile>
     <ClCompile Include="SkinHolder.cpp">
       <Filter>インターフェース\AngelScript</Filter>
@@ -120,14 +108,77 @@
     <ClCompile Include="..\..\..\AngelScript\add_on\scriptdictionary\scriptdictionary.cpp">
       <Filter>AngelScript</Filter>
     </ClCompile>
-    <ClCompile Include="EffectBuilder.cpp">
+    <ClCompile Include="MusicsManager.cpp">
       <Filter>インターフェース\C++</Filter>
     </ClCompile>
-    <ClCompile Include="EffectData.cpp">
+    <ClCompile Include="SoundManager.cpp">
       <Filter>インターフェース\C++</Filter>
     </ClCompile>
-    <ClCompile Include="EffectFunction.cpp">
+    <ClCompile Include="SceneDeveloperMode.cpp">
+      <Filter>ビルトインScene</Filter>
+    </ClCompile>
+    <ClCompile Include="SusAnalyzer.cpp">
       <Filter>インターフェース\C++</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenePlayer.cpp">
+      <Filter>プレーヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller.cpp">
+      <Filter>コントローラー</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\Wacom_Feel_SDK\src\cpp\WacomMultiTouch.cpp">
+      <Filter>コントローラー\依存</Filter>
+    </ClCompile>
+    <ClCompile Include="ScenePlayer.Draw.cpp">
+      <Filter>プレーヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="wscriptbuilder.cpp">
+      <Filter>インターフェース\AngelScript</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayableProcessor.cpp">
+      <Filter>プレーヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="AutoPlayerProcessor.cpp">
+      <Filter>プレーヤー</Filter>
+    </ClCompile>
+    <ClCompile Include="Font.cpp">
+      <Filter>インターフェース\C++</Filter>
+    </ClCompile>
+    <ClCompile Include="ExecutionManager.Interface.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ExtensionManager.cpp">
+      <Filter>インターフェース\C++</Filter>
+    </ClCompile>
+    <ClCompile Include="Character.cpp">
+      <Filter>インターフェース\キャラクター</Filter>
+    </ClCompile>
+    <ClCompile Include="Skill.cpp">
+      <Filter>インターフェース\キャラクター</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptResource.cpp">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptScene.cpp">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptSprite.cpp">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClCompile>
+    <ClCompile Include="Result.cpp">
+      <Filter>インターフェース\キャラクター</Filter>
+    </ClCompile>
+    <ClCompile Include="CharacterInstance.cpp">
+      <Filter>インターフェース\キャラクター</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptSpriteMover2.cpp">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClCompile>
+    <ClCompile Include="Easing.cpp">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClCompile>
+    <ClCompile Include="MoverFunction.cpp">
+      <Filter>インターフェース\描画システム</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -152,9 +203,6 @@
     <ClInclude Include="..\..\..\AngelScript\add_on\scriptstdstring\scriptstdstring.h">
       <Filter>AngelScript</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\AngelScript\add_on\scriptbuilder\scriptbuilder.h">
-      <Filter>AngelScript</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\AngelScript\add_on\scriptmath\scriptmath.h">
       <Filter>AngelScript</Filter>
     </ClInclude>
@@ -176,35 +224,14 @@
     <ClInclude Include="SceneDebug.h">
       <Filter>ビルトインScene</Filter>
     </ClInclude>
-    <ClInclude Include="as_smart_ptr_wrapper.h">
-      <Filter>AngelScript</Filter>
-    </ClInclude>
     <ClInclude Include="ExecutionManager.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Misc.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Easing.h">
-      <Filter>インターフェース\C++</Filter>
-    </ClInclude>
     <ClInclude Include="Scene.h">
       <Filter>インターフェース\C++</Filter>
-    </ClInclude>
-    <ClInclude Include="Sprite.h">
-      <Filter>インターフェース\C++</Filter>
-    </ClInclude>
-    <ClInclude Include="SpriteManager.h">
-      <Filter>インターフェース\C++</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptSprite.h">
-      <Filter>インターフェース\AngelScript</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptScene.h">
-      <Filter>インターフェース\AngelScript</Filter>
-    </ClInclude>
-    <ClInclude Include="ScriptResource.h">
-      <Filter>インターフェース\AngelScript</Filter>
     </ClInclude>
     <ClInclude Include="Font.h">
       <Filter>インターフェース\C++</Filter>
@@ -212,14 +239,8 @@
     <ClInclude Include="Interfaces.h">
       <Filter>インターフェース\AngelScript</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptSpriteManager.h">
-      <Filter>インターフェース\AngelScript</Filter>
-    </ClInclude>
     <ClInclude Include="AngelScriptManager.h">
       <Filter>インターフェース\AngelScript</Filter>
-    </ClInclude>
-    <ClInclude Include="DxLibResource.h">
-      <Filter>インターフェース\C++</Filter>
     </ClInclude>
     <ClInclude Include="SkinHolder.h">
       <Filter>インターフェース\AngelScript</Filter>
@@ -233,29 +254,74 @@
     <ClInclude Include="..\..\..\AngelScript\add_on\scriptdictionary\scriptdictionary.h">
       <Filter>AngelScript</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\EffekseerForDXLib\include\Effekseer.h">
-      <Filter>DxLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\EffekseerForDXLib\include\EffekseerRendererDX9.h">
-      <Filter>DxLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\EffekseerForDXLib\include\EffekseerForDXLib.h">
-      <Filter>DxLib</Filter>
-    </ClInclude>
-    <ClInclude Include="EffectBuilder.h">
-      <Filter>インターフェース\C++</Filter>
-    </ClInclude>
-    <ClInclude Include="EffectData.h">
-      <Filter>インターフェース\C++</Filter>
-    </ClInclude>
     <ClInclude Include="PrecompiledHeader.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="EffectGrammar.h">
+    <ClInclude Include="MusicsManager.h">
       <Filter>インターフェース\C++</Filter>
     </ClInclude>
-    <ClInclude Include="EffectFunction.h">
+    <ClInclude Include="SoundManager.h">
       <Filter>インターフェース\C++</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneDeveloperMode.h">
+      <Filter>ビルトインScene</Filter>
+    </ClInclude>
+    <ClInclude Include="SusAnalyzer.h">
+      <Filter>インターフェース\C++</Filter>
+    </ClInclude>
+    <ClInclude Include="ScenePlayer.h">
+      <Filter>プレーヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="ScoreProcessor.h">
+      <Filter>プレーヤー</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller.h">
+      <Filter>コントローラー</Filter>
+    </ClInclude>
+    <ClInclude Include="wscriptbuilder.h">
+      <Filter>インターフェース\AngelScript</Filter>
+    </ClInclude>
+    <ClInclude Include="SeaurchinExtension.h">
+      <Filter>インターフェース\C++</Filter>
+    </ClInclude>
+    <ClInclude Include="ExtensionManager.h">
+      <Filter>インターフェース\C++</Filter>
+    </ClInclude>
+    <ClInclude Include="Character.h">
+      <Filter>インターフェース\キャラクター</Filter>
+    </ClInclude>
+    <ClInclude Include="Skill.h">
+      <Filter>インターフェース\キャラクター</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptSpriteMisc.h">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptResource.h">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptScene.h">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptSprite.h">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClInclude>
+    <ClInclude Include="Result.h">
+      <Filter>インターフェース\キャラクター</Filter>
+    </ClInclude>
+    <ClInclude Include="CharacterInstance.h">
+      <Filter>インターフェース\キャラクター</Filter>
+    </ClInclude>
+    <ClInclude Include="Crc32.h">
+      <Filter>ヘッダー ファイル\ライブラリ</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptSpriteMover2.h">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClInclude>
+    <ClInclude Include="Easing.h">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClInclude>
+    <ClInclude Include="MoverFunction.h">
+      <Filter>インターフェース\描画システム</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

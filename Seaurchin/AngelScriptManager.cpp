@@ -1,7 +1,7 @@
 #include "AngelScriptManager.h"
-#include "Debug.h"
 
-static int ScriptIncludeCallback(const char *include, const char *from, CScriptBuilder *builder, void *userParam);
+using namespace std;
+static int ScriptIncludeCallback(const wchar_t *include, const wchar_t *from, CWScriptBuilder *builder, void *userParam);
 
 AngelScript::AngelScript()
 {
@@ -23,21 +23,21 @@ AngelScript::AngelScript()
 AngelScript::~AngelScript()
 {
     sharedContext->Release();
-    engine->ShutDownAndRelease();
+    // engine->ShutDownAndRelease();
 }
 
-void AngelScript::StartBuildModule(std::string name, IncludeCallback callback)
+void AngelScript::StartBuildModule(const string &name, const IncludeCallback callback)
 {
     includeFunc = callback;
     builder.StartNewModule(engine, name.c_str());
 }
 
-void AngelScript::LoadFile(std::string filename)
+void AngelScript::LoadFile(const wstring &filename)
 {
     builder.AddSectionFromFile(filename.c_str());
 }
 
-bool AngelScript::IncludeFile(std::string include, std::string from)
+bool AngelScript::IncludeFile(const wstring &include, const wstring &from)
 {
     return includeFunc(include, from, &builder);
 }
@@ -47,49 +47,65 @@ bool AngelScript::FinishBuildModule()
     return builder.BuildModule() >= 0;
 }
 
-bool AngelScript::CheckMetaData(asITypeInfo *type, std::string meta)
+bool AngelScript::CheckMetaData(asITypeInfo *type, const string &meta)
 {
-    auto df = builder.GetMetadataStringForType(type->GetTypeId());
+    const auto df = builder.GetMetadataStringForType(type->GetTypeId());
     return df == meta;
 }
 
-bool AngelScript::CheckMetaData(asIScriptFunction *func, std::string meta)
+bool AngelScript::CheckMetaData(asIScriptFunction *func, const string &meta)
 {
-    auto df = builder.GetMetadataStringForFunc(func);
+    const auto df = builder.GetMetadataStringForFunc(func);
     return df == meta;
 }
 
-asIScriptObject * AngelScript::InstantiateObject(asITypeInfo * type)
+asIScriptObject *AngelScript::InstantiateObject(asITypeInfo * type) const
 {
-    auto factory = type->GetFactoryByIndex(0);
+    const auto factory = type->GetFactoryByIndex(0);
     sharedContext->Prepare(factory);
     sharedContext->Execute();
-    return *(asIScriptObject**)sharedContext->GetAddressOfReturnValue();
+    return *static_cast<asIScriptObject**>(sharedContext->GetAddressOfReturnValue());
 }
 
-void AngelScript::ScriptMessageCallback(const asSMessageInfo * message)
+// ReSharper disable once CppMemberFunctionMayBeStatic
+void AngelScript::ScriptMessageCallback(const asSMessageInfo * message) const
 {
     using namespace std;
-    //utf-8 <=> sjis•ÏŠ·‚µ‚È‚¢‚Æ‚¢‚¯‚È‚¢‚©‚à
-    ostringstream ss;
-    switch (message->type)
-    {
-    case asEMsgType::asMSGTYPE_INFORMATION:
-        ss << "[INFO] ";
-        break;
-    case asEMsgType::asMSGTYPE_WARNING:
-        ss << "[WARN] ";
-        break;
-    case asEMsgType::asMSGTYPE_ERROR:
-        ss << "[ERRR] ";
-        break;
+    auto log = spdlog::get("main");
+    switch (message->type) {
+        case asMSGTYPE_INFORMATION:
+            log->info(u8"{0} ({1:d}s{2:d}—ñ): {3}", message->section, message->row, message->col, message->message);
+            break;
+        case asMSGTYPE_WARNING:
+            log->warn(u8"{0} ({1:d}s{2:d}—ñ): {3}", message->section, message->row, message->col, message->message);
+            break;
+        case asMSGTYPE_ERROR:
+            log->error(u8"{0} ({1:d}s{2:d}—ñ): {3}", message->section, message->row, message->col, message->message);
+            break;
     }
-    ss << message->section << "(" << message->row << ", " << message->col << ") " << message->message << endl;
-    WriteDebugConsole(ss.str().c_str());
 }
 
-int ScriptIncludeCallback(const char *include, const char *from, CScriptBuilder *builder, void *userParam)
+int ScriptIncludeCallback(const wchar_t *include, const wchar_t *from, CWScriptBuilder *builder, void *userParam)
 {
     auto as = reinterpret_cast<AngelScript*>(userParam);
     return as->IncludeFile(include, from) ? 1 : -1;
+}
+
+CallbackObject::CallbackObject(asIScriptFunction *callback)
+{
+    const auto ctx = asGetActiveContext();
+    auto engine = ctx->GetEngine();
+    Context = engine->CreateContext();
+    Function = callback->GetDelegateFunction();
+    Function->AddRef();
+    Object = static_cast<asIScriptObject*>(callback->GetDelegateObject());
+    Type = callback->GetDelegateObjectType();
+}
+
+CallbackObject::~CallbackObject()
+{
+    auto engine = Context->GetEngine();
+    Context->Release();
+    Function->Release();
+    engine->ReleaseScriptObject(Object, Type);
 }

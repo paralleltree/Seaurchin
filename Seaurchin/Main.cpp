@@ -12,12 +12,15 @@ void PreInitialize(HINSTANCE hInstance);
 void Initialize();
 void Run();
 void Terminate();
+LRESULT CALLBACK CustomWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 shared_ptr<Setting> setting;
+shared_ptr<Logger> logger;
 unique_ptr<ExecutionManager> manager;
+WNDPROC dxlibWndProc;
+HWND hDxlibWnd;
 
-
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+int WINAPI WinMain(const HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
     PreInitialize(hInstance);
     Initialize();
@@ -30,34 +33,45 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 void PreInitialize(HINSTANCE hInstance)
 {
-    setting = shared_ptr<Setting>(new Setting(hInstance));
-    manager = unique_ptr<ExecutionManager>(new ExecutionManager(setting));
+    logger = make_shared<Logger>();
+    logger->Initialize();
 
-    InitializeDebugFeature();
-    ChangeWindowMode(TRUE);
-    SetMainWindowText(SU_APP_NAME " " SU_APP_VERSION);
+    setting = make_shared<Setting>(hInstance);
+    setting->Load(SU_SETTING_FILE);
+    const auto vs = setting->ReadValue<bool>("Graphic", "WaitVSync", false);
+    const auto fs = setting->ReadValue<bool>("Graphic", "Fullscreen", false);
+
+    SetUseCharCodeFormat(DX_CHARCODEFORMAT_UTF16LE);
+    ChangeWindowMode(fs ? FALSE : TRUE);
+    SetMainWindowText(reinterpret_cast<const char*>(ConvertUTF8ToUnicode(SU_APP_NAME " " SU_APP_VERSION).c_str()));
     SetAlwaysRunFlag(TRUE);
-    SetWaitVSyncFlag(FALSE);
+    SetWaitVSyncFlag(vs ? TRUE : FALSE);
     SetWindowIconID(IDI_ICON1);
+    SetUseFPUPreserveFlag(TRUE);
     SetGraphMode(SU_RES_WIDTH, SU_RES_HEIGHT, 32);
+    SetFullSceneAntiAliasingMode(2, 2);
 }
 
 void Initialize()
 {
-    setting->Load(SU_SETTING_FILE);
-
-    SetUseDirect3DVersion(DX_DIRECT3D_9);
     if (DxLib_Init() == -1) abort();
-    SetDrawScreen(DX_SCREEN_BACK);
-    WriteDebugConsole(TEXT("DxLib_Init\n"));
-
-    SetChangeScreenModeGraphicsSystemResetFlag(FALSE);
+    logger->LogInfo(u8"DxLibèâä˙âªOK");
+    
+    //WndProcç∑Çµë÷Ç¶
+    hDxlibWnd = GetMainWindowHandle();
+    dxlibWndProc = WNDPROC(GetWindowLong(hDxlibWnd, GWL_WNDPROC));
+    SetWindowLong(hDxlibWnd, GWL_WNDPROC, LONG(CustomWindowProc));
+    //D3Dê›íË
     SetUseZBuffer3D(TRUE);
     SetWriteZBuffer3D(TRUE);
-    if (Effkseer_Init(SU_EFX_PMAX) == -1) abort();
-    Effekseer_Set2DSetting(SU_RES_WIDTH, SU_RES_HEIGHT);
-    //if (GetUseDirect3DVersion() == DX_DIRECT3D_11) WriteDebugConsole(TEXT("Using D3D11!\n"));
+    SetDrawScreen(DX_SCREEN_BACK);
 
+    manager = make_unique<ExecutionManager>(setting);
+    manager->Initialize();
+}
+
+void Run()
+{
     if (CheckHitKey(KEY_INPUT_F2))
     {
         manager->ExecuteSystemMenu();
@@ -67,19 +81,16 @@ void Initialize()
         manager->EnumerateSkins();
         manager->ExecuteSkin();
     }
-    manager->AddScene(shared_ptr<Scene>(new SceneDebug()));
-    
-}
+    manager->AddScene(static_pointer_cast<Scene>(make_shared<SceneDebug>()));
 
-void Run()
-{
+
     auto start = high_resolution_clock::now();
     auto pstart = start;
     while (ProcessMessage() != -1)
     {
         pstart = start;
         start = high_resolution_clock::now();
-        float delta = duration_cast<nanoseconds>(start - pstart).count() / 1000000000.0;
+        const auto delta = duration_cast<nanoseconds>(start - pstart).count() / 1000000000.0;
         manager->Tick(delta);
         manager->Draw();
     }
@@ -87,8 +98,24 @@ void Run()
 
 void Terminate()
 {
-    TerminateDebugFeature();
+    manager->Shutdown();
+    manager = nullptr;
     setting->Save();
-    Effkseer_End();
+    setting = nullptr;
     DxLib_End();
+    logger->Terminate();
+}
+
+LRESULT CALLBACK CustomWindowProc(const HWND hWnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)
+{
+    bool processed;
+    LRESULT result;
+    tie(processed, result) = manager->CustomWindowProc(hWnd, msg, wParam, lParam);
+    
+    if (processed) {
+        return result;
+    }
+    else {
+        return CallWindowProc(dxlibWndProc, hWnd, msg, wParam, lParam);
+    }
 }

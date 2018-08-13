@@ -1,73 +1,77 @@
 #pragma once
 
-#include "Sprite.h"
-#include "EffectData.h"
-#include "SpriteManager.h"
+#include "ScriptSpriteMisc.h"
+#include "MoverFunction.h"
+#include "ScriptSpriteMover2.h"
 #include "ScriptResource.h"
 
 #define SU_IF_COLOR "Color"
 #define SU_IF_TF2D "Transform2D"
 #define SU_IF_SHAPETYPE "ShapeType"
+#define SU_IF_TEXTALIGN "TextAlign"
+#define SU_IF_9TYPE "NinePatchType"
 
 #define SU_IF_SPRITE "Sprite"
 #define SU_IF_SHAPE "Shape"
 #define SU_IF_TXTSPRITE "TextSprite"
 #define SU_IF_SYHSPRITE "SynthSprite"
 #define SU_IF_CLPSPRITE "ClipSprite"
-#define SU_IF_EFXSPRITE "EffectSprite"
+#define SU_IF_ANIMESPRITE "AnimeSprite"
+#define SU_IF_CONTAINER "Container"
 
-class ScriptSpriteMover;
+struct Mover;
 //基底がImageSpriteでもいい気がしてるんだよね正直
-class SSprite
-{
+class SSprite {
+private:
+    virtual void DrawBy(const Transform2D &tf, const ColorTint &ct);
+
 protected:
-    int Reference;
-    ScriptSpriteMover *mover;
+    int reference = 0;
+    ScriptSpriteMover2 *mover = nullptr;
 
     void CopyParameterFrom(SSprite *original);
 
 public:
     //値(CopyParameterFromで一括)
     Transform2D Transform;
-    int32_t ZIndex;
-    ColorTint Color;
+    int32_t ZIndex = 0;
+    ColorTint Color = Colors::white;
     bool IsDead = false;
     bool HasAlpha = true;
     //参照(手動コピー)
     SImage *Image = nullptr;
-    void set_Image(SImage *img);
-    const SImage* get_Image();
+    void SetImage(SImage *img);
+    const SImage* GetImage() const;
 
     SSprite();
     virtual ~SSprite();
     void AddRef();
     void Release();
 
-    inline void Dismiss() { IsDead = true; }
-    inline void Revive() { IsDead = false; }
-    virtual std::function<bool(SSprite*, Mover&, double)> GetCustomAction(const std::string &name);
-    virtual void ParseCustomMover(Mover *mover, const std::vector<std::tuple<std::string, std::string>> &params);
-    void AddMove(const std::string &move);
+    void Dismiss() { IsDead = true; }
+    void Revive() { IsDead = false; }
+    virtual mover_function::Action GetCustomAction(const std::string &name);
+    void AddMove(const std::string &move) const;
+    void AbortMove(bool terminate) const;
     void Apply(const std::string &dict);
     void Apply(const CScriptDictionary &dict);
     virtual void Tick(double delta);
     virtual void Draw();
-    SSprite* Clone();
+    virtual void Draw(const Transform2D &parent, const ColorTint &color);
+    virtual SSprite* Clone();
 
     static SSprite* Factory();
     static SSprite* Factory(SImage *img);
     static void RegisterType(asIScriptEngine *engine);
-    struct Comparator
-    {
-        inline bool operator()(const SSprite* lhs, const SSprite* rhs) const
+    struct Comparator {
+        bool operator()(const SSprite* lhs, const SSprite* rhs) const
         {
             return lhs->ZIndex < rhs->ZIndex;
         }
     };
 };
 
-enum SShapeType
-{
+enum class SShapeType {
     Pixel,
     Box,
     BoxFill,
@@ -76,107 +80,188 @@ enum SShapeType
 };
 
 //任意の多角形などを表示できる
-class SShape : public SSprite
-{
+class SShape : public SSprite {
+private:
+    void DrawBy(const Transform2D &tf, const ColorTint &ct) override;
+
 public:
     SShapeType Type = SShapeType::BoxFill;
     double Width = 32;
     double Height = 32;
 
     void Draw() override;
+    void Draw(const Transform2D &parent, const ColorTint &color) override;
 
     static SShape* Factory();
     static void RegisterType(asIScriptEngine *engine);
 };
 
+enum class STextAlign {
+    Top = 0,
+    Center = 1,
+    Bottom = 2,
+    Left = 0,
+    Right = 2
+};
+
 //文字列をスプライトとして扱います
-class STextSprite : public SSprite
-{
+class STextSprite : public SSprite {
 protected:
-    SRenderTarget *Target = nullptr;
+    SRenderTarget * target = nullptr;
+    SRenderTarget *scrollBuffer = nullptr;
+    std::tuple<double, double, int> size;
+    STextAlign horizontalAlignment = STextAlign::Left;
+    STextAlign verticalAlignment = STextAlign::Top;
+    bool isScrolling = false;
+    int scrollWidth = 0;
+    int scrollMargin = 0;
+    double scrollSpeed = 0;
+    double scrollPosition = 0;
+    bool isRich = false;
 
     void Refresh();
+    void DrawNormal(const Transform2D &tf, const ColorTint &ct);
+    void DrawScroll(const Transform2D &tf, const ColorTint &ct);
+
 public:
-    SFont *Font = nullptr;
+    SFont * Font = nullptr;
     std::string Text = "";
-    void set_Font(SFont* font);
-    void set_Text(const std::string &txt);
+    void SetFont(SFont* font);
+    void SetText(const std::string &txt);
+    void SetAlignment(STextAlign hori, STextAlign vert);
+    void SetRangeScroll(int width, int margin, double pps);
+    void SetRich(bool enabled);
 
     ~STextSprite() override;
+    void Tick(double delta) override;
     void Draw() override;
-    STextSprite *Clone();
+    void Draw(const Transform2D &parent, const ColorTint &color) override;
+    STextSprite *Clone() override;
 
     static STextSprite* Factory();
     static STextSprite* Factory(SFont *img, const std::string &str);
     static void RegisterType(asIScriptEngine *engine);
 };
 
-//画像を任意のスプライトから合成してウェイできます
-class SSynthSprite : public SSprite
-{
+//文字入力を扱うスプライトです
+//他と違ってDXライブラリのリソースをナマで取得するのであんまりボコボコ使わないでください。
+class STextInput : public SSprite {
 protected:
-    SRenderTarget *Target = nullptr;
-    int Width = 0;
-    int Height = 0;
+    int inputHandle = 0;
+    SFont *font = nullptr;
+    int selectionStart = -1, selectionEnd = -1;
+    int cursor = 0;
+    std::string currentRawString = "";
+
+public:
+    STextInput();
+    ~STextInput() override;
+    void SetFont(SFont *font);
+
+    void Activate() const;
+    void Draw() override;
+    void Tick(double delta) override;
+
+    std::string GetUTF8String() const;
+
+    static STextInput* Factory();
+    static STextInput* Factory(SFont *img);
+    static void RegisterType(asIScriptEngine *engine);
+};
+
+//画像を任意のスプライトから合成してウェイできます
+class SSynthSprite : public SSprite {
+protected:
+    SRenderTarget * target = nullptr;
+    int width = 0;
+    int height = 0;
+    void DrawBy(const Transform2D &tf, const ColorTint &ct) override;
 
 public:
     SSynthSprite(int w, int h);
-    ~SSynthSprite();
-    inline int get_Width() { return Width; }
-    inline int get_Height() { return Height; }
+    ~SSynthSprite() override;
+    int GetWidth() const { return width; }
+    int GetHeight() const { return height; }
 
     void Clear();
     void Transfer(SSprite *sprite);
     void Transfer(SImage *image, double x, double y);
     void Draw() override;
-    SSynthSprite *Clone();
+    void Draw(const Transform2D &parent, const ColorTint &color) override;
+    SSynthSprite *Clone() override;
 
     static SSynthSprite *Factory(int w, int h);
     static void RegisterType(asIScriptEngine *engine);
 };
 
 //画像を任意のスプライトから合成してウェイできます
-class SClippingSprite : public SSynthSprite
-{
+class SClippingSprite : public SSynthSprite {
 protected:
-    double U1;
-    double V1;
-    double U2;
-    double V2;
-    SRenderTarget *ActualTarget = nullptr;
+    double u1;
+    double v1;
+    double u2;
+    double v2;
+    SRenderTarget *actualTarget = nullptr;
+    void DrawBy(const Transform2D &tf, const ColorTint &ct) override;
 
-    static bool ActionMoveRangeTo(SSprite* thisObj, Mover& mover, double delta);
+    static bool ActionMoveRangeTo(SSprite *thisObj, SpriteMoverArgument &args, SpriteMoverData &data, double delta);
 
 public:
     SClippingSprite(int w, int h);
 
-    std::function<bool(SSprite*, Mover&, double)> GetCustomAction(const std::string &name) override;
-    void ParseCustomMover(Mover *mover, const std::vector<std::tuple<std::string, std::string>> &params) override;
+    mover_function::Action GetCustomAction(const std::string &name) override;
     void SetRange(double tx, double ty, double w, double h);
     void Draw() override;
-    SClippingSprite *Clone();
+    void Draw(const Transform2D &parent, const ColorTint &color) override;
+    SClippingSprite *Clone() override;
 
     static SClippingSprite *Factory(int w, int h);
     static void RegisterType(asIScriptEngine *engine);
 };
 
-class SEffectSprite : public SSprite
-{
+class SAnimeSprite : public SSprite {
 protected:
-    EffectInstance *Instance;
-    bool IsPlaying = true;
+    SAnimatedImage *images;
+    int loopCount;
+    double speed;
+    double time;
+    void DrawBy(const Transform2D &tf, const ColorTint &ct) override;
 
 public:
-    SEffectSprite(EffectInstance *effect);
-    ~SEffectSprite();
+    SAnimeSprite(SAnimatedImage *img);
+    ~SAnimeSprite() override;
 
     void Draw() override;
+    void Draw(const Transform2D &parent, const ColorTint &color) override;
     void Tick(double delta) override;
-    void Play();
-    void Reset();
-    void Stop();
+    void SetSpeed(double speed);
+    void SetLoopCount(int lc);
 
-    static SEffectSprite* Factory(SEffect *effectData);
+    static SAnimeSprite* Factory(SAnimatedImage *image);
+    static void RegisterType(asIScriptEngine *engine);
+};
+
+enum NinePatchType : uint32_t {
+    StretchByRatio = 1,
+    StretchByPixel,
+    Repeat,
+    RepeatAndStretch,
+};
+
+class SContainer : public SSprite {
+protected:
+    std::multiset<SSprite*, SSprite::Comparator> children;
+
+public:
+    SContainer();
+    ~SContainer() override;
+
+    void AddChild(SSprite *child);
+    void Tick(double delta) override;
+    void Draw() override;
+    void Draw(const Transform2D &parent, const ColorTint &color) override;
+
+    static SContainer* Factory();
     static void RegisterType(asIScriptEngine *engine);
 };
 
@@ -192,25 +277,18 @@ void RegisterSpriteBasic(asIScriptEngine *engine, const char *name)
     engine->RegisterObjectProperty(name, "bool HasAlpha", asOFFSET(T, HasAlpha));
     engine->RegisterObjectProperty(name, "int Z", asOFFSET(T, ZIndex));
     engine->RegisterObjectProperty(name, SU_IF_TF2D " Transform", asOFFSET(T, Transform));
-    engine->RegisterObjectMethod(name, "void SetImage(" SU_IF_IMAGE "@)", asMETHOD(T, set_Image), asCALL_THISCALL);
+    engine->RegisterObjectMethod(name, "void SetImage(" SU_IF_IMAGE "@)", asMETHOD(T, SetImage), asCALL_THISCALL);
     //engine->RegisterObjectMethod(name, SU_IF_IMAGE "@ get_Image()", asMETHOD(T, get_Image), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void Dismiss()", asMETHOD(T, Dismiss), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void Apply(const string &in)", asMETHODPR(T, Apply, (const std::string&), void), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void Apply(const dictionary@)", asMETHODPR(T, Apply, (const CScriptDictionary&), void), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void AddMove(const string &in)", asMETHOD(T, AddMove), asCALL_THISCALL);
+    engine->RegisterObjectMethod(name, "void AbortMove(bool = true)", asMETHOD(T, AbortMove), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void Tick(double)", asMETHOD(T, Tick), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void Draw()", asMETHOD(T, Draw), asCALL_THISCALL);
 }
 
-template<typename From, typename To>
-To* CastReferenceType(From *from)
-{
-    if (!from) return nullptr;
-    To* result = dynamic_cast<To*>(from);
-    if (result) result->AddRef();
-    return result;
-}
 
-//Sprite系全部
-//ColorTint GetColorTint(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255);
-void RegisterScriptSprite(asIScriptEngine *engine);
+
+class ExecutionManager;
+void RegisterScriptSprite(ExecutionManager *exm);

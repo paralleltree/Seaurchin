@@ -1,47 +1,58 @@
 #include "Debug.h"
+#include "Misc.h"
 
 using namespace std;
 
-static HANDLE   hConsoleOutput = nullptr,
-                hConsoleInput = nullptr,
-                hConsoleError = nullptr;
-
-static DWORD dwDummy;
-
-void _InitializeDebugFeature()
+Logger::Logger()
 {
+
+}
+
+void Logger::Initialize()
+{
+    using namespace spdlog;
+
+#ifdef _DEBUG
     AllocConsole();
-    hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
-    hConsoleInput = GetStdHandle(STD_INPUT_HANDLE);
-    hConsoleError = GetStdHandle(STD_ERROR_HANDLE);
+    sinks.push_back(make_shared<StandardOutputUnicodeSink>());
+#endif
+    sinks.push_back(make_shared<sinks::simple_file_sink_mt>("Seaurchin.log", true));
+    loggerMain = make_shared<logger>("main", begin(sinks), end(sinks));
+    loggerMain->set_pattern("[%H:%M:%S.%e] [%L] %v");
+    register_logger(loggerMain);
 }
 
-void _TerminateDebugFeature()
+// ReSharper disable once CppMemberFunctionMayBeStatic
+void Logger::Terminate() const
 {
+    spdlog::drop_all();
+#ifdef _DEBUG
     FreeConsole();
+#endif
 }
 
-void _WriteDebugConsoleA(LPCSTR string)
+StandardOutputUnicodeSink::StandardOutputUnicodeSink()
 {
-    WriteConsoleA(hConsoleOutput, string, strlen(string), &dwDummy, nullptr);
+    using namespace spdlog::level;
+    colors[level_enum::trace] = FOREGROUND_INTENSITY;   // 灰色
+    colors[level_enum::debug] = FOREGROUND_INTENSITY;   // 灰色
+    colors[level_enum::info] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;  // 白
+    colors[level_enum::warn] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;    // 黄色
+    colors[level_enum::err] = FOREGROUND_RED | FOREGROUND_INTENSITY;    // 赤
+    colors[level_enum::critical] =
+        FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY
+        | BACKGROUND_RED | BACKGROUND_INTENSITY;    // 赤地に白
+    colors[level_enum::off] = 0;
+
+    hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
 }
 
-void _WriteDebugConsoleW(LPCWSTR string)
+void StandardOutputUnicodeSink::_sink_it(const spdlog::details::log_msg & msg)
 {
-    WriteConsoleW(hConsoleOutput, string, wcslen(string), &dwDummy, nullptr);
-}
-
-//AngelScript用
-void _WriteDebugConsoleU(const string& message)
-{
-    int len = MultiByteToWideChar(CP_UTF8, 0, message.c_str(), -1, nullptr, 0);
-    wchar_t *buffer = new wchar_t[len];
-    MultiByteToWideChar(CP_UTF8, 0, message.c_str(), -1, buffer, len);
-    WriteConsoleW(hConsoleOutput, buffer, wcslen(buffer), &dwDummy, nullptr);
-    delete[] buffer;
-}
-
-void Debug_ReleaseFunction(...)
-{
-    
+    const auto color = colors[msg.level];
+    auto u16Msg = ConvertUTF8ToUnicode(msg.formatted.str());
+    DWORD written;
+    SetConsoleTextAttribute(hStdout, color);
+    WriteConsoleW(hStdout, u16Msg.c_str(), u16Msg.length(), &written, nullptr);
+    SetConsoleTextAttribute(hStdout, 0);
 }

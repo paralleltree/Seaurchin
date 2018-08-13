@@ -2,6 +2,7 @@
 
 #include "Setting.h"
 #include "Config.h"
+#include "Font.h"
 #include "Misc.h"
 
 using namespace std;
@@ -15,58 +16,71 @@ static int CALLBACK FontEnumerationProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *
     return 0;
 }
 
-void YieldTime(double time)
+void YieldTime(const double time)
 {
     auto ctx = asGetActiveContext();
-    auto pcw = (CoroutineWait*)ctx->GetUserData(SU_UDTYPE_WAIT);
+    auto pcw = static_cast<CoroutineWait*>(ctx->GetUserData(SU_UDTYPE_WAIT));
     if (!pcw)
     {
         ScriptSceneWarnOutOf("Coroutine Function", ctx);
         return;
     }
-    pcw->type = WaitType::Time;
+    pcw->Type = WaitType::Time;
     pcw->time = time;
     ctx->Suspend();
 }
 
-void YieldFrames(int64_t frames)
+void YieldFrames(const int64_t frames)
 {
     auto ctx = asGetActiveContext();
-    auto pcw = (CoroutineWait*)ctx->GetUserData(SU_UDTYPE_WAIT);
+    auto pcw = static_cast<CoroutineWait*>(ctx->GetUserData(SU_UDTYPE_WAIT));
     if (!pcw)
     {
         ScriptSceneWarnOutOf("Coroutine Function", ctx);
         return;
     }
-    pcw->type = WaitType::Frame;
+    pcw->Type = WaitType::Frame;
     pcw->frames = frames;
     ctx->Suspend();
 }
 
-SImage* LoadSystemImage(const string & file)
+SImage* LoadSystemImage(const string &file)
 {
-    path p = Setting::GetRootDirectory() / SU_DATA_DIR / SU_IMAGE_DIR / ConvertUTF8ToShiftJis(file);
-    return SImage::CreateLoadedImageFromFile(p.string());
+    auto p = Setting::GetRootDirectory() / SU_DATA_DIR / SU_IMAGE_DIR / ConvertUTF8ToUnicode(file);
+    return SImage::CreateLoadedImageFromFile(ConvertUnicodeToUTF8(p.wstring()), false);
 }
 
-SFont* LoadSystemFont(const std::string & file)
+SFont* LoadSystemFont(const std::string &file)
 {
-    path p = Setting::GetRootDirectory() / SU_DATA_DIR / SU_FONT_DIR / (ConvertUTF8ToShiftJis(file) + ".sif");
-    return SFont::CreateLoadedFontFromFile(p.string());
+    auto p = Setting::GetRootDirectory() / SU_DATA_DIR / SU_FONT_DIR / (ConvertUTF8ToUnicode(file) + L".sif");
+    return SFont::CreateLoadedFontFromFile(ConvertUnicodeToUTF8(p.wstring()));
 }
 
-void CreateImageFont(const std::string & fileName, const std::string & saveName, int size)
+SSound *LoadSystemSound(SoundManager *smng, const std::string & file) {
+    auto p = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SOUND_DIR / ConvertUTF8ToUnicode(file);
+	return SSound::CreateSoundFromFile(smng, ConvertUnicodeToUTF8(p.wstring()), 4);
+}
+
+void CreateImageFont(const string &fileName, const string &saveName, const int size)
 {
-    Font::CreateAndSave(fileName, saveName, size, 1024, 1024);
+    Sif2CreatorOption option;
+    option.FontPath = fileName;
+    option.Size = size;
+    option.ImageSize = 1024;
+    option.TextSource = "";
+    const auto op = Setting::GetRootDirectory() / SU_DATA_DIR / SU_FONT_DIR / (ConvertUTF8ToUnicode(saveName) + L".sif");
+
+    Sif2Creator creator;
+    creator.CreateSif2(option, op);
 }
 
 void EnumerateInstalledFonts()
 {
-    //HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\Fonts
-    HDC hdc = GetDC(GetMainWindowHandle());
+    // HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\Fonts
+    const auto hdc = GetDC(GetMainWindowHandle());
     LOGFONT logfont;
     logfont.lfCharSet = DEFAULT_CHARSET;
     memcpy_s(logfont.lfFaceName, sizeof(logfont.lfFaceName), "", 1);
     logfont.lfPitchAndFamily = 0;
-    EnumFontFamiliesEx(hdc, &logfont, (FONTENUMPROC)FontEnumerationProc, (LPARAM)nullptr, 0);
+    EnumFontFamiliesEx(hdc, &logfont, FONTENUMPROC(FontEnumerationProc), LPARAM(0), 0);
 }

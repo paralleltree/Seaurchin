@@ -1,30 +1,32 @@
 #include "Interfaces.h"
 
-#include "Config.h"
-#include "Debug.h"
-#include "Sprite.h"
-#include "ScriptScene.h"
 #include "ExecutionManager.h"
 #include "ScriptFunction.h"
 
-void InterfacesRegisterSceneFunction(asIScriptEngine *engine)
+using namespace std;
+
+void InterfacesRegisterSceneFunction(ExecutionManager *exm)
 {
+	auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
+
     engine->RegisterGlobalFunction("void YieldTime(double)", asFUNCTION(YieldTime), asCALL_CDECL);
     engine->RegisterGlobalFunction("void YieldFrame(int64)", asFUNCTION(YieldFrames), asCALL_CDECL);
 }
 
-void InterfacesRegisterGlobalFunction(asIScriptEngine *engine)
+void InterfacesRegisterGlobalFunction(ExecutionManager *exm)
 {
-    engine->RegisterGlobalFunction("void WriteDebugConsole(const string &in)", asFUNCTION(WriteDebugConsoleU), asCALL_CDECL);
-    engine->RegisterGlobalFunction(SU_IF_FONT "@ LoadSystemFont(const string & in)", asFUNCTION(LoadSystemFont), asCALL_CDECL);
-    //engine->RegisterGlobalFunction(SU_IF_VFONT " CreateVirtualFont(const string & in, int)", asFUNCTION(CreateVirtualFont), asCALL_CDECL);
+	auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
+
+    engine->RegisterGlobalFunction("void WriteLog(Severity, const string &in)", asFUNCTION(InterfacesWriteLog), asCALL_CDECL);
+	engine->RegisterGlobalFunction(SU_IF_FONT "@ LoadSystemFont(const string & in)", asFUNCTION(LoadSystemFont), asCALL_CDECL);
     engine->RegisterGlobalFunction(SU_IF_IMAGE "@ LoadSystemImage(const string &in)", asFUNCTION(LoadSystemImage), asCALL_CDECL);
     engine->RegisterGlobalFunction("void CreateImageFont(const string &in, const string &in, int)", asFUNCTION(CreateImageFont), asCALL_CDECL);
-    //engine->RegisterGlobalFunction("void DrawRawString(" SU_IF_VFONT ", const string & in, double, double)", asFUNCTION(DrawRawString), asCALL_CDECL);
 }
 
-void InterfacesRegisterEnum(asIScriptEngine * engine)
+void InterfacesRegisterEnum(ExecutionManager *exm)
 {
+	auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
+
     engine->RegisterEnum(SU_IF_KEY);
     engine->RegisterEnumValue(SU_IF_KEY, "INPUT_BACK", KEY_INPUT_BACK);
     engine->RegisterEnumValue(SU_IF_KEY, "INPUT_TAB", KEY_INPUT_TAB);
@@ -136,10 +138,44 @@ void InterfacesRegisterEnum(asIScriptEngine * engine)
     engine->RegisterEnumValue(SU_IF_KEY, "INPUT_8", KEY_INPUT_8);
     engine->RegisterEnumValue(SU_IF_KEY, "INPUT_9", KEY_INPUT_9);
 
-    engine->RegisterEnum(SU_IF_SHAPETYPE);
-    engine->RegisterEnumValue(SU_IF_SHAPETYPE, "Pixel", SShapeType::Pixel);
-    engine->RegisterEnumValue(SU_IF_SHAPETYPE, "Box", SShapeType::Box);
-    engine->RegisterEnumValue(SU_IF_SHAPETYPE, "BoxFill", SShapeType::BoxFill);
-    engine->RegisterEnumValue(SU_IF_SHAPETYPE, "Oval", SShapeType::Oval);
-    engine->RegisterEnumValue(SU_IF_SHAPETYPE, "OvalFill", SShapeType::OvalFill);
+    engine->RegisterEnum(SU_IF_SEVERITY);
+    engine->RegisterEnumValue(SU_IF_SEVERITY, "Trace", int(ScriptLogSeverity::Trace));
+    engine->RegisterEnumValue(SU_IF_SEVERITY, "Debug", int(ScriptLogSeverity::Debug));
+    engine->RegisterEnumValue(SU_IF_SEVERITY, "Info", int(ScriptLogSeverity::Info));
+    engine->RegisterEnumValue(SU_IF_SEVERITY, "Warn", int(ScriptLogSeverity::Warning));
+    engine->RegisterEnumValue(SU_IF_SEVERITY, "Error", int(ScriptLogSeverity::Error));
+    engine->RegisterEnumValue(SU_IF_SEVERITY, "Critical", int(ScriptLogSeverity::Critical));
+}
+
+// ‚»‚Ì‘¼“K“–‚ÈŠÖ”
+
+void InterfacesExitApplication()
+{
+    const auto hwnd = GetMainWindowHandle();
+    PostMessage(hwnd, WM_CLOSE, 0, 0);
+}
+
+void InterfacesWriteLog(ScriptLogSeverity severity, const string & message)
+{
+    auto log = spdlog::get("main");
+    switch (severity) {
+        case ScriptLogSeverity::Trace:
+            log->trace(message);
+            break;
+        case ScriptLogSeverity::Debug:
+            log->debug(message);
+            break;
+        case ScriptLogSeverity::Info:
+            log->info(message);
+            break;
+        case ScriptLogSeverity::Warning:
+            log->warn(message);
+            break;
+        case ScriptLogSeverity::Error:
+            log->error(message);
+            break;
+        case ScriptLogSeverity::Critical:
+            log->critical(message);
+            break;
+    }
 }

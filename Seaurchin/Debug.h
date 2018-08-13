@@ -1,39 +1,33 @@
 #pragma once
 
+class Logger {
+private:
+    std::vector<spdlog::sink_ptr> sinks;
+    std::shared_ptr<spdlog::logger> loggerMain;
 
-#include "Config.h"
+public:
+    Logger();
 
-#ifdef _DEBUG
-#ifdef UNICODE
+    void Initialize();
+    void Terminate() const;
 
-#define WriteDebugConsole _WriteDebugConsoleW
+    void LogTrace(const std::string &message) const { loggerMain->trace(message); }
+    void LogDebug(const std::string &message) const { loggerMain->debug(message); }
+    void LogInfo(const std::string &message) const { loggerMain->info(message); }
+    void LogWarn(const std::string &message) const { loggerMain->warn(message); }
+    void LogError(const std::string &message) const { loggerMain->error(message); }
+    void LogCritical(const std::string &message) const { loggerMain->critical(message); }
+};
 
-#else // UNICODE、↓はマルチバイト時
+class StandardOutputUnicodeSink : public spdlog::sinks::base_sink<std::mutex> {
+private:
+    HANDLE hStdout;
+    std::map<spdlog::level::level_enum, WORD> colors;
 
-#define WriteDebugConsole _WriteDebugConsoleA
+protected:
+    void _sink_it(const spdlog::details::log_msg& msg) override;
+    virtual void _flush() override {}
 
-#endif // UNICODE
-
-#define InitializeDebugFeature _InitializeDebugFeature
-#define TerminateDebugFeature _TerminateDebugFeature
-#define WriteDebugConsoleU _WriteDebugConsoleU
-
-#define ASSERT_CALL WriteDebugConsole((string(__func__) + " Called!\n").c_str())
-
-#else // _DEBUG、↓はRelease時
-
-#define WriteDebugConsole Debug_ReleaseFunction
-#define InitializeDebugFeature Debug_ReleaseFunction
-#define TerminateDebugFeature Debug_ReleaseFunction
-#define WriteDebugConsoleU Debug_ReleaseFunction
-#define ASSERT_CALL
-
-#endif // _DEBUG
-
-void _InitializeDebugFeature();
-void _TerminateDebugFeature();
-
-void _WriteDebugConsoleA(LPCSTR string);
-void _WriteDebugConsoleW(LPCWSTR string);
-void _WriteDebugConsoleU(const std::string& message);
-void Debug_ReleaseFunction(...);
+public:
+    StandardOutputUnicodeSink();
+};
