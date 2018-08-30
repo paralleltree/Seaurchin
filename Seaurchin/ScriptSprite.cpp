@@ -848,6 +848,15 @@ void SContainer::AddChild(SSprite *child)
     children.emplace(child);
 }
 
+void SContainer::Dismiss()
+{
+    for(const auto &child : children)
+    {
+        child->Dismiss();
+    }
+    SSprite::Dismiss();
+}
+
 void SContainer::Tick(const double delta)
 {
     mover->Tick(delta);
