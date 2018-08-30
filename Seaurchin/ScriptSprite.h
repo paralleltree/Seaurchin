@@ -48,7 +48,7 @@ public:
     void AddRef();
     void Release();
 
-    void Dismiss() { IsDead = true; }
+    virtual void Dismiss() { IsDead = true; }
     void Revive() { IsDead = false; }
     virtual mover_function::Action GetCustomAction(const std::string &name);
     void AddMove(const std::string &move) const;
@@ -257,6 +257,7 @@ public:
     ~SContainer() override;
 
     void AddChild(SSprite *child);
+    void Dismiss() override;
     void Tick(double delta) override;
     void Draw() override;
     void Draw(const Transform2D &parent, const ColorTint &color) override;
