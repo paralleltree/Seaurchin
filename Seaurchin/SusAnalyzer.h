@@ -36,6 +36,7 @@ enum class SusNoteType : uint16_t {
     Invisible,      // 不可視
     MeasureLine,    // 小節線
     Grounded,       // Airの足が個別に描画される
+    StartPosition,  // レーン奥での開始位置(オンゲキ用)
 };
 
 struct SusRelativeNoteTime {
@@ -166,6 +167,7 @@ struct SusDrawableNoteData {
     std::shared_ptr<SusNoteExtraAttribute> ExtraAttribute;
     uint8_t StartLane = 0;
     uint8_t Length = 0;
+    float CenterAtZero = 0;
 
     //実描画位置
     double ModifiedPosition = 0;
