@@ -393,6 +393,8 @@ void ScenePlayer::DrawShortNotes(const shared_ptr<SusDrawableNoteData>& note) co
     const auto relpos = 1.0 - note->ModifiedPosition / seenDuration;
     const auto length = note->Length;
     const auto slane = note->StartLane;
+    const auto zlane = note->CenterAtZero - length / 2.0f;
+    const auto rlane = glm::mix(zlane, float(slane), relpos);
     SImage *handleToDraw = nullptr;
 
     if (note->Type.test(size_t(SusNoteType::Tap))) {
@@ -410,7 +412,8 @@ void ScenePlayer::DrawShortNotes(const shared_ptr<SusDrawableNoteData>& note) co
     }
 
     //64*3 x 64 ‚ð•`‰æ‚·‚é‚©‚ç1/2‚Å‚â‚é•K—v‚ª‚ ‚é
-    if (handleToDraw) DrawTap(slane, length, relpos, handleToDraw->GetHandle());
+
+    if (handleToDraw) DrawTap(rlane, length, relpos, handleToDraw->GetHandle());
 }
 
 void ScenePlayer::DrawAirNotes(const AirDrawQuery &query) const
@@ -833,7 +836,7 @@ void ScenePlayer::DrawAirActionCover(const AirDrawQuery &query)
     }
 }
 
-void ScenePlayer::DrawTap(const int lane, const int length, const double relpos, const int handle) const
+void ScenePlayer::DrawTap(const float lane, const int length, const double relpos, const int handle) const
 {
     for (auto i = 0; i < length * 2; i++) {
         const auto type = i ? (i == length * 2 - 1 ? 2 : 1) : 0;

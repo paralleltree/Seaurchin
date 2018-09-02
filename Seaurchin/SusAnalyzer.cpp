@@ -596,7 +596,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
         for (auto i = 0u; i < noteCount; i++) {
             auto note = pattern.substr(i * 2, 2);
             if (note[1] == '0') continue;
-            if (note[1] != '1') {
+            if (note[0] != '1') {
                 MakeMessage(line, u8"スタートレーンの指定が不正です。");
                 continue;
             }
@@ -869,6 +869,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                 if (!found) noteData->Type.set(size_t(SusNoteType::Grounded));
             }
             // 移動レーン処理
+            noteData->CenterAtZero = noteData->StartLane + noteData->Length / 2.0;
             if (SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::EnableMovingLane)]) {
                 for (const auto &startSource : notes) {
                     const auto mltime = get<0>(startSource);
@@ -878,8 +879,6 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                     if (!mlinfo.Type[size_t(SusNoteType::StartPosition)]) continue;
                     noteData->CenterAtZero = mlinfo.Extra + mlinfo.NotePosition.Length / 2.0;
                 }
-            } else {
-                noteData->CenterAtZero = noteData->StartLane + noteData->Length / 2.0;
             }
             data.push_back(noteData);
             SharedMetaData.ScoreDuration = max(SharedMetaData.ScoreDuration, noteData->StartTime);
@@ -891,7 +890,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
             noteData->Timeline = info.Timeline;
             noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
             data.push_back(noteData);
-        } else {
+        } else if (!info.Type[size_t(SusNoteType::StartPosition)]) {
             MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"致命的なノーツエラー(不正な内部表現です)。");
         }
     }
