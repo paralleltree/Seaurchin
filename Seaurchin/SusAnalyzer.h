@@ -105,6 +105,7 @@ public:
 enum class SusMetaDataFlags : uint16_t {
     DisableMetronome,
     EnableDrawPriority,
+    EnableMovingLane,
 };
 
 struct SusMetaData {
