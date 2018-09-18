@@ -96,7 +96,7 @@ void SusAnalyzer::Reset()
     SharedMetaData.Reset();
 
     bpmDefinitions[1] = 120.0;
-    beatsDefinitions[1] = 4.0;
+    beatsDefinitions[0] = 4.0;
 
     auto defhs = make_shared<SusHispeedTimeline>([&](const uint32_t m, const uint32_t t) { return GetAbsoluteTime(m, t); });
     defhs->AddKeysByString("0'0:1.0:v", timelineResolver);
@@ -606,7 +606,7 @@ void SusAnalyzer::MakeMessage(const uint32_t meas, const uint32_t tick, const ui
 float SusAnalyzer::GetBeatsAt(const uint32_t measure)
 {
     float result = defaultBeats;
-    uint32_t last = 0;
+    auto last = 0;
     for (auto &t : beatsDefinitions) {
         if (t.first >= last && t.first <= measure) {
             result = t.second;
