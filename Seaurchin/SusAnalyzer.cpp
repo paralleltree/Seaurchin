@@ -849,7 +849,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                 }
             }
             // Air接地処理
-            // オート接地条件: 下に別ノーツがあってそれがロング終点 or 下に別ノーツがない
+            // if ((下に別ノーツがある && それはロング終点) || 下に別ノーツがない)
             if (info.Type[size_t(SusNoteType::Air)] && !info.Type[size_t(SusNoteType::Grounded)]) {
                 auto found = false;
                 for (const auto &target : notes) {
@@ -860,10 +860,10 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                     if (info.NotePosition.StartLane != ginfo.NotePosition.StartLane
                         || info.NotePosition.Length != ginfo.NotePosition.Length)
                         continue;
-                    if (!(tbits & SU_NOTE_LONG_MASK)) continue;
-                    if (!ginfo.Type[size_t(SusNoteType::End)]) continue;
-                    noteData->Type.set(size_t(SusNoteType::Grounded));
                     found = true;
+                    if ((tbits & SU_NOTE_LONG_MASK) && ginfo.Type[size_t(SusNoteType::End)]) {
+                        noteData->Type.set(size_t(SusNoteType::Grounded));
+                    }
                     break;
                 }
                 if (!found) noteData->Type.set(size_t(SusNoteType::Grounded));
