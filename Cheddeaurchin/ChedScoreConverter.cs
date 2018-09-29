@@ -18,7 +18,7 @@ namespace Cheddeaurchin
             SusNoteType.Hold
             | SusNoteType.Slide
             | SusNoteType.AirAction;
-        public static readonly SusNoteType ShortNoteMask = 
+        public static readonly SusNoteType ShortNoteMask =
             SusNoteType.Tap
             | SusNoteType.ExTap
             | SusNoteType.Flick
@@ -227,7 +227,7 @@ namespace Cheddeaurchin
                     (ushort)note.EndNote.Width);
                 tail.Add(end);
 
-                
+
                 var head = SusAbsoluteNote.MakeLongNote(
                     SusNoteType.Hold | SusNoteType.Start,
                     GetAbsoluteTime(headTime.Measure, headTime.Tick),
@@ -251,27 +251,30 @@ namespace Cheddeaurchin
                     var tailTick = (uint)tn.Tick;
                     // 本当は最後のやつをEndにするべきだけど特に問題ないので全部Stepにする
                     var time = GetRelativeTimeFromTicks((uint)tn.Tick);
-                    var type = SusNoteType.Slide | SusNoteType.Step;
-                    type |= !tn.IsVisible ? SusNoteType.Invisible : 0;
+                    var type = SusNoteType.Slide;
+                    type |= tn.IsVisible ? SusNoteType.Step : SusNoteType.Invisible;
                     var telem = SusAbsoluteNote.MakeShortNote(
                         type,
                         GetAbsoluteTime(time.Measure, time.Tick),
                         (ushort)tn.LaneIndex,
                         (ushort)tn.WidthChange);
-                    var injections = (double)(tailTick - lastTailTick) / TicksPerBeat * InjectionsPerBeat;
-                    for (int i = 1; i < injections; ++i)
+                    if (tn.IsVisible)
                     {
-                        var insertAt = lastTailTime.Tick + (TicksPerBeat / InjectionsPerBeat * i);
-                        var injection = SusAbsoluteNote.MakeShortNote(
-                            SusNoteType.Slide | SusNoteType.Injection,
-                            GetAbsoluteTime(lastTailTime.Measure, (uint)insertAt),
-                            0,
-                            0);
-                        tail.Add(injection);
+                        var injections = (double)(tailTick - lastTailTick) / TicksPerBeat * InjectionsPerBeat;
+                        for (int i = 1; i < injections; ++i)
+                        {
+                            var insertAt = lastTailTime.Tick + (TicksPerBeat / InjectionsPerBeat * i);
+                            var injection = SusAbsoluteNote.MakeShortNote(
+                                SusNoteType.Slide | SusNoteType.Injection,
+                                GetAbsoluteTime(lastTailTime.Measure, (uint)insertAt),
+                                0,
+                                0);
+                            tail.Add(injection);
+                        }
+                        lastTailTick = tailTick;
+                        lastTailTime = time;
                     }
                     tail.Add(telem);
-                    lastTailTick = tailTick;
-                    lastTailTime = time;
                 }
 
                 var head = SusAbsoluteNote.MakeLongNote(
@@ -279,7 +282,7 @@ namespace Cheddeaurchin
                     GetAbsoluteTime(headTime.Measure, headTime.Tick),
                     (ushort)note.StartNote.LaneIndex,
                     (ushort)note.StartNote.Width,
-                    tail);
+                    tail.OrderBy(n => n.StartTime));
                 resultBuffer.Add(head);
             }
 
@@ -317,7 +320,7 @@ namespace Cheddeaurchin
                     lastTailTick = tailTick;
                     lastTailTime = time;
                 }
-                
+
                 var head = SusAbsoluteNote.MakeLongNote(
                         SusNoteType.AirAction | SusNoteType.Start,
                         GetAbsoluteTime(headTime.Measure, headTime.Tick),
