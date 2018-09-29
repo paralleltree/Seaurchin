@@ -51,8 +51,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ChedScoreConverter.cs" />
     <Compile Include="SeaurchinComboCounter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SusNote.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
