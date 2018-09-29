@@ -50,17 +50,17 @@ enum class JudgeSoundType {
 };
 
 enum class PlayingState {
-    ScoreNotLoaded,     // ‰½‚àn‚Ü‚Á‚Ä‚¢‚È‚¢
-    BgmNotLoaded,       // •ˆ–Ê‚¾‚¯“Ç‚İ‚ñ‚¾
-    ReadyToStart,       // “Ç‚İ‚İ‚ªI‚í‚Á‚½‚Ì‚Ån‚ß‚ç‚ê‚é
-    Paused,             // ƒ|[ƒY’†
-    ReadyCounting,      // BGM“Ç‚İI‚í‚Á‚Ä‘OƒJƒEƒ“ƒg‚µ‚Ä‚é
-    BgmPreceding,       // ‘OƒJƒEƒ“ƒg’†‚¾‚¯‚ÇBGMn‚Ü‚Á‚Ä‚é
-    OnlyScoreOngoing,   // •ˆ–Ên‚Ü‚Á‚½‚¯‚ÇBGM‚Ü‚¾
-    BothOngoing,        // —¼•ûÄ¶‚µ‚Ä‚é
-    ScoreLasting,       // •ˆ–Êc‚Á‚Ä‚é
-    BgmLasting,         // ‹Èc‚Á‚Ä‚é
-    Completed,          // ‘S•”I‚í‚Á‚½
+    ScoreNotLoaded,     // ï¿½ï¿½ï¿½ï¿½nï¿½Ü‚ï¿½ï¿½Ä‚ï¿½ï¿½È‚ï¿½
+    BgmNotLoaded,       // ï¿½ï¿½ï¿½Ê‚ï¿½ï¿½ï¿½ï¿½Ç‚İï¿½ï¿½ï¿½
+    ReadyToStart,       // ï¿½Ç‚İï¿½ï¿½İ‚ï¿½ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì‚Ånï¿½ß‚ï¿½ï¿½ï¿½
+    Paused,             // ï¿½|ï¿½[ï¿½Yï¿½ï¿½
+    ReadyCounting,      // BGMï¿½Ç‚İIï¿½ï¿½ï¿½ï¿½Ä‘Oï¿½Jï¿½Eï¿½ï¿½ï¿½gï¿½ï¿½ï¿½Ä‚ï¿½
+    BgmPreceding,       // ï¿½Oï¿½Jï¿½Eï¿½ï¿½ï¿½gï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½BGMï¿½nï¿½Ü‚ï¿½ï¿½Ä‚ï¿½
+    OnlyScoreOngoing,   // ï¿½ï¿½ï¿½Ênï¿½Ü‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½BGMï¿½Ü‚ï¿½
+    BothOngoing,        // ï¿½ï¿½ï¿½ï¿½ï¿½Äï¿½ï¿½ï¿½ï¿½Ä‚ï¿½
+    ScoreLasting,       // ï¿½ï¿½ï¿½Êcï¿½ï¿½ï¿½Ä‚ï¿½
+    BgmLasting,         // ï¿½Ècï¿½ï¿½ï¿½Ä‚ï¿½
+    Completed,          // ï¿½Sï¿½ï¿½ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½
 };
 
 enum class AirDrawType {
@@ -104,7 +104,7 @@ protected:
     bool usePrioritySort = false;
     bool hasEnded = false;
 
-    double cameraZ = -340, cameraY = 620, cameraTargetZ = 580; // ƒXƒNƒVƒ‡‚©‚çŒv‘ª
+    double cameraZ = -340, cameraY = 620, cameraTargetZ = 580; // ï¿½Xï¿½Nï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½vï¿½ï¿½
     double laneBufferX = 1024;
     double laneBufferY = laneBufferX * SU_LANE_ASPECT;
     double laneBackgroundRoll = 0, laneBackgroundSpeed = 0;
@@ -140,17 +140,17 @@ protected:
     std::vector<VERTEX2D> slideVertices;
     std::vector<uint16_t> slideIndices;
 
-    //Slide‚Ìd‚İ‚ªáŠ±ˆá‚¤‚ç‚µ‚¢‚¯‚Ç‚»‚Ì‚Ö‚ñ‹–‚µ‚Ä‚Ë
+    //Slideï¿½Ìdï¿½İ‚ï¿½ï¿½áŠ±ï¿½á‚¤ï¿½ç‚µï¿½ï¿½ï¿½ï¿½ï¿½Ç‚ï¿½ï¿½Ì‚Ö‚ñ‹–‚ï¿½ï¿½Ä‚ï¿½
     std::shared_ptr<Result> currentResult;
     DrawableResult previousStatus, status;
 
     std::shared_ptr<CharacterInstance> currentCharacterInstance;
 
-    // ‹È‚Ì“r’†‚Å•Ï‰»‚·‚é‚â‚Â‚ç
+    // ï¿½È‚Ì“rï¿½ï¿½ï¿½Å•Ï‰ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â‚ï¿½
     DrawableNotesList data;
     DrawableNotesList seenData, judgeData;
     std::unordered_map<std::shared_ptr<SusDrawableNoteData>, SSprite*> slideEffects;
-    // ŠÔ ‰¡ˆÊ’u ExŠÔ
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê’u Exï¿½ï¿½ï¿½ï¿½
     NoteCurvesList curveData;
     double currentTime = 0;
     double currentSoundTime = 0;
@@ -183,7 +183,7 @@ protected:
     void DrawAirActionStep(const AirDrawQuery &query) const;
     void DrawAirActionStepBox(const AirDrawQuery &query) const;
     void DrawAirActionCover(const AirDrawQuery &query);
-    void DrawTap(int lane, int length, double relpos, int handle) const;
+    void DrawTap(const float lane, int length, double relpos, int handle) const;
     void DrawMeasureLine(const std::shared_ptr<SusDrawableNoteData>& note) const;
     void DrawLaneDivisionLines() const;
     void DrawLaneBackground() const;
