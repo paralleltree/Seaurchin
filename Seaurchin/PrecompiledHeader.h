@@ -97,6 +97,8 @@
 #include <spdlog/sinks/sink.h>
 
 #include <toml/toml.h>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
+#include <glm/ext.hpp>
 
 #include "Crc32.h"
