@@ -218,34 +218,35 @@ void SSprite::RegisterType(asIScriptEngine * engine)
 
 void SShape::DrawBy(const Transform2D & tf, const ColorTint & ct)
 {
+    SetDrawBright(ct.R, ct.G, ct.B);
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, ct.A);
     switch (Type) {
         case SShapeType::Pixel:
-            DrawPixel(tf.X, tf.Y, GetColor(ct.R, ct.G, ct.B));
+            DrawPixel(tf.X, tf.Y, GetColor(255,255,255));
             break;
         case SShapeType::Box:
             DrawBoxAA(
                 tf.X - Width / 2, tf.Y - Height / 2,
                 tf.X + Width / 2, tf.Y + Height / 2,
-                GetColor(ct.R, ct.G, ct.B), FALSE);
+                GetColor(255, 255, 255), FALSE);
             break;
         case SShapeType::BoxFill:
             DrawBoxAA(
                 tf.X - Width / 2, tf.Y - Height / 2,
                 tf.X + Width / 2, tf.Y + Height / 2,
-                GetColor(ct.R, ct.G, ct.B), TRUE);
+                GetColor(255, 255, 255), TRUE);
             break;
         case SShapeType::Oval:
             DrawOvalAA(
                 tf.X, tf.Y,
                 Width / 2, Height / 2,
-                256, GetColor(ct.R, ct.G, ct.B), FALSE);
+                256, GetColor(255, 255, 255), FALSE);
             break;
         case SShapeType::OvalFill:
             DrawOvalAA(
                 tf.X, tf.Y,
                 Width / 2, Height / 2,
-                256, GetColor(ct.R, ct.G, ct.B), TRUE);
+                256, GetColor(255, 255, 255), TRUE);
             break;
     }
 }
