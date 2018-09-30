@@ -81,7 +81,7 @@ namespace Cheddeaurchin
             var rest = tick;
             var measure = 0u;
             var ticksPerMeasure = 0u;
-            while (rest > (ticksPerMeasure = (uint)GetBeatsAt(measure) * TicksPerBeat))
+            while (rest > (ticksPerMeasure = (uint)(GetBeatsAt(measure) * TicksPerBeat)))
             {
                 rest -= ticksPerMeasure;
                 ++measure;
