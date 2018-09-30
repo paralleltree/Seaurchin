@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // アセンブリに関連付けられている情報を変更するには、
 // これらの属性値を変更してください。
 [assembly: AssemblyTitle("MakeSif2")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Sif2 generator for Seaurchin")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("kb10uy.org")]
 [assembly: AssemblyProduct("MakeSif2")]
-[assembly: AssemblyCopyright("Copyright ©  2017")]
+[assembly: AssemblyCopyright("(C) 2018 kb10uy")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
