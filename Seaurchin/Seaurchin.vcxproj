@@ -61,12 +61,12 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_SILENCE_FPOS_SEEKPOS_DEPRECATION_WARNING;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Programming\DXLib\include;C:\Programming\AngelScript\angelscript\include;C:\Programming\AngelScript\add_on;C:\Programming\Boost\;C:\Programming\FreeType\include;C:\Programming\libpng;C:\Programming\BASS\c;C:\Programming\Wacom_Feel_SDK\inc;C:\Programming\zlib;C:\Programming\spdlog\include;C:\Programming\tinytoml\include;C:\Programming\GLM;C:\Programming\fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Programming\DXLib\include;C:\Programming\AngelScript\angelscript\include;C:\Programming\AngelScript\add_on;C:\Programming\Boost\;C:\Programming\FreeType\include;C:\Programming\libpng\libpng-1.6.35;C:\Programming\BASS\c;C:\Programming\Wacom_Feel_SDK\inc;C:\Programming\libpng\zlib-1.2.8;C:\Programming\spdlog\include;C:\Programming\tinytoml\include;C:\Programming\GLM;C:\Programming\fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>PrecompiledHeader.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>PrecompiledHeader.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <AdditionalOptions>-Zm640 %(AdditionalOptions)</AdditionalOptions>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <DisableSpecificWarnings>;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4464;5045;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -89,12 +89,12 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_SILENCE_FPOS_SEEKPOS_DEPRECATION_WARNING;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Programming\DXLib\include;C:\Programming\AngelScript\angelscript\include;C:\Programming\AngelScript\add_on;C:\Programming\Boost\;C:\Programming\FreeType\include;C:\Programming\libpng;C:\Programming\BASS\c;C:\Programming\Wacom_Feel_SDK\inc;C:\Programming\zlib;C:\Programming\spdlog\include;C:\Programming\tinytoml\include;C:\Programming\GLM;C:\Programming\fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Programming\DXLib\include;C:\Programming\AngelScript\angelscript\include;C:\Programming\AngelScript\add_on;C:\Programming\Boost\;C:\Programming\FreeType\include;C:\Programming\libpng\libpng-1.6.35;C:\Programming\BASS\c;C:\Programming\Wacom_Feel_SDK\inc;C:\Programming\libpng\zlib-1.2.8;C:\Programming\spdlog\include;C:\Programming\tinytoml\include;C:\Programming\GLM;C:\Programming\fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>PrecompiledHeader.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>PrecompiledHeader.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <AdditionalOptions>-Zm640 %(AdditionalOptions)</AdditionalOptions>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
-      <DisableSpecificWarnings>;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4464;5045;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <WarningVersion>
       </WarningVersion>
       <WholeProgramOptimization>false</WholeProgramOptimization>
