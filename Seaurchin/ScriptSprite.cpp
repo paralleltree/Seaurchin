@@ -257,26 +257,38 @@ void SShape::DrawBy(const Transform2D & tf, const ColorTint & ct)
             break;
         }
         case SShapeType::Oval: {
-            glm::vec2 prev(Width * tf.ScaleX / 2.0 * glm::cos(0), (Width * tf.ScaleX / 2.0) * glm::sin(0));
+            auto prev = glm::rotate(
+                glm::vec2(Width * tf.ScaleX / 2.0 * glm::cos(0), Height * tf.ScaleY / 2.0 * glm::sin(0)),
+                float(tf.Angle)
+            );
             for (auto i = 1; i <= 256; ++i) {
                 const auto angle = 2.0 * glm::pi<double>() / 256.0 * i;
-                const glm::vec2 next(Width * tf.ScaleX / 2.0 * glm::cos(angle), (Width * tf.ScaleX / 2.0) * glm::sin(angle));
+                const auto next = glm::rotate(
+                    glm::vec2(Width * tf.ScaleX / 2.0 * glm::cos(angle), Height * tf.ScaleY / 2.0 * glm::sin(angle)),
+                    float(tf.Angle)
+                );
                 DrawLineAA(
                     float(tf.X + prev.x),
                     float(tf.Y - prev.y),
                     float(tf.X + next.x),
                     float(tf.Y - next.y),
-                    GetColor(255,255,255)
+                    GetColor(255, 255, 255)
                 );
                 prev = next;
             }
             break;
         }
         case SShapeType::OvalFill: {
-            glm::vec2 prev(Width * tf.ScaleX / 2.0 * glm::cos(0), (Width * tf.ScaleX / 2.0) * glm::sin(0));
+            auto prev = glm::rotate(
+                glm::vec2(Width * tf.ScaleX / 2.0 * glm::cos(0), Height * tf.ScaleY / 2.0 * glm::sin(0)),
+                float(tf.Angle)
+            );
             for (auto i = 1; i <= 256; ++i) {
                 const auto angle = 2.0 * glm::pi<double>() / 256.0 * i;
-                const glm::vec2 next(Width * tf.ScaleX / 2.0 * glm::cos(angle), (Width * tf.ScaleX / 2.0) * glm::sin(angle));
+                const auto next = glm::rotate(
+                    glm::vec2(Width * tf.ScaleX / 2.0 * glm::cos(angle), Height * tf.ScaleY / 2.0 * glm::sin(angle)),
+                    float(tf.Angle)
+                );
                 DrawTriangleAA(
                     float(tf.X),
                     float(tf.Y),
