@@ -44,7 +44,7 @@ void CharacterInstance::LoadAbilities()
 
     for (const auto &def : skillSource->Abilities) {
         vector<string> params;
-        auto scrpath = abroot / (def.Name + ".as");
+        auto scrpath = abroot / ConvertUTF8ToUnicode(def.Name + ".as");
 
         auto abo = LoadAbilityObject(scrpath);
         if (!abo) continue;
