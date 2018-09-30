@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // アセンブリに関する一般情報は以下の属性セットをとおして制御されます。
 // アセンブリに関連付けられている情報を変更するには、
 // これらの属性値を変更してください。
-[assembly: AssemblyTitle("MakeSif2")]
-[assembly: AssemblyDescription("Sif2 generator for Seaurchin")]
+[assembly: AssemblyTitle("Cheddeaurchin")]
+[assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("kb10uy.org")]
-[assembly: AssemblyProduct("MakeSif2")]
-[assembly: AssemblyCopyright("(C) 2018 kb10uy")]
+[assembly: AssemblyCompany("")]
+[assembly: AssemblyProduct("Cheddeaurchin")]
+[assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // このプロジェクトが COM に公開される場合、次の GUID が typelib の ID になります
-[assembly: Guid("4c1cc601-cb08-4c9e-b991-c6b2aadf3718")]
+[assembly: Guid("601389a2-abf1-4f60-9465-1eb7aba93f87")]
 
 // アセンブリのバージョン情報は次の 4 つの値で構成されています:
 //
@@ -30,7 +30,7 @@ using System.Runtime.InteropServices;
 //      Revision
 //
 // すべての値を指定するか、次を使用してビルド番号とリビジョン番号を既定に設定できます
-// 既定値にすることができます:
+// 以下のように '*' を使用します:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]

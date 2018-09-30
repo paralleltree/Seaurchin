@@ -17,6 +17,12 @@ auto toUpper = [](const char c) {
     return (c >= 'a' && c <= 'z') ? char(c - 0x20) : c;
 };
 
+static auto isUpperHexadecimalChar = [](const char c) {
+    if (c >= '8' && c <= '9') return true;
+    if (c >= 'A' && c <= 'F') return true;
+    return false;
+};
+
 static auto convertRawString = [](const string &input) -> string {
     // TIL: ASCII文字範囲ではUTF-8と本来のASCIIを間違うことはない
     if (ba::starts_with(input, "\"")) {
@@ -312,8 +318,7 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
         case "MEASUREBS"_crc32: {
             if (onlyMeta) break;
             const auto bsc = ConvertInteger(result[2]);
-            if (bsc < 0)
-            {
+            if (bsc < 0) {
                 MakeMessage(line, u8"小節オフセットの値が不正です");
                 break;
             }
@@ -338,18 +343,18 @@ void SusAnalyzer::ProcessRequest(const string &cmd, const uint32_t line)
     if (params.empty()) return;
     switch (Crc32Rec(0xffffffff, params[0].c_str())) {
         case "mertonome"_crc32:
-            if (!ConvertBoolean(params[1])) {
-                SharedMetaData.ExtraFlags.set(size_t(SusMetaDataFlags::DisableMetronome));
-            }
+            SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::DisableMetronome)] = !ConvertBoolean(params[1]);
             break;
         case "ticks_per_beat"_crc32:
             ticksPerBeat = ConvertInteger(params[1]);
             break;
         case "enable_priority"_crc32:
             MakeMessage(line, u8"優先度つきノーツ描画が設定されます");
-            if (ConvertBoolean(params[1])) {
-                SharedMetaData.ExtraFlags.set(size_t(SusMetaDataFlags::EnableDrawPriority));
-            }
+            SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::EnableDrawPriority)] = ConvertBoolean(params[1]);
+            break;
+        case "enable_moving_lane"_crc32:
+            MakeMessage(line, u8"移動レーンサポートが設定されます");
+            SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::EnableMovingLane)] = ConvertBoolean(params[1]);
             break;
         case "segments_per_second"_crc32:
             SharedMetaData.SegmentsPerSecond = ConvertInteger(params[1]);
@@ -534,7 +539,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
             }
             notes.emplace_back(time, noteData);
         }
-    } else if (lane.length() == 3) {
+    } else if (lane.length() == 3 && lane[0] >= '2' && lane[0] <= '4') {
         // ロングタイプ
         for (auto i = 0u; i < noteCount; i++) {
             auto note = pattern.substr(i * 2, 2);
@@ -581,6 +586,28 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
                     MakeMessage(line, u8"ノーツ種類の指定が不正です。");
                     continue;
             }
+            notes.emplace_back(time, noteData);
+        }
+    } else if (lane.length() == 3 && lane[0] == '9') {
+        // z = 0のレーン指定(Tap) #mmm800~#mmm80f~#mmm8ff
+        const auto endlane = lane.substr(1, 1);
+        const auto startlane = lane.substr(2, 1);
+
+        for (auto i = 0u; i < noteCount; i++) {
+            auto note = pattern.substr(i * 2, 2);
+            if (note[1] == '0') continue;
+            if (note[0] != '1') {
+                MakeMessage(line, u8"スタートレーンの指定が不正です。");
+                continue;
+            }
+            SusRawNoteData noteData;
+            SusRelativeNoteTime time = { measureCountOffset + ConvertInteger(meas), step * i };
+            noteData.NotePosition.StartLane = ConvertHexatridecimal(endlane);
+            noteData.Extra = ConvertHexatridecimal(startlane);
+            noteData.NotePosition.Length = ConvertHexatridecimal(note.substr(1, 1));
+            noteData.Type.set(size_t(SusNoteType::StartPosition));
+            // noteData.Timeline = hispeedToApply;
+            // noteData.ExtraAttribute = extraAttributeToApply;
             notes.emplace_back(time, noteData);
         }
     } else {
@@ -714,6 +741,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
             noteData->StartTime = GetAbsoluteTime(time.Measure, time.Tick);
             noteData->StartLane = info.NotePosition.StartLane;
             noteData->Length = info.NotePosition.Length;
+            noteData->CenterAtZero = noteData->StartLane + noteData->Length / 2.0;
             noteData->Timeline = info.Timeline;
             noteData->ExtraAttribute = info.ExtraAttribute;
             noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
@@ -757,6 +785,8 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                         nextNote->StartTime = GetAbsoluteTime(curPos.Measure, curPos.Tick);
                         nextNote->StartLane = curNo.NotePosition.StartLane;
                         nextNote->Length = curNo.NotePosition.Length;
+                        // 暫定
+                        nextNote->CenterAtZero = nextNote->StartLane + nextNote->Length / 2.0;
                         nextNote->Type = curNo.Type;
                         nextNote->Timeline = curNo.Timeline;
                         nextNote->ExtraAttribute = curNo.ExtraAttribute;
@@ -819,7 +849,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                 }
             }
             // Air接地処理
-            // オート接地条件: 下に別ノーツがあってそれがロング終点 or 下に別ノーツがない
+            // if ((下に別ノーツがある && それはロング終点) || 下に別ノーツがない)
             if (info.Type[size_t(SusNoteType::Air)] && !info.Type[size_t(SusNoteType::Grounded)]) {
                 auto found = false;
                 for (const auto &target : notes) {
@@ -830,13 +860,25 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                     if (info.NotePosition.StartLane != ginfo.NotePosition.StartLane
                         || info.NotePosition.Length != ginfo.NotePosition.Length)
                         continue;
-                    if (!(tbits & SU_NOTE_LONG_MASK)) continue;
-                    if (!ginfo.Type[size_t(SusNoteType::End)]) continue;
-                    noteData->Type.set(size_t(SusNoteType::Grounded));
                     found = true;
+                    if ((tbits & SU_NOTE_LONG_MASK) && ginfo.Type[size_t(SusNoteType::End)]) {
+                        noteData->Type.set(size_t(SusNoteType::Grounded));
+                    }
                     break;
                 }
                 if (!found) noteData->Type.set(size_t(SusNoteType::Grounded));
+            }
+            // 移動レーン処理
+            noteData->CenterAtZero = noteData->StartLane + noteData->Length / 2.0;
+            if (SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::EnableMovingLane)]) {
+                for (const auto &startSource : notes) {
+                    const auto mltime = get<0>(startSource);
+                    const auto &mlinfo = get<1>(startSource);
+                    if (mltime != time) continue;
+                    if (mlinfo.NotePosition.StartLane != info.NotePosition.StartLane) continue;
+                    if (!mlinfo.Type[size_t(SusNoteType::StartPosition)]) continue;
+                    noteData->CenterAtZero = mlinfo.Extra + mlinfo.NotePosition.Length / 2.0;
+                }
             }
             data.push_back(noteData);
             SharedMetaData.ScoreDuration = max(SharedMetaData.ScoreDuration, noteData->StartTime);
@@ -848,7 +890,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
             noteData->Timeline = info.Timeline;
             noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
             data.push_back(noteData);
-        } else {
+        } else if (!info.Type[size_t(SusNoteType::StartPosition)]) {
             MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"致命的なノーツエラー(不正な内部表現です)。");
         }
     }

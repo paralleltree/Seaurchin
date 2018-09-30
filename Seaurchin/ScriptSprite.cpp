@@ -218,35 +218,91 @@ void SSprite::RegisterType(asIScriptEngine * engine)
 
 void SShape::DrawBy(const Transform2D & tf, const ColorTint & ct)
 {
+    SetDrawBright(ct.R, ct.G, ct.B);
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, ct.A);
     switch (Type) {
         case SShapeType::Pixel:
-            DrawPixel(tf.X, tf.Y, GetColor(ct.R, ct.G, ct.B));
+            DrawPixel(tf.X, tf.Y, GetColor(255, 255, 255));
             break;
-        case SShapeType::Box:
-            DrawBoxAA(
-                tf.X - Width / 2, tf.Y - Height / 2,
-                tf.X + Width / 2, tf.Y + Height / 2,
-                GetColor(ct.R, ct.G, ct.B), FALSE);
+        case SShapeType::Box: {
+            const glm::vec2 points[] = {
+                glm::rotate(glm::vec2(+Width * tf.ScaleX / 2.0, +Height * tf.ScaleY / 2.0), float(tf.Angle)),
+                glm::rotate(glm::vec2(-Width * tf.ScaleX / 2.0, +Height * tf.ScaleY / 2.0), float(tf.Angle)),
+                glm::rotate(glm::vec2(-Width * tf.ScaleX / 2.0, -Height * tf.ScaleY / 2.0), float(tf.Angle)),
+                glm::rotate(glm::vec2(+Width * tf.ScaleX / 2.0, -Height * tf.ScaleY / 2.0), float(tf.Angle))
+            };
+            DrawQuadrangleAA(
+                tf.X + points[0].x, tf.Y - points[0].y,
+                tf.X + points[1].x, tf.Y - points[1].y,
+                tf.X + points[2].x, tf.Y - points[2].y,
+                tf.X + points[3].x, tf.Y - points[3].y,
+                GetColor(255, 255, 255), FALSE
+            );
             break;
-        case SShapeType::BoxFill:
-            DrawBoxAA(
-                tf.X - Width / 2, tf.Y - Height / 2,
-                tf.X + Width / 2, tf.Y + Height / 2,
-                GetColor(ct.R, ct.G, ct.B), TRUE);
+        }
+        case SShapeType::BoxFill: {
+            const glm::vec2 points[] = {
+                glm::rotate(glm::vec2(+Width * tf.ScaleX / 2.0, +Height * tf.ScaleY / 2.0), float(tf.Angle)),
+                glm::rotate(glm::vec2(-Width * tf.ScaleX / 2.0, +Height * tf.ScaleY / 2.0), float(tf.Angle)),
+                glm::rotate(glm::vec2(-Width * tf.ScaleX / 2.0, -Height * tf.ScaleY / 2.0), float(tf.Angle)),
+                glm::rotate(glm::vec2(+Width * tf.ScaleX / 2.0, -Height * tf.ScaleY / 2.0), float(tf.Angle))
+            };
+            DrawQuadrangleAA(
+                tf.X + points[0].x, tf.Y - points[0].y,
+                tf.X + points[1].x, tf.Y - points[1].y,
+                tf.X + points[2].x, tf.Y - points[2].y,
+                tf.X + points[3].x, tf.Y - points[3].y,
+                GetColor(255, 255, 255), TRUE
+            );
             break;
-        case SShapeType::Oval:
-            DrawOvalAA(
-                tf.X, tf.Y,
-                Width / 2, Height / 2,
-                256, GetColor(ct.R, ct.G, ct.B), FALSE);
+        }
+        case SShapeType::Oval: {
+            auto prev = glm::rotate(
+                glm::vec2(Width * tf.ScaleX / 2.0 * glm::cos(0), Height * tf.ScaleY / 2.0 * glm::sin(0)),
+                float(tf.Angle)
+            );
+            for (auto i = 1; i <= 256; ++i) {
+                const auto angle = 2.0 * glm::pi<double>() / 256.0 * i;
+                const auto next = glm::rotate(
+                    glm::vec2(Width * tf.ScaleX / 2.0 * glm::cos(angle), Height * tf.ScaleY / 2.0 * glm::sin(angle)),
+                    float(tf.Angle)
+                );
+                DrawLineAA(
+                    float(tf.X + prev.x),
+                    float(tf.Y - prev.y),
+                    float(tf.X + next.x),
+                    float(tf.Y - next.y),
+                    GetColor(255, 255, 255)
+                );
+                prev = next;
+            }
             break;
-        case SShapeType::OvalFill:
-            DrawOvalAA(
-                tf.X, tf.Y,
-                Width / 2, Height / 2,
-                256, GetColor(ct.R, ct.G, ct.B), TRUE);
+        }
+        case SShapeType::OvalFill: {
+            auto prev = glm::rotate(
+                glm::vec2(Width * tf.ScaleX / 2.0 * glm::cos(0), Height * tf.ScaleY / 2.0 * glm::sin(0)),
+                float(tf.Angle)
+            );
+            for (auto i = 1; i <= 256; ++i) {
+                const auto angle = 2.0 * glm::pi<double>() / 256.0 * i;
+                const auto next = glm::rotate(
+                    glm::vec2(Width * tf.ScaleX / 2.0 * glm::cos(angle), Height * tf.ScaleY / 2.0 * glm::sin(angle)),
+                    float(tf.Angle)
+                );
+                DrawTriangleAA(
+                    float(tf.X),
+                    float(tf.Y),
+                    float(tf.X + prev.x),
+                    float(tf.Y - prev.y),
+                    float(tf.X + next.x),
+                    float(tf.Y - next.y),
+                    GetColor(255, 255, 255),
+                    TRUE
+                );
+                prev = next;
+            }
             break;
+        }
     }
 }
 
@@ -354,7 +410,7 @@ void STextSprite::DrawScroll(const Transform2D &tf, const ColorTint &ct)
     }
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, ct.A);
     SetDrawMode(DX_DRAWMODE_ANISOTROPIC);
-    const double tox = scrollWidth / 2 * int(horizontalAlignment);
+    const auto tox = scrollWidth / 2 * int(horizontalAlignment);
     const auto toy = get<1>(size) / 2 * int(verticalAlignment);
     DrawRotaGraph3F(
         tf.X, tf.Y,
@@ -687,8 +743,7 @@ bool SClippingSprite::ActionMoveRangeTo(SSprite *thisObj, SpriteMoverArgument &a
 }
 
 SClippingSprite::SClippingSprite(const int w, const int h) : SSynthSprite(w, h), u1(0), v1(0), u2(1), v2(0)
-{
-}
+{}
 
 mover_function::Action SClippingSprite::GetCustomAction(const string & name)
 {
@@ -850,8 +905,7 @@ void SContainer::AddChild(SSprite *child)
 
 void SContainer::Dismiss()
 {
-    for(const auto &child : children)
-    {
+    for (const auto &child : children) {
         child->Dismiss();
     }
     SSprite::Dismiss();

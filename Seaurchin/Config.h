@@ -4,7 +4,7 @@
 
 
 #define SU_APP_NAME "Seaurchin"
-#define SU_APP_VERSION "0.43.3"
+#define SU_APP_VERSION "0.43.4"
 
 #define SU_SETTING_FILE L"config.toml"
 #define SU_CACHE_MUSIC_FILE L"musics.mp"
