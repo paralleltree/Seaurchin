@@ -81,7 +81,7 @@ void ScenePlayer::LoadResources()
     slideLineColor = GetColor(scv[0].as<int>(), scv[1].as<int>(), scv[2].as<int>());
     airActionJudgeColor = GetColor(aajcv[0].as<int>(), aajcv[1].as<int>(), aajcv[2].as<int>());
 
-    // 2^x����������̂ł����Ōv�Z
+    // 2^x制限があるのでここで計算
     const int exty = laneBufferX * SU_LANE_ASPECT_EXT;
     auto bufferY = 2.0;
     while (exty > bufferY) bufferY *= 2;
@@ -92,7 +92,7 @@ void ScenePlayer::LoadResources()
     BEGIN_DRAW_TRANSACTION(hBlank);
     DrawBox(0, 0, 128, 128, GetColor(255, 255, 255), TRUE);
     FINISH_DRAW_TRANSACTION;
-    // �X���C�h��3D�֐��`���64x192����64x256�ɂ��Ȃ��Ƃ����Ȃ���
+    // スライドの3D関数描画で64x192から64x256にしないといけないね
     if (imageSlideStrut) {
         imageExtendedSlideStrut = MakeScreen(64, 256, TRUE);
         BEGIN_DRAW_TRANSACTION(imageExtendedSlideStrut);
@@ -132,7 +132,7 @@ void ScenePlayer::Draw()
     if (movieBackground) DrawExtendGraph(0, 0, SU_RES_WIDTH, SU_RES_HEIGHT, movieBackground, FALSE);
 
     BEGIN_DRAW_TRANSACTION(hGroundBuffer);
-    // �w�i��
+    // 背景部
     DrawLaneBackground();
     DrawLaneDivisionLines();
     for (auto& note : seenData) {
@@ -140,14 +140,14 @@ void ScenePlayer::Draw()
         if (type[size_t(SusNoteType::MeasureLine)]) DrawMeasureLine(note);
     }
 
-    // �����̃����O�m�[�c��
+    // 下側のロングノーツ類
     for (auto& note : seenData) {
         auto &type = note->Type;
         if (type[size_t(SusNoteType::Hold)]) DrawHoldNotes(note);
         if (type[size_t(SusNoteType::Slide)]) DrawSlideNotes(note);
     }
 
-    // �㑤�̃V���[�g�m�[�c��
+    // 上側のショートノーツ類
     for (auto& note : seenData) {
         auto &type = note->Type;
         if (type[size_t(SusNoteType::Tap)]) DrawShortNotes(note);
@@ -163,7 +163,7 @@ void ScenePlayer::Draw()
     DrawPolygonIndexed3D(groundVertices, 4, rectVertexIndices, 2, hGroundBuffer, TRUE);
     for (auto& i : sprites) i->Draw();
 
-    //3D�n�m�[�c
+    //3D系ノーツ
     Prepare3DDrawCall();
     DrawAerialNotes(seenData);
 
@@ -261,7 +261,7 @@ void ScenePlayer::RefreshComboText() const
     textCombo->AddMove(app.str());
 }
 
-// position �� 0 ~ 16
+// position は 0 ~ 16
 void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target, const JudgeType type)
 {
     Prepare3DDrawCall();
@@ -411,7 +411,7 @@ void ScenePlayer::DrawShortNotes(const shared_ptr<SusDrawableNoteData>& note) co
         handleToDraw = imageAir;
     }
 
-    //64*3 x 64 ��`�悷�邩��1/2�ł��K�v������
+    //64*3 x 64 を描画するから1/2でやる必要がある
 
     if (handleToDraw) DrawTap(rlane, length, relpos, handleToDraw->GetHandle());
 }
@@ -479,8 +479,8 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
     const auto endpoint = note->ExtraData.back();
     const auto relpos = 1.0 - note->ModifiedPosition / seenDuration;
     const auto reltailpos = 1.0 - endpoint->ModifiedPosition / seenDuration;
-    // ���g������ɕ`��
-    // 1��ʕ���8�������炢�ł悳����
+    // 中身だけ先に描画
+    // 1画面分で8分割ぐらいでよさそう
     const int segments = fabs(relpos - reltailpos) * 8 + 1;
     SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
     for (auto i = 0; i < segments; i++) {
@@ -510,14 +510,75 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
 void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 {
     auto lastStep = note;
-    const auto strutBottom = 1.0;
+	double offsetTimeInBlock = 0.0; /* そのslideElementの、不可視中継点のつながり等を考慮した時の先頭位置、的な */
+	const auto strutBottom = 1.0;
     slideVertices.clear();
     slideIndices.clear();
 
-    // �x��
+	/* 基本方針 */
+	/* 従来 : [始点,中継点,不可視中継点]から次の[中継点,不可視中継点,終点]にかけて(u,v)の計算を行っている */
+	/* 改良 : [始点,中継点]から次の[中継点,終点]にかけて、”不可視中継点を超えて”(u,v)の計算を行う */
+	/*        分割点(?)の配置はすでに正しく計算されているので手を加えない */
+	/*        従来の(u,v)計算を行っていた領域で、 0 <= v <= 1 であったところを a <= v <= b に変更し */
+	/*        不可視中継点をまたいだ領域全体の時間からa,bを適当に定める */
+
+	/* 重要 */
+	/* すべての変数、演算の意味を理解したわけではないので、変拍子、ハイスピ設定等で死ぬ可能性が多分にある */
+
+	/* 各SlideElementに対応する追加情報を計算して格納する */
+	/* 起点時刻, 終点時刻 の2要素ベクターのベクター */
+	/* 起点時刻 : そのSlideElement以前に現れた始点or中継点の先頭時刻 */
+	/* 終点時刻 : そのSlideElement以降に現れる終点or中継点の終端時刻 */
+	std::vector<std::vector<double>> exData(note->ExtraData.size() + 1);
+	{
+		unsigned int i = 0;
+		std::vector<double> tmp(2);
+        double lastStartTime = note->StartTime;
+
+		/* 先頭要素(note)はSusNoteType::Startになるはず(本当か?) */
+		tmp[0] = note->StartTime;
+		tmp[1] = 0;
+		exData[i] = tmp;
+		++i;
+
+		/* 直前のSlideElementの開始時刻を共有する */
+		/* 中継点の場合は開始時刻を共有した”後”に、共有する開始時刻を更新する */
+		/* 中継点、終点の場合は終了時刻が決定するので保存しておく(それ以外なら終端時刻はとりあえず0にしておく) */
+		for (auto &slideElement : note->ExtraData) {
+            tmp[0] = lastStartTime;
+            tmp[1] = 0;
+            
+			if (slideElement->Type.test(size_t(SusNoteType::Step))) {
+                lastStartTime = slideElement->StartTime;
+                tmp[1] = slideElement->StartTime;
+			}
+			if (slideElement->Type.test(size_t(SusNoteType::End))) {
+				/* これSlide終端の後にデータ来ない前提になってるけど(大丈夫か?) */
+				tmp[1] = slideElement->StartTime;
+			}
+            
+			exData[i] = tmp;
+			++i;
+		}
+
+		for (i = exData.size() - 1; i > 0 ; --i) {
+			/* 自分自身の直前の何かが開始時刻を共有している */
+			if (exData[i - 1][0] == exData[i][0]) {
+				/* 終了時刻も共有したい */
+				exData[i - 1][1] = exData[i][1];
+			}
+			else {
+				/* 終了時刻は既にexData[i - 1][1]に入っているはず(本当か?) */
+			}
+		}
+	}
+
+    // 支柱
     auto drawcount = 0;
     uint16_t base = 0;
+	unsigned int i = 0;
     for (auto &slideElement : note->ExtraData) {
+		++i; /* exData[0] はnoteそのものの情報だからこのインクリメントは必須 */
         if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
         auto &segmentPositions = curveData[slideElement];
@@ -526,11 +587,13 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
         auto lastSegmentLength = double(lastStep->Length);
         auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / seenDuration;
         auto lastTimeInBlock = get<0>(lastSegmentPosition) / (slideElement->StartTime - lastStep->StartTime);
+		auto lastTimeInBlock2 = get<0>(lastSegmentPosition) / (exData[i][1] - exData[i][0]);
 
         for (const auto &segmentPosition : segmentPositions) {
             if (lastSegmentPosition == segmentPosition) continue;
             const auto currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
-            const auto currentSegmentLength = glm::mix(double(lastStep->Length), double(slideElement->Length), currentTimeInBlock);
+			const auto currentTimeInBlock2 = get<0>(segmentPosition) / (exData[i][1] - exData[i][0]);
+			const auto currentSegmentLength = glm::mix(double(lastStep->Length), double(slideElement->Length), currentTimeInBlock);
             const auto segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
             const auto currentSegmentRelativeY = 1.0 - segmentExPosition / seenDuration;
             if ((currentSegmentRelativeY >= 0 || lastSegmentRelativeY >= 0)
@@ -540,7 +603,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                         VGet(get<1>(lastSegmentPosition) * laneBufferX - lastSegmentLength / 2 * widthPerLane, laneBufferY * lastSegmentRelativeY, 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
-                        0.0f, float(lastTimeInBlock * strutBottom)
+                        0.0f, float((offsetTimeInBlock + lastTimeInBlock2) * strutBottom)
                     }
                 );
                 slideVertices.push_back(
@@ -548,7 +611,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                         VGet(get<1>(lastSegmentPosition) * laneBufferX + lastSegmentLength / 2 * widthPerLane, laneBufferY * lastSegmentRelativeY, 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
-                        1.0f, float(lastTimeInBlock * strutBottom)
+                        1.0f, float((offsetTimeInBlock + lastTimeInBlock2) * strutBottom)
                     }
                 );
                 slideVertices.push_back(
@@ -556,7 +619,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                         VGet(get<1>(segmentPosition) * laneBufferX - currentSegmentLength / 2 * widthPerLane, laneBufferY * currentSegmentRelativeY, 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
-                        0.0f, float(currentTimeInBlock * strutBottom)
+                        0.0f, float((offsetTimeInBlock + currentTimeInBlock2) * strutBottom)
                     }
                 );
                 slideVertices.push_back(
@@ -564,7 +627,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                         VGet(get<1>(segmentPosition) * laneBufferX + currentSegmentLength / 2 * widthPerLane, laneBufferY * currentSegmentRelativeY, 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
-                        1.0f, float(currentTimeInBlock * strutBottom)
+                        1.0f, float((offsetTimeInBlock + currentTimeInBlock2) * strutBottom)
                     }
                 );
                 vector<uint16_t> here = { base, uint16_t(base + 2), uint16_t(base + 1), uint16_t(base + 2), uint16_t(base + 1), uint16_t(base + 3) };
@@ -576,14 +639,21 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
             lastSegmentLength = currentSegmentLength;
             lastSegmentRelativeY = currentSegmentRelativeY;
             lastTimeInBlock = currentTimeInBlock;
-        }
+			lastTimeInBlock2 = currentTimeInBlock2;
+		}
+		if (slideElement->Type.test(size_t(SusNoteType::Step))) {
+			offsetTimeInBlock = 0;
+		}
+		else {
+			offsetTimeInBlock += lastTimeInBlock2;
+		}
         lastStep = slideElement;
     }
     SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
     SetUseBackCulling(FALSE);
     DrawPolygonIndexed2D(slideVertices.data(), slideVertices.size(), slideIndices.data(), drawcount, imageSlideStrut->GetHandle(), TRUE);
 
-    // ���S��
+    // 中心線
     if (showSlideLine) {
         lastStep = note;
         for (auto &slideElement : note->ExtraData) {
@@ -710,35 +780,35 @@ void ScenePlayer::DrawAirActionStepBox(const AirDrawQuery &query) const
         { VGet(right, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.5f, 0.0f, 0.0f },
         };
         uint16_t indices[] = {
-            // �{���͏�2����Ȃ�����index�v�Z���ʓ|�Ȃ̂ŕ��u
-            //���̂��
+            // 本当は上2ついらないけどindex計算が面倒なので放置
+            //下のやつ
             0, 1, 11,
             0, 11, 10,
-            //�{��
-            //��
+            //本体
+            //上
             3, 7, 17,
             3, 17, 13,
-            //��
+            //左
             6, 7, 3,
             6, 3, 2,
-            //�E
+            //右
             12, 13, 17,
             12, 17, 16,
-            //��O
+            //手前
             20, 3, 13,
             20, 13, 21,
 
-            //�ւ΂���Ă��
-            //��O
+            //へばりついてるの
+            //手前
             4, 5, 15,
             4, 15, 14,
-            //���
+            //後ろ
             8, 9, 19,
             8, 19, 18,
-            //��
+            //左
             8, 9, 5,
             8, 5, 4,
-            //�E
+            //右
             14, 15, 19,
             14, 19, 18,
         };
