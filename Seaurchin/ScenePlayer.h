@@ -122,8 +122,8 @@ protected:
     SImage *imageLaneGround, *imageLaneJudgeLine;
     SImage *imageTap, *imageExTap, *imageFlick, *imageHellTap;
     SImage *imageAir, *imageAirUp, *imageAirDown;
-    SImage *imageHold, *imageHoldStrut;
-    SImage *imageSlide, *imageSlideStrut;
+    SImage *imageHold, *imageHoldStep, *imageHoldStrut;
+    SImage *imageSlide, *imageSlideStep, *imageSlideStrut;
     SImage *imageAirAction;
     int imageExtendedSlideStrut;
     SFont *fontCombo;
