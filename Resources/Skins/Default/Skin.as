@@ -9,8 +9,10 @@ void InitializeSkin(Skin@ skin) {
   skin.LoadImage("*Note-Flick", "Note-Flick.png");
   skin.LoadImage("*Note-HellTap", "Note-HellTap.png");
   skin.LoadImage("*Note-Hold", "Note-Hold.png");
+  skin.LoadImage("*Note-HoldStep", "Note-HoldStep.png");
   skin.LoadImage("*Note-HoldStrut", "Note-HoldStrut.png");
   skin.LoadImage("*Note-Slide", "Note-Slide.png");
+  skin.LoadImage("*Note-SlideStep", "Note-SlideStep.png");
   skin.LoadImage("*Note-SlideStrut", "Note-SlideStrut.png");
   skin.LoadImage("*Note-AirAction", "Note-AirAction.png");
   skin.LoadImage("*Lane-Ground", "Lane-Ground.png");

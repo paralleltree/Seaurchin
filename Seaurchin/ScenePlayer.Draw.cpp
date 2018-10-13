@@ -27,9 +27,11 @@ void ScenePlayer::LoadResources()
     imageAirUp = dynamic_cast<SImage*>(resources["AirUp"]);
     imageAirDown = dynamic_cast<SImage*>(resources["AirDown"]);
     imageHold = dynamic_cast<SImage*>(resources["Hold"]);
-    imageHoldStrut = dynamic_cast<SImage*>(resources["HoldStrut"]);
+	imageHoldStep = dynamic_cast<SImage*>(resources["HoldStep"]);
+	imageHoldStrut = dynamic_cast<SImage*>(resources["HoldStrut"]);
     imageSlide = dynamic_cast<SImage*>(resources["Slide"]);
-    imageSlideStrut = dynamic_cast<SImage*>(resources["SlideStrut"]);
+	imageSlideStep = dynamic_cast<SImage*>(resources["SlideStep"]);
+	imageSlideStrut = dynamic_cast<SImage*>(resources["SlideStrut"]);
     imageAirAction = dynamic_cast<SImage*>(resources["AirAction"]);
     animeTap = dynamic_cast<SAnimatedImage*>(resources["EffectTap"]);
     animeExTap = dynamic_cast<SAnimatedImage*>(resources["EffectExTap"]);
@@ -503,7 +505,12 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
     for (auto &ex : note->ExtraData) {
         if (ex->Type.test(size_t(SusNoteType::Injection))) continue;
         const auto relendpos = 1.0 - ex->ModifiedPosition / seenDuration;
-        DrawTap(slane, length, relendpos, imageHold->GetHandle());
+		if (ex->Type.test(size_t(SusNoteType::Start))) {
+			DrawTap(slane, length, relendpos, imageHold->GetHandle());
+		}
+		else {
+			DrawTap(slane, length, relendpos, imageHoldStep->GetHandle());
+		}
     }
 }
 
@@ -692,8 +699,14 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
         if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Invisible))) continue;
         const auto currentStepRelativeY = 1.0 - slideElement->ModifiedPosition / seenDuration;
-        if (currentStepRelativeY >= 0 && currentStepRelativeY < cullingLimit)
-            DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlide->GetHandle());
+		if (currentStepRelativeY >= 0 && currentStepRelativeY < cullingLimit) {
+			if (slideElement->Type.test(size_t(SusNoteType::Start))) {
+				DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlide->GetHandle());
+			}
+			else {
+				DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlideStep->GetHandle());
+			}
+		}
     }
 }
 
