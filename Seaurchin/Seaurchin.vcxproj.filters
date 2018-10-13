@@ -57,21 +57,6 @@
     <ClCompile Include="Main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\AngelScript\add_on\scriptstdstring\scriptstdstring.cpp">
-      <Filter>AngelScript</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\AngelScript\add_on\scriptstdstring\scriptstdstring_utils.cpp">
-      <Filter>AngelScript</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\AngelScript\add_on\scriptmath\scriptmath.cpp">
-      <Filter>AngelScript</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\AngelScript\add_on\scriptmath\scriptmathcomplex.cpp">
-      <Filter>AngelScript</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\AngelScript\add_on\scriptarray\scriptarray.cpp">
-      <Filter>AngelScript</Filter>
-    </ClCompile>
     <ClCompile Include="Debug.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
@@ -105,9 +90,6 @@
     <ClCompile Include="ScriptFunction.cpp">
       <Filter>インターフェース\AngelScript</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\AngelScript\add_on\scriptdictionary\scriptdictionary.cpp">
-      <Filter>AngelScript</Filter>
-    </ClCompile>
     <ClCompile Include="MusicsManager.cpp">
       <Filter>インターフェース\C++</Filter>
     </ClCompile>
@@ -125,9 +107,6 @@
     </ClCompile>
     <ClCompile Include="Controller.cpp">
       <Filter>コントローラー</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\Wacom_Feel_SDK\src\cpp\WacomMultiTouch.cpp">
-      <Filter>コントローラー\依存</Filter>
     </ClCompile>
     <ClCompile Include="ScenePlayer.Draw.cpp">
       <Filter>プレーヤー</Filter>
@@ -180,6 +159,27 @@
     <ClCompile Include="MoverFunction.cpp">
       <Filter>インターフェース\描画システム</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\AngelScript\add_on\scriptarray\scriptarray.cpp">
+      <Filter>AngelScript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\AngelScript\add_on\scriptdictionary\scriptdictionary.cpp">
+      <Filter>AngelScript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\AngelScript\add_on\scriptmath\scriptmath.cpp">
+      <Filter>AngelScript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\AngelScript\add_on\scriptmath\scriptmathcomplex.cpp">
+      <Filter>AngelScript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\AngelScript\add_on\scriptstdstring\scriptstdstring.cpp">
+      <Filter>AngelScript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\AngelScript\add_on\scriptstdstring\scriptstdstring_utils.cpp">
+      <Filter>AngelScript</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Wacom_Feel_SDK\src\cpp\WacomMultiTouch.cpp">
+      <Filter>コントローラー\依存</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h">
@@ -199,18 +199,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\DXLib\include\DxLib.h">
       <Filter>DxLib</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\AngelScript\add_on\scriptstdstring\scriptstdstring.h">
-      <Filter>AngelScript</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\AngelScript\add_on\scriptmath\scriptmath.h">
-      <Filter>AngelScript</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\AngelScript\add_on\scriptmath\scriptmathcomplex.h">
-      <Filter>AngelScript</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\AngelScript\add_on\scriptarray\scriptarray.h">
-      <Filter>AngelScript</Filter>
     </ClInclude>
     <ClInclude Include="Config.h">
       <Filter>ヘッダー ファイル</Filter>
@@ -250,9 +238,6 @@
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\AngelScript\add_on\scriptdictionary\scriptdictionary.h">
-      <Filter>AngelScript</Filter>
     </ClInclude>
     <ClInclude Include="PrecompiledHeader.h">
       <Filter>ヘッダー ファイル</Filter>
@@ -322,6 +307,21 @@
     </ClInclude>
     <ClInclude Include="MoverFunction.h">
       <Filter>インターフェース\描画システム</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AngelScript\add_on\scriptarray\scriptarray.h">
+      <Filter>AngelScript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AngelScript\add_on\scriptdictionary\scriptdictionary.h">
+      <Filter>AngelScript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AngelScript\add_on\scriptmath\scriptmath.h">
+      <Filter>AngelScript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AngelScript\add_on\scriptmath\scriptmathcomplex.h">
+      <Filter>AngelScript</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\AngelScript\add_on\scriptstdstring\scriptstdstring.h">
+      <Filter>AngelScript</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
