@@ -853,6 +853,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
             if (info.Type[size_t(SusNoteType::Air)] && !info.Type[size_t(SusNoteType::Grounded)]) {
                 auto found = false;
                 for (const auto &target : notes) {
+                    if (get<1>(target) == get<1>(note)) continue;
                     const auto gtime = get<0>(target);
                     auto ginfo = get<1>(target);
                     const auto tbits = ginfo.Type.to_ulong();
@@ -860,8 +861,9 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                     if (info.NotePosition.StartLane != ginfo.NotePosition.StartLane
                         || info.NotePosition.Length != ginfo.NotePosition.Length)
                         continue;
+
                     found = true;
-                    if ((tbits & SU_NOTE_LONG_MASK) && ginfo.Type[size_t(SusNoteType::End)]) {
+                    if (tbits & SU_NOTE_LONG_MASK && ginfo.Type[size_t(SusNoteType::End)]) {
                         noteData->Type.set(size_t(SusNoteType::Grounded));
                     }
                     break;

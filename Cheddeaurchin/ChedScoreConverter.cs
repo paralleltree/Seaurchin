@@ -81,7 +81,7 @@ namespace Cheddeaurchin
             var rest = tick;
             var measure = 0u;
             var ticksPerMeasure = 0u;
-            while (rest > (ticksPerMeasure = (uint)GetBeatsAt(measure) * TicksPerBeat))
+            while (rest > (ticksPerMeasure = (uint)(GetBeatsAt(measure) * TicksPerBeat)))
             {
                 rest -= ticksPerMeasure;
                 ++measure;
@@ -344,7 +344,7 @@ namespace Cheddeaurchin
             var lastBeats = DefaultBeats;
             var lastTick = 0;
             var measureSum = 0u;
-            foreach (var bd in chedScore.Events.TimeSignatureChangeEvents)
+            foreach (var bd in tsigs)
             {
                 var diffTicks = bd.Tick - lastTick;
                 var diffMeasures = diffTicks / (lastBeats * TicksPerBeat);
