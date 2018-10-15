@@ -23,12 +23,19 @@
 * Amenoshita429
     - [Twitter @Amenoshita429](https://twitter.com/amenoshita_429)
     - [GitHub](https://github.com/amenoshita-429)
+    - **Amenoshitaスキンの開発**
+    - **不可視中継点問題の解決(0.44.0)**
+    - **様々な(クリティカルな)バグ報告**
 * t4nishi
     - [Twitter @t4nishi](https://twitter.com/t4nishi)
     - [GitHub](https://github.com/TinyTany)
+    - **NotesEditorForDの開発**
 * paralleltree
     - [Twitter @paralleltree](https://twitter.com/paralleltree)
     - [GitHub](https://github.com/paralleltree)
+    - **Chedの開発**
+* Discord「Seaurchin 創作譜面勢」のみなさん
+    - **様々なバグ報告・要望**
 
 ## ライセンス
 本体はMIT License
