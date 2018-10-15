@@ -517,7 +517,7 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
 void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 {
     auto lastStep = note;
-	double offsetTimeInBlock = 0.0; /* そのslideElementの、不可視中継点のつながり等を考慮した時の先頭位置、的な */
+	auto offsetTimeInBlock = 0.0; /* そのslideElementの、不可視中継点のつながり等を考慮した時の先頭位置、的な */
 	const auto strutBottom = 1.0;
     slideVertices.clear();
     slideIndices.clear();
@@ -540,7 +540,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 	{
 		unsigned int i = 0;
 		std::vector<double> tmp(2);
-        double lastStartTime = note->StartTime;
+        auto lastStartTime = note->StartTime;
 
 		/* 先頭要素(note)はSusNoteType::Startになるはず(本当か?) */
 		tmp[0] = note->StartTime;
@@ -972,7 +972,7 @@ void ScenePlayer::DrawLaneBackground() const
         0, laneBufferY,
         0, 0,
         imageLaneJudgeLine->GetWidth(), imageLaneJudgeLine->GetHeight(),
-        0, imageLaneJudgeLine->GetHeight() / 2,
+        0, double(imageLaneJudgeLine->GetHeight()) / 2.0,
         1, 1, 0,
         imageLaneJudgeLine->GetHandle(), TRUE, FALSE);
     processor->Draw();

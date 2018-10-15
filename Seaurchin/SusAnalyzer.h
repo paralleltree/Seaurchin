@@ -159,6 +159,20 @@ struct SusRawNoteData {
     };
     uint8_t Extra;
     std::shared_ptr<SusNoteExtraAttribute> ExtraAttribute;
+    
+    bool operator==(const SusRawNoteData& b) const
+    {
+        if (Type != b.Type) return false;
+        if (Timeline != b.Timeline) return false;
+        if (DefinitionNumber != b.DefinitionNumber) return false;
+        if (Extra != b.Extra) return false;
+        if (ExtraAttribute != b.ExtraAttribute) return false;
+        return true;
+    }
+    bool operator!=(const SusRawNoteData& b) const
+    {
+        return !(*this == b);
+    }
 };
 
 struct SusDrawableNoteData {
