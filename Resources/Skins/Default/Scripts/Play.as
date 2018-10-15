@@ -50,8 +50,10 @@ class Play : CoroutineScene {
     player.SetResource("Flick", skin.GetImage("*Note-Flick"));
     player.SetResource("HellTap", skin.GetImage("*Note-HellTap"));
     player.SetResource("Hold", skin.GetImage("*Note-Hold"));
+    player.SetResource("HoldStep", skin.GetImage("*Note-HoldStep"));
     player.SetResource("HoldStrut", skin.GetImage("*Note-HoldStrut"));
     player.SetResource("Slide", skin.GetImage("*Note-Slide"));
+    player.SetResource("SlideStep", skin.GetImage("*Note-SlideStep"));
     player.SetResource("SlideStrut", skin.GetImage("*Note-SlideStrut"));
     player.SetResource("AirAction", skin.GetImage("*Note-AirAction"));
     player.SetResource("SoundTap", skin.GetSound("*Sound-Tap"));
