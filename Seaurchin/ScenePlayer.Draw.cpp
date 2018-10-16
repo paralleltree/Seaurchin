@@ -981,7 +981,6 @@ void ScenePlayer::DrawLaneBackground() const
         0, laneBufferY,
         0, 0,
         imageLaneJudgeLine->GetWidth(), imageLaneJudgeLine->GetHeight(),
-        0, imageLaneJudgeLine->GetHeight() / 2,
         1, 1, 0,
         imageLaneJudgeLine->GetHandle(), TRUE, FALSE);
     processor->Draw();

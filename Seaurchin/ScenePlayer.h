@@ -52,17 +52,17 @@ enum class JudgeSoundType {
 };
 
 enum class PlayingState {
-    ScoreNotLoaded,     // ����n�܂��Ă��Ȃ�
-    BgmNotLoaded,       // ���ʂ����ǂݍ���
-    ReadyToStart,       // �ǂݍ��݂��I������̂Ŏn�߂���
-    Paused,             // �|�[�Y��
-    ReadyCounting,      // BGM�ǂݏI����đO�J�E���g���Ă�
-    BgmPreceding,       // �O�J�E���g��������BGM�n�܂��Ă�
-    OnlyScoreOngoing,   // ���ʎn�܂�������BGM�܂�
-    BothOngoing,        // �����Đ����Ă�
-    ScoreLasting,       // ���ʎc���Ă�
-    BgmLasting,         // �Ȏc���Ă�
-    Completed,          // �S���I�����
+    ScoreNotLoaded,
+    BgmNotLoaded,
+    ReadyToStart,
+    Paused,
+    ReadyCounting,
+    BgmPreceding,
+    OnlyScoreOngoing,
+    BothOngoing,
+    ScoreLasting,
+    BgmLasting,
+    Completed,
 };
 
 enum class AirDrawType {
@@ -106,7 +106,7 @@ protected:
     bool usePrioritySort = false;
     bool hasEnded = false;
 
-    double cameraZ = -340, cameraY = 620, cameraTargetZ = 580; // �X�N�V������v��
+    double cameraZ = -340, cameraY = 620, cameraTargetZ = 580;
     double laneBufferX = 1024;
     double laneBufferY = laneBufferX * SU_LANE_ASPECT;
     double laneBackgroundRoll = 0, laneBackgroundSpeed = 0;
@@ -142,17 +142,14 @@ protected:
     std::vector<VERTEX2D> slideVertices;
     std::vector<uint16_t> slideIndices;
 
-    //Slide�̏d�݂��኱�Ⴄ�炵�����ǂ��̂ւ񋖂��Ă�
     std::shared_ptr<Result> currentResult;
     DrawableResult previousStatus, status;
 
     std::shared_ptr<CharacterInstance> currentCharacterInstance;
 
-    // �Ȃ̓r���ŕω�������
     DrawableNotesList data;
     DrawableNotesList seenData, judgeData;
     std::unordered_map<std::shared_ptr<SusDrawableNoteData>, SSprite*> slideEffects;
-    // ���� ���ʒu Ex����
     NoteCurvesList curveData;
     double currentTime = 0;
     double currentSoundTime = 0;

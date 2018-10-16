@@ -6,7 +6,6 @@
 
 ## ドキュメント
 * [公式Wiki](https://seaurchin.kb10uy.org) - メインストリームドキュメント
-* [GitHub Wiki](https://github.com/kb10uy/Seaurchin/wiki) - 2018年以降更新されません
 * [非公式Wiki](https://www65.atwiki.jp/seaurchin-fan/) - 創作譜面などはこちらに
 
 ## 使用ライブラリとか
@@ -15,17 +14,34 @@
 * [Boost](https://www.boost.org/)
 * [FreeType](https://www.freetype.org/)
 * [libpng](http://www.libpng.org/pub/png/libpng.html)
-* [SoLoud](http://sol.gfxile.net/soloud/)
 * [Wacom feel™ Multi-Touch SDK](http://wdnet.jp/library/feelmulti-touch)
 * [spdlog](https://github.com/gabime/spdlog)
 * [tinytoml](https://github.com/mayah/tinytoml)
 * [glm](https://glm.g-truc.net/0.9.9/index.html)
 
-# ライセンス
+## Special Thanks (敬称略)
+* Amenoshita429
+    - [Twitter @Amenoshita429](https://twitter.com/amenoshita_429)
+    - [GitHub](https://github.com/amenoshita-429)
+    - **Amenoshitaスキンの開発**
+    - **不可視中継点問題の解決(0.44.0)**
+    - **様々な(クリティカルな)バグ報告**
+* t4nishi
+    - [Twitter @t4nishi](https://twitter.com/t4nishi)
+    - [GitHub](https://github.com/TinyTany)
+    - **NotesEditorForDの開発**
+* paralleltree
+    - [Twitter @paralleltree](https://twitter.com/paralleltree)
+    - [GitHub](https://github.com/paralleltree)
+    - **Chedの開発**
+* Discord「Seaurchin 創作譜面勢」のみなさん
+    - **様々なバグ報告・要望**
+
+## ライセンス
 本体はMIT License
 その他ライブラリは以下参照
 
-# 使用ライブラリ ライセンス
+## 使用ライブラリ ライセンス
 > ### libjpeg
 > libjpeg　Copyright (C) 1991-2013, Thomas G. Lane, Guido Vollbeding.
 > 
