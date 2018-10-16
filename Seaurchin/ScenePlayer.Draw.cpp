@@ -921,6 +921,7 @@ void ScenePlayer::DrawAirActionCover(const AirDrawQuery &query)
 
 void ScenePlayer::DrawTap(const float lane, const int length, const double relpos, const int handle) const
 {
+	if(lane < 8)
     for (auto i = 0; i < length * 2; i++) {
         const auto type = i ? (i == length * 2 - 1 ? 2 : 1) : 0;
         DrawRectRotaGraph3F(
@@ -931,6 +932,14 @@ void ScenePlayer::DrawTap(const float lane, const int length, const double relpo
             actualNoteScaleX, actualNoteScaleY, 0,
             handle, TRUE, FALSE);
     }
+	else
+		DrawRectRotaGraph3F(
+			lane * widthPerLane, laneBufferY * relpos, /* 描画先原点 */
+			0, 0, /* 画像原点 */
+			SU_LANE_NOTE_WIDTH, SU_LANE_NOTE_HEIGHT, /* 画像サイズ */
+			0, SU_LANE_NOTE_HEIGHT / 2, /* 回転中心(回転させないのであまり関係ない) */
+			length * widthPerLane / SU_LANE_NOTE_WIDTH, actualNoteScaleY, 0, /* x,y拡大率, 回転角 */
+			handle, TRUE); /* 画像ハンドル, 透過色有効 */
 }
 
 void ScenePlayer::DrawMeasureLine(const shared_ptr<SusDrawableNoteData>& note) const

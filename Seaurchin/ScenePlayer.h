@@ -23,6 +23,8 @@
 #define SU_LANE_Y_AIRINDICATE 160.0
 #define SU_LANE_ASPECT ((SU_LANE_Z_MAX - SU_LANE_Z_MIN) / (SU_LANE_X_MAX - SU_LANE_X_MIN))
 #define SU_LANE_ASPECT_EXT ((SU_LANE_Z_MAX - SU_LANE_Z_MIN_EXT) / (SU_LANE_X_MAX - SU_LANE_X_MIN))
+#define SU_LANE_NOTE_WIDTH 192.0
+#define SU_LANE_NOTE_HEIGHT 64.0
 
 enum class JudgeType {
     ShortNormal = 0,
