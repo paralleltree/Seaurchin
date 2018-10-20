@@ -921,25 +921,30 @@ void ScenePlayer::DrawAirActionCover(const AirDrawQuery &query)
 
 void ScenePlayer::DrawTap(const float lane, const int length, const double relpos, const int handle) const
 {
-	if(lane < 8)
-    for (auto i = 0; i < length * 2; i++) {
-        const auto type = i ? (i == length * 2 - 1 ? 2 : 1) : 0;
-        DrawRectRotaGraph3F(
-            (lane * 2 + i) * widthPerLane / 2, laneBufferY * relpos,
-            noteImageBlockX * type, (0),
-            noteImageBlockX, noteImageBlockY,
-            0, noteImageBlockY / 2,
-            actualNoteScaleX, actualNoteScaleY, 0,
-            handle, TRUE, FALSE);
-    }
-	else
+	/* 従来 : 左,中,右の領域に画像を分割し,左中...中右という並べ方で,そのノーツの幅に合わせて中の個数を変化させる */
+	/* 改良 : 両端やFlick内側部分の両端など、引き延ばしたくない部分は等倍で,引き延ばしても構わない部分は適当な拡大率で引き延ばす */
+	/* 新たな問題 : 結局どんな描画方法が適切か、というのは使う画像に依存してしまう */
+	/* この分割点(widthList)はAmenoshitaが作成した画像で調整した値であって、ほかの画像を使ったときに奇麗に引き延ばせる保証はない */
+
+	const std::vector<int> widthList = { 12, 16, 6, 16, 6, 80, 6, 16, 6, 16, 12 }; /* 分割したノーツ画像の個々の幅 */
+	double w = 0.0;
+	for (int i = 0; i < widthList.size(); i += 2) w += widthList[i];
+	const double scale = (length * widthPerLane - w) / (SU_LANE_NOTE_WIDTH - w); /* 引き延ばす必要がある領域の幅だけを考慮した拡大率 */
+	double xImage = 0, xReal = lane * widthPerLane;
+
+	for (int i = 0; i < widthList.size(); ++i) {
 		DrawRectRotaGraph3F(
-			lane * widthPerLane, laneBufferY * relpos, /* 描画先原点 */
-			0, 0, /* 画像原点 */
-			SU_LANE_NOTE_WIDTH, SU_LANE_NOTE_HEIGHT, /* 画像サイズ */
+			xReal, laneBufferY * relpos, /* 描画先原点 */
+			xImage, 0, /* 画像原点 */
+			widthList[i], SU_LANE_NOTE_HEIGHT, /* 画像サイズ */
 			0, SU_LANE_NOTE_HEIGHT / 2, /* 回転中心(回転させないのであまり関係ない) */
-			length * widthPerLane / SU_LANE_NOTE_WIDTH, actualNoteScaleY, 0, /* x,y拡大率, 回転角 */
+			(i % 2 == 0) ? 1.0 : scale, actualNoteScaleY, 0, /* x,y拡大率, 回転角 */
 			handle, TRUE); /* 画像ハンドル, 透過色有効 */
+
+		xImage += widthList[i];
+		xReal += ((i % 2 == 0) ? 1.0 : scale) * widthList[i];
+	}
+
 }
 
 void ScenePlayer::DrawMeasureLine(const shared_ptr<SusDrawableNoteData>& note) const
