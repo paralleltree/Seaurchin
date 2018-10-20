@@ -295,8 +295,8 @@ bool PlayableProcessor::CheckAirJudgement(const shared_ptr<SusDrawableNoteData>&
         const auto judged = currentState->GetTriggerState(
             ControllerSource::IntegratedAir,
             note->Type[size_t(SusNoteType::Up)] ? int(AirControlSource::AirUp) : int(AirControlSource::AirDown));
-        if (judged || (isAutoAir && reltime >= 0)) {
-            IncrementComboAir(note, reltime, AbilityNoteType::Air, "");
+        if (judged) {
+            IncrementComboAir(note, (reltime < 0.0) ? 0.0 : reltime, AbilityNoteType::Air, "");
             return true;
         }
     }
