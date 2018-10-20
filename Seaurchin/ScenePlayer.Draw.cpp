@@ -27,11 +27,11 @@ void ScenePlayer::LoadResources()
     imageAirUp = dynamic_cast<SImage*>(resources["AirUp"]);
     imageAirDown = dynamic_cast<SImage*>(resources["AirDown"]);
     imageHold = dynamic_cast<SImage*>(resources["Hold"]);
-	imageHoldStep = dynamic_cast<SImage*>(resources["HoldStep"]);
-	imageHoldStrut = dynamic_cast<SImage*>(resources["HoldStrut"]);
+    imageHoldStep = dynamic_cast<SImage*>(resources["HoldStep"]);
+    imageHoldStrut = dynamic_cast<SImage*>(resources["HoldStrut"]);
     imageSlide = dynamic_cast<SImage*>(resources["Slide"]);
-	imageSlideStep = dynamic_cast<SImage*>(resources["SlideStep"]);
-	imageSlideStrut = dynamic_cast<SImage*>(resources["SlideStrut"]);
+    imageSlideStep = dynamic_cast<SImage*>(resources["SlideStep"]);
+    imageSlideStrut = dynamic_cast<SImage*>(resources["SlideStrut"]);
     imageAirAction = dynamic_cast<SImage*>(resources["AirAction"]);
     animeTap = dynamic_cast<SAnimatedImage*>(resources["EffectTap"]);
     animeExTap = dynamic_cast<SAnimatedImage*>(resources["EffectExTap"]);
@@ -505,87 +505,87 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
     for (auto &ex : note->ExtraData) {
         if (ex->Type.test(size_t(SusNoteType::Injection))) continue;
         const auto relendpos = 1.0 - ex->ModifiedPosition / seenDuration;
-		if (ex->Type.test(size_t(SusNoteType::Start))) {
-			DrawTap(slane, length, relendpos, imageHold->GetHandle());
-		}
-		else {
-			DrawTap(slane, length, relendpos, imageHoldStep->GetHandle());
-		}
+        if (ex->Type.test(size_t(SusNoteType::Start))) {
+            DrawTap(slane, length, relendpos, imageHold->GetHandle());
+        }
+        else {
+            DrawTap(slane, length, relendpos, imageHoldStep->GetHandle());
+        }
     }
 }
 
 void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 {
     auto lastStep = note;
-	auto offsetTimeInBlock = 0.0; /* そのslideElementの、不可視中継点のつながり等を考慮した時の先頭位置、的な */
-	const auto strutBottom = 1.0;
+    auto offsetTimeInBlock = 0.0; /* そのslideElementの、不可視中継点のつながり等を考慮した時の先頭位置、的な */
+    const auto strutBottom = 1.0;
     slideVertices.clear();
     slideIndices.clear();
 
-	/* 基本方針 */
-	/* 従来 : [始点,中継点,不可視中継点]から次の[中継点,不可視中継点,終点]にかけて(u,v)の計算を行っている */
-	/* 改良 : [始点,中継点]から次の[中継点,終点]にかけて、”不可視中継点を超えて”(u,v)の計算を行う */
-	/*        分割点(?)の配置はすでに正しく計算されているので手を加えない */
-	/*        従来の(u,v)計算を行っていた領域で、 0 <= v <= 1 であったところを a <= v <= b に変更し */
-	/*        不可視中継点をまたいだ領域全体の時間からa,bを適当に定める */
+    /* 基本方針 */
+    /* 従来 : [始点,中継点,不可視中継点]から次の[中継点,不可視中継点,終点]にかけて(u,v)の計算を行っている */
+    /* 改良 : [始点,中継点]から次の[中継点,終点]にかけて、”不可視中継点を超えて”(u,v)の計算を行う */
+    /*        分割点(?)の配置はすでに正しく計算されているので手を加えない */
+    /*        従来の(u,v)計算を行っていた領域で、 0 <= v <= 1 であったところを a <= v <= b に変更し */
+    /*        不可視中継点をまたいだ領域全体の時間からa,bを適当に定める */
 
-	/* 重要 */
-	/* すべての変数、演算の意味を理解したわけではないので、変拍子、ハイスピ設定等で死ぬ可能性が多分にある */
+    /* 重要 */
+    /* すべての変数、演算の意味を理解したわけではないので、変拍子、ハイスピ設定等で死ぬ可能性が多分にある */
 
-	/* 各SlideElementに対応する追加情報を計算して格納する */
-	/* 起点時刻, 終点時刻 の2要素ベクターのベクター */
-	/* 起点時刻 : そのSlideElement以前に現れた始点or中継点の先頭時刻 */
-	/* 終点時刻 : そのSlideElement以降に現れる終点or中継点の終端時刻 */
-	std::vector<std::vector<double>> exData(note->ExtraData.size() + 1);
-	{
-		unsigned int i = 0;
-		std::vector<double> tmp(2);
+    /* 各SlideElementに対応する追加情報を計算して格納する */
+    /* 起点時刻, 終点時刻 の2要素ベクターのベクター */
+    /* 起点時刻 : そのSlideElement以前に現れた始点or中継点の先頭時刻 */
+    /* 終点時刻 : そのSlideElement以降に現れる終点or中継点の終端時刻 */
+    std::vector<std::vector<double>> exData(note->ExtraData.size() + 1);
+    {
+        unsigned int i = 0;
+        std::vector<double> tmp(2);
         auto lastStartTime = note->StartTime;
 
-		/* 先頭要素(note)はSusNoteType::Startになるはず(本当か?) */
-		tmp[0] = note->StartTime;
-		tmp[1] = 0;
-		exData[i] = tmp;
-		++i;
+        /* 先頭要素(note)はSusNoteType::Startになるはず(本当か?) */
+        tmp[0] = note->StartTime;
+        tmp[1] = 0;
+        exData[i] = tmp;
+        ++i;
 
-		/* 直前のSlideElementの開始時刻を共有する */
-		/* 中継点の場合は開始時刻を共有した”後”に、共有する開始時刻を更新する */
-		/* 中継点、終点の場合は終了時刻が決定するので保存しておく(それ以外なら終端時刻はとりあえず0にしておく) */
-		for (auto &slideElement : note->ExtraData) {
+        /* 直前のSlideElementの開始時刻を共有する */
+        /* 中継点の場合は開始時刻を共有した”後”に、共有する開始時刻を更新する */
+        /* 中継点、終点の場合は終了時刻が決定するので保存しておく(それ以外なら終端時刻はとりあえず0にしておく) */
+        for (auto &slideElement : note->ExtraData) {
             tmp[0] = lastStartTime;
             tmp[1] = 0;
             
-			if (slideElement->Type.test(size_t(SusNoteType::Step))) {
+            if (slideElement->Type.test(size_t(SusNoteType::Step))) {
                 lastStartTime = slideElement->StartTime;
                 tmp[1] = slideElement->StartTime;
-			}
-			if (slideElement->Type.test(size_t(SusNoteType::End))) {
-				/* これSlide終端の後にデータ来ない前提になってるけど(大丈夫か?) */
-				tmp[1] = slideElement->StartTime;
-			}
+            }
+            if (slideElement->Type.test(size_t(SusNoteType::End))) {
+                /* これSlide終端の後にデータ来ない前提になってるけど(大丈夫か?) */
+                tmp[1] = slideElement->StartTime;
+            }
             
-			exData[i] = tmp;
-			++i;
-		}
+            exData[i] = tmp;
+            ++i;
+        }
 
-		for (i = exData.size() - 1; i > 0 ; --i) {
-			/* 自分自身の直前の何かが開始時刻を共有している */
-			if (exData[i - 1][0] == exData[i][0]) {
-				/* 終了時刻も共有したい */
-				exData[i - 1][1] = exData[i][1];
-			}
-			else {
-				/* 終了時刻は既にexData[i - 1][1]に入っているはず(本当か?) */
-			}
-		}
-	}
+        for (i = exData.size() - 1; i > 0 ; --i) {
+            /* 自分自身の直前の何かが開始時刻を共有している */
+            if (exData[i - 1][0] == exData[i][0]) {
+                /* 終了時刻も共有したい */
+                exData[i - 1][1] = exData[i][1];
+            }
+            else {
+                /* 終了時刻は既にexData[i - 1][1]に入っているはず(本当か?) */
+            }
+        }
+    }
 
     // 支柱
     auto drawcount = 0;
     uint16_t base = 0;
-	unsigned int i = 0;
+    unsigned int i = 0;
     for (auto &slideElement : note->ExtraData) {
-		++i; /* exData[0] はnoteそのものの情報だからこのインクリメントは必須 */
+        ++i; /* exData[0] はnoteそのものの情報だからこのインクリメントは必須 */
         if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
         auto &segmentPositions = curveData[slideElement];
@@ -594,13 +594,13 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
         auto lastSegmentLength = double(lastStep->Length);
         auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / seenDuration;
         auto lastTimeInBlock = get<0>(lastSegmentPosition) / (slideElement->StartTime - lastStep->StartTime);
-		auto lastTimeInBlock2 = get<0>(lastSegmentPosition) / (exData[i][1] - exData[i][0]);
+        auto lastTimeInBlock2 = get<0>(lastSegmentPosition) / (exData[i][1] - exData[i][0]);
 
         for (const auto &segmentPosition : segmentPositions) {
             if (lastSegmentPosition == segmentPosition) continue;
             const auto currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
-			const auto currentTimeInBlock2 = get<0>(segmentPosition) / (exData[i][1] - exData[i][0]);
-			const auto currentSegmentLength = glm::mix(double(lastStep->Length), double(slideElement->Length), currentTimeInBlock);
+            const auto currentTimeInBlock2 = get<0>(segmentPosition) / (exData[i][1] - exData[i][0]);
+            const auto currentSegmentLength = glm::mix(double(lastStep->Length), double(slideElement->Length), currentTimeInBlock);
             const auto segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
             const auto currentSegmentRelativeY = 1.0 - segmentExPosition / seenDuration;
             if ((currentSegmentRelativeY >= 0 || lastSegmentRelativeY >= 0)
@@ -646,14 +646,14 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
             lastSegmentLength = currentSegmentLength;
             lastSegmentRelativeY = currentSegmentRelativeY;
             lastTimeInBlock = currentTimeInBlock;
-			lastTimeInBlock2 = currentTimeInBlock2;
-		}
-		if (slideElement->Type.test(size_t(SusNoteType::Step))) {
-			offsetTimeInBlock = 0;
-		}
-		else {
-			offsetTimeInBlock += lastTimeInBlock2;
-		}
+            lastTimeInBlock2 = currentTimeInBlock2;
+        }
+        if (slideElement->Type.test(size_t(SusNoteType::Step))) {
+            offsetTimeInBlock = 0;
+        }
+        else {
+            offsetTimeInBlock += lastTimeInBlock2;
+        }
         lastStep = slideElement;
     }
     SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
@@ -699,14 +699,14 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
         if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Invisible))) continue;
         const auto currentStepRelativeY = 1.0 - slideElement->ModifiedPosition / seenDuration;
-		if (currentStepRelativeY >= 0 && currentStepRelativeY < cullingLimit) {
-			if (slideElement->Type.test(size_t(SusNoteType::Start))) {
-				DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlide->GetHandle());
-			}
-			else {
-				DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlideStep->GetHandle());
-			}
-		}
+        if (currentStepRelativeY >= 0 && currentStepRelativeY < cullingLimit) {
+            if (slideElement->Type.test(size_t(SusNoteType::Start))) {
+                DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlide->GetHandle());
+            }
+            else {
+                DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlideStep->GetHandle());
+            }
+        }
     }
 }
 
@@ -921,29 +921,29 @@ void ScenePlayer::DrawAirActionCover(const AirDrawQuery &query)
 
 void ScenePlayer::DrawTap(const float lane, const int length, const double relpos, const int handle) const
 {
-	/* 従来 : 左,中,右の領域に画像を分割し,左中...中右という並べ方で,そのノーツの幅に合わせて中の個数を変化させる */
-	/* 改良 : 両端やFlick内側部分の両端など、引き延ばしたくない部分は等倍で,引き延ばしても構わない部分は適当な拡大率で引き延ばす */
-	/* 新たな問題 : 結局どんな描画方法が適切か、というのは使う画像に依存してしまう */
-	/* この分割点(widthList)はAmenoshitaが作成した画像で調整した値であって、ほかの画像を使ったときに奇麗に引き延ばせる保証はない */
+    /* 従来 : 左,中,右の領域に画像を分割し,左中...中右という並べ方で,そのノーツの幅に合わせて中の個数を変化させる */
+    /* 改良 : 両端やFlick内側部分の両端など、引き延ばしたくない部分は等倍で,引き延ばしても構わない部分は適当な拡大率で引き延ばす */
+    /* 新たな問題 : 結局どんな描画方法が適切か、というのは使う画像に依存してしまう */
+    /* この分割点(widthList)はAmenoshitaが作成した画像で調整した値であって、ほかの画像を使ったときに奇麗に引き延ばせる保証はない */
 
-	const std::vector<int> widthList = { 12, 16, 6, 16, 6, 80, 6, 16, 6, 16, 12 }; /* 分割したノーツ画像の個々の幅 */
-	double w = 0.0;
-	for (int i = 0; i < widthList.size(); i += 2) w += widthList[i];
-	const double scale = (length * widthPerLane - w) / (SU_LANE_NOTE_WIDTH - w); /* 引き延ばす必要がある領域の幅だけを考慮した拡大率 */
-	double xImage = 0, xReal = lane * widthPerLane;
+    const std::vector<int> widthList = { 12, 16, 6, 16, 6, 80, 6, 16, 6, 16, 12 }; /* 分割したノーツ画像の個々の幅 */
+    double w = 0.0;
+    for (int i = 0; i < widthList.size(); i += 2) w += widthList[i];
+    const double scale = (length * widthPerLane - w) / (SU_LANE_NOTE_WIDTH - w); /* 引き延ばす必要がある領域の幅だけを考慮した拡大率 */
+    double xImage = 0, xReal = lane * widthPerLane;
 
-	for (int i = 0; i < widthList.size(); ++i) {
-		DrawRectRotaGraph3F(
-			xReal, laneBufferY * relpos, /* 描画先原点 */
-			xImage, 0, /* 画像原点 */
-			widthList[i], SU_LANE_NOTE_HEIGHT, /* 画像サイズ */
-			0, SU_LANE_NOTE_HEIGHT / 2, /* 回転中心(回転させないのであまり関係ない) */
-			(i % 2 == 0) ? 1.0 : scale, actualNoteScaleY, 0, /* x,y拡大率, 回転角 */
-			handle, TRUE); /* 画像ハンドル, 透過色有効 */
+    for (int i = 0; i < widthList.size(); ++i) {
+        DrawRectRotaGraph3F(
+            xReal, laneBufferY * relpos, /* 描画先原点 */
+            xImage, 0, /* 画像原点 */
+            widthList[i], SU_LANE_NOTE_HEIGHT, /* 画像サイズ */
+            0, SU_LANE_NOTE_HEIGHT / 2, /* 回転中心(回転させないのであまり関係ない) */
+            (i % 2 == 0) ? 1.0 : scale, actualNoteScaleY, 0, /* x,y拡大率, 回転角 */
+            handle, TRUE); /* 画像ハンドル, 透過色有効 */
 
-		xImage += widthList[i];
-		xReal += ((i % 2 == 0) ? 1.0 : scale) * widthList[i];
-	}
+        xImage += widthList[i];
+        xReal += ((i % 2 == 0) ? 1.0 : scale) * widthList[i];
+    }
 
 }
 
