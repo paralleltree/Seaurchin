@@ -65,23 +65,23 @@ bool PlayableProcessor::ShouldJudge(std::shared_ptr<SusDrawableNoteData> note)
 {
     auto current = player->currentTime - note->StartTime;
     const auto extra = 0.033;
-    const auto leastWidth = judgeWidthAttack * judgeMultiplierAir + extra;
+    const auto leastWidthAir = judgeWidthAttack * judgeMultiplierAir + extra;
+    const auto leastWidthSlider = judgeWidthAttack * judgeMultiplierSlider + extra;
     if (note->Type.to_ulong() & SU_NOTE_LONG_MASK) {
         if (note->Type[size_t(SusNoteType::AirAction)]) {
             current -= judgeAdjustAirString;
+            return current >= -leastWidthAir && current <= note->Duration + leastWidthAir;
         } else {
             current -= judgeAdjustSlider;
+            return current >= -leastWidthSlider && current <= note->Duration + leastWidthSlider;
         }
-        return current >= -leastWidth && current <= note->Duration + leastWidth;
     }
     if (note->Type[size_t(SusNoteType::Air)]) {
         current -= judgeAdjustAirString;
-        current /= judgeMultiplierAir;
-        return current >= -leastWidth && current <= leastWidth;
+        return current >= -leastWidthAir && current <= leastWidthAir;
     }
     current -= judgeAdjustSlider;
-    current /= judgeMultiplierSlider;
-    return current >= -leastWidth && current <= leastWidth;
+    return current >= -leastWidthSlider && current <= leastWidthSlider;
 }
 
 void PlayableProcessor::Update(vector<shared_ptr<SusDrawableNoteData>>& notes)
