@@ -861,11 +861,10 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                     if (info.NotePosition.StartLane != ginfo.NotePosition.StartLane
                         || info.NotePosition.Length != ginfo.NotePosition.Length)
                         continue;
+                    if (!(tbits & SU_NOTE_LONG_MASK)) continue;
+                    if (!ginfo.Type[size_t(SusNoteType::End)]) continue;
 
                     found = true;
-                    if (tbits & SU_NOTE_LONG_MASK && ginfo.Type[size_t(SusNoteType::End)]) {
-                        noteData->Type.set(size_t(SusNoteType::Grounded));
-                    }
                     break;
                 }
                 if (!found) noteData->Type.set(size_t(SusNoteType::Grounded));
