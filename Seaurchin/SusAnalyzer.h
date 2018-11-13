@@ -21,8 +21,8 @@ enum class SusNoteType : uint16_t {
 
     // 位置(ロング用)
     Start = 10,     // 開始
+    Control,        // 変曲
     Step,           // 中継
-	Control,        // 変曲
     End,            // 終了
 
     // 方向(Air用、組み合わせ可)
