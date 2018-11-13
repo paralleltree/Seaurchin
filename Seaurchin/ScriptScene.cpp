@@ -54,6 +54,7 @@ void ScriptScene::Tick(const double delta)
     const auto func = sceneType->GetMethodByDecl("void Tick(double)");
     context->Prepare(func);
     context->SetObject(sceneObject);
+    context->SetArgDouble(0, delta);
     context->Execute();
 }
 
