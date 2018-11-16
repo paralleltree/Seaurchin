@@ -39,25 +39,40 @@ Write-Host '====================================================================
 Write-Host ''
 Write-Host "Seaurchin BootStrapではSeaurchinの開発環境を自動的に構築をします。"
 Read-Host '続行するには Enter キーを押してください'
+
+
 Write-Host '================================================================================='
 Write-Host ''
 Write-Host "* ライブラリ展開先フォルダと一時フォルダを生成します。"
 Write-Host ''
 
+New-Item library\ -ItemType Directory >$null 2>&1
+New-Item tmp\ -ItemType Directory >$null 2>&1
+
+Write-Host '================================================================================='
+Write-Host ''
+Write-Host "* 環境構築に必要なコマンドを準備します。"
+Write-Host ''
+
+if (!(Test-Path "tmp\patch.zip")) {
+  Invoke-WebRequest -Uri "https://blogs.osdn.jp/2015/01/13/download/patch-2.5.9-7-bin.zip" -OutFile "tmp\patch.zip"
+  Expand-Archive -Path "tmp/patch.zip" -DestinationPath "tmp"
+} else {
+  Write-Host "** patchコマンドは既に取得済なので無視しました。"
+  Write-Host ""
+}
+
 function download($path, $name) {
-  if (!(Test-Path "tmp\$name.zip")) {
+  if (!(Test-Path "library\$name.zip")) {
     Write-Host "** $name のソースコードを取得します。"
     Write-Host "$path"
-    Invoke-WebRequest -Uri "$path" -OutFile "tmp\$name.zip"
+    Invoke-WebRequest -Uri "$path" -OutFile "library\$name.zip"
     Write-Host ""
   } else {
     Write-Host "** $name は既に取得済なので無視しました。"
     Write-Host ""
   }  
 }
-
-New-Item tmp\ -ItemType Directory >$null 2>&1
-New-Item library\ -ItemType Directory >$null 2>&1
 
 Write-Host "================================================================================="
 Write-Host ""
@@ -85,17 +100,30 @@ Write-Host ""
 Write-Host "* 取得したソースコードを展開します。"
 Write-Host ""
 
-foreach($item in Get-ChildItem "tmp\*.zip"){
+foreach($item in Get-ChildItem "library\*.zip"){
   $name = $item.Name.Split(".")[0]
-  if (!(Test-Path "tmp\$name")) {
+  if (!(Test-Path "library\$name")) {
     Write-Host "** $name を展開します。"
     Write-Host ""
-    Expand-Archive -Path $item -DestinationPath "tmp\$name"
+    Expand-Archive -Path $item -DestinationPath "library\$name"
   } else {
     Write-Host "** $name は既に展開済なので無視しました。"
     Write-Host ""
   }
 }
+
+Write-Host "================================================================================="
+Write-Host ""
+Write-Host "* ビルドが必要なライブラリのビルドをします。"
+Write-Host ""
+
+.\tmp\bin\patch.exe library\angelscript\sdk\angelscript\projects\msvc2015\angelscript.vcxproj bootstrap\angelscript.patch
+pause
+cd library\angelscript\sdk\angelscript\projects\msvc2015
+
+#かなり苦肉の策
+&"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe" angelscript.vcxproj /p:Configuration=Release
+cd ..\..\..\..\..\..\
 
 Write-Host "================================================================================="
 
