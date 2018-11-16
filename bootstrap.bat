@@ -14,6 +14,8 @@ $ZLIB_VER_NUM = $ZLIB_VER.Replace(".","")
 $LIBPNG_VER_NUM = $LIBPNG_VER.Replace(".","")
 $LIBPNG_VER_NUM2 = $LIBPNG_VER_NUM.Substring(0,2)
 
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+
 Write-Host '================================================================================='
 Write-Host ''
 Write-Host '   .d8888b.                                             888                     '
@@ -40,7 +42,6 @@ Write-Host ''
 Write-Host "Seaurchin BootStrapではSeaurchinの開発環境を自動的に構築をします。"
 Read-Host '続行するには Enter キーを押してください'
 
-
 Write-Host '================================================================================='
 Write-Host ''
 Write-Host "* ライブラリ展開先フォルダと一時フォルダを生成します。"
@@ -55,76 +56,57 @@ Write-Host "* 環境構築に必要なコマンドを準備します。"
 Write-Host ''
 
 if (!(Test-Path "tmp\patch.zip")) {
+  Write-Host "** patchコマンドのソースコードを取得します。"
+  Write-Host "https://blogs.osdn.jp/2015/01/13/download/patch-2.5.9-7-bin.zip"
   Invoke-WebRequest -Uri "https://blogs.osdn.jp/2015/01/13/download/patch-2.5.9-7-bin.zip" -OutFile "tmp\patch.zip"
   Expand-Archive -Path "tmp/patch.zip" -DestinationPath "tmp"
+  Write-Host ""
 } else {
   Write-Host "** patchコマンドは既に取得済なので無視しました。"
   Write-Host ""
 }
 
-function download($path, $name) {
-  if (!(Test-Path "library\$name.zip")) {
-    Write-Host "** $name のソースコードを取得します。"
-    Write-Host "$path"
-    Invoke-WebRequest -Uri "$path" -OutFile "library\$name.zip"
-    Write-Host ""
-  } else {
-    Write-Host "** $name は既に取得済なので無視しました。"
-    Write-Host ""
-  }  
-}
-
 Write-Host "================================================================================="
 Write-Host ""
-Write-Host "* ライブラリ群のソースコードを取得します。"
+Write-Host "* 依存ライブラリの取得・ビルドを実行します"
 Write-Host ""
 
-[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-
-download "https://www.angelcode.com/angelscript/sdk/files/angelscript_$ANGELSCRIPT_VER.zip" "angelscript"
-download "https://dl.bintray.com/boostorg/release/$BOOST_VER/source/boost_$BOOST_VER_UNDERLINE.zip" "boost"
-download "https://zlib.net/zlib$ZLIB_VER_NUM.zip" "zlib"
-download "http://ftp-osl.osuosl.org/pub/libpng/src/libpng$LIBPNG_VER_NUM2/lpng$LIBPNG_VER_NUM.zip" "libpng"
-download "https://github.com/mayah/tinytoml/archive/master.zip" "tinytoml"
-download "https://github.com/fmtlib/fmt/releases/download/$FMT_VER/fmt-$FMT_VER.zip" "fmt"
-download "https://github.com/gabime/spdlog/archive/v$SPDLOG_VER.zip" "spdlog"
-download "https://github.com/g-truc/glm/releases/download/$GLM_VER/glm-$GLM_VER.zip" "glm"
-download "http://dxlib.o.oo7.jp/DxLib/DxLib_VC3_19d.zip" "dxlib"
-download "https://github.com/ubawurinna/freetype-windows-binaries/releases/download/v$FREETYPE_VER/freetype-$FREETYPE_VER.zip" "freetype"
-download "http://us.un4seen.com/files/bass24.zip" "base24"
-download "http://us.un4seen.com/files/z/0/bass_fx24.zip" "base24_fx"
-download "http://us.un4seen.com/files/bassmix24.zip" "base24_mix"
-
-Write-Host "================================================================================="
-Write-Host ""
-Write-Host "* 取得したソースコードを展開します。"
-Write-Host ""
-
-foreach($item in Get-ChildItem "library\*.zip"){
-  $name = $item.Name.Split(".")[0]
-  if (!(Test-Path "library\$name")) {
-    Write-Host "** $name を展開します。"
-    Write-Host ""
-    Expand-Archive -Path $item -DestinationPath "library\$name"
+if (!(Test-Path "library\angelscript")) {
+  if (!(Test-Path "library\angelscript.zip")) {
+    Write-Host "** AngelScript のソースコードを取得します。"
+    Write-Host "https://www.angelcode.com/angelscript/sdk/files/angelscript_$ANGELSCRIPT_VER.zip"
+    Invoke-WebRequest -Uri "https://www.angelcode.com/angelscript/sdk/files/angelscript_$ANGELSCRIPT_VER.zip" -OutFile "library\angelscript.zip"
   } else {
-    Write-Host "** $name は既に展開済なので無視しました。"
+    Write-Host "** AngelScript は既に取得済なので無視しました。"
     Write-Host ""
   }
+  Write-Host "** AngelScript を展開します。"
+  Expand-Archive -Path "library\angelscript.zip" -DestinationPath "library\angelscript" -force
+
+  Write-Host "** AngelScript をビルドします。"
+  .\tmp\bin\patch.exe library\angelscript\sdk\angelscript\projects\msvc2015\angelscript.vcxproj bootstrap\angelscript.patch
+  cd library\angelscript\sdk\angelscript\projects\msvc2015
+  &"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe" angelscript.vcxproj /p:Configuration=Release
+  cd ..\..\..\..\..\..\
+
+  Write-Host ""
+} else {
+  Write-Host "** AngelScript は既にビルド済なので無視しました。"
+  Write-Host ""
 }
 
-Write-Host "================================================================================="
-Write-Host ""
-Write-Host "* ビルドが必要なライブラリのビルドをします。"
-Write-Host ""
 
-.\tmp\bin\patch.exe library\angelscript\sdk\angelscript\projects\msvc2015\angelscript.vcxproj bootstrap\angelscript.patch
-pause
-cd library\angelscript\sdk\angelscript\projects\msvc2015
-
-#かなり苦肉の策
-&"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe" angelscript.vcxproj /p:Configuration=Release
-cd ..\..\..\..\..\..\
-
-Write-Host "================================================================================="
+#download "https://dl.bintray.com/boostorg/release/$BOOST_VER/source/boost_$BOOST_VER_UNDERLINE.zip" "boost"
+#download "https://zlib.net/zlib$ZLIB_VER_NUM.zip" "zlib"
+#download "http://ftp-osl.osuosl.org/pub/libpng/src/libpng$LIBPNG_VER_NUM2/lpng$LIBPNG_VER_NUM.zip" "libpng"
+#download "https://github.com/mayah/tinytoml/archive/master.zip" "tinytoml"
+#download "https://github.com/fmtlib/fmt/releases/download/$FMT_VER/fmt-$FMT_VER.zip" "fmt"
+#download "https://github.com/gabime/spdlog/archive/v$SPDLOG_VER.zip" "spdlog"
+#download "https://github.com/g-truc/glm/releases/download/$GLM_VER/glm-$GLM_VER.zip" "glm"
+#download "http://dxlib.o.oo7.jp/DxLib/DxLib_VC3_19d.zip" "dxlib"
+#download "https://github.com/ubawurinna/freetype-windows-binaries/releases/download/v$FREETYPE_VER/freetype-$FREETYPE_VER.zip" "freetype"
+#download "http://us.un4seen.com/files/bass24.zip" "base24"
+#download "http://us.un4seen.com/files/z/0/bass_fx24.zip" "base24_fx"
+#download "http://us.un4seen.com/files/bassmix24.zip" "base24_mix"
 
 pause
