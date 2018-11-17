@@ -16,28 +16,28 @@ $LIBPNG_VER_NUM2 = $LIBPNG_VER_NUM.Substring(0,2)
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 
-Write-Host '================================================================================='
-Write-Host ''
-Write-Host '   .d8888b.                                             888                     '
-Write-Host '  d88P  Y88b                                            888                     '
-Write-Host '  Y88b.                                                 888                     '
-Write-Host '   "Y888b.    .d88b.   8888b.  888  888 888d888 .d8888b 88888b.  88888b.        '
-Write-Host '      "Y88b. d8P  Y8b     "88b 888  888 888P"  d88P"    888 "88b 888 "88b       '
-Write-Host '        "888 88888888 .d888888 888  888 888    888      888  888 888  888       '
-Write-Host '  Y88b  d88P Y8b.     888  888 Y88b 888 888    Y88b.    888  888 888  888       '
-Write-Host '   "Y8888P"   "Y8888  "Y888888  "Y88888 888     "Y8888P 888  888 888  888       '
-Write-Host ''
-Write-Host '  888888b.                     888    .d8888b.  888                             '
-Write-Host '  888  "88b                    888   d88P  Y88b 888                             '
-Write-Host '  888  .88P                    888   Y88b.      888                             '
-Write-Host '  8888888K.   .d88b.   .d88b.  888888 "Y888b.   888888 888d888 8888b.  88888b.  '
-Write-Host '  888  "Y88b d88""88b d88""88b 888       "Y88b. 888    888P"      "88b 888 "88b '
-Write-Host '  888    888 888  888 888  888 888         "888 888    888    .d888888 888  888 '
-Write-Host '  888   d88P Y88..88P Y88..88P Y88b. Y88b  d88P Y88b.  888    888  888 888 d88P '
-Write-Host '  8888888P"   "Y88P"   "Y88P"   "Y888 "Y8888P"   "Y888 888    "Y888888 88888P"  '
-Write-Host '                                                                       888      '
-Write-Host '                                                                       888      '
-Write-Host '====================================================================== 888 ======'
+Write-Host '================================================================================'
+Write-Host '                                                                                '
+Write-Host ' .d8888b.                                             888      d8b              '
+Write-Host 'd88P  Y88b                                            888      Y8P              '
+Write-Host 'Y88b.                                                 888                       '
+Write-Host ' "Y888b.    .d88b.   8888b.  888  888 888d888 .d8888b 88888b.  888 88888b.      '
+Write-Host '    "Y88b. d8P  Y8b     "88b 888  888 888P"  d88P"    888 "88b 888 888 "88b     '
+Write-Host '      "888 88888888 .d888888 888  888 888    888      888  888 888 888  888     '
+Write-Host 'Y88b  d88P Y8b.     888  888 Y88b 888 888    Y88b.    888  888 888 888  888     '
+Write-Host ' "Y8888P"   "Y8888  "Y888888  "Y88888 888     "Y8888P 888  888 888 888  888     '
+Write-Host '                                                                                '
+Write-Host '   888888b.                     888    .d8888b.  888                            '
+Write-Host '   888  "88b                    888   d88P  Y88b 888                            '
+Write-Host '   888  .88P                    888   Y88b.      888                            '
+Write-Host '   8888888K.   .d88b.   .d88b.  888888 "Y888b.   888888 888d888 8888b.  88888b. '
+Write-Host '   888  "Y88b d88""88b d88""88b 888       "Y88b. 888    888P"      "88b 888 "88b'
+Write-Host '   888    888 888  888 888  888 888         "888 888    888    .d888888 888  888'
+Write-Host '   888   d88P Y88..88P Y88..88P Y88b. Y88b  d88P Y88b.  888    888  888 888 d88P'
+Write-Host '   8888888P"   "Y88P"   "Y88P"   "Y888 "Y8888P"   "Y888 888    "Y888888 88888P" '
+Write-Host '                                                                        888     '
+Write-Host '                                                                        888     '
+Write-Host '======================================================================= 888 ===='
 Write-Host ''
 Write-Host "Seaurchin BootStrapではSeaurchinの開発環境を自動的に構築をします。"
 Read-Host '続行するには Enter キーを押してください'
@@ -95,8 +95,30 @@ if (!(Test-Path "library\angelscript")) {
   Write-Host ""
 }
 
+if (!(Test-Path "library\boost")) {
+  if (!(Test-Path "library\boost.zip")) {
+    Write-Host "** Boost のソースコードを取得します。"
+    Write-Host "https://dl.bintray.com/boostorg/release/$BOOST_VER/source/boost_$BOOST_VER_UNDERLINE.zip"
+    Invoke-WebRequest -Uri "https://dl.bintray.com/boostorg/release/$BOOST_VER/source/boost_$BOOST_VER_UNDERLINE.zip" -OutFile "library\boost.zip"
+  } else {
+    Write-Host "** Boost は既に取得済なので無視しました。"
+    Write-Host ""
+  }
+  Write-Host "** Boost を展開します。"
+  Expand-Archive -Path "library\boost.zip" -DestinationPath "library\boost" -force
 
-#download "https://dl.bintray.com/boostorg/release/$BOOST_VER/source/boost_$BOOST_VER_UNDERLINE.zip" "boost"
+  Write-Host "** Boost をビルドします。"
+  cd "library\boost\boost_$BOOST_VER_UNDERLINE"
+  cmd /c "bootstrap.bat"
+  cmd /c "b2 -j 4"
+  cd "..\..\..\"
+
+  Write-Host ""
+} else {
+  Write-Host "** Boost は既にビルド済なので無視しました。"
+  Write-Host ""
+}
+
 #download "https://zlib.net/zlib$ZLIB_VER_NUM.zip" "zlib"
 #download "http://ftp-osl.osuosl.org/pub/libpng/src/libpng$LIBPNG_VER_NUM2/lpng$LIBPNG_VER_NUM.zip" "libpng"
 #download "https://github.com/mayah/tinytoml/archive/master.zip" "tinytoml"
