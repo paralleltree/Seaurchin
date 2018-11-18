@@ -14,6 +14,7 @@ $ZLIB_VER_NUM = $ZLIB_VER.Replace(".","")
 $LIBPNG_VER_NUM = $LIBPNG_VER.Replace(".","")
 $LIBPNG_VER_NUM2 = $LIBPNG_VER_NUM.Substring(0,2)
 
+$MSBUILD = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe"
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 
 Write-Host '================================================================================'
@@ -86,7 +87,7 @@ if (!(Test-Path "library\angelscript")) {
   Write-Host "** AngelScript をビルドします。"
   .\tmp\bin\patch.exe library\angelscript\sdk\angelscript\projects\msvc2015\angelscript.vcxproj bootstrap\angelscript.patch
   cd library\angelscript\sdk\angelscript\projects\msvc2015
-  &"C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe" angelscript.vcxproj /p:Configuration=Release
+  &$MSBUILD angelscript.vcxproj /p:Configuration=Release
   cd ..\..\..\..\..\..\
 
   Write-Host ""
@@ -119,8 +120,60 @@ if (!(Test-Path "library\boost")) {
   Write-Host ""
 }
 
-#download "https://zlib.net/zlib$ZLIB_VER_NUM.zip" "zlib"
-#download "http://ftp-osl.osuosl.org/pub/libpng/src/libpng$LIBPNG_VER_NUM2/lpng$LIBPNG_VER_NUM.zip" "libpng"
+if (!(Test-Path "library\zlib")) {
+  if (!(Test-Path "library\zlib.zip")) {
+    Write-Host "** zlib のソースコードを取得します。"
+    Write-Host "https://zlib.net/zlib$ZLIB_VER_NUM.zip"
+    Invoke-WebRequest -Uri "https://zlib.net/zlib$ZLIB_VER_NUM.zip" -OutFile "library\zlib.zip"
+  } else {
+    Write-Host "** zlib は既に取得済なので無視しました。"
+    Write-Host ""
+  }
+  Write-Host "** zlib を展開します。"
+  Expand-Archive -Path "library\zlib.zip" -DestinationPath "library\zlib" -force
+
+  Write-Host "** zlib はヘッダオンリーなのでビルドはスキップしました。"
+  Write-Host ""
+} else {
+  Write-Host "** zlib は既に展開済なので無視しました。"
+  Write-Host ""
+}
+
+if (!(Test-Path "library\libpng")) {
+  if (!(Test-Path "library\libpng.zip")) {
+    Write-Host "** libpng のソースコードを取得します。"
+    Write-Host "http://ftp-osl.osuosl.org/pub/libpng/src/libpng$LIBPNG_VER_NUM2/lpng$LIBPNG_VER_NUM.zip"
+    Invoke-WebRequest -Uri "http://ftp-osl.osuosl.org/pub/libpng/src/libpng$LIBPNG_VER_NUM2/lpng$LIBPNG_VER_NUM.zip" -OutFile "library\libpng.zip"
+  } else {
+    Write-Host "** libpng は既にビルド済なので無視しました。"
+    Write-Host ""
+  }
+  Write-Host "** libpng を展開します。"
+  Expand-Archive -Path "library\libpng.zip" -DestinationPath "library\libpng" -force
+
+  Write-Host "** libpng をビルドします。"
+  
+  .\tmp\bin\patch.exe library\libpng\lpng1634\projects\vstudio\libpng\libpng.vcxproj bootstrap\libpng.patch
+  .\tmp\bin\patch.exe library\libpng\lpng1634\projects\vstudio\pnglibconf\pnglibconf.vcxproj bootstrap\pnglibconf.patch
+  .\tmp\bin\patch.exe library\libpng\lpng1634\projects\vstudio\pngstest\pngstest.vcxproj bootstrap\pngstest.patch
+  .\tmp\bin\patch.exe library\libpng\lpng1634\projects\vstudio\pngtest\pngtest.vcxproj bootstrap\pngtest.patch
+  .\tmp\bin\patch.exe library\libpng\lpng1634\projects\vstudio\pngunknown\pngunknown.vcxproj bootstrap\pngunknown.patch
+  .\tmp\bin\patch.exe library\libpng\lpng1634\projects\vstudio\pngvlaid\pngvlaid.vcxproj bootstrap\pngvalid.patch
+  .\tmp\bin\patch.exe library\libpng\lpng1634\projects\vstudio\zlib\zlib.vcxproj bootstrap\zlib.patch
+  .\tmp\bin\patch.exe library\libpng\lpng1634\projects\vstudio\zlib.props bootstrap\zlib.props.patch
+
+  cd "library\libpng\lpng1634\projects\vstudio"
+  &$MSBUILD vstudio.sln /p:Configuration=Release
+  cd "..\..\..\..\"
+
+  Write-Host ""
+} else {
+  Write-Host "** libpng は既に展開済なので無視しました。"
+  Write-Host ""
+}
+
+
+
 #download "https://github.com/mayah/tinytoml/archive/master.zip" "tinytoml"
 #download "https://github.com/fmtlib/fmt/releases/download/$FMT_VER/fmt-$FMT_VER.zip" "fmt"
 #download "https://github.com/gabime/spdlog/archive/v$SPDLOG_VER.zip" "spdlog"
