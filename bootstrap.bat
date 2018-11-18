@@ -136,10 +136,14 @@ if (!(Test-Path "library\boost")) {
     Write-Host ""
   }
   Write-Host "** Boost を展開します。"
-  Expand-Archive -Path "library\boost.zip" -DestinationPath "library\boost" -force
+  Expand-Archive -Path "library\boost.zip" -DestinationPath "library" -force
+  cd "library"
+  Rename-Item "boost_$BOOST_VER_UNDERLINE" "boost"
+  cd "$BASE_PATH"
 
   Write-Host "** Boost をビルドします。"
-  cd "library\boost\boost_$BOOST_VER_UNDERLINE"
+
+  cd "library\boost"
   cmd /c "bootstrap.bat"
   cmd /c "b2 -j 4"
   cd "$BASE_PATH"
@@ -150,7 +154,27 @@ if (!(Test-Path "library\boost")) {
   Write-Host ""
 }
 
-noBuild "https://zlib.net/zlib$ZLIB_VER_NUM.zip" "zlib"
+if (!(Test-Path "library\zlib")) {
+  if (!(Test-Path "library\zlib.zip")) {
+    Write-Host "** zlib のソースコードを取得します。"
+    Write-Host "https://zlib.net/zlib$ZLIB_VER_NUM.zip"
+    Invoke-WebRequest -Uri "https://zlib.net/zlib$ZLIB_VER_NUM.zip" -OutFile "library\zlib.zip"
+  } else {
+    Write-Host "** zlib は既に取得済なので無視しました。"
+    Write-Host ""
+  }
+  Write-Host "** zlib を展開します。"
+  Expand-Archive -Path "library\zlib.zip" -DestinationPath "library" -force
+  cd "library"
+  Rename-Item "zlib-$ZLIB_VER" "zlib"
+  cd "$BASE_PATH"
+
+  Write-Host "** zlib はビルド不要なのでビルドはスキップしました。"
+  Write-Host ""
+} else {
+  Write-Host "** zlib は既に取得済なので無視しました。"
+  Write-Host ""
+}
 
 if (!(Test-Path "library\libpng")) {
   if (!(Test-Path "library\libpng.zip")) {
@@ -162,11 +186,15 @@ if (!(Test-Path "library\libpng")) {
     Write-Host ""
   }
   Write-Host "** libpng を展開します。"
-  Expand-Archive -Path "library\libpng.zip" -DestinationPath "library\libpng" -force
+  Expand-Archive -Path "library\libpng.zip" -DestinationPath "library" -force
+  
+  cd "library"
+  Rename-Item "lpng$LIBPNG_VER_NUM" "libpng"
+  cd "$BASE_PATH"
 
   Write-Host "** libpng をビルドします。"
   
-  cd "library\libpng\lpng$LIBPNG_VER_NUM\projects\vstudio"
+  cd "library\libpng\projects\vstudio"
   &$PATCH libpng\libpng.vcxproj         "$BASE_PATH\bootstrap\libpng.patch"
   &$PATCH pnglibconf\pnglibconf.vcxproj "$BASE_PATH\bootstrap\pnglibconf.patch"
   &$PATCH pngstest\pngstest.vcxproj     "$BASE_PATH\bootstrap\pngstest.patch"
@@ -194,11 +222,15 @@ if (!(Test-Path "library\libjpeg")) {
     Write-Host ""
   }
   Write-Host "** libjpeg を展開します。"
-  Expand-Archive -Path "library\libjpeg.zip" -DestinationPath "library\libjpeg" -force
+  Expand-Archive -Path "library\libjpeg.zip" -DestinationPath "library" -force
 
   Write-Host "** libjpeg をビルドします。"
   
-  cd "library\libjpeg\jpeg-$LIBJPEG_VER"
+  cd "library"
+  Rename-Item "jpeg-$LIBJPEG_VER" "libjpeg"
+  cd "$BASE_PATH"
+
+  cd "library\libjpeg"
   &$NMAKE /f makefile.vs setup-v15
   &$PATCH --force jpeg.vcxproj         "$BASE_PATH\bootstrap\libjpeg.patch"
   &$MSBUILD jpeg.sln /p:Configuration=Release
@@ -220,11 +252,15 @@ if (!(Test-Path "library\libogg")) {
     Write-Host ""
   }
   Write-Host "** libogg を展開します。"
-  Expand-Archive -Path "library\libogg.zip" -DestinationPath "library\libogg" -force
+  Expand-Archive -Path "library\libogg.zip" -DestinationPath "library" -force
+
+  cd "library"
+  Rename-Item "libogg-$LIBOGG_VER" "libogg"
+  cd "$BASE_PATH"
 
   Write-Host "** libogg をビルドします。"
   
-  cd "library\libogg\libogg-$LIBOGG_VER\win32\VS2015"
+  cd "library\libogg\win32\VS2015"
   &$PATCH --force libogg_static.vcxproj "$BASE_PATH\bootstrap\libogg.patch"
   &$MSBUILD libogg_static.sln /p:Configuration=Release
   cd "$BASE_PATH"
@@ -245,11 +281,15 @@ if (!(Test-Path "library\libvorbis")) {
     Write-Host ""
   }
   Write-Host "** libvorbis を展開します。"
-  Expand-Archive -Path "library\libvorbis.zip" -DestinationPath "library\libvorbis" -force
+  Expand-Archive -Path "library\libvorbis.zip" -DestinationPath "library" -force
+
+  cd "library"
+  Rename-Item "libvorbis-$LIBVORBIS_VER" "libvorbis"
+  cd "$BASE_PATH"
 
   Write-Host "** libvorbis をビルドします。"
   
-  cd "library\libvorbis\libvorbis-$LIBVORBIS_VER\win32\VS2010"
+  cd "library\libvorbis\win32\VS2010"
   &$PATCH libvorbis\libvorbis_static.vcxproj         "$BASE_PATH\bootstrap\libvorbis.patch"
   &$PATCH libvorbisfile\libvorbisfile_static.vcxproj "$BASE_PATH\bootstrap\libvorbisfile.patch"
   &$PATCH vorbisdec\vorbisdec_static.vcxproj         "$BASE_PATH\bootstrap\vorbisdec.patch"
@@ -281,7 +321,7 @@ if (!(Test-Path "library\dxlib")) {
   Write-Host "** DxLib をリネームします。"
   
   cd "library\dxlib\DxLib_VC"
-  Rename-Item プロジェクトに追加すべきファイル_VC用 -newName include
+  Rename-Item "プロジェクトに追加すべきファイル_VC用" "include"
   cd "$BASE_PATH"
 
   Write-Host ""
@@ -290,14 +330,63 @@ if (!(Test-Path "library\dxlib")) {
   Write-Host ""
 }
 
-noBuild "http://us.un4seen.com/files/bass24.zip" "base24"
-noBuild "http://us.un4seen.com/files/z/0/bass_fx24.zip" "base24_fx"
-noBuild "http://us.un4seen.com/files/bassmix24.zip" "base24_mix"
+
+if (!(Test-Path "library\spdlog")) {
+  if (!(Test-Path "library\spdlog.zip")) {
+    Write-Host "** spdlog のソースコードを取得します。"
+    Write-Host "https://github.com/gabime/spdlog/archive/v$SPDLOG_VER.zip"
+    Invoke-WebRequest -Uri "https://github.com/gabime/spdlog/archive/v$SPDLOG_VER.zip" -OutFile "library\spdlog.zip"
+  } else {
+    Write-Host "** spdlog は既に取得済なので無視しました。"
+    Write-Host ""
+  }
+  Write-Host "** spdlog を展開します。"
+  Expand-Archive -Path "library\spdlog.zip" -DestinationPath "library" -force
+  cd "library"
+  Rename-Item "spdlog-$SPDLOG_VER" "spdlog"
+  cd "$BASE_PATH"
+
+  Write-Host "** spdlog はビルド不要なのでビルドはスキップしました。"
+
+  Write-Host ""
+} else {
+  Write-Host "** spdlog は既に取得済なので無視しました。"
+  Write-Host ""
+}
+
+if (!(Test-Path "library\fmt")) {
+  if (!(Test-Path "library\fmt.zip")) {
+    Write-Host "** fmt のソースコードを取得します。"
+    Write-Host "https://github.com/fmtlib/fmt/releases/download/$FMT_VER/fmt-$FMT_VER.zip"
+    Invoke-WebRequest -Uri "https://github.com/fmtlib/fmt/releases/download/$FMT_VER/fmt-$FMT_VER.zip" -OutFile "library\fmt.zip"
+  } else {
+    Write-Host "** fmt は既に取得済なので無視しました。"
+    Write-Host ""
+  }
+  Write-Host "** fmt を展開します。"
+  Expand-Archive -Path "library\fmt.zip" -DestinationPath "library" -force
+
+  cd "library"
+  Rename-Item "fmt-$FMT_VER" "fmt"
+  cd "$BASE_PATH"
+
+  Write-Host "** fmt はビルド不要なのでビルドはスキップしました。"
+
+  Write-Host ""
+} else {
+  Write-Host "** fmt は既に取得済なので無視しました。"
+  Write-Host ""
+}
+
+noBuild "http://us.un4seen.com/files/bass24.zip" "bass24"
+noBuild "http://us.un4seen.com/files/z/0/bass_fx24.zip" "bass24_fx"
+noBuild "http://us.un4seen.com/files/bassmix24.zip" "bass24_mix"
 
 noBuild "https://github.com/ubawurinna/freetype-windows-binaries/releases/download/v$FREETYPE_VER/freetype-$FREETYPE_VER.zip" "freetype"
 noBuild "https://github.com/mayah/tinytoml/archive/master.zip" "tinytoml"
-noBuild "https://github.com/fmtlib/fmt/releases/download/$FMT_VER/fmt-$FMT_VER.zip" "fmt"
-noBuild "https://github.com/gabime/spdlog/archive/v$SPDLOG_VER.zip" "spdlog"
 noBuild "https://github.com/g-truc/glm/releases/download/$GLM_VER/glm-$GLM_VER.zip" "glm"
+
+# Wacom機能が廃止されるまで臨時措置
+noBuild "https://github.com/denisidoro/xWacom/archive/master.zip" "wacom"
 
 pause

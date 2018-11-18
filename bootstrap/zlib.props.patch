@@ -5,7 +5,7 @@
          below:
       -->
 -    <ZLibSrcDir>..\..\..\..\zlib-1.2.8</ZLibSrcDir>
-+    <ZLibSrcDir>..\..\..\..\..\zlib\zlib-1.2.11</ZLibSrcDir>
++    <ZLibSrcDir>..\..\..\..\zlib</ZLibSrcDir>
 
      <!-- The following line allows compilation for an ARM target with Visual
           Studio 2012.  Notice that this is not supported by the Visual Studio
