@@ -265,7 +265,26 @@ if (!(Test-Path "library\libvorbis")) {
   Write-Host ""
 }
 
-#download "https://github.com/ubawurinna/freetype-windows-binaries/releases/download/v$FREETYPE_VER/freetype-$FREETYPE_VER.zip" "freetype"
+if (!(Test-Path "library\freetype")) {
+  if (!(Test-Path "library\freetype.zip")) {
+    Write-Host "** freetype のバイナリを取得します。"
+    Write-Host "https://github.com/ubawurinna/freetype-windows-binaries/releases/download/v$FREETYPE_VER/freetype-$FREETYPE_VER.zip"
+    Invoke-WebRequest -Uri "https://github.com/ubawurinna/freetype-windows-binaries/releases/download/v$FREETYPE_VER/freetype-$FREETYPE_VER.zip" -OutFile "library\freetype.zip"
+  } else {
+    Write-Host "** freetype は既に取得済なので無視しました。"
+    Write-Host ""
+  }
+  Write-Host "** freetype を展開します。"
+  Expand-Archive -Path "library\freetype.zip" -DestinationPath "library\freetype" -force
+
+  Write-Host "** freetype はバイナリなのでビルドはスキップしました。"
+
+  Write-Host ""
+} else {
+  Write-Host "** freetype は既に取得済なので無視しました。"
+  Write-Host ""
+}
+
 #download "http://us.un4seen.com/files/bass24.zip" "base24"
 #download "http://us.un4seen.com/files/z/0/bass_fx24.zip" "base24_fx"
 #download "http://us.un4seen.com/files/bassmix24.zip" "base24_mix"
