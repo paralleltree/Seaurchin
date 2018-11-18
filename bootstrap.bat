@@ -5,6 +5,7 @@ $BOOST_VER = "1.68.0"
 $ZLIB_VER = "1.2.11"
 $LIBPNG_VER = "1.6.34"
 $LIBJPEG_VER = "9c"
+$LIBOGG_VER = "1.3.3"
 $FMT_VER = "4.1.0"
 $SPDLOG_VER = "0.17.0"
 $GLM_VER = "0.9.9.3"
@@ -47,6 +48,27 @@ Write-Host '====================================================================
 Write-Host ''
 Write-Host "Seaurchin BootStrapではSeaurchinの開発環境を自動的に構築をします。"
 Read-Host '続行するには Enter キーを押してください'
+
+function headerOnly($url,$name) {
+  if (!(Test-Path "library\$name")) {
+    if (!(Test-Path "library\$name.zip")) {
+      Write-Host "** $name のソースコードを取得します。"
+      Write-Host "$url"
+      Invoke-WebRequest -Uri "$url" -OutFile "library\$name.zip"
+    } else {
+      Write-Host "** $name は既に取得済なので無視しました。"
+      Write-Host ""
+    }
+    Write-Host "** $name を展開します。"
+    Expand-Archive -Path "library\$name.zip" -DestinationPath "library\$name" -force
+
+    Write-Host "** $name はヘッダオンリーなのでビルドはスキップしました。"
+    Write-Host ""
+  } else {
+    Write-Host "** $name は既に展開済なので無視しました。"
+    Write-Host ""
+  }
+}
 
 Write-Host '================================================================================='
 Write-Host ''
@@ -127,24 +149,7 @@ if (!(Test-Path "library\boost")) {
   Write-Host ""
 }
 
-if (!(Test-Path "library\zlib")) {
-  if (!(Test-Path "library\zlib.zip")) {
-    Write-Host "** zlib のソースコードを取得します。"
-    Write-Host "https://zlib.net/zlib$ZLIB_VER_NUM.zip"
-    Invoke-WebRequest -Uri "https://zlib.net/zlib$ZLIB_VER_NUM.zip" -OutFile "library\zlib.zip"
-  } else {
-    Write-Host "** zlib は既に取得済なので無視しました。"
-    Write-Host ""
-  }
-  Write-Host "** zlib を展開します。"
-  Expand-Archive -Path "library\zlib.zip" -DestinationPath "library\zlib" -force
-
-  Write-Host "** zlib はヘッダオンリーなのでビルドはスキップしました。"
-  Write-Host ""
-} else {
-  Write-Host "** zlib は既に展開済なので無視しました。"
-  Write-Host ""
-}
+headerOnly "https://zlib.net/zlib$ZLIB_VER_NUM.zip" "zlib"
 
 if (!(Test-Path "library\libpng")) {
   if (!(Test-Path "library\libpng.zip")) {
@@ -204,16 +209,41 @@ if (!(Test-Path "library\libjpeg")) {
   Write-Host ""
 }
 
+if (!(Test-Path "library\libogg")) {
+  if (!(Test-Path "library\libogg.zip")) {
+    Write-Host "** libogg のソースコードを取得します。"
+    Write-Host "http://downloads.xiph.org/releases/ogg/libogg-$LIBOGG_VER.zip"
+    Invoke-WebRequest -Uri "http://downloads.xiph.org/releases/ogg/libogg-$LIBOGG_VER.zip" -OutFile "library\libogg.zip"
+  } else {
+    Write-Host "** libogg は既に取得済なので無視しました。"
+    Write-Host ""
+  }
+  Write-Host "** libogg を展開します。"
+  Expand-Archive -Path "library\libogg.zip" -DestinationPath "library\libogg" -force
+
+  Write-Host "** libogg をビルドします。"
+  
+  cd "library\libogg\libogg-$LIBOGG_VER\win32\VS2015"
+  &$PATCH --force libogg_static.vcxproj "$BASE_PATH\bootstrap\libogg.patch"
+  &$MSBUILD libogg_static.sln /p:Configuration=Release
+  cd "$BASE_PATH"
+
+  Write-Host ""
+} else {
+  Write-Host "** libogg は既にビルド済なので無視しました。"
+  Write-Host ""
+}
 
 
-#download "https://github.com/mayah/tinytoml/archive/master.zip" "tinytoml"
-#download "https://github.com/fmtlib/fmt/releases/download/$FMT_VER/fmt-$FMT_VER.zip" "fmt"
-#download "https://github.com/gabime/spdlog/archive/v$SPDLOG_VER.zip" "spdlog"
-#download "https://github.com/g-truc/glm/releases/download/$GLM_VER/glm-$GLM_VER.zip" "glm"
-#download "http://dxlib.o.oo7.jp/DxLib/DxLib_VC3_19d.zip" "dxlib"
 #download "https://github.com/ubawurinna/freetype-windows-binaries/releases/download/v$FREETYPE_VER/freetype-$FREETYPE_VER.zip" "freetype"
 #download "http://us.un4seen.com/files/bass24.zip" "base24"
 #download "http://us.un4seen.com/files/z/0/bass_fx24.zip" "base24_fx"
 #download "http://us.un4seen.com/files/bassmix24.zip" "base24_mix"
+
+headerOnly "https://github.com/mayah/tinytoml/archive/master.zip" "tinytoml"
+headerOnly "https://github.com/fmtlib/fmt/releases/download/$FMT_VER/fmt-$FMT_VER.zip" "fmt"
+headerOnly "https://github.com/gabime/spdlog/archive/v$SPDLOG_VER.zip" "spdlog"
+headerOnly "https://github.com/g-truc/glm/releases/download/$GLM_VER/glm-$GLM_VER.zip" "glm"
+headerOnly "http://dxlib.o.oo7.jp/DxLib/DxLib_VC3_19d.zip" "dxlib"
 
 pause
