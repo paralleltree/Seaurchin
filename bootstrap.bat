@@ -50,10 +50,10 @@ Write-Host ''
 Write-Host "Seaurchin BootStrapではSeaurchinの開発環境を自動的に構築をします。"
 Read-Host '続行するには Enter キーを押してください'
 
-function headerOnly($url,$name) {
+function noBuild($url,$name) {
   if (!(Test-Path "library\$name")) {
     if (!(Test-Path "library\$name.zip")) {
-      Write-Host "** $name のソースコードを取得します。"
+      Write-Host "** $name のデータを取得します。"
       Write-Host "$url"
       Invoke-WebRequest -Uri "$url" -OutFile "library\$name.zip"
     } else {
@@ -63,7 +63,7 @@ function headerOnly($url,$name) {
     Write-Host "** $name を展開します。"
     Expand-Archive -Path "library\$name.zip" -DestinationPath "library\$name" -force
 
-    Write-Host "** $name はヘッダオンリーなのでビルドはスキップしました。"
+    Write-Host "** $name はビルド不要なのでビルドはスキップしました。"
     Write-Host ""
   } else {
     Write-Host "** $name は既に展開済なので無視しました。"
@@ -150,7 +150,7 @@ if (!(Test-Path "library\boost")) {
   Write-Host ""
 }
 
-headerOnly "https://zlib.net/zlib$ZLIB_VER_NUM.zip" "zlib"
+noBuild "https://zlib.net/zlib$ZLIB_VER_NUM.zip" "zlib"
 
 if (!(Test-Path "library\libpng")) {
   if (!(Test-Path "library\libpng.zip")) {
@@ -265,34 +265,39 @@ if (!(Test-Path "library\libvorbis")) {
   Write-Host ""
 }
 
-if (!(Test-Path "library\freetype")) {
-  if (!(Test-Path "library\freetype.zip")) {
-    Write-Host "** freetype のバイナリを取得します。"
-    Write-Host "https://github.com/ubawurinna/freetype-windows-binaries/releases/download/v$FREETYPE_VER/freetype-$FREETYPE_VER.zip"
-    Invoke-WebRequest -Uri "https://github.com/ubawurinna/freetype-windows-binaries/releases/download/v$FREETYPE_VER/freetype-$FREETYPE_VER.zip" -OutFile "library\freetype.zip"
+
+if (!(Test-Path "library\dxlib")) {
+  if (!(Test-Path "library\dxlib.zip")) {
+    Write-Host "** DxLib のソースコードを取得します。"
+    Write-Host "http://dxlib.o.oo7.jp/DxLib/DxLib_VC3_19d.zip"
+    Invoke-WebRequest -Uri "http://dxlib.o.oo7.jp/DxLib/DxLib_VC3_19d.zip" -OutFile "library\dxlib.zip"
   } else {
-    Write-Host "** freetype は既に取得済なので無視しました。"
+    Write-Host "** DxLib は既に取得済なので無視しました。"
     Write-Host ""
   }
-  Write-Host "** freetype を展開します。"
-  Expand-Archive -Path "library\freetype.zip" -DestinationPath "library\freetype" -force
+  Write-Host "** DxLib を展開します。"
+  Expand-Archive -Path "library\dxlib.zip" -DestinationPath "library\dxlib" -force
 
-  Write-Host "** freetype はバイナリなのでビルドはスキップしました。"
+  Write-Host "** DxLib をリネームします。"
+  
+  cd "library\dxlib\DxLib_VC"
+  Rename-Item プロジェクトに追加すべきファイル_VC用 -newName include
+  cd "$BASE_PATH"
 
   Write-Host ""
 } else {
-  Write-Host "** freetype は既に取得済なので無視しました。"
+  Write-Host "** DxLib は既にビルド済なので無視しました。"
   Write-Host ""
 }
 
-#download "http://us.un4seen.com/files/bass24.zip" "base24"
-#download "http://us.un4seen.com/files/z/0/bass_fx24.zip" "base24_fx"
-#download "http://us.un4seen.com/files/bassmix24.zip" "base24_mix"
-#download "http://dxlib.o.oo7.jp/DxLib/DxLib_VC3_19d.zip" "dxlib"
+noBuild "http://us.un4seen.com/files/bass24.zip" "base24"
+noBuild "http://us.un4seen.com/files/z/0/bass_fx24.zip" "base24_fx"
+noBuild "http://us.un4seen.com/files/bassmix24.zip" "base24_mix"
 
-headerOnly "https://github.com/mayah/tinytoml/archive/master.zip" "tinytoml"
-headerOnly "https://github.com/fmtlib/fmt/releases/download/$FMT_VER/fmt-$FMT_VER.zip" "fmt"
-headerOnly "https://github.com/gabime/spdlog/archive/v$SPDLOG_VER.zip" "spdlog"
-headerOnly "https://github.com/g-truc/glm/releases/download/$GLM_VER/glm-$GLM_VER.zip" "glm"
+noBuild "https://github.com/ubawurinna/freetype-windows-binaries/releases/download/v$FREETYPE_VER/freetype-$FREETYPE_VER.zip" "freetype"
+noBuild "https://github.com/mayah/tinytoml/archive/master.zip" "tinytoml"
+noBuild "https://github.com/fmtlib/fmt/releases/download/$FMT_VER/fmt-$FMT_VER.zip" "fmt"
+noBuild "https://github.com/gabime/spdlog/archive/v$SPDLOG_VER.zip" "spdlog"
+noBuild "https://github.com/g-truc/glm/releases/download/$GLM_VER/glm-$GLM_VER.zip" "glm"
 
 pause
