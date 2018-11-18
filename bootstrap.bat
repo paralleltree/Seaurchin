@@ -6,6 +6,7 @@ $ZLIB_VER = "1.2.11"
 $LIBPNG_VER = "1.6.34"
 $LIBJPEG_VER = "9c"
 $LIBOGG_VER = "1.3.3"
+$LIBVORBIS_VER = "1.3.6"
 $FMT_VER = "4.1.0"
 $SPDLOG_VER = "0.17.0"
 $GLM_VER = "0.9.9.3"
@@ -234,16 +235,45 @@ if (!(Test-Path "library\libogg")) {
   Write-Host ""
 }
 
+if (!(Test-Path "library\libvorbis")) {
+  if (!(Test-Path "library\libvorbis.zip")) {
+    Write-Host "** libvorbis のソースコードを取得します。"
+    Write-Host "http://downloads.xiph.org/releases/vorbis/libvorbis-$LIBVORBIS_VER.zip"
+    Invoke-WebRequest -Uri "http://downloads.xiph.org/releases/vorbis/libvorbis-$LIBVORBIS_VER.zip" -OutFile "library\libvorbis.zip"
+  } else {
+    Write-Host "** libvorbis は既に取得済なので無視しました。"
+    Write-Host ""
+  }
+  Write-Host "** libvorbis を展開します。"
+  Expand-Archive -Path "library\libvorbis.zip" -DestinationPath "library\libvorbis" -force
+
+  Write-Host "** libvorbis をビルドします。"
+  
+  cd "library\libvorbis\libvorbis-$LIBVORBIS_VER\win32\VS2010"
+  &$PATCH libvorbis\libvorbis_static.vcxproj         "$BASE_PATH\bootstrap\libvorbis.patch"
+  &$PATCH libvorbisfile\libvorbisfile_static.vcxproj "$BASE_PATH\bootstrap\libvorbisfile.patch"
+  &$PATCH vorbisdec\vorbisdec_static.vcxproj         "$BASE_PATH\bootstrap\vorbisdec.patch"
+  &$PATCH vorbisenc\vorbisenc_static.vcxproj         "$BASE_PATH\bootstrap\vorbisenc.patch"
+  &$PATCH libogg.props                               "$BASE_PATH\bootstrap\libogg.props.patch"
+  &$MSBUILD vorbis_static.sln /p:Configuration=Release
+ 
+  cd "$BASE_PATH"
+
+  Write-Host ""
+} else {
+  Write-Host "** libogg は既にビルド済なので無視しました。"
+  Write-Host ""
+}
 
 #download "https://github.com/ubawurinna/freetype-windows-binaries/releases/download/v$FREETYPE_VER/freetype-$FREETYPE_VER.zip" "freetype"
 #download "http://us.un4seen.com/files/bass24.zip" "base24"
 #download "http://us.un4seen.com/files/z/0/bass_fx24.zip" "base24_fx"
 #download "http://us.un4seen.com/files/bassmix24.zip" "base24_mix"
+#download "http://dxlib.o.oo7.jp/DxLib/DxLib_VC3_19d.zip" "dxlib"
 
 headerOnly "https://github.com/mayah/tinytoml/archive/master.zip" "tinytoml"
 headerOnly "https://github.com/fmtlib/fmt/releases/download/$FMT_VER/fmt-$FMT_VER.zip" "fmt"
 headerOnly "https://github.com/gabime/spdlog/archive/v$SPDLOG_VER.zip" "spdlog"
 headerOnly "https://github.com/g-truc/glm/releases/download/$GLM_VER/glm-$GLM_VER.zip" "glm"
-headerOnly "http://dxlib.o.oo7.jp/DxLib/DxLib_VC3_19d.zip" "dxlib"
 
 pause
