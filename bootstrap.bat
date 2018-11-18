@@ -4,6 +4,7 @@ $ANGELSCRIPT_VER = "2.32.0"
 $BOOST_VER = "1.68.0"
 $ZLIB_VER = "1.2.11"
 $LIBPNG_VER = "1.6.34"
+$LIBJPEG_VER = "9c"
 $FMT_VER = "4.1.0"
 $SPDLOG_VER = "0.17.0"
 $GLM_VER = "0.9.9.3"
@@ -14,7 +15,11 @@ $ZLIB_VER_NUM = $ZLIB_VER.Replace(".","")
 $LIBPNG_VER_NUM = $LIBPNG_VER.Replace(".","")
 $LIBPNG_VER_NUM2 = $LIBPNG_VER_NUM.Substring(0,2)
 
+$BASE_PATH = pwd
 $MSBUILD = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe"
+$VS_TOOLS_VER = ls "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\" -NAME  | Select-Object -Last 1
+$NMAKE = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\$VS_TOOLS_VER\bin\Hostx86\x86\nmake.exe"
+
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 
 Write-Host '================================================================================'
@@ -67,6 +72,8 @@ if (!(Test-Path "tmp\patch.zip")) {
   Write-Host ""
 }
 
+$PATCH = Resolve-Path ".\tmp\bin\patch.exe"
+
 Write-Host "================================================================================="
 Write-Host ""
 Write-Host "* 依存ライブラリの取得・ビルドを実行します"
@@ -85,10 +92,10 @@ if (!(Test-Path "library\angelscript")) {
   Expand-Archive -Path "library\angelscript.zip" -DestinationPath "library\angelscript" -force
 
   Write-Host "** AngelScript をビルドします。"
-  .\tmp\bin\patch.exe library\angelscript\sdk\angelscript\projects\msvc2015\angelscript.vcxproj bootstrap\angelscript.patch
   cd library\angelscript\sdk\angelscript\projects\msvc2015
+  &$PATCH angelscript.vcxproj "$BASE_PATH/bootstrap\angelscript.patch"
   &$MSBUILD angelscript.vcxproj /p:Configuration=Release
-  cd ..\..\..\..\..\..\
+  cd "$BASE_PATH"
 
   Write-Host ""
 } else {
@@ -112,7 +119,7 @@ if (!(Test-Path "library\boost")) {
   cd "library\boost\boost_$BOOST_VER_UNDERLINE"
   cmd /c "bootstrap.bat"
   cmd /c "b2 -j 4"
-  cd "..\..\..\"
+  cd "$BASE_PATH"
 
   Write-Host ""
 } else {
@@ -145,7 +152,7 @@ if (!(Test-Path "library\libpng")) {
     Write-Host "http://ftp-osl.osuosl.org/pub/libpng/src/libpng$LIBPNG_VER_NUM2/lpng$LIBPNG_VER_NUM.zip"
     Invoke-WebRequest -Uri "http://ftp-osl.osuosl.org/pub/libpng/src/libpng$LIBPNG_VER_NUM2/lpng$LIBPNG_VER_NUM.zip" -OutFile "library\libpng.zip"
   } else {
-    Write-Host "** libpng は既にビルド済なので無視しました。"
+    Write-Host "** libpng は既に取得済なので無視しました。"
     Write-Host ""
   }
   Write-Host "** libpng を展開します。"
@@ -153,22 +160,47 @@ if (!(Test-Path "library\libpng")) {
 
   Write-Host "** libpng をビルドします。"
   
-  .\tmp\bin\patch.exe library\libpng\lpng1634\projects\vstudio\libpng\libpng.vcxproj bootstrap\libpng.patch
-  .\tmp\bin\patch.exe library\libpng\lpng1634\projects\vstudio\pnglibconf\pnglibconf.vcxproj bootstrap\pnglibconf.patch
-  .\tmp\bin\patch.exe library\libpng\lpng1634\projects\vstudio\pngstest\pngstest.vcxproj bootstrap\pngstest.patch
-  .\tmp\bin\patch.exe library\libpng\lpng1634\projects\vstudio\pngtest\pngtest.vcxproj bootstrap\pngtest.patch
-  .\tmp\bin\patch.exe library\libpng\lpng1634\projects\vstudio\pngunknown\pngunknown.vcxproj bootstrap\pngunknown.patch
-  .\tmp\bin\patch.exe library\libpng\lpng1634\projects\vstudio\pngvlaid\pngvlaid.vcxproj bootstrap\pngvalid.patch
-  .\tmp\bin\patch.exe library\libpng\lpng1634\projects\vstudio\zlib\zlib.vcxproj bootstrap\zlib.patch
-  .\tmp\bin\patch.exe library\libpng\lpng1634\projects\vstudio\zlib.props bootstrap\zlib.props.patch
-
-  cd "library\libpng\lpng1634\projects\vstudio"
+  cd "library\libpng\lpng$LIBPNG_VER_NUM\projects\vstudio"
+  &$PATCH libpng\libpng.vcxproj         "$BASE_PATH\bootstrap\libpng.patch"
+  &$PATCH pnglibconf\pnglibconf.vcxproj "$BASE_PATH\bootstrap\pnglibconf.patch"
+  &$PATCH pngstest\pngstest.vcxproj     "$BASE_PATH\bootstrap\pngstest.patch"
+  &$PATCH pngtest\pngtest.vcxproj       "$BASE_PATH\bootstrap\pngtest.patch"
+  &$PATCH pngunknown\pngunknown.vcxproj "$BASE_PATH\bootstrap\pngunknown.patch"
+  &$PATCH pngvlaid\pngvlaid.vcxproj     "$BASE_PATH\bootstrap\pngvalid.patch"
+  &$PATCH zlib\zlib.vcxproj             "$BASE_PATH\bootstrap\zlib.patch"
+  &$PATCH zlib.props                    "$BASE_PATH\bootstrap\zlib.props.patch"
   &$MSBUILD vstudio.sln /p:Configuration=Release
-  cd "..\..\..\..\"
+  cd "$BASE_PATH"
 
   Write-Host ""
 } else {
-  Write-Host "** libpng は既に展開済なので無視しました。"
+  Write-Host "** libpng は既にビルド済なので無視しました。"
+  Write-Host ""
+}
+
+if (!(Test-Path "library\libjpeg")) {
+  if (!(Test-Path "library\libjpeg.zip")) {
+    Write-Host "** libjpeg のソースコードを取得します。"
+    Write-Host "https://www.ijg.org/files/jpegsr$LIBJPEG_VER.zip"
+    Invoke-WebRequest -Uri "https://www.ijg.org/files/jpegsr$LIBJPEG_VER.zip" -OutFile "library\libjpeg.zip"
+  } else {
+    Write-Host "** libjpeg は既に取得済なので無視しました。"
+    Write-Host ""
+  }
+  Write-Host "** libjpeg を展開します。"
+  Expand-Archive -Path "library\libjpeg.zip" -DestinationPath "library\libjpeg" -force
+
+  Write-Host "** libjpeg をビルドします。"
+  
+  cd "library\libjpeg\jpeg-$LIBJPEG_VER"
+  &$NMAKE /f makefile.vs setup-v15
+  &$PATCH --force jpeg.vcxproj         "$BASE_PATH\bootstrap\libjpeg.patch"
+  &$MSBUILD jpeg.sln /p:Configuration=Release
+  cd "$BASE_PATH"
+
+  Write-Host ""
+} else {
+  Write-Host "** libjpeg は既にビルド済なので無視しました。"
   Write-Host ""
 }
 
