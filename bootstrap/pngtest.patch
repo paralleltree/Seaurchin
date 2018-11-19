@@ -1,12 +1,8 @@
 --- vstudio.orig/pngtest/pngtest.vcxproj	2017-04-01 09:27:08.000000000 +0900
 +++ vstudio/pngtest/pngtest.vcxproj	2018-11-18 00:20:20.000000000 +0900
-@@ -1,5 +1,5 @@
- <?xml version="1.0" encoding="utf-8"?>
+@@ -2,1 +2,1 @@
 -<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 +<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-   <ItemGroup Label="ProjectConfigurations">
-     <ProjectConfiguration Include="Debug Library|Win32">
-       <Configuration>Debug Library</Configuration>
 @@ -22,24 +22,29 @@
      <ProjectGuid>{228BA965-50D5-42B2-8BCF-AFCC227E3C1D}</ProjectGuid>
      <Keyword>Win32Proj</Keyword>

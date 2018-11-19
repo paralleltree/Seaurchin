@@ -1,12 +1,8 @@
 --- VS2010.orig/vorbisenc/vorbisenc_static.vcxproj	2015-05-18 18:25:52.000000000 +0900
 +++ VS2010/vorbisenc/vorbisenc_static.vcxproj	2018-11-18 19:34:30.000000000 +0900
-@@ -1,5 +1,5 @@
- ﻿<?xml version="1.0" encoding="utf-8"?>
+@@ -2,1 +2,1 @@
 -<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 +<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-   <ItemGroup Label="ProjectConfigurations">
-     <ProjectConfiguration Include="Debug|Win32">
-       <Configuration>Debug</Configuration>
 @@ -22,25 +22,30 @@
      <ProjectName>vorbisenc</ProjectName>
      <ProjectGuid>{E48B6A8B-F7FE-4DA8-8248-E64DBAC4F56C}</ProjectGuid>

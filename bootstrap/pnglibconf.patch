@@ -1,12 +1,8 @@
 --- vstudio.orig/pnglibconf/pnglibconf.vcxproj	2016-06-23 11:17:04.000000000 +0900
 +++ vstudio/pnglibconf/pnglibconf.vcxproj	2018-11-18 00:20:20.000000000 +0900
-@@ -1,5 +1,5 @@
- <?xml version="1.0" encoding="utf-8"?>
+@@ -2,1 +2,1 @@
 -<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 +<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-   <ItemGroup Label="ProjectConfigurations">
-     <ProjectConfiguration Include="Release|Win32">
-       <Configuration>Release</Configuration>
 @@ -9,6 +9,7 @@
    <PropertyGroup Label="Globals">
      <ProjectGuid>{EB33566E-DA7F-4D28-9077-88C0B7C77E35}</ProjectGuid>

@@ -1,12 +1,8 @@
 --- angelscript.vcxproj.orig	2017-12-11 22:40:16.000000000 +0900
 +++ angelscript.vcxproj	2018-11-16 23:55:58.000000000 +0900
-@@ -1,5 +1,5 @@
- ﻿<?xml version="1.0" encoding="utf-8"?>
+@@ -2,1 +2,1 @@
 -<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 +<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-   <ItemGroup Label="ProjectConfigurations">
-     <ProjectConfiguration Include="clang_debug|ARM">
-       <Configuration>clang_debug</Configuration>
 @@ -41,27 +41,28 @@
    <PropertyGroup Label="Globals">
      <ProjectGuid>{39E6AF97-6BA3-4A72-8C61-BCEBF214EBFD}</ProjectGuid>

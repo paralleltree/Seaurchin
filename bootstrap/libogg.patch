@@ -1,12 +1,8 @@
 --- libogg.vcxproj.orig	2018-11-18 17:49:38.000000000 +0900
 +++ libogg.vcxproj	2018-11-18 17:49:30.000000000 +0900
-@@ -1,5 +1,5 @@
- <?xml version="1.0" encoding="utf-8"?>
+@@ -2,1 +2,1 @@
 -<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 +<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-   <ItemGroup Label="ProjectConfigurations">
-     <ProjectConfiguration Include="Debug|Win32">
-       <Configuration>Debug</Configuration>
 @@ -22,29 +22,30 @@
      <ProjectGuid>{15CBFEFF-7965-41F5-B4E2-21E8795C9159}</ProjectGuid>
      <RootNamespace>libogg</RootNamespace>
