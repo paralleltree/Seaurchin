@@ -83,6 +83,12 @@ Write-Host ''
 New-Item library\ -ItemType Directory >$null 2>&1
 New-Item tmp\ -ItemType Directory >$null 2>&1
 
+cd bootstrap
+foreach($a in Get-ChildItem){
+  (cat $a.name) -join "`r`n" | set-content $a.name
+}
+cd $BASE_PATH
+
 Write-Host '================================================================================='
 Write-Host ''
 Write-Host "* 環境構築に必要なコマンドを準備します。"
