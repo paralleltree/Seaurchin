@@ -308,19 +308,19 @@
     <ClInclude Include="..\library\angelscript\sdk\add_on\scriptstdstring\scriptstdstring.h">
       <Filter>AngelScript</Filter>
     </ClInclude>
-    <ClInclude Include="..\library\dxlib\DxLib_VC\include\DxCompileConfig.h">
+    <ClInclude Include="..\library\dxlib\include\DxCompileConfig.h">
       <Filter>DxLib</Filter>
     </ClInclude>
-    <ClInclude Include="..\library\dxlib\DxLib_VC\include\DxDataType.h">
+    <ClInclude Include="..\library\dxlib\include\DxDataType.h">
       <Filter>DxLib</Filter>
     </ClInclude>
-    <ClInclude Include="..\library\dxlib\DxLib_VC\include\DxDataTypeWin.h">
+    <ClInclude Include="..\library\dxlib\include\DxFunctionWin.h">
       <Filter>DxLib</Filter>
     </ClInclude>
-    <ClInclude Include="..\library\dxlib\DxLib_VC\include\DxFunctionWin.h">
+    <ClInclude Include="..\library\dxlib\include\DxDataTypeWin.h">
       <Filter>DxLib</Filter>
     </ClInclude>
-    <ClInclude Include="..\library\dxlib\DxLib_VC\include\DxLib.h">
+    <ClInclude Include="..\library\dxlib\include\DxLib.h">
       <Filter>DxLib</Filter>
     </ClInclude>
   </ItemGroup>

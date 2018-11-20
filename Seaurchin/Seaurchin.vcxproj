@@ -61,7 +61,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_SILENCE_FPOS_SEEKPOS_DEPRECATION_WARNING;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\library\fmt;..\library\dxlib\DxLib_VC\include;..\library\angelscript\sdk\angelscript\include;..\library\angelscript\sdk\angelscript\add_on;..\library\boost;..\library\angelscript\sdk\add_on;..\library\freetype\include;..\library\libpng;..\library\bass24_mix\c;..\library\bass24_fx\c;..\library\bass24\c;..\library\wacom\xWacom-master\addons\ofxWacomFeelMultiTouch\libs;..\library\zlib;..\library\spdlog\include;..\library\libvorbis\include;..\library\libogg\include;..\library\tinytoml\tinytoml-master\include;..\library\glm\glm;..\library\libjpeg\Release;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\library\fmt;..\library\dxlib\include;..\library\angelscript\sdk\angelscript\include;..\library\angelscript\sdk\angelscript\add_on;..\library\boost;..\library\angelscript\sdk\add_on;..\library\freetype\include;..\library\libpng;..\library\bass24_mix\c;..\library\bass24_fx\c;..\library\bass24\c;..\library\wacom\xWacom-master\addons\ofxWacomFeelMultiTouch\libs;..\library\zlib;..\library\spdlog\include;..\library\libvorbis\include;..\library\libogg\include;..\library\tinytoml\tinytoml-master\include;..\library\glm\glm;..\library\libjpeg\Release;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>PrecompiledHeader.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>PrecompiledHeader.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <AdditionalOptions>-Zm640 %(AdditionalOptions)</AdditionalOptions>
@@ -71,7 +71,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\library\dxlib\DxLib_VC\lib;..\library\angelscript\sdk\angelscript\lib;..\library\boost\stage\lib;..\library\freetype\win32;..\library\bass24\c;..\library\bass24_mix\c;..\library\bass24_fx\c;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\library\dxlib\lib;..\library\angelscript\sdk\angelscript\lib;..\library\boost\stage\lib;..\library\freetype\objs\Win32\Release;..\library\bass24\c;..\library\bass24_mix\c;..\library\bass24_fx\c;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>shlwapi.lib;imm32.lib;bass.lib;bass_fx.lib;bassmix.lib;angelscriptd.lib;freetype27d.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmtd;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
@@ -89,7 +89,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_SILENCE_FPOS_SEEKPOS_DEPRECATION_WARNING;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\library\fmt;..\library\dxlib\DxLib_VC\include;..\library\angelscript\sdk\angelscript\include;..\library\angelscript\sdk\angelscript\add_on;..\library\boost;..\library\angelscript\sdk\add_on;..\library\freetype\include;..\library\libpng;..\library\bass24_mix\c;..\library\bass24_fx\c;..\library\bass24\c;..\library\wacom\xWacom-master\addons\ofxWacomFeelMultiTouch\libs;..\library\zlib;..\library\spdlog\include;..\library\libvorbis\include;..\library\libogg\include;..\library\tinytoml\tinytoml-master\include;..\library\glm\glm;..\library\libjpeg\Release;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\library\fmt;..\library\dxlib\include;..\library\angelscript\sdk\angelscript\include;..\library\angelscript\sdk\angelscript\add_on;..\library\boost;..\library\angelscript\sdk\add_on;..\library\freetype\include;..\library\libpng;..\library\bass24_mix\c;..\library\bass24_fx\c;..\library\bass24\c;..\library\wacom\xWacom-master\addons\ofxWacomFeelMultiTouch\libs;..\library\zlib;..\library\spdlog\include;..\library\libvorbis\include;..\library\libogg\include;..\library\tinytoml\tinytoml-master\include;..\library\glm\glm;..\library\libjpeg\Release;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>PrecompiledHeader.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>PrecompiledHeader.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <AdditionalOptions>-Zm640 %(AdditionalOptions)</AdditionalOptions>
@@ -104,7 +104,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\library\dxlib\DxLib_VC\include;..\library\angelscript\sdk\angelscript\lib;..\library\boost\stage\lib;..\library\freetype\win32;..\library\bass24\c;..\library\bass24_mix\c;..\library\bass24_fx\c;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\library\dxlib\include;..\library\angelscript\sdk\angelscript\lib;..\library\boost\stage\lib;..\library\freetype\objs\Win32\Release;..\library\bass24\c;..\library\bass24_mix\c;..\library\bass24_fx\c;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>shlwapi.lib;imm32.lib;bass.lib;bass_fx.lib;bassmix.lib;angelscript.lib;freetype.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>libcmt;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <TreatLinkerWarningAsErrors>
@@ -170,11 +170,11 @@
     <ClInclude Include="..\library\angelscript\sdk\add_on\scriptmath\scriptmath.h" />
     <ClInclude Include="..\library\angelscript\sdk\add_on\scriptmath\scriptmathcomplex.h" />
     <ClInclude Include="..\library\angelscript\sdk\add_on\scriptstdstring\scriptstdstring.h" />
-    <ClInclude Include="..\library\dxlib\DxLib_VC\include\DxCompileConfig.h" />
-    <ClInclude Include="..\library\dxlib\DxLib_VC\include\DxDataType.h" />
-    <ClInclude Include="..\library\dxlib\DxLib_VC\include\DxDataTypeWin.h" />
-    <ClInclude Include="..\library\dxlib\DxLib_VC\include\DxFunctionWin.h" />
-    <ClInclude Include="..\library\dxlib\DxLib_VC\include\DxLib.h" />
+    <ClInclude Include="..\library\dxlib\include\DxCompileConfig.h" />
+    <ClInclude Include="..\library\dxlib\include\DxDataType.h" />
+    <ClInclude Include="..\library\dxlib\include\DxDataTypeWin.h" />
+    <ClInclude Include="..\library\dxlib\include\DxFunctionWin.h" />
+    <ClInclude Include="..\library\dxlib\include\DxLib.h" />
     <ClInclude Include="CharacterInstance.h" />
     <ClInclude Include="Crc32.h" />
     <ClInclude Include="ExtensionManager.h" />
