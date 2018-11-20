@@ -324,8 +324,8 @@ if (!(Test-Path "freetype")) {
   Write-Host "** freetype をビルドします。"  
   cd "freetype\builds\windows\vc2010"
   &$PATCH freetype.vcxproj "$PATCH_PATH\freetype.patch"
-  &$MSBUILD freetype.sln /p:Configuration=Release
-  &$MSBUILD freetype.sln /p:Configuration=Debug
+  &$MSBUILD freetype.sln /p:Configuration="Release Static"
+  &$MSBUILD freetype.sln /p:Configuration="Debug Static"
   cd "$LIBRARY_PATH"
 
   Write-Host ""
@@ -411,5 +411,7 @@ noBuild "https://github.com/g-truc/glm/releases/download/$GLM_VER/glm-$GLM_VER.z
 
 # Wacom機能が廃止されるまで臨時措置
 noBuild "https://github.com/denisidoro/xWacom/archive/master.zip" "wacom"
+
+Write-Host "* ビルドが完了しました。Seaurchin.slnをダブルクリックして開いてください。"
 
 pause
