@@ -1,7 +1,7 @@
 @powershell -NoProfile -ExecutionPolicy Unrestricted "$s=[scriptblock]::create((gc \"%~f0\"|?{$_.readcount -gt 1})-join\"`n\");&$s" %*&goto:eof
 
 $ANGELSCRIPT_VER = "2.32.0"
-$BOOST_VER = "1.65.1"
+$BOOST_VER = "1.68.0"
 $ZLIB_VER = "1.2.11"
 $LIBPNG_VER = "1.6.34"
 $LIBJPEG_VER = "9c"
@@ -138,6 +138,7 @@ if (!(Test-Path "angelscript")) {
   cd angelscript\sdk\angelscript\projects\msvc2015
   &$PATCH angelscript.vcxproj "$PATCH_PATH\angelscript.patch"
   &$MSBUILD angelscript.vcxproj /p:Configuration=Release
+  &$MSBUILD angelscript.vcxproj /p:Configuration=Debug
   cd "$LIBRARY_PATH"
 
   Write-Host ""
@@ -324,6 +325,7 @@ if (!(Test-Path "freetype")) {
   cd "freetype\builds\windows\vc2010"
   &$PATCH freetype.vcxproj "$PATCH_PATH\freetype.patch"
   &$MSBUILD freetype.sln /p:Configuration=Release
+  &$MSBUILD freetype.sln /p:Configuration=Debug
   cd "$LIBRARY_PATH"
 
   Write-Host ""
