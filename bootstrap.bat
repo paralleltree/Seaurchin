@@ -83,12 +83,6 @@ Write-Host ''
 New-Item library\ -ItemType Directory >$null 2>&1
 New-Item tmp\ -ItemType Directory >$null 2>&1
 
-cd bootstrap
-foreach($a in Get-ChildItem){
-  (cat $a.name) -join "`r`n" | set-content $a.name
-}
-cd $BASE_PATH
-
 Write-Host '================================================================================='
 Write-Host ''
 Write-Host "* 環境構築に必要なコマンドを準備します。"
@@ -120,6 +114,31 @@ if (!(Test-Path "7z.zip")) {
 
 $PATCH = Resolve-Path ".\patch\bin\patch.exe"
 $7Z = Resolve-Path ".\7z\7za.exe"
+
+if (!(Test-Path "nkf.zip")) {
+  Write-Host "** nkfコマンドのソースコードを取得します。"
+  Write-Host "http://ftp.vector.co.jp/52/68/2195/nkfwin.zip"
+  Invoke-WebRequest -Uri "http://ftp.vector.co.jp/52/68/2195/nkfwin.zip" -OutFile "nkf.zip"
+  Expand-Archive -Path "nkf.zip"
+  Write-Host ""
+} else {
+  Write-Host "** nkfコマンドは既に取得済なので無視しました。"
+  Write-Host ""
+}
+
+$PATCH = Resolve-Path ".\patch\bin\patch.exe"
+$7Z = Resolve-Path ".\7z\7za.exe"
+$NKF = Resolve-Path ".\nkf\vc2005\win32(98,Me,NT,2000,XP,Vista,7)ISO-2022-JP\nkf.exe"
+
+cd "$BASE_PATH\bootstrap"
+foreach($a in Get-ChildItem){
+  (cat $a.name) -join "`r`n" | set-content $a.name
+}
+cd "$BASE_PATH\Seaurchin"
+foreach($a in Get-ChildItem){
+  &$NKF -sc --overwrite $a.name
+}
+cd $BASE_PATH
 
 Write-Host "================================================================================="
 Write-Host ""
