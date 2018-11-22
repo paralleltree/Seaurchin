@@ -9,7 +9,6 @@
 - Visual Studio 2017
   - Windows 10 SDK 10.0.17763.0
   - C++によるデスクトップ開発
-  - Windows ユニバーサル CRT
   - VC++ 2017 version 15.9 v14.16 Libs for Spectre (x86 and x64)
   
 ## 使い方

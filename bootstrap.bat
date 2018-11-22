@@ -24,6 +24,7 @@ $PATCH_PATH = "$BASE_PATH\bootstrap"
 
 $MSBUILD = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\MSBuild\15.0\Bin\MSBuild.exe"
 $VS_TOOLS_VER = ls "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\" -NAME  | Select-Object -Last 1
+$WIN_SDK_VER = ls "C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.Midi.GmDls" -NAME | Select-Object -Last 1
 $NMAKE = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\$VS_TOOLS_VER\bin\Hostx86\x86\nmake.exe"
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
@@ -53,7 +54,7 @@ Write-Host '====================================================================
 Write-Host ''
 Write-Host "Seaurchin BootStrapではSeaurchinの開発環境を自動的に構築をします。"
 Write-Host ""
-if ((Test-Path "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\$VS_TOOLS_VER\lib\spectre")){
+if (!(Test-Path "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\$VS_TOOLS_VER\lib\spectre")){
   Write-Host '注意： Spectre用ライブラリがインストールされていません。'
   Write-Host '       Bootstrapは動作しますが、Seaurchinのビルドが失敗する原因になります。'
   Write-Host '       VC++ 2017 version XX.X vXX.XX Libs for Spectre (x86 and x64)をインストールしてください。'
@@ -141,10 +142,8 @@ cd "$BASE_PATH\bootstrap"
 foreach($a in Get-ChildItem){
   (cat $a.name) -join "`r`n" | set-content $a.name
 }
-cd "$BASE_PATH\Seaurchin"
-foreach($a in Get-ChildItem){
-  &$NKF -sc --overwrite $a.name
-}
+"$BASE_PATH\Seaurchin"
+&$NKF -sc --overwrite *
 cd $BASE_PATH
 
 Write-Host "================================================================================="
