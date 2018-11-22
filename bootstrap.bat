@@ -52,6 +52,13 @@ Write-Host '                                                                    
 Write-Host '======================================================================= 888 ===='
 Write-Host ''
 Write-Host "Seaurchin BootStrapではSeaurchinの開発環境を自動的に構築をします。"
+Write-Host ""
+if ((Test-Path "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\$VS_TOOLS_VER\lib\spectre")){
+  Write-Host '注意： Spectre用ライブラリがインストールされていません。'
+  Write-Host '       Bootstrapは動作しますが、Seaurchinのビルドが失敗する原因になります。'
+  Write-Host '       VC++ 2017 version XX.X vXX.XX Libs for Spectre (x86 and x64)をインストールしてください。'
+  Write-Host ""
+}
 Read-Host '続行するには Enter キーを押してください'
 
 function noBuild($url,$name) {
