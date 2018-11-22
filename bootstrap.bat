@@ -54,6 +54,13 @@ Write-Host '====================================================================
 Write-Host ''
 Write-Host "Seaurchin BootStrapではSeaurchinの開発環境を自動的に構築をします。"
 Write-Host ""
+if ((Test-Path "C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.Midi.GmDls\10.0.17763.0")) {
+  Write-Host "Windows SDK 10.0.17663.0がインストールされてない為、Bootstrapを続ける事が出来ません。終了します。"
+  Write-Host "Windows SDK 10.0.17763.0をインストールしてから再度実行してください。"
+  Write-Host ""
+  Read-Host "終了するには Enter キーを押してください"
+  exit
+}
 if (!(Test-Path "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\$VS_TOOLS_VER\lib\spectre")){
   Write-Host '注意： Spectre用ライブラリがインストールされていません。'
   Write-Host '       Bootstrapは動作しますが、Seaurchinのビルドが失敗する原因になります。'
