@@ -54,7 +54,7 @@ Write-Host '====================================================================
 Write-Host ''
 Write-Host "Seaurchin BootStrapではSeaurchinの開発環境を自動的に構築をします。"
 Write-Host ""
-if ((Test-Path "C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.Midi.GmDls\10.0.17763.0")) {
+if (!(Test-Path "C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.Midi.GmDls\10.0.17763.0")) {
   Write-Host "Windows SDK 10.0.17663.0がインストールされてない為、Bootstrapを続ける事が出来ません。終了します。"
   Write-Host "Windows SDK 10.0.17763.0をインストールしてから再度実行してください。"
   Write-Host ""
