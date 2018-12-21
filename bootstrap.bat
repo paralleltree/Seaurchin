@@ -149,7 +149,7 @@ cd "$BASE_PATH\bootstrap"
 foreach($a in Get-ChildItem){
   (cat $a.name) -join "`r`n" | set-content $a.name
 }
-"$BASE_PATH\Seaurchin"
+cd "$BASE_PATH\Seaurchin"
 &$NKF -sc --overwrite *
 cd $BASE_PATH
 
