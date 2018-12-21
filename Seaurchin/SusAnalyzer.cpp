@@ -1,4 +1,4 @@
-ï»¿#include "SusAnalyzer.h"
+#include "SusAnalyzer.h"
 #include <utility>
 #include "Misc.h"
 
@@ -24,7 +24,7 @@ static auto isUpperHexadecimalChar = [](const char c) {
 };
 
 static auto convertRawString = [](const string &input) -> string {
-    // TIL: ASCIIæ–‡å­—ç¯„å›²ã§ã¯UTF-8ã¨æœ¬æ¥ã®ASCIIã‚’é–“é•ã†ã“ã¨ã¯ãªã„
+    // TIL: ASCII•¶š”ÍˆÍ‚Å‚ÍUTF-8‚Æ–{—ˆ‚ÌASCII‚ğŠÔˆá‚¤‚±‚Æ‚Í‚È‚¢
     if (ba::starts_with(input, "\"")) {
         ostringstream result;
         auto rest = input;
@@ -50,15 +50,15 @@ static auto convertRawString = [](const string &input) -> string {
                     break;
                 case 'u': {
                     /*
-                    //utf-8 4byteé£Ÿã†
+                    //utf-8 4byteH‚¤
                     char cp[5] = { 0 };
                     for (auto i = 0; i < 4; i++) {
                         cp[i] = *(++it);
                     }
                     */
                     // wchar_t r = stoi(cp, 0, 16);
-                    //ã§ã‚‚çªã£è¾¼ã‚€ã®ã‚ã‚“ã©ãã•ã„ã®ã§ğŸ™…ã§ä»£ç”¨ã—ã¾ã™
-                    result << u8"ğŸ™…";
+                    //‚Å‚à“Ë‚Á‚Ş‚Ì‚ß‚ñ‚Ç‚­‚³‚¢‚Ì‚Å‚Å‘ã—p‚µ‚Ü‚·
+                    result << u8"";
                     break;
                 }
                 default:
@@ -122,8 +122,8 @@ void SusAnalyzer::SetMessageCallBack(const function<void(string, string)>& func)
     errorCallbacks.push_back(func);
 }
 
-//ä¸€å¿œUTF-8ã¨ã—ã¦å‡¦ç†ã™ã‚‹ã“ã¨ã«ã—ã¾ã™ãŒã©ã†ã›å¤‰ã‚ã‚‰ãªã„ã ã‚ã†ãªã
-//ã‚ã¨åˆ—æŒ™æ¸ˆã¿ãƒ•ã‚¡ã‚¤ãƒ«ã‚’æµã—è¾¼ã‚€å‰æã§ã‚¨ãƒ©ãƒ¼ãƒã‚§ãƒƒã‚¯ã—ãªã„
+//ˆê‰UTF-8‚Æ‚µ‚Äˆ—‚·‚é‚±‚Æ‚É‚µ‚Ü‚·‚ª‚Ç‚¤‚¹•Ï‚í‚ç‚È‚¢‚¾‚ë‚¤‚È‚Ÿ
+//‚ ‚Æ—ñ‹“Ï‚İƒtƒ@ƒCƒ‹‚ğ—¬‚µ‚Ş‘O’ñ‚ÅƒGƒ‰[ƒ`ƒFƒbƒN‚µ‚È‚¢
 void SusAnalyzer::LoadFromFile(const wstring &fileName, const bool analyzeOnlyMetaData)
 {
     auto log = spdlog::get("main");
@@ -133,7 +133,7 @@ void SusAnalyzer::LoadFromFile(const wstring &fileName, const bool analyzeOnlyMe
     uint32_t line = 0;
 
     Reset();
-    if (!analyzeOnlyMetaData) log->info(u8"{0}ã®è§£æã‚’é–‹å§‹â€¦", ConvertUnicodeToUTF8(fileName));
+    if (!analyzeOnlyMetaData) log->info(u8"{0}‚Ì‰ğÍ‚ğŠJnc", ConvertUnicodeToUTF8(fileName));
 
     file.open(fileName, ios::in);
     char bom[3];
@@ -148,13 +148,13 @@ void SusAnalyzer::LoadFromFile(const wstring &fileName, const bool analyzeOnlyMe
         } else if (xp::regex_match(rawline, match, regexSusData)) {
             if (!analyzeOnlyMetaData || boost::starts_with(rawline, "#BPM")) ProcessData(match, line);
         } else {
-            MakeMessage(line, u8"SUSæœ‰åŠ¹è¡Œã§ã™ãŒè§£æã§ãã¾ã›ã‚“ã§ã—ãŸã€‚");
+            MakeMessage(line, u8"SUS—LŒøs‚Å‚·‚ª‰ğÍ‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B");
         }
     }
     file.close();
-    if (!analyzeOnlyMetaData) log->info(u8"â€¦çµ‚äº†");
+    if (!analyzeOnlyMetaData) log->info(u8"cI—¹");
     if (!analyzeOnlyMetaData) {
-        // ã„ã„æ„Ÿã˜ã«ã‚½ãƒ¼ãƒˆ
+        // ‚¢‚¢Š´‚¶‚Éƒ\[ƒg
         stable_sort(notes.begin(), notes.end(), [](tuple<SusRelativeNoteTime, SusRawNoteData> a, tuple<SusRelativeNoteTime, SusRawNoteData> b) {
             return get<1>(a).Type.to_ulong() > get<1>(b).Type.to_ulong();
         });
@@ -165,8 +165,8 @@ void SusAnalyzer::LoadFromFile(const wstring &fileName, const bool analyzeOnlyMe
             return get<0>(a).Measure < get<0>(b).Measure;
         });
 
-        // å°ç¯€ç·šãƒãƒ¼ãƒ„
-        // ã“ã®æ™‚ç‚¹ã§ã‚±ãƒ„ã¯æœ€çµ‚ãƒãƒ¼ãƒ„ã®ã¯ãš
+        // ¬ßüƒm[ƒc
+        // ‚±‚Ì“_‚ÅƒPƒc‚ÍÅIƒm[ƒc‚Ì‚Í‚¸
         const auto lastMeasure = get<0>(notes[notes.size() - 1]).Measure + 2;
         for (auto i = 0u; i <= lastMeasure; i++) {
             SusRawNoteData ml;
@@ -217,7 +217,7 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
             // SharedMetaData.UGenre = ConvertRawString(result[2]);
             break;
         case "DESIGNER"_crc32:
-        case "SUBARTIST"_crc32:  // BMSäº’æ›
+        case "SUBARTIST"_crc32:  // BMSŒİŠ·
             SharedMetaData.UDesigner = convertRawString(result[2]);
             break;
         case "PLAYLEVEL"_crc32: {
@@ -233,10 +233,10 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
         }
         case "DIFFICULTY"_crc32: {
             if (xp::regex_match(result[2], allNumeric)) {
-                //é€šå¸¸è¨˜æ³•
+                //’Êí‹L–@
                 SharedMetaData.DifficultyType = ConvertInteger(result[2]);
             } else {
-                //WEè¨˜æ³•
+                //WE‹L–@
                 auto dd = convertRawString(result[2]);
                 vector<string> params;
                 ba::split(params, dd, ba::is_any_of(":"));
@@ -275,12 +275,12 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
             SharedMetaData.BaseBpm = ConvertFloat(result[2]);
             break;
 
-            //æ­¤å‡¦ã‹ã‚‰å…ˆã¯ãƒ‡ãƒ¼ã‚¿å†…ã§ä½¿ã†ç”¨
+            //Ÿˆ‚©‚çæ‚Íƒf[ƒ^“à‚Åg‚¤—p
         case "HISPEED"_crc32: {
             if (onlyMeta) break;
             const auto hsn = ConvertHexatridecimal(result[2]);
             if (hispeedDefinitions.find(hsn) == hispeedDefinitions.end()) {
-                MakeMessage(line, u8"æŒ‡å®šã•ã‚ŒãŸã‚¿ã‚¤ãƒ ãƒ©ã‚¤ãƒ³ãŒå­˜åœ¨ã—ã¾ã›ã‚“");
+                MakeMessage(line, u8"w’è‚³‚ê‚½ƒ^ƒCƒ€ƒ‰ƒCƒ“‚ª‘¶İ‚µ‚Ü‚¹‚ñ");
                 break;
             }
             hispeedToApply = hispeedDefinitions[hsn];
@@ -294,7 +294,7 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
             if (onlyMeta) break;
             const auto ean = ConvertHexatridecimal(result[2]);
             if (extraAttributes.find(ean) == extraAttributes.end()) {
-                MakeMessage(line, u8"æŒ‡å®šã•ã‚ŒãŸã‚¢ãƒˆãƒªãƒ“ãƒ¥ãƒ¼ãƒˆãŒå­˜åœ¨ã—ã¾ã›ã‚“");
+                MakeMessage(line, u8"w’è‚³‚ê‚½ƒAƒgƒŠƒrƒ…[ƒg‚ª‘¶İ‚µ‚Ü‚¹‚ñ");
                 break;
             }
             extraAttributeToApply = extraAttributes[ean];
@@ -308,7 +308,7 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
             if (onlyMeta) break;
             const auto hsn = ConvertHexatridecimal(result[2]);
             if (hispeedDefinitions.find(hsn) == hispeedDefinitions.end()) {
-                MakeMessage(line, u8"æŒ‡å®šã•ã‚ŒãŸã‚¿ã‚¤ãƒ ãƒ©ã‚¤ãƒ³ãŒå­˜åœ¨ã—ã¾ã›ã‚“");
+                MakeMessage(line, u8"w’è‚³‚ê‚½ƒ^ƒCƒ€ƒ‰ƒCƒ“‚ª‘¶İ‚µ‚Ü‚¹‚ñ");
                 break;
             }
             hispeedToMeasure = hispeedDefinitions[hsn];
@@ -319,7 +319,7 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
             if (onlyMeta) break;
             const auto bsc = ConvertInteger(result[2]);
             if (bsc < 0) {
-                MakeMessage(line, u8"å°ç¯€ã‚ªãƒ•ã‚»ãƒƒãƒˆã®å€¤ãŒä¸æ­£ã§ã™");
+                MakeMessage(line, u8"¬ßƒIƒtƒZƒbƒg‚Ì’l‚ª•s³‚Å‚·");
                 break;
             }
             measureCountOffset = bsc;
@@ -327,7 +327,7 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
         }
 
         default:
-            MakeMessage(line, u8"SUSã‚³ãƒãƒ³ãƒ‰ãŒç„¡åŠ¹ã§ã™");
+            MakeMessage(line, u8"SUSƒRƒ}ƒ“ƒh‚ª–³Œø‚Å‚·");
             break;
     }
 
@@ -349,11 +349,11 @@ void SusAnalyzer::ProcessRequest(const string &cmd, const uint32_t line)
             ticksPerBeat = ConvertInteger(params[1]);
             break;
         case "enable_priority"_crc32:
-            MakeMessage(line, u8"å„ªå…ˆåº¦ã¤ããƒãƒ¼ãƒ„æç”»ãŒè¨­å®šã•ã‚Œã¾ã™");
+            MakeMessage(line, u8"—Dæ“x‚Â‚«ƒm[ƒc•`‰æ‚ªİ’è‚³‚ê‚Ü‚·");
             SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::EnableDrawPriority)] = ConvertBoolean(params[1]);
             break;
         case "enable_moving_lane"_crc32:
-            MakeMessage(line, u8"ç§»å‹•ãƒ¬ãƒ¼ãƒ³ã‚µãƒãƒ¼ãƒˆãŒè¨­å®šã•ã‚Œã¾ã™");
+            MakeMessage(line, u8"ˆÚ“®ƒŒ[ƒ“ƒTƒ|[ƒg‚ªİ’è‚³‚ê‚Ü‚·");
             SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::EnableMovingLane)] = ConvertBoolean(params[1]);
             break;
         case "segments_per_second"_crc32:
@@ -372,9 +372,9 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
     ba::erase_all(pattern, " ");
 
     /*
-     åˆ¤å®šé †ã«ã¤ã„ã¦
-     0. #...** (BPMãªã©)
-     1. #---0* (ç‰¹æ®Šãƒ‡ãƒ¼ã‚¿ã€å®šç¾©åˆ†å‰²ä¸å¯)
+     ”»’è‡‚É‚Â‚¢‚Ä
+     0. #...** (BPM‚È‚Ç)
+     1. #---0* (“Áêƒf[ƒ^A’è‹`•ªŠ„•s‰Â)
      2. #---1* (Short)
      3. #---5* (Air)
      4. #---[234]*. (Long)
@@ -384,7 +384,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
     const auto step = uint32_t(ticksPerBeat * GetBeatsAt(ConvertInteger(meas))) / (!noteCount ? 1 : noteCount);
 
     if (!regex_match(meas, allNumeric)) {
-        // ã‚³ãƒãƒ³ãƒ‰ãƒ‡ãƒ¼ã‚¿
+        // ƒRƒ}ƒ“ƒhƒf[ƒ^
         transform(meas.cbegin(), meas.cend(), meas.begin(), toUpper);
         if (meas == "BPM") {
             const auto number = ConvertHexatridecimal(lane);
@@ -412,12 +412,12 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
                 it->second->Apply(convertRawString(pattern));
             }
         } else {
-            MakeMessage(line, u8"ä¸æ­£ãªãƒ‡ãƒ¼ã‚¿ã‚³ãƒãƒ³ãƒ‰ã§ã™");
+            MakeMessage(line, u8"•s³‚Èƒf[ƒ^ƒRƒ}ƒ“ƒh‚Å‚·");
         }
     } else if (lane[0] == '0') {
         switch (lane[1]) {
             case '2':
-                // å°ç¯€é•·
+                // ¬ß’·
                 beatsDefinitions[measureCountOffset + ConvertInteger(meas)] = ConvertFloat(pattern);
                 break;
             case '8': {
@@ -433,11 +433,11 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
                 break;
             }
             default:
-                MakeMessage(line, u8"ä¸æ­£ãªãƒ‡ãƒ¼ã‚¿ã‚³ãƒãƒ³ãƒ‰ã§ã™");
+                MakeMessage(line, u8"•s³‚Èƒf[ƒ^ƒRƒ}ƒ“ƒh‚Å‚·");
                 break;
         }
     } else if (lane[0] == '1') {
-        // ã‚·ãƒ§ãƒ¼ãƒˆãƒãƒ¼ãƒ„
+        // ƒVƒ‡[ƒgƒm[ƒc
         for (auto i = 0u; i < noteCount; i++) {
             auto note = pattern.substr(i * 2, 2);
             SusRawNoteData noteData;
@@ -470,13 +470,13 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
                     break;
                 default:
                     if (note[1] == '0') continue;
-                    MakeMessage(line, u8"ã‚·ãƒ§ãƒ¼ãƒˆãƒ¬ãƒ¼ãƒ³ã®æŒ‡å®šãŒä¸æ­£ã§ã™ã€‚");
+                    MakeMessage(line, u8"ƒVƒ‡[ƒgƒŒ[ƒ“‚Ìw’è‚ª•s³‚Å‚·B");
                     continue;
             }
             notes.emplace_back(time, noteData);
         }
     } else if (lane[0] == '5') {
-        // Airãƒãƒ¼ãƒ„
+        // Airƒm[ƒc
         for (auto i = 0u; i < noteCount; i++) {
             auto note = pattern.substr(i * 2, 2);
             SusRawNoteData noteData;
@@ -534,13 +534,13 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
                     break;
                 default:
                     if (note[1] == '0') continue;
-                    MakeMessage(line, u8"Airãƒ¬ãƒ¼ãƒ³ã®æŒ‡å®šãŒä¸æ­£ã§ã™ã€‚");
+                    MakeMessage(line, u8"AirƒŒ[ƒ“‚Ìw’è‚ª•s³‚Å‚·B");
                     continue;
             }
             notes.emplace_back(time, noteData);
         }
     } else if (lane.length() == 3 && lane[0] >= '2' && lane[0] <= '4') {
-        // ãƒ­ãƒ³ã‚°ã‚¿ã‚¤ãƒ—
+        // ƒƒ“ƒOƒ^ƒCƒv
         for (auto i = 0u; i < noteCount; i++) {
             auto note = pattern.substr(i * 2, 2);
             SusRawNoteData noteData;
@@ -562,7 +562,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
                     noteData.Type.set(size_t(SusNoteType::AirAction));
                     break;
                 default:
-                    MakeMessage(line, u8"ãƒ­ãƒ³ã‚°ãƒ¬ãƒ¼ãƒ³ã®æŒ‡å®šãŒä¸æ­£ã§ã™ã€‚");
+                    MakeMessage(line, u8"ƒƒ“ƒOƒŒ[ƒ“‚Ìw’è‚ª•s³‚Å‚·B");
                     continue;
             }
             switch (note[0]) {
@@ -583,13 +583,13 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
                     break;
                 default:
                     if (note[1] == '0') continue;
-                    MakeMessage(line, u8"ãƒãƒ¼ãƒ„ç¨®é¡ã®æŒ‡å®šãŒä¸æ­£ã§ã™ã€‚");
+                    MakeMessage(line, u8"ƒm[ƒcí—Ş‚Ìw’è‚ª•s³‚Å‚·B");
                     continue;
             }
             notes.emplace_back(time, noteData);
         }
     } else if (lane.length() == 3 && lane[0] == '9') {
-        // z = 0ã®ãƒ¬ãƒ¼ãƒ³æŒ‡å®š(Tap) #mmm800~#mmm80f~#mmm8ff
+        // z = 0‚ÌƒŒ[ƒ“w’è(Tap) #mmm800~#mmm80f~#mmm8ff
         const auto endlane = lane.substr(1, 1);
         const auto startlane = lane.substr(2, 1);
 
@@ -597,7 +597,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
             auto note = pattern.substr(i * 2, 2);
             if (note[1] == '0') continue;
             if (note[0] != '1') {
-                MakeMessage(line, u8"ã‚¹ã‚¿ãƒ¼ãƒˆãƒ¬ãƒ¼ãƒ³ã®æŒ‡å®šãŒä¸æ­£ã§ã™ã€‚");
+                MakeMessage(line, u8"ƒXƒ^[ƒgƒŒ[ƒ“‚Ìw’è‚ª•s³‚Å‚·B");
                 continue;
             }
             SusRawNoteData noteData;
@@ -611,15 +611,15 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
             notes.emplace_back(time, noteData);
         }
     } else {
-        // ä¸æ­£
-        MakeMessage(line, u8"ä¸æ­£ãªãƒ‡ãƒ¼ã‚¿å®šç¾©ã§ã™ã€‚");
+        // •s³
+        MakeMessage(line, u8"•s³‚Èƒf[ƒ^’è‹`‚Å‚·B");
     }
 }
 
 void SusAnalyzer::MakeMessage(const uint32_t line, const string &message)
 {
     ostringstream ss;
-    ss << line << u8"è¡Œç›®: " << message;
+    ss << line << u8"s–Ú: " << message;
     for (const auto &cb : errorCallbacks) cb("Error", ss.str());
 }
 
@@ -658,7 +658,7 @@ double SusAnalyzer::GetAbsoluteTime(uint32_t meas, uint32_t tick)
 {
     auto time = 0.0;
     auto lastBpm = defaultBpm;
-    //è¶…éã—ãŸtickæŒ‡å®šã«ã‚‚å¯¾å¿œã—ãŸã»ã†ãŒä½¿ã„ã‚„ã™ã„ã‚ˆã­
+    //’´‰ß‚µ‚½tickw’è‚É‚à‘Î‰‚µ‚½‚Ù‚¤‚ªg‚¢‚â‚·‚¢‚æ‚Ë
     while (tick >= GetBeatsAt(meas) * ticksPerBeat) tick -= GetBeatsAt(meas++) * ticksPerBeat;
 
     for (auto i = 0u; i < meas + 1; i++) {
@@ -719,10 +719,10 @@ uint32_t SusAnalyzer::GetRelativeTicks(const uint32_t measure, const uint32_t ti
 
 void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curveData)
 {
-    // ä¸æ­£ãƒã‚§ãƒƒã‚¯ãƒªã‚¹ãƒˆ
-    // ã‚·ãƒ§ãƒ¼ãƒˆ: ã¯ã¿å‡ºã—ã¯å…¨éƒ¨ã‚¢ã‚¦ãƒˆ
-    // ãƒ›ãƒ¼ãƒ«ãƒ‰: ã‚±ãƒ„ç„¡ã—ã‚¢ã‚¦ãƒˆ(ã‚±ãƒ„é€£ã¯ç„¡è¦–)ã€Step/Controlå•ç­”ç„¡ç”¨ã‚¢ã‚¦ãƒˆã€ã‚±ãƒ„é•ã„ã‚¢ã‚¦ãƒˆ
-    // ã‚¹ãƒ©ã‚¤ãƒ‰ã€AA: ã‚±ãƒ„ç„¡ã—ã‚¢ã‚¦ãƒˆ(ã‚±ãƒ„é€£ã¯ç„¡è¦–)
+    // •s³ƒ`ƒFƒbƒNƒŠƒXƒg
+    // ƒVƒ‡[ƒg: ‚Í‚İo‚µ‚Í‘S•”ƒAƒEƒg
+    // ƒz[ƒ‹ƒh: ƒPƒc–³‚µƒAƒEƒg(ƒPƒc˜A‚Í–³‹)AStep/Control–â“š–³—pƒAƒEƒgAƒPƒcˆá‚¢ƒAƒEƒg
+    // ƒXƒ‰ƒCƒhAAA: ƒPƒc–³‚µƒAƒEƒg(ƒPƒc˜A‚Í–³‹)
     data.clear();
     for (auto& note : notes) {
         const auto time = get<0>(note);
@@ -772,11 +772,11 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                 switch (ltype) {
                     case SusNoteType::Hold: {
                         if (curNo.Type.test(size_t(SusNoteType::Control)) || curNo.Type.test(size_t(SusNoteType::Invisible)))
-                            MakeMessage(curPos.Measure, curPos.Tick, curNo.NotePosition.StartLane, u8"Holdã§Control/Invisibleã¯æŒ‡å®šã§ãã¾ã›ã‚“ã€‚");
+                            MakeMessage(curPos.Measure, curPos.Tick, curNo.NotePosition.StartLane, u8"Hold‚ÅControl/Invisible‚Íw’è‚Å‚«‚Ü‚¹‚ñB");
                         if (curNo.NotePosition.StartLane != info.NotePosition.StartLane || curNo.NotePosition.Length != info.NotePosition.Length)
-                            MakeMessage(curPos.Measure, curPos.Tick, curNo.NotePosition.StartLane, u8"Holdã®é•·ã•/ä½ç½®ãŒå§‹ç‚¹ã¨ä¸€è‡´ã—ã¦ã„ã¾ã›ã‚“ã€‚");
+                            MakeMessage(curPos.Measure, curPos.Tick, curNo.NotePosition.StartLane, u8"Hold‚Ì’·‚³/ˆÊ’u‚ªn“_‚Æˆê’v‚µ‚Ä‚¢‚Ü‚¹‚ñB");
                     }
-                                            /* ãƒ›ãƒ¼ãƒ«ãƒ‰ã ã‘è¿½åŠ ãƒã‚§ãƒƒã‚¯ã—ã¦ãƒ•ã‚©ãƒ¼ãƒ«ã‚¹ãƒ«ãƒ¼ */
+                                            /* ƒz[ƒ‹ƒh‚¾‚¯’Ç‰Áƒ`ƒFƒbƒN‚µ‚ÄƒtƒH[ƒ‹ƒXƒ‹[ */
                     case SusNoteType::Slide:
                     case SusNoteType::AirAction: {
                         if (curNo.Type.test(size_t(SusNoteType::Start))) break;
@@ -785,7 +785,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                         nextNote->StartTime = GetAbsoluteTime(curPos.Measure, curPos.Tick);
                         nextNote->StartLane = curNo.NotePosition.StartLane;
                         nextNote->Length = curNo.NotePosition.Length;
-                        // æš«å®š
+                        // b’è
                         nextNote->CenterAtZero = nextNote->StartLane + nextNote->Length / 2.0;
                         nextNote->Type = curNo.Type;
                         nextNote->Timeline = curNo.Timeline;
@@ -814,22 +814,22 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                         break;
                     }
                     default:
-                        // TODO: å¤šåˆ†ã‚¨ãƒ©ãƒ¼
+                        // TODO: ‘½•ªƒGƒ‰[
                         break;
                 }
                 if (completed) break;
             }
             if (!completed) {
-                MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"ãƒ­ãƒ³ã‚°ãƒãƒ¼ãƒ„ã«çµ‚ç‚¹ãŒã‚ã‚Šã¾ã›ã‚“ã€‚");
+                MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"ƒƒ“ƒOƒm[ƒc‚ÉI“_‚ª‚ ‚è‚Ü‚¹‚ñB");
             } else {
                 data.push_back(noteData);
                 SharedMetaData.ScoreDuration = max(SharedMetaData.ScoreDuration, noteData->StartTime + noteData->Duration);
                 if (genCurve) CalculateCurves(noteData, curveData);
             }
         } else if (bits & SU_NOTE_SHORT_MASK) {
-            // ã‚·ãƒ§ãƒ¼ãƒˆ
+            // ƒVƒ‡[ƒg
             if (info.NotePosition.StartLane + info.NotePosition.Length > 16) {
-                MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"ã‚·ãƒ§ãƒ¼ãƒˆãƒãƒ¼ãƒ„ãŒã¯ã¿å‡ºã—ã¦ã„ã¾ã™ã€‚");
+                MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"ƒVƒ‡[ƒgƒm[ƒc‚ª‚Í‚İo‚µ‚Ä‚¢‚Ü‚·B");
             }
             noteData->Type = info.Type;
             noteData->StartTime = GetAbsoluteTime(time.Measure, time.Tick);
@@ -839,17 +839,17 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
             noteData->Timeline = info.Timeline;
             noteData->ExtraAttribute = info.ExtraAttribute;
             noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
-            // RollHispeedçµ„ã¿è¾¼ã¿
+            // RollHispeed‘g‚İ‚İ
             if (noteData->ExtraAttribute->RollHispeedNumber >= 0) {
                 if (hispeedDefinitions.find(noteData->ExtraAttribute->RollHispeedNumber) != hispeedDefinitions.end()) {
                     noteData->ExtraAttribute->RollTimeline = hispeedDefinitions[noteData->ExtraAttribute->RollHispeedNumber];
                 } else {
-                    MakeMessage(0, u8"æŒ‡å®šã•ã‚ŒãŸã‚¿ã‚¤ãƒ ãƒ©ã‚¤ãƒ³ãŒå­˜åœ¨ã—ã¾ã›ã‚“");
+                    MakeMessage(0, u8"w’è‚³‚ê‚½ƒ^ƒCƒ€ƒ‰ƒCƒ“‚ª‘¶İ‚µ‚Ü‚¹‚ñ");
                     noteData->ExtraAttribute->RollHispeedNumber = -1;
                 }
             }
-            // Airæ¥åœ°å‡¦ç†
-            // if ((ä¸‹ã«åˆ¥ãƒãƒ¼ãƒ„ãŒã‚ã‚‹ && ãã‚Œã¯ãƒ­ãƒ³ã‚°çµ‚ç‚¹) || ä¸‹ã«åˆ¥ãƒãƒ¼ãƒ„ãŒãªã„)
+            // AirÚ’nˆ—
+            // if ((‰º‚É•Êƒm[ƒc‚ª‚ ‚é && ‚»‚ê‚Íƒƒ“ƒOI“_) || ‰º‚É•Êƒm[ƒc‚ª‚È‚¢)
             if (info.Type[size_t(SusNoteType::Air)] && !info.Type[size_t(SusNoteType::Grounded)]) {
                 auto found = false;
                 for (const auto &target : notes) {
@@ -869,7 +869,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                 }
                 if (!found) noteData->Type.set(size_t(SusNoteType::Grounded));
             }
-            // ç§»å‹•ãƒ¬ãƒ¼ãƒ³å‡¦ç†
+            // ˆÚ“®ƒŒ[ƒ“ˆ—
             noteData->CenterAtZero = noteData->StartLane + noteData->Length / 2.0;
             if (SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::EnableMovingLane)]) {
                 for (const auto &startSource : notes) {
@@ -892,7 +892,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
             noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
             data.push_back(noteData);
         } else if (!info.Type[size_t(SusNoteType::StartPosition)]) {
-            MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"è‡´å‘½çš„ãªãƒãƒ¼ãƒ„ã‚¨ãƒ©ãƒ¼(ä¸æ­£ãªå†…éƒ¨è¡¨ç¾ã§ã™)ã€‚");
+            MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"’v–½“I‚Èƒm[ƒcƒGƒ‰[(•s³‚È“à•”•\Œ»‚Å‚·)B");
         }
     }
 }
@@ -900,7 +900,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
 void SusAnalyzer::CalculateCurves(const shared_ptr<SusDrawableNoteData>& note, NoteCurvesList &curveData) const
 {
     auto lastStep = note;
-    vector<tuple<double, double>> controlPoints;    // lastStepã‹ã‚‰ã®æ™‚é–“, Xä¸­å¤®ä½ç½®(0~1)
+    vector<tuple<double, double>> controlPoints;    // lastStep‚©‚ç‚ÌŠÔ, X’†‰›ˆÊ’u(0~1)
     vector<tuple<double, double>> bezierBuffer;
 
     controlPoints.emplace_back(0, (lastStep->StartLane + lastStep->Length / 2.0) / 16.0);
@@ -911,7 +911,7 @@ void SusAnalyzer::CalculateCurves(const shared_ptr<SusDrawableNoteData>& note, N
             controlPoints.push_back(cpi);
             continue;
         }
-        // Endã‹Stepã‹Invisible
+        // End‚©Step‚©Invisible
         controlPoints.emplace_back(slideElement->StartTime - lastStep->StartTime, (slideElement->StartLane + slideElement->Length / 2.0) / 16.0);
         const int segmentPoints = SharedMetaData.SegmentsPerSecond * (slideElement->StartTime - lastStep->StartTime) + 2;
         vector<tuple<double, double>> segmentPositions;
@@ -957,7 +957,7 @@ void SusHispeedTimeline::AddKeysByString(const string &def, const function<share
         split(params, k, b::is_any_of(":"));
         if (params.size() < 2) return;
         if (params[0] == "inherit") {
-            // ãƒ‡ãƒ¼ã‚¿æµç”¨
+            // ƒf[ƒ^—¬—p
             const auto from = ConvertHexatridecimal(params[1]);
             auto parent = resolver(from);
             if (!parent) continue;
@@ -1121,7 +1121,7 @@ void SusNoteExtraAttribute::Apply(const string &props)
                 HeightScale = double(strtod(pr[1].c_str(), nullptr));
                 break;
             default:
-                // TODO: ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡ºã™
+                // TODO: ƒƒbƒZ[ƒWo‚·
                 break;
         }
     }
