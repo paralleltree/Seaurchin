@@ -89,7 +89,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_SILENCE_FPOS_SEEKPOS_DEPRECATION_WARNING;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\library\fmt;..\library\dxlib\include;..\library\angelscript\angelscript\include;..\library\angelscript\sdk\angelscript\add_on;..\library\boost;..\library\angelscript\sdk\add_on;..\library\freetype\include;..\library\libpng;..\library\bass24_mix\c;..\library\bass24_fx\c;..\library\bass24\c;..\library\wacom\addons\ofxWacomFeelMultiTouch\libs;..\library\zlib;..\library\spdlog\include;..\library\libvorbis\include;..\library\libogg\include;..\library\tinytoml\include;..\library\glm;..\library\libjpeg\Release;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\library\fmt;..\library\dxlib\include;..\library\angelscript\angelscript\include;..\library\angelscript\angelscript\add_on;..\library\boost;..\library\angelscript\add_on;..\library\freetype\include;..\library\libpng;..\library\bass24_mix\c;..\library\bass24_fx\c;..\library\bass24\c;..\library\wacom\addons\ofxWacomFeelMultiTouch\libs;..\library\zlib;..\library\spdlog\include;..\library\libvorbis\include;..\library\libogg\include;..\library\tinytoml\include;..\library\glm;..\library\libjpeg\Release;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>PrecompiledHeader.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>PrecompiledHeader.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <AdditionalOptions>-Zm640 %(AdditionalOptions)</AdditionalOptions>
