@@ -60,7 +60,9 @@ if (!(Test-Path "C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\Extension
   Write-Host "Windows SDK 10.0.17663.0がインストールされてない為、Bootstrapを続ける事が出来ません。終了します。"
   Write-Host "Windows SDK 10.0.17763.0をインストールしてから再度実行してください。"
   Write-Host ""
-  Read-Host "終了するには Enter キーを押してください"
+  if($Args[0] -ne "quiet") {
+    Read-Host "終了するには Enter キーを押してください"
+  }
   exit
 }
 if (!(Test-Path "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\$VS_TOOLS_VER\lib\spectre")){
@@ -69,7 +71,9 @@ if (!(Test-Path "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\V
   Write-Host '       VC++ 2017 version XX.X vXX.XX Libs for Spectre (x86 and x64)をインストールしてください。'
   Write-Host ""
 }
-Read-Host '続行するには Enter キーを押してください'
+if($Args[0] -ne "quiet") {
+  Read-Host '続行するには Enter キーを押してください'
+}
 
 Write-Host '================================================================================='
 Write-Host ''
@@ -257,4 +261,6 @@ dlSourceRename "https://github.com/denisidoro/xWacom/archive/master.zip" "wacom"
 
 Write-Host "* ビルドが完了しました。Seaurchin.slnをダブルクリックして開いてください。"
 
-pause
+if($Args[0] -ne "quiet") {
+  pause
+}
