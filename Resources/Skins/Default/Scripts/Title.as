@@ -5,17 +5,29 @@ class Title : CoroutineScene {
   Image@ imgWhite, imgDxLib, imgBoost, imgFreeType, imgAngelScript, imgSeaurchin;
   Image@ imgCursorMenu;
   
+  Container@ cntLogos;
+  bool introWorking;
+  
   void Initialize() {
     LoadResources();
     AddSprite(Sprite(imgWhite));
   }
   
   void Run() {
+    @cntLogos = Container();
+    AddSprite(cntLogos);
+    
     if (!ExistsData("LogoShown")) {
       SetData("LogoShown", true);
       RunCoroutine(Coroutine(Intro), "Title:Intro");
-      YieldTime(4.0);
+      introWorking = true;
+    } else {
+      introWorking = false;
     }
+    while(introWorking && !IsKeyTriggered(Key::INPUT_RETURN)) YieldFrame(1);
+    cntLogos.AddMove("alpha(x:1, y:0, time:0.75)");
+    cntLogos.AddMove("death(wait:0.75)");
+    
     RunCoroutine(Coroutine(TitleRipple), "Title:Ripple");
     RunCoroutine(Coroutine(KeyInput), "Title:KeyInput");
     while(true) YieldTime(30);
@@ -50,15 +62,15 @@ class Title : CoroutineScene {
       TextSprite(fontLatin, "DxLib"),
       Sprite(imgDxLib)
     };
-    dxl[0].Apply("x:416, y:92, r:0, g:0, b: 0");
-    dxl[1].Apply("x:416, y:162, r:0, g:0, b: 0");
-    dxl[2].Apply("x:200, y:200, origY:102");
+    dxl[0].Apply("x:416, y:92, r:0, g:0, b: 0, alpha:0");
+    dxl[1].Apply("x:416, y:162, r:0, g:0, b: 0, alpha:0");
+    dxl[2].Apply("x:200, y:200, origY:102, alpha:0");
     dxl[2].HasAlpha = false;
     for(int i = 0; i < dxl.length(); i++) {
       dxl[i].AddMove("alpha(x:0, y:1, time:1)");
       dxl[i].AddMove("alpha(x:1, y:0, time:1, wait:3)");
       dxl[i].AddMove("death(wait:4)");
-      AddSprite(dxl[i]);
+      cntLogos.AddChild(dxl[i]);
     }
     
     array<Sprite@> logo = {
@@ -66,15 +78,18 @@ class Title : CoroutineScene {
       Sprite(imgFreeType),
       Sprite(imgAngelScript)
     };
-    logo[0].Apply("x:200, y:300");
-    logo[1].Apply("x:516, y:300");
-    logo[2].Apply("x:206, y:500");
+    logo[0].Apply("x:200, y:300, alpha:0");
+    logo[1].Apply("x:516, y:300, alpha:0");
+    logo[2].Apply("x:206, y:500, alpha:0");
     for(int i = 0; i < logo.length(); i++) {
       logo[i].AddMove("alpha(x:0, y:1, time:1)");
       logo[i].AddMove("alpha(x:1, y:0, time:1, wait:3)");
       logo[i].AddMove("death(wait:4)");
-      AddSprite(logo[i]);
+      cntLogos.AddChild(logo[i]);
     }
+    
+    YieldTime(4.0);
+    introWorking = false;
   }
   
   Sprite@ spLogo, spCursor;
