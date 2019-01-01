@@ -180,6 +180,13 @@ void SusAnalyzer::LoadFromFile(const wstring &fileName, const bool analyzeOnlyMe
         copy_if(notes.begin(), notes.end(), back_inserter(bpmChanges), [](tuple<SusRelativeNoteTime, SusRawNoteData> n) {
             return get<1>(n).Type.test(size_t(SusNoteType::Undefined));
         });
+        if (bpmChanges.size() == 0) {
+            SusRawNoteData noteData;
+            SusRelativeNoteTime time = { 0, 0 };
+            noteData.Type.set(size_t(SusNoteType::Undefined));
+            noteData.DefinitionNumber = 1; // リセット時にbpmDefinitions[1]が設定されていることより、1は必ず有効であると仮定している。(0 basedじゃないのはなぜ?)
+            bpmChanges.emplace_back(time, noteData);
+        }
 
         for (auto &hs : hispeedDefinitions) hs.second->Finialize();
         if (SharedMetaData.BaseBpm == 0) SharedMetaData.BaseBpm = GetBpmAt(0, 0);
