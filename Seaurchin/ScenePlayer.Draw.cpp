@@ -27,11 +27,11 @@ void ScenePlayer::LoadResources()
     imageAirUp = dynamic_cast<SImage*>(resources["AirUp"]);
     imageAirDown = dynamic_cast<SImage*>(resources["AirDown"]);
     imageHold = dynamic_cast<SImage*>(resources["Hold"]);
-    imageHoldStep = dynamic_cast<SImage*>(resources["HoldStep"]);
-    imageHoldStrut = dynamic_cast<SImage*>(resources["HoldStrut"]);
+	imageHoldStep = dynamic_cast<SImage*>(resources["HoldStep"]);
+	imageHoldStrut = dynamic_cast<SImage*>(resources["HoldStrut"]);
     imageSlide = dynamic_cast<SImage*>(resources["Slide"]);
-    imageSlideStep = dynamic_cast<SImage*>(resources["SlideStep"]);
-    imageSlideStrut = dynamic_cast<SImage*>(resources["SlideStrut"]);
+	imageSlideStep = dynamic_cast<SImage*>(resources["SlideStep"]);
+	imageSlideStrut = dynamic_cast<SImage*>(resources["SlideStrut"]);
     imageAirAction = dynamic_cast<SImage*>(resources["AirAction"]);
     animeTap = dynamic_cast<SAnimatedImage*>(resources["EffectTap"]);
     animeExTap = dynamic_cast<SAnimatedImage*>(resources["EffectExTap"]);
@@ -83,7 +83,7 @@ void ScenePlayer::LoadResources()
     slideLineColor = GetColor(scv[0].as<int>(), scv[1].as<int>(), scv[2].as<int>());
     airActionJudgeColor = GetColor(aajcv[0].as<int>(), aajcv[1].as<int>(), aajcv[2].as<int>());
 
-    // 2^xåˆ¶é™ãŒã‚ã‚‹ã®ã§ã“ã“ã§è¨ˆç®—
+    // 2^x§ŒÀ‚ª‚ ‚é‚Ì‚Å‚±‚±‚ÅŒvZ
     const int exty = laneBufferX * SU_LANE_ASPECT_EXT;
     auto bufferY = 2.0;
     while (exty > bufferY) bufferY *= 2;
@@ -94,7 +94,7 @@ void ScenePlayer::LoadResources()
     BEGIN_DRAW_TRANSACTION(hBlank);
     DrawBox(0, 0, 128, 128, GetColor(255, 255, 255), TRUE);
     FINISH_DRAW_TRANSACTION;
-    // ã‚¹ãƒ©ã‚¤ãƒ‰ã®3Dé–¢æ•°æç”»ã§64x192ã‹ã‚‰64x256ã«ã—ãªã„ã¨ã„ã‘ãªã„ã­
+    // ƒXƒ‰ƒCƒh‚Ì3DŠÖ”•`‰æ‚Å64x192‚©‚ç64x256‚É‚µ‚È‚¢‚Æ‚¢‚¯‚È‚¢‚Ë
     if (imageSlideStrut) {
         imageExtendedSlideStrut = MakeScreen(64, 256, TRUE);
         BEGIN_DRAW_TRANSACTION(imageExtendedSlideStrut);
@@ -134,7 +134,7 @@ void ScenePlayer::Draw()
     if (movieBackground) DrawExtendGraph(0, 0, SU_RES_WIDTH, SU_RES_HEIGHT, movieBackground, FALSE);
 
     BEGIN_DRAW_TRANSACTION(hGroundBuffer);
-    // èƒŒæ™¯éƒ¨
+    // ”wŒi•”
     DrawLaneBackground();
     DrawLaneDivisionLines();
     for (auto& note : seenData) {
@@ -142,14 +142,14 @@ void ScenePlayer::Draw()
         if (type[size_t(SusNoteType::MeasureLine)]) DrawMeasureLine(note);
     }
 
-    // ä¸‹å´ã®ãƒ­ãƒ³ã‚°ãƒãƒ¼ãƒ„é¡
+    // ‰º‘¤‚Ìƒƒ“ƒOƒm[ƒc—Ş
     for (auto& note : seenData) {
         auto &type = note->Type;
         if (type[size_t(SusNoteType::Hold)]) DrawHoldNotes(note);
         if (type[size_t(SusNoteType::Slide)]) DrawSlideNotes(note);
     }
 
-    // ä¸Šå´ã®ã‚·ãƒ§ãƒ¼ãƒˆãƒãƒ¼ãƒ„é¡
+    // ã‘¤‚ÌƒVƒ‡[ƒgƒm[ƒc—Ş
     for (auto& note : seenData) {
         auto &type = note->Type;
         if (type[size_t(SusNoteType::Tap)]) DrawShortNotes(note);
@@ -165,7 +165,7 @@ void ScenePlayer::Draw()
     DrawPolygonIndexed3D(groundVertices, 4, rectVertexIndices, 2, hGroundBuffer, TRUE);
     for (auto& i : sprites) i->Draw();
 
-    //3Dç³»ãƒãƒ¼ãƒ„
+    //3DŒnƒm[ƒc
     Prepare3DDrawCall();
     DrawAerialNotes(seenData);
 
@@ -263,7 +263,7 @@ void ScenePlayer::RefreshComboText() const
     textCombo->AddMove(app.str());
 }
 
-// position ã¯ 0 ~ 16
+// position ‚Í 0 ~ 16
 void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target, const JudgeType type)
 {
     Prepare3DDrawCall();
@@ -413,7 +413,7 @@ void ScenePlayer::DrawShortNotes(const shared_ptr<SusDrawableNoteData>& note) co
         handleToDraw = imageAir;
     }
 
-    //64*3 x 64 ã‚’æç”»ã™ã‚‹ã‹ã‚‰1/2ã§ã‚„ã‚‹å¿…è¦ãŒã‚ã‚‹
+    //64*3 x 64 ‚ğ•`‰æ‚·‚é‚©‚ç1/2‚Å‚â‚é•K—v‚ª‚ ‚é
 
     if (handleToDraw) DrawTap(rlane, length, relpos, handleToDraw->GetHandle());
 }
@@ -481,8 +481,8 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
     const auto endpoint = note->ExtraData.back();
     const auto relpos = 1.0 - note->ModifiedPosition / seenDuration;
     const auto reltailpos = 1.0 - endpoint->ModifiedPosition / seenDuration;
-    // ä¸­èº«ã ã‘å…ˆã«æç”»
-    // 1ç”»é¢åˆ†ã§8åˆ†å‰²ãã‚‰ã„ã§ã‚ˆã•ãã†
+    // ’†g‚¾‚¯æ‚É•`‰æ
+    // 1‰æ–Ê•ª‚Å8•ªŠ„‚®‚ç‚¢‚Å‚æ‚³‚»‚¤
     const int segments = fabs(relpos - reltailpos) * 8 + 1;
     SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
     for (auto i = 0; i < segments; i++) {
@@ -505,87 +505,87 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
     for (auto &ex : note->ExtraData) {
         if (ex->Type.test(size_t(SusNoteType::Injection))) continue;
         const auto relendpos = 1.0 - ex->ModifiedPosition / seenDuration;
-        if (ex->Type.test(size_t(SusNoteType::Start))) {
-            DrawTap(slane, length, relendpos, imageHold->GetHandle());
-        }
-        else {
-            DrawTap(slane, length, relendpos, imageHoldStep->GetHandle());
-        }
+		if (ex->Type.test(size_t(SusNoteType::Start))) {
+			DrawTap(slane, length, relendpos, imageHold->GetHandle());
+		}
+		else {
+			DrawTap(slane, length, relendpos, imageHoldStep->GetHandle());
+		}
     }
 }
 
 void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 {
     auto lastStep = note;
-    auto offsetTimeInBlock = 0.0; /* ãã®slideElementã®ã€ä¸å¯è¦–ä¸­ç¶™ç‚¹ã®ã¤ãªãŒã‚Šç­‰ã‚’è€ƒæ…®ã—ãŸæ™‚ã®å…ˆé ­ä½ç½®ã€çš„ãª */
-    const auto strutBottom = 1.0;
+	auto offsetTimeInBlock = 0.0; /* ‚»‚ÌslideElement‚ÌA•s‰Â‹’†Œp“_‚Ì‚Â‚È‚ª‚è“™‚ğl—¶‚µ‚½‚Ìæ“ªˆÊ’uA“I‚È */
+	const auto strutBottom = 1.0;
     slideVertices.clear();
     slideIndices.clear();
 
-    /* åŸºæœ¬æ–¹é‡ */
-    /* å¾“æ¥ : [å§‹ç‚¹,ä¸­ç¶™ç‚¹,ä¸å¯è¦–ä¸­ç¶™ç‚¹]ã‹ã‚‰æ¬¡ã®[ä¸­ç¶™ç‚¹,ä¸å¯è¦–ä¸­ç¶™ç‚¹,çµ‚ç‚¹]ã«ã‹ã‘ã¦(u,v)ã®è¨ˆç®—ã‚’è¡Œã£ã¦ã„ã‚‹ */
-    /* æ”¹è‰¯ : [å§‹ç‚¹,ä¸­ç¶™ç‚¹]ã‹ã‚‰æ¬¡ã®[ä¸­ç¶™ç‚¹,çµ‚ç‚¹]ã«ã‹ã‘ã¦ã€â€ä¸å¯è¦–ä¸­ç¶™ç‚¹ã‚’è¶…ãˆã¦â€(u,v)ã®è¨ˆç®—ã‚’è¡Œã† */
-    /*        åˆ†å‰²ç‚¹(?)ã®é…ç½®ã¯ã™ã§ã«æ­£ã—ãè¨ˆç®—ã•ã‚Œã¦ã„ã‚‹ã®ã§æ‰‹ã‚’åŠ ãˆãªã„ */
-    /*        å¾“æ¥ã®(u,v)è¨ˆç®—ã‚’è¡Œã£ã¦ã„ãŸé ˜åŸŸã§ã€ 0 <= v <= 1 ã§ã‚ã£ãŸã¨ã“ã‚ã‚’ a <= v <= b ã«å¤‰æ›´ã— */
-    /*        ä¸å¯è¦–ä¸­ç¶™ç‚¹ã‚’ã¾ãŸã„ã é ˜åŸŸå…¨ä½“ã®æ™‚é–“ã‹ã‚‰a,bã‚’é©å½“ã«å®šã‚ã‚‹ */
+	/* Šî–{•ûj */
+	/* ]—ˆ : [n“_,’†Œp“_,•s‰Â‹’†Œp“_]‚©‚çŸ‚Ì[’†Œp“_,•s‰Â‹’†Œp“_,I“_]‚É‚©‚¯‚Ä(u,v)‚ÌŒvZ‚ğs‚Á‚Ä‚¢‚é */
+	/* ‰ü—Ç : [n“_,’†Œp“_]‚©‚çŸ‚Ì[’†Œp“_,I“_]‚É‚©‚¯‚ÄAh•s‰Â‹’†Œp“_‚ğ’´‚¦‚Äh(u,v)‚ÌŒvZ‚ğs‚¤ */
+	/*        •ªŠ„“_(?)‚Ì”z’u‚Í‚·‚Å‚É³‚µ‚­ŒvZ‚³‚ê‚Ä‚¢‚é‚Ì‚Åè‚ğ‰Á‚¦‚È‚¢ */
+	/*        ]—ˆ‚Ì(u,v)ŒvZ‚ğs‚Á‚Ä‚¢‚½—Ìˆæ‚ÅA 0 <= v <= 1 ‚Å‚ ‚Á‚½‚Æ‚±‚ë‚ğ a <= v <= b ‚É•ÏX‚µ */
+	/*        •s‰Â‹’†Œp“_‚ğ‚Ü‚½‚¢‚¾—Ìˆæ‘S‘Ì‚ÌŠÔ‚©‚ça,b‚ğ“K“–‚É’è‚ß‚é */
 
-    /* é‡è¦ */
-    /* ã™ã¹ã¦ã®å¤‰æ•°ã€æ¼”ç®—ã®æ„å‘³ã‚’ç†è§£ã—ãŸã‚ã‘ã§ã¯ãªã„ã®ã§ã€å¤‰æ‹å­ã€ãƒã‚¤ã‚¹ãƒ”è¨­å®šç­‰ã§æ­»ã¬å¯èƒ½æ€§ãŒå¤šåˆ†ã«ã‚ã‚‹ */
+	/* d—v */
+	/* ‚·‚×‚Ä‚Ì•Ï”A‰‰Z‚ÌˆÓ–¡‚ğ—‰ğ‚µ‚½‚í‚¯‚Å‚Í‚È‚¢‚Ì‚ÅA•Ï”qAƒnƒCƒXƒsİ’è“™‚Å€‚Ê‰Â”\«‚ª‘½•ª‚É‚ ‚é */
 
-    /* å„SlideElementã«å¯¾å¿œã™ã‚‹è¿½åŠ æƒ…å ±ã‚’è¨ˆç®—ã—ã¦æ ¼ç´ã™ã‚‹ */
-    /* èµ·ç‚¹æ™‚åˆ», çµ‚ç‚¹æ™‚åˆ» ã®2è¦ç´ ãƒ™ã‚¯ã‚¿ãƒ¼ã®ãƒ™ã‚¯ã‚¿ãƒ¼ */
-    /* èµ·ç‚¹æ™‚åˆ» : ãã®SlideElementä»¥å‰ã«ç¾ã‚ŒãŸå§‹ç‚¹orä¸­ç¶™ç‚¹ã®å…ˆé ­æ™‚åˆ» */
-    /* çµ‚ç‚¹æ™‚åˆ» : ãã®SlideElementä»¥é™ã«ç¾ã‚Œã‚‹çµ‚ç‚¹orä¸­ç¶™ç‚¹ã®çµ‚ç«¯æ™‚åˆ» */
-    std::vector<std::vector<double>> exData(note->ExtraData.size() + 1);
-    {
-        unsigned int i = 0;
-        std::vector<double> tmp(2);
+	/* ŠeSlideElement‚É‘Î‰‚·‚é’Ç‰Áî•ñ‚ğŒvZ‚µ‚ÄŠi”[‚·‚é */
+	/* ‹N“_, I“_ ‚Ì2—v‘fƒxƒNƒ^[‚ÌƒxƒNƒ^[ */
+	/* ‹N“_ : ‚»‚ÌSlideElementˆÈ‘O‚ÉŒ»‚ê‚½n“_or’†Œp“_‚Ìæ“ª */
+	/* I“_ : ‚»‚ÌSlideElementˆÈ~‚ÉŒ»‚ê‚éI“_or’†Œp“_‚ÌI’[ */
+	std::vector<std::vector<double>> exData(note->ExtraData.size() + 1);
+	{
+		unsigned int i = 0;
+		std::vector<double> tmp(2);
         auto lastStartTime = note->StartTime;
 
-        /* å…ˆé ­è¦ç´ (note)ã¯SusNoteType::Startã«ãªã‚‹ã¯ãš(æœ¬å½“ã‹?) */
-        tmp[0] = note->StartTime;
-        tmp[1] = 0;
-        exData[i] = tmp;
-        ++i;
+		/* æ“ª—v‘f(note)‚ÍSusNoteType::Start‚É‚È‚é‚Í‚¸(–{“–‚©?) */
+		tmp[0] = note->StartTime;
+		tmp[1] = 0;
+		exData[i] = tmp;
+		++i;
 
-        /* ç›´å‰ã®SlideElementã®é–‹å§‹æ™‚åˆ»ã‚’å…±æœ‰ã™ã‚‹ */
-        /* ä¸­ç¶™ç‚¹ã®å ´åˆã¯é–‹å§‹æ™‚åˆ»ã‚’å…±æœ‰ã—ãŸâ€å¾Œâ€ã«ã€å…±æœ‰ã™ã‚‹é–‹å§‹æ™‚åˆ»ã‚’æ›´æ–°ã™ã‚‹ */
-        /* ä¸­ç¶™ç‚¹ã€çµ‚ç‚¹ã®å ´åˆã¯çµ‚äº†æ™‚åˆ»ãŒæ±ºå®šã™ã‚‹ã®ã§ä¿å­˜ã—ã¦ãŠã(ãã‚Œä»¥å¤–ãªã‚‰çµ‚ç«¯æ™‚åˆ»ã¯ã¨ã‚Šã‚ãˆãš0ã«ã—ã¦ãŠã) */
-        for (auto &slideElement : note->ExtraData) {
+		/* ’¼‘O‚ÌSlideElement‚ÌŠJn‚ğ‹¤—L‚·‚é */
+		/* ’†Œp“_‚Ìê‡‚ÍŠJn‚ğ‹¤—L‚µ‚½hŒãh‚ÉA‹¤—L‚·‚éŠJn‚ğXV‚·‚é */
+		/* ’†Œp“_AI“_‚Ìê‡‚ÍI—¹‚ªŒˆ’è‚·‚é‚Ì‚Å•Û‘¶‚µ‚Ä‚¨‚­(‚»‚êˆÈŠO‚È‚çI’[‚Í‚Æ‚è‚ ‚¦‚¸0‚É‚µ‚Ä‚¨‚­) */
+		for (auto &slideElement : note->ExtraData) {
             tmp[0] = lastStartTime;
             tmp[1] = 0;
             
-            if (slideElement->Type.test(size_t(SusNoteType::Step))) {
+			if (slideElement->Type.test(size_t(SusNoteType::Step))) {
                 lastStartTime = slideElement->StartTime;
                 tmp[1] = slideElement->StartTime;
-            }
-            if (slideElement->Type.test(size_t(SusNoteType::End))) {
-                /* ã“ã‚ŒSlideçµ‚ç«¯ã®å¾Œã«ãƒ‡ãƒ¼ã‚¿æ¥ãªã„å‰æã«ãªã£ã¦ã‚‹ã‘ã©(å¤§ä¸ˆå¤«ã‹?) */
-                tmp[1] = slideElement->StartTime;
-            }
+			}
+			if (slideElement->Type.test(size_t(SusNoteType::End))) {
+				/* ‚±‚êSlideI’[‚ÌŒã‚Éƒf[ƒ^—ˆ‚È‚¢‘O’ñ‚É‚È‚Á‚Ä‚é‚¯‚Ç(‘åä•v‚©?) */
+				tmp[1] = slideElement->StartTime;
+			}
             
-            exData[i] = tmp;
-            ++i;
-        }
+			exData[i] = tmp;
+			++i;
+		}
 
-        for (i = exData.size() - 1; i > 0 ; --i) {
-            /* è‡ªåˆ†è‡ªèº«ã®ç›´å‰ã®ä½•ã‹ãŒé–‹å§‹æ™‚åˆ»ã‚’å…±æœ‰ã—ã¦ã„ã‚‹ */
-            if (exData[i - 1][0] == exData[i][0]) {
-                /* çµ‚äº†æ™‚åˆ»ã‚‚å…±æœ‰ã—ãŸã„ */
-                exData[i - 1][1] = exData[i][1];
-            }
-            else {
-                /* çµ‚äº†æ™‚åˆ»ã¯æ—¢ã«exData[i - 1][1]ã«å…¥ã£ã¦ã„ã‚‹ã¯ãš(æœ¬å½“ã‹?) */
-            }
-        }
-    }
+		for (i = exData.size() - 1; i > 0 ; --i) {
+			/* ©•ª©g‚Ì’¼‘O‚Ì‰½‚©‚ªŠJn‚ğ‹¤—L‚µ‚Ä‚¢‚é */
+			if (exData[i - 1][0] == exData[i][0]) {
+				/* I—¹‚à‹¤—L‚µ‚½‚¢ */
+				exData[i - 1][1] = exData[i][1];
+			}
+			else {
+				/* I—¹‚ÍŠù‚ÉexData[i - 1][1]‚É“ü‚Á‚Ä‚¢‚é‚Í‚¸(–{“–‚©?) */
+			}
+		}
+	}
 
-    // æ”¯æŸ±
+    // x’Œ
     auto drawcount = 0;
     uint16_t base = 0;
-    unsigned int i = 0;
+	unsigned int i = 0;
     for (auto &slideElement : note->ExtraData) {
-        ++i; /* exData[0] ã¯noteãã®ã‚‚ã®ã®æƒ…å ±ã ã‹ã‚‰ã“ã®ã‚¤ãƒ³ã‚¯ãƒªãƒ¡ãƒ³ãƒˆã¯å¿…é ˆ */
+		++i; /* exData[0] ‚Ínote‚»‚Ì‚à‚Ì‚Ìî•ñ‚¾‚©‚ç‚±‚ÌƒCƒ“ƒNƒŠƒƒ“ƒg‚Í•K{ */
         if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
         auto &segmentPositions = curveData[slideElement];
@@ -594,13 +594,13 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
         auto lastSegmentLength = double(lastStep->Length);
         auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / seenDuration;
         auto lastTimeInBlock = get<0>(lastSegmentPosition) / (slideElement->StartTime - lastStep->StartTime);
-        auto lastTimeInBlock2 = get<0>(lastSegmentPosition) / (exData[i][1] - exData[i][0]);
+		auto lastTimeInBlock2 = get<0>(lastSegmentPosition) / (exData[i][1] - exData[i][0]);
 
         for (const auto &segmentPosition : segmentPositions) {
             if (lastSegmentPosition == segmentPosition) continue;
             const auto currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
-            const auto currentTimeInBlock2 = get<0>(segmentPosition) / (exData[i][1] - exData[i][0]);
-            const auto currentSegmentLength = glm::mix(double(lastStep->Length), double(slideElement->Length), currentTimeInBlock);
+			const auto currentTimeInBlock2 = get<0>(segmentPosition) / (exData[i][1] - exData[i][0]);
+			const auto currentSegmentLength = glm::mix(double(lastStep->Length), double(slideElement->Length), currentTimeInBlock);
             const auto segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
             const auto currentSegmentRelativeY = 1.0 - segmentExPosition / seenDuration;
             if ((currentSegmentRelativeY >= 0 || lastSegmentRelativeY >= 0)
@@ -646,21 +646,21 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
             lastSegmentLength = currentSegmentLength;
             lastSegmentRelativeY = currentSegmentRelativeY;
             lastTimeInBlock = currentTimeInBlock;
-            lastTimeInBlock2 = currentTimeInBlock2;
-        }
-        if (slideElement->Type.test(size_t(SusNoteType::Step))) {
-            offsetTimeInBlock = 0;
-        }
-        else {
-            offsetTimeInBlock += lastTimeInBlock2;
-        }
+			lastTimeInBlock2 = currentTimeInBlock2;
+		}
+		if (slideElement->Type.test(size_t(SusNoteType::Step))) {
+			offsetTimeInBlock = 0;
+		}
+		else {
+			offsetTimeInBlock += lastTimeInBlock2;
+		}
         lastStep = slideElement;
     }
     SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
     SetUseBackCulling(FALSE);
     DrawPolygonIndexed2D(slideVertices.data(), slideVertices.size(), slideIndices.data(), drawcount, imageSlideStrut->GetHandle(), TRUE);
 
-    // ä¸­å¿ƒç·š
+    // ’†Sü
     if (showSlideLine) {
         lastStep = note;
         for (auto &slideElement : note->ExtraData) {
@@ -699,14 +699,14 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
         if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Invisible))) continue;
         const auto currentStepRelativeY = 1.0 - slideElement->ModifiedPosition / seenDuration;
-        if (currentStepRelativeY >= 0 && currentStepRelativeY < cullingLimit) {
-            if (slideElement->Type.test(size_t(SusNoteType::Start))) {
-                DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlide->GetHandle());
-            }
-            else {
-                DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlideStep->GetHandle());
-            }
-        }
+		if (currentStepRelativeY >= 0 && currentStepRelativeY < cullingLimit) {
+			if (slideElement->Type.test(size_t(SusNoteType::Start))) {
+				DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlide->GetHandle());
+			}
+			else {
+				DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlideStep->GetHandle());
+			}
+		}
     }
 }
 
@@ -793,35 +793,35 @@ void ScenePlayer::DrawAirActionStepBox(const AirDrawQuery &query) const
         { VGet(right, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.5f, 0.0f, 0.0f },
         };
         uint16_t indices[] = {
-            // æœ¬å½“ã¯ä¸Š2ã¤ã„ã‚‰ãªã„ã‘ã©indexè¨ˆç®—ãŒé¢å€’ãªã®ã§æ”¾ç½®
-            //ä¸‹ã®ã‚„ã¤
+            // –{“–‚Íã2‚Â‚¢‚ç‚È‚¢‚¯‚ÇindexŒvZ‚ª–Ê“|‚È‚Ì‚Å•ú’u
+            //‰º‚Ì‚â‚Â
             0, 1, 11,
             0, 11, 10,
-            //æœ¬ä½“
-            //ä¸Š
+            //–{‘Ì
+            //ã
             3, 7, 17,
             3, 17, 13,
-            //å·¦
+            //¶
             6, 7, 3,
             6, 3, 2,
-            //å³
+            //‰E
             12, 13, 17,
             12, 17, 16,
-            //æ‰‹å‰
+            //è‘O
             20, 3, 13,
             20, 13, 21,
 
-            //ã¸ã°ã‚Šã¤ã„ã¦ã‚‹ã®
-            //æ‰‹å‰
+            //‚Ö‚Î‚è‚Â‚¢‚Ä‚é‚Ì
+            //è‘O
             4, 5, 15,
             4, 15, 14,
-            //å¾Œã‚
+            //Œã‚ë
             8, 9, 19,
             8, 19, 18,
-            //å·¦
+            //¶
             8, 9, 5,
             8, 5, 4,
-            //å³
+            //‰E
             14, 15, 19,
             14, 19, 18,
         };
@@ -921,30 +921,16 @@ void ScenePlayer::DrawAirActionCover(const AirDrawQuery &query)
 
 void ScenePlayer::DrawTap(const float lane, const int length, const double relpos, const int handle) const
 {
-    /* å¾“æ¥ : å·¦,ä¸­,å³ã®é ˜åŸŸã«ç”»åƒã‚’åˆ†å‰²ã—,å·¦ä¸­...ä¸­å³ã¨ã„ã†ä¸¦ã¹æ–¹ã§,ãã®ãƒãƒ¼ãƒ„ã®å¹…ã«åˆã‚ã›ã¦ä¸­ã®å€‹æ•°ã‚’å¤‰åŒ–ã•ã›ã‚‹ */
-    /* æ”¹è‰¯ : ä¸¡ç«¯ã‚„Flickå†…å´éƒ¨åˆ†ã®ä¸¡ç«¯ãªã©ã€å¼•ãå»¶ã°ã—ãŸããªã„éƒ¨åˆ†ã¯ç­‰å€ã§,å¼•ãå»¶ã°ã—ã¦ã‚‚æ§‹ã‚ãªã„éƒ¨åˆ†ã¯é©å½“ãªæ‹¡å¤§ç‡ã§å¼•ãå»¶ã°ã™ */
-    /* æ–°ãŸãªå•é¡Œ : çµå±€ã©ã‚“ãªæç”»æ–¹æ³•ãŒé©åˆ‡ã‹ã€ã¨ã„ã†ã®ã¯ä½¿ã†ç”»åƒã«ä¾å­˜ã—ã¦ã—ã¾ã† */
-    /* ã“ã®åˆ†å‰²ç‚¹(widthList)ã¯AmenoshitaãŒä½œæˆã—ãŸç”»åƒã§èª¿æ•´ã—ãŸå€¤ã§ã‚ã£ã¦ã€ã»ã‹ã®ç”»åƒã‚’ä½¿ã£ãŸã¨ãã«å¥‡éº—ã«å¼•ãå»¶ã°ã›ã‚‹ä¿è¨¼ã¯ãªã„ */
-
-    const std::vector<int> widthList = { 12, 16, 6, 16, 6, 80, 6, 16, 6, 16, 12 }; /* åˆ†å‰²ã—ãŸãƒãƒ¼ãƒ„ç”»åƒã®å€‹ã€…ã®å¹… */
-    double w = 0.0;
-    for (int i = 0; i < widthList.size(); i += 2) w += widthList[i];
-    const double scale = (length * widthPerLane - w) / (SU_LANE_NOTE_WIDTH - w); /* å¼•ãå»¶ã°ã™å¿…è¦ãŒã‚ã‚‹é ˜åŸŸã®å¹…ã ã‘ã‚’è€ƒæ…®ã—ãŸæ‹¡å¤§ç‡ */
-    double xImage = 0, xReal = lane * widthPerLane;
-
-    for (int i = 0; i < widthList.size(); ++i) {
+    for (auto i = 0; i < length * 2; i++) {
+        const auto type = i ? (i == length * 2 - 1 ? 2 : 1) : 0;
         DrawRectRotaGraph3F(
-            xReal, laneBufferY * relpos, /* æç”»å…ˆåŸç‚¹ */
-            xImage, 0, /* ç”»åƒåŸç‚¹ */
-            widthList[i], SU_LANE_NOTE_HEIGHT, /* ç”»åƒã‚µã‚¤ã‚º */
-            0, SU_LANE_NOTE_HEIGHT / 2, /* å›è»¢ä¸­å¿ƒ(å›è»¢ã•ã›ãªã„ã®ã§ã‚ã¾ã‚Šé–¢ä¿‚ãªã„) */
-            (i % 2 == 0) ? 1.0 : scale, actualNoteScaleY, 0, /* x,yæ‹¡å¤§ç‡, å›è»¢è§’ */
-            handle, TRUE); /* ç”»åƒãƒãƒ³ãƒ‰ãƒ«, é€éè‰²æœ‰åŠ¹ */
-
-        xImage += widthList[i];
-        xReal += ((i % 2 == 0) ? 1.0 : scale) * widthList[i];
+            (lane * 2 + i) * widthPerLane / 2, laneBufferY * relpos,
+            noteImageBlockX * type, (0),
+            noteImageBlockX, noteImageBlockY,
+            0, noteImageBlockY / 2,
+            actualNoteScaleX, actualNoteScaleY, 0,
+            handle, TRUE, FALSE);
     }
-
 }
 
 void ScenePlayer::DrawMeasureLine(const shared_ptr<SusDrawableNoteData>& note) const
