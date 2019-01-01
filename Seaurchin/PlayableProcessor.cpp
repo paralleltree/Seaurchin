@@ -131,6 +131,8 @@ void PlayableProcessor::MovePosition(const double relative)
             || note->Type.test(size_t(SusNoteType::AirAction))) {
             if (note->StartTime <= newTime) {
                 note->OnTheFlyData.set(size_t(NoteAttribute::Finished));
+
+                if (!note->Type.test(size_t(SusNoteType::AirAction))) player->currentResult->PerformMiss();
             } else {
                 note->OnTheFlyData.reset(size_t(NoteAttribute::Finished));
             }
@@ -140,6 +142,11 @@ void PlayableProcessor::MovePosition(const double relative)
                     && !extra->Type.test(size_t(SusNoteType::Injection))) continue;
                 if (extra->StartTime <= newTime) {
                     extra->OnTheFlyData.set(size_t(NoteAttribute::Finished));
+
+                    if (
+                        extra->Type.test(size_t(SusNoteType::End))
+                        || extra->Type.test(size_t(SusNoteType::Step))
+                        || extra->Type.test(size_t(SusNoteType::Injection))) player->currentResult->PerformMiss();
                 } else {
                     extra->OnTheFlyData.reset(size_t(NoteAttribute::Finished));
                 }
@@ -147,6 +154,8 @@ void PlayableProcessor::MovePosition(const double relative)
         } else {
             if (note->StartTime <= newTime) {
                 note->OnTheFlyData.set(size_t(NoteAttribute::Finished));
+
+                if (note->Type.to_ulong() & SU_NOTE_SHORT_MASK) player->currentResult->PerformMiss();
             } else {
                 note->OnTheFlyData.reset(size_t(NoteAttribute::Finished));
             }
