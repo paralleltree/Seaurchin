@@ -1,0 +1,74 @@
+--- angelscript.vcxproj.orig	2017-12-11 22:40:16.000000000 +0900
++++ angelscript.vcxproj	2018-11-16 23:55:58.000000000 +0900
+@@ -2,1 +2,1 @@
+-<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
++<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+@@ -41,27 +41,28 @@
+   <PropertyGroup Label="Globals">
+     <ProjectGuid>{39E6AF97-6BA3-4A72-8C61-BCEBF214EBFD}</ProjectGuid>
+     <RootNamespace>angelscript</RootNamespace>
++    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+   </PropertyGroup>
+   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+     <ConfigurationType>StaticLibrary</ConfigurationType>
+-    <PlatformToolset>v140</PlatformToolset>
++    <PlatformToolset>v141</PlatformToolset>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
+     <ConfigurationType>StaticLibrary</ConfigurationType>
+-    <PlatformToolset>v120</PlatformToolset>
++    <PlatformToolset>v141</PlatformToolset>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+     <ConfigurationType>StaticLibrary</ConfigurationType>
+     <CharacterSet>NotSet</CharacterSet>
+     <WholeProgramOptimization>true</WholeProgramOptimization>
+-    <PlatformToolset>v140</PlatformToolset>
++    <PlatformToolset>v141</PlatformToolset>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+     <ConfigurationType>StaticLibrary</ConfigurationType>
+     <WholeProgramOptimization>true</WholeProgramOptimization>
+     <CharacterSet>NotSet</CharacterSet>
+-    <PlatformToolset>v140</PlatformToolset>
++    <PlatformToolset>v141</PlatformToolset>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='clang_debug|Win32'" Label="Configuration">
+     <ConfigurationType>StaticLibrary</ConfigurationType>
+@@ -73,7 +74,7 @@
+     <ConfigurationType>StaticLibrary</ConfigurationType>
+     <WholeProgramOptimization>true</WholeProgramOptimization>
+     <CharacterSet>NotSet</CharacterSet>
+-    <PlatformToolset>v120</PlatformToolset>
++    <PlatformToolset>v141</PlatformToolset>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='clang_debug|ARM'" Label="Configuration">
+     <ConfigurationType>StaticLibrary</ConfigurationType>
+@@ -85,7 +86,7 @@
+     <ConfigurationType>StaticLibrary</ConfigurationType>
+     <WholeProgramOptimization>true</WholeProgramOptimization>
+     <CharacterSet>NotSet</CharacterSet>
+-    <PlatformToolset>v140</PlatformToolset>
++    <PlatformToolset>v141</PlatformToolset>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='clang_debug|x64'" Label="Configuration">
+     <ConfigurationType>StaticLibrary</ConfigurationType>
+@@ -162,7 +163,7 @@
+       <ExceptionHandling>Sync</ExceptionHandling>
+       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+       <SmallerTypeCheck>false</SmallerTypeCheck>
+-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
++      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+       <WarningLevel>Level4</WarningLevel>
+       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+@@ -275,7 +276,7 @@
+       <PreprocessorDefinitions>ANGELSCRIPT_EXPORT;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+       <StringPooling>true</StringPooling>
+       <ExceptionHandling>Sync</ExceptionHandling>
+-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
++      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+       <BufferSecurityCheck>false</BufferSecurityCheck>
+       <RuntimeTypeInfo>false</RuntimeTypeInfo>
+       <WarningLevel>Level3</WarningLevel>

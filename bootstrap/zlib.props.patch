@@ -1,0 +1,11 @@
+--- zlib.props.orig     2017-09-29 03:40:58.000000000 +0900
++++ zlib.props  2018-11-18 00:28:23.702781300 +0900
+@@ -32,7 +32,7 @@
+         versions do not match.  The zlib version used in this build is recorded
+         below:
+      -->
+-    <ZLibSrcDir>..\..\..\..\zlib-1.2.8</ZLibSrcDir>
++    <ZLibSrcDir>..\..\..\..\zlib</ZLibSrcDir>
+
+     <!-- The following line allows compilation for an ARM target with Visual
+          Studio 2012.  Notice that this is not supported by the Visual Studio

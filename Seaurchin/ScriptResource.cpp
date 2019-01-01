@@ -470,6 +470,7 @@ void RegisterScriptResource(ExecutionManager *exm)
     engine->RegisterObjectBehaviour(SU_IF_SOUND, asBEHAVE_ADDREF, "void f()", asMETHOD(SSound, AddRef), asCALL_THISCALL);
     engine->RegisterObjectBehaviour(SU_IF_SOUND, asBEHAVE_RELEASE, "void f()", asMETHOD(SSound, Release), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SOUND, "void SetLoop(bool)", asMETHOD(SSound, SetLoop), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SOUND, "void SetVolume(float)", asMETHOD(SSound, SetVolume), asCALL_THISCALL);
 
     engine->RegisterObjectType(SU_IF_SOUNDMIXER, 0, asOBJ_REF);
     engine->RegisterObjectBehaviour(SU_IF_SOUNDMIXER, asBEHAVE_ADDREF, "void f()", asMETHOD(SSoundMixer, AddRef), asCALL_THISCALL);
