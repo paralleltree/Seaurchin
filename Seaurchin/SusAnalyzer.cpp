@@ -342,7 +342,7 @@ void SusAnalyzer::ProcessRequest(const string &cmd, const uint32_t line)
 
     if (params.empty()) return;
     switch (Crc32Rec(0xffffffff, params[0].c_str())) {
-        case "mertonome"_crc32:
+        case "metronome"_crc32:
             SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::DisableMetronome)] = !ConvertBoolean(params[1]);
             break;
         case "ticks_per_beat"_crc32:
@@ -381,7 +381,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
     */
 
     const auto noteCount = pattern.length() / 2;
-    const auto step = uint32_t(ticksPerBeat * GetBeatsAt(ConvertInteger(meas))) / (!noteCount ? 1 : noteCount);
+    const auto step = uint32_t(ticksPerBeat * GetBeatsAt(measureCountOffset + ConvertInteger(meas))) / (!noteCount ? 1 : noteCount);
 
     if (!regex_match(meas, allNumeric)) {
         // コマンドデータ
