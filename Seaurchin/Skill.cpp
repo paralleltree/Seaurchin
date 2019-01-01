@@ -151,11 +151,13 @@ int SkillIndicators::AddSkillIndicator(const string &icon)
 
 void SkillIndicators::TriggerSkillIndicator(const int index) const
 {
-    callbackContext->Prepare(callbackFunction);
-    callbackContext->SetObject(callbackObject);
-    callbackContext->SetArgDWord(0, index);
-    callbackContext->Execute();
-    // CallbackContext->Unprepare();
+    if (callbackFunction) {
+        callbackContext->Prepare(callbackFunction);
+        callbackContext->SetObject(callbackObject);
+        callbackContext->SetArgDWord(0, index);
+        callbackContext->Execute();
+        // CallbackContext->Unprepare();
+    }
 }
 
 int SkillIndicators::GetSkillIndicatorCount() const
