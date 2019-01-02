@@ -46,6 +46,12 @@ enum class SettingItemType {
     IntegerSelect,
     FloatSelect,
     StringSelect,
+    IntegerList,
+    FloatList,
+    BooleanList,
+    IntegerListVector,
+    FloatListVector,
+    BooleanListVector,
 };
 
 class SettingItem {
@@ -182,6 +188,105 @@ private:
 
 public:
     StringSelectSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
+    std::string GetItemString() override;
+    void MoveNext() override;
+    void MovePrevious() override;
+    void SaveValue() override;
+    void RetrieveValue() override;
+    void Build(const toml::Value &table) override;
+};
+
+class IntegerListSettingItem final : public SettingItem {
+private:
+    std::vector<int64_t> values;
+    std::vector<int64_t> defaultValues;
+    std::string separator;
+
+public:
+    IntegerListSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
+    std::string GetItemString() override;
+    void MoveNext() override;
+    void MovePrevious() override;
+    void SaveValue() override;
+    void RetrieveValue() override;
+    void Build(const toml::Value &table) override;
+};
+
+class FloatListSettingItem final : public SettingItem {
+private:
+    std::vector<double> values;
+    std::vector<double> defaultValues;
+    std::string separator;
+
+public:
+    FloatListSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
+    std::string GetItemString() override;
+    void MoveNext() override;
+    void MovePrevious() override;
+    void SaveValue() override;
+    void RetrieveValue() override;
+    void Build(const toml::Value &table) override;
+};
+
+class BooleanListSettingItem final : public SettingItem {
+private:
+    std::vector<bool> values;
+    std::vector<bool> defaultValues;
+    std::string separator;
+
+public:
+    BooleanListSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
+    std::string GetItemString() override;
+    void MoveNext() override;
+    void MovePrevious() override;
+    void SaveValue() override;
+    void RetrieveValue() override;
+    void Build(const toml::Value &table) override;
+};
+
+class IntegerListVectorSettingItem final : public SettingItem {
+private:
+    std::vector<std::vector<int64_t>> values;
+    std::vector<std::vector<int64_t>> defaultValues;
+    std::string valueSeparator;
+    std::string listSeparator;
+
+public:
+    IntegerListVectorSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
+    std::string GetItemString() override;
+    void MoveNext() override;
+    void MovePrevious() override;
+    void SaveValue() override;
+    void RetrieveValue() override;
+    void Build(const toml::Value &table) override;
+};
+
+class FloatListVectorSettingItem final : public SettingItem {
+private:
+    std::vector<std::vector<double>> values;
+    std::vector<std::vector<double>> defaultValues;
+    std::string valueSeparator;
+    std::string listSeparator;
+
+public:
+    FloatListVectorSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
+    std::string GetItemString() override;
+    void MoveNext() override;
+    void MovePrevious() override;
+    void SaveValue() override;
+    void RetrieveValue() override;
+    void Build(const toml::Value &table) override;
+};
+
+class BooleanListVectorSettingItem final : public SettingItem {
+private:
+    std::vector<std::vector<bool>> values;
+    std::vector<std::vector<bool>> defaultValues;
+    std::string valueSeparator;
+    std::string listSeparator;
+
+public:
+    BooleanListVectorSettingItem(std::shared_ptr<Setting> setting, const std::string &group, const std::string &key);
     std::string GetItemString() override;
     void MoveNext() override;
     void MovePrevious() override;

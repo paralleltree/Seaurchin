@@ -127,6 +127,24 @@ void SettingItemManager::LoadItemsFromToml(const path& file)
             case "StringSelect"_crc32:
                 si = make_shared<StringSelectSettingItem>(settingInstance, group, key);
                 break;
+            case "IntegerList"_crc32:
+                si = make_shared<IntegerListSettingItem>(settingInstance, group, key);
+                break;
+            case "FloatList"_crc32:
+                si = make_shared<FloatListSettingItem>(settingInstance, group, key);
+                break;
+            case "BooleanList"_crc32:
+                si = make_shared<BooleanListSettingItem>(settingInstance, group, key);
+                break;
+            case "IntegerListVector"_crc32:
+                si = make_shared<IntegerListVectorSettingItem>(settingInstance, group, key);
+                break;
+            case "FloatListVector"_crc32:
+                si = make_shared<FloatListVectorSettingItem>(settingInstance, group, key);
+                break;
+            case "BooleanListVector"_crc32:
+                si = make_shared<BooleanListVectorSettingItem>(settingInstance, group, key);
+                break;
             default:
                 log->warn(u8"不明な設定タイプです: {0}", type);
                 continue;
@@ -566,6 +584,435 @@ void StringSelectSettingItem::Build(const toml::Value &table)
     }
     selected = 0;
     if (values.size() == 0) values.push_back(defaultValue);
+}
+
+// IntegerListSettingItem
+
+IntegerListSettingItem::IntegerListSettingItem(const std::shared_ptr<Setting> setting, const std::string &group, const std::string &key) : SettingItem(setting, group, key)
+{
+    defaultValues = std::vector<int64_t>(0);
+    separator = ",";
+    type = SettingItemType::IntegerList;
+}
+
+string IntegerListSettingItem::GetItemString()
+{
+    return fmt::format("{0}", fmt::join(values.begin(), values.end(), separator));
+}
+
+void IntegerListSettingItem::MoveNext()
+{
+}
+
+void IntegerListSettingItem::MovePrevious()
+{
+}
+
+void IntegerListSettingItem::SaveValue()
+{
+    toml::Array arr;
+    for (const auto &val : values) arr.push_back(val);
+    settingInstance->WriteValue<toml::Array>(group, key, arr);
+}
+
+void IntegerListSettingItem::RetrieveValue()
+{
+    toml::Array arr;
+    for (const auto &val : defaultValues) arr.push_back(val);
+    arr = settingInstance->ReadValue(group, key, arr);
+
+    auto log = spdlog::get("main");
+
+    uint64_t cnt = 0;
+    for (const auto &val : arr) {
+        if (!val.is<int64_t>()) {
+            log->warn(u8"整数型リスト設定項目 {0}.{1} の第{2}要素が整数型ではありません。", group, key, cnt);
+            continue;
+        }
+        values.push_back(val.as<int64_t>());
+        ++cnt;
+    }
+}
+
+void IntegerListSettingItem::Build(const toml::Value &table)
+{
+    SettingItem::Build(table);
+    const auto d = table.find("Default");
+    if (d && d->is<std::vector<int64_t>>()) {
+        defaultValues = d->as<std::vector<int64_t>>();
+    }
+    const auto s = table.find("Separator");
+    if (s && s->is<std::string>()) {
+        separator = s->as<std::string>();
+    }
+}
+
+// FloatListSettingItem
+
+FloatListSettingItem::FloatListSettingItem(const std::shared_ptr<Setting> setting, const std::string &group, const std::string &key) : SettingItem(setting, group, key)
+{
+    defaultValues = std::vector<double>(0);
+    separator = ",";
+    type = SettingItemType::FloatList;
+}
+
+string FloatListSettingItem::GetItemString()
+{
+    return fmt::format("{0}", fmt::join(values.begin(), values.end(), separator));
+}
+
+void FloatListSettingItem::MoveNext()
+{
+}
+
+void FloatListSettingItem::MovePrevious()
+{
+}
+
+void FloatListSettingItem::SaveValue()
+{
+    toml::Array arr;
+    for (const auto &val : values) arr.push_back(val);
+    settingInstance->WriteValue<toml::Array>(group, key, arr);
+}
+
+void FloatListSettingItem::RetrieveValue()
+{
+    toml::Array arr;
+    for (const auto &val : defaultValues) arr.push_back(val);
+    arr = settingInstance->ReadValue(group, key, arr);
+
+    auto log = spdlog::get("main");
+
+    uint64_t cnt = 0;
+    for (const auto &val : arr) {
+        if (!val.is<double>()) {
+            log->warn(u8"実数型リスト設定項目 {0}.{1} の第{2}要素が実数型ではありません。", group, key, cnt);
+            continue;
+        }
+        values.push_back(val.as<double>());
+        ++cnt;
+    }
+}
+
+void FloatListSettingItem::Build(const toml::Value &table)
+{
+    SettingItem::Build(table);
+    const auto d = table.find("Default");
+    if (d && d->is<std::vector<double>>()) {
+        defaultValues = d->as<std::vector<double>>();
+    }
+    const auto s = table.find("Separator");
+    if (s && s->is<std::string>()) {
+        separator = s->as<std::string>();
+    }
+}
+
+// BooleanListSettingItem
+
+BooleanListSettingItem::BooleanListSettingItem(const std::shared_ptr<Setting> setting, const std::string &group, const std::string &key) : SettingItem(setting, group, key)
+{
+    defaultValues = std::vector<bool>(0);
+    separator = ",";
+    type = SettingItemType::BooleanList;
+}
+
+string BooleanListSettingItem::GetItemString()
+{
+    return fmt::format("{0}", fmt::join(values.begin(), values.end(), separator));
+}
+
+void BooleanListSettingItem::MoveNext()
+{
+}
+
+void BooleanListSettingItem::MovePrevious()
+{
+}
+
+void BooleanListSettingItem::SaveValue()
+{
+    toml::Array arr;
+    for (const auto &val : values) arr.push_back(toml::Value(val));
+    settingInstance->WriteValue<toml::Array>(group, key, arr);
+}
+
+void BooleanListSettingItem::RetrieveValue()
+{
+    toml::Array arr;
+    for (const auto &val : defaultValues) arr.push_back(toml::Value(val));
+    arr = settingInstance->ReadValue(group, key, arr);
+
+    auto log = spdlog::get("main");
+
+    uint64_t cnt = 0;
+    for (const auto &val : arr) {
+        if (!val.is<bool>()) {
+            log->warn(u8"真偽値型リスト設定項目 {0}.{1} の第{2}要素が真偽値型ではありません。", group, key, cnt);
+            continue;
+        }
+        values.push_back(val.as<bool>());
+        ++cnt;
+    }
+}
+
+void BooleanListSettingItem::Build(const toml::Value &table)
+{
+    SettingItem::Build(table);
+    const auto d = table.find("Default");
+    if (d && d->is<std::vector<bool>>()) {
+        defaultValues = d->as<std::vector<bool>>();
+    }
+    const auto s = table.find("Separator");
+    if (s && s->is<std::string>()) {
+        separator = s->as<std::string>();
+    }
+}
+
+// IntegerListVectorSettingItem
+
+IntegerListVectorSettingItem::IntegerListVectorSettingItem(const std::shared_ptr<Setting> setting, const std::string &group, const std::string &key) : SettingItem(setting, group, key)
+{
+    defaultValues = std::vector<std::vector<int64_t>>(0);
+    valueSeparator = ",";
+    listSeparator = "\r\n";
+    type = SettingItemType::IntegerListVector;
+}
+
+string IntegerListVectorSettingItem::GetItemString()
+{
+    std::vector<fmt::ArgJoin<char, std::vector<int64_t>::const_iterator>> joinedList;
+    for (const auto &list : values) joinedList.push_back(fmt::join(list.begin(), list.end(), valueSeparator));
+    return fmt::format("{0}", fmt::join(joinedList.begin(), joinedList.end(), listSeparator));
+}
+
+void IntegerListVectorSettingItem::MoveNext()
+{
+}
+
+void IntegerListVectorSettingItem::MovePrevious()
+{
+}
+
+void IntegerListVectorSettingItem::SaveValue()
+{
+    toml::Array arr;
+    for (const auto &list : values) {
+        toml::Array tmp;
+        for (const auto &val : list) tmp.push_back(val);
+        arr.push_back(tmp);
+    }
+    settingInstance->WriteValue<toml::Array>(group, key, arr);
+}
+
+void IntegerListVectorSettingItem::RetrieveValue()
+{
+    toml::Array arr;
+    for (const auto &list : defaultValues) {
+        toml::Array tmp;
+        for (const auto &val : list) tmp.push_back(val);
+        arr.push_back(tmp);
+    }
+    arr = settingInstance->ReadValue(group, key, arr);
+
+    auto log = spdlog::get("main");
+
+    uint64_t cnt = 0;
+    for (const auto &list : arr) {
+        if (!list.is<std::vector<int64_t>>()) {
+            log->warn(u8"整数型2重リスト設定項目 {0}.{1} の第{2}要素が整数型リストではありません。", group, key, cnt);
+            continue;
+        }
+
+        values.push_back(list.as<std::vector<int64_t>>());
+        ++cnt;
+    }
+}
+
+void IntegerListVectorSettingItem::Build(const toml::Value &table)
+{
+    SettingItem::Build(table);
+    const auto d = table.find("Default");
+    if (d && d->type() == toml::Value::Type::ARRAY_TYPE) {
+        const toml::Array arr = d->as<toml::Array>();
+        for (auto i = 0u; i < arr.size(); ++i) {
+            if (arr[i].is<std::vector<int64_t>>()) {
+                defaultValues.push_back(arr[i].as<std::vector<int64_t>>());
+            }
+        }
+    }
+    const auto vs = table.find("ValueSeparator");
+    if (vs && vs->is<std::string>()) {
+        valueSeparator = vs->as<std::string>();
+    }
+    const auto ls = table.find("ListSeparator");
+    if (ls && ls->is<std::string>()) {
+        listSeparator = ls->as<std::string>();
+    }
+}
+
+// FloatListVectorSettingItem
+
+FloatListVectorSettingItem::FloatListVectorSettingItem(const std::shared_ptr<Setting> setting, const std::string &group, const std::string &key) : SettingItem(setting, group, key)
+{
+    defaultValues = std::vector<std::vector<double>>(0);
+    valueSeparator = ",";
+    listSeparator = "\r\n";
+    type = SettingItemType::FloatListVector;
+}
+
+string FloatListVectorSettingItem::GetItemString()
+{
+    std::vector<fmt::ArgJoin<char, std::vector<double>::const_iterator>> joinedList;
+    for (const auto &list : values) joinedList.push_back(fmt::join(list.begin(), list.end(), valueSeparator));
+    return fmt::format("{0}", fmt::join(joinedList.begin(), joinedList.end(), listSeparator));
+}
+
+void FloatListVectorSettingItem::MoveNext()
+{
+}
+
+void FloatListVectorSettingItem::MovePrevious()
+{
+}
+
+void FloatListVectorSettingItem::SaveValue()
+{
+    toml::Array arr;
+    for (const auto &list : values) {
+        toml::Array tmp;
+        for (const auto &val : list) tmp.push_back(val);
+        arr.push_back(tmp);
+    }
+    settingInstance->WriteValue<toml::Array>(group, key, arr);
+}
+
+void FloatListVectorSettingItem::RetrieveValue()
+{
+    toml::Array arr;
+    for (const auto &list : defaultValues) {
+        toml::Array tmp;
+        for (const auto &val : list) tmp.push_back(val);
+        arr.push_back(tmp);
+    }
+    arr = settingInstance->ReadValue(group, key, arr);
+
+    auto log = spdlog::get("main");
+
+    uint64_t cnt = 0;
+    for (const auto &list : arr) {
+        if (!list.is<std::vector<double>>()) {
+            log->warn(u8"実数型2重リスト設定項目 {0}.{1} の第{2}要素が実数型リストではありません。", group, key, cnt);
+            continue;
+        }
+
+        values.push_back(list.as<std::vector<double>>());
+        ++cnt;
+    }
+}
+
+void FloatListVectorSettingItem::Build(const toml::Value &table)
+{
+    SettingItem::Build(table);
+    const auto d = table.find("Default");
+    if (d && d->type() == toml::Value::Type::ARRAY_TYPE) {
+        const toml::Array arr = d->as<toml::Array>();
+        for (auto i = 0u; i < arr.size(); ++i) {
+            if (arr[i].is<std::vector<double>>()) {
+                defaultValues.push_back(arr[i].as<std::vector<double>>());
+            }
+        }
+    }
+    const auto vs = table.find("ValueSeparator");
+    if (vs && vs->is<std::string>()) {
+        valueSeparator = vs->as<std::string>();
+    }
+    const auto ls = table.find("ListSeparator");
+    if (ls && ls->is<std::string>()) {
+        listSeparator = ls->as<std::string>();
+    }
+}
+
+// BooleanListVectorSettingItem
+
+BooleanListVectorSettingItem::BooleanListVectorSettingItem(const std::shared_ptr<Setting> setting, const std::string &group, const std::string &key) : SettingItem(setting, group, key)
+{
+    defaultValues = std::vector<std::vector<bool>>(0);
+    valueSeparator = ",";
+    listSeparator = "\r\n";
+    type = SettingItemType::BooleanListVector;
+}
+
+string BooleanListVectorSettingItem::GetItemString()
+{
+    std::vector<fmt::ArgJoin<char, std::vector<bool>::const_iterator>> joinedList;
+    for (const auto &list : values) joinedList.push_back(fmt::join(list.begin(), list.end(), valueSeparator));
+    return fmt::format("{0}", fmt::join(joinedList.begin(), joinedList.end(), listSeparator));
+}
+
+void BooleanListVectorSettingItem::MoveNext()
+{
+}
+
+void BooleanListVectorSettingItem::MovePrevious()
+{
+}
+
+void BooleanListVectorSettingItem::SaveValue()
+{
+    toml::Array arr;
+    for (const auto &list : values) {
+        toml::Array tmp;
+        for (const auto &val : list) tmp.push_back(toml::Value(val));
+        arr.push_back(tmp);
+    }
+    settingInstance->WriteValue<toml::Array>(group, key, arr);
+}
+
+void BooleanListVectorSettingItem::RetrieveValue()
+{
+    toml::Array arr;
+    for (const auto &list : defaultValues) {
+        toml::Array tmp;
+        for (const auto &val : list) tmp.push_back(toml::Value(val));
+        arr.push_back(tmp);
+    }
+    arr = settingInstance->ReadValue(group, key, arr);
+
+    auto log = spdlog::get("main");
+
+    uint64_t cnt = 0;
+    for (const auto &list : arr) {
+        if (!list.is<std::vector<bool>>()) {
+            log->warn(u8"真偽値型2重リスト設定項目 {0}.{1} の第{2}要素が真偽値型リストではありません。", group, key, cnt);
+            continue;
+        }
+
+        values.push_back(list.as<std::vector<bool>>());
+        ++cnt;
+    }
+}
+
+void BooleanListVectorSettingItem::Build(const toml::Value &table)
+{
+    SettingItem::Build(table);
+    const auto d = table.find("Default");
+    if (d && d->type() == toml::Value::Type::ARRAY_TYPE) {
+        const toml::Array arr = d->as<toml::Array>();
+        for (auto i = 0u; i < arr.size(); ++i) {
+            if (arr[i].is<std::vector<bool>>()) {
+                defaultValues.push_back(arr[i].as<std::vector<bool>>());
+            }
+        }
+    }
+    const auto vs = table.find("ValueSeparator");
+    if (vs && vs->is<std::string>()) {
+        valueSeparator = vs->as<std::string>();
+    }
+    const auto ls = table.find("ListSeparator");
+    if (ls && ls->is<std::string>()) {
+        listSeparator = ls->as<std::string>();
+    }
 }
 
 }
