@@ -87,11 +87,24 @@ void SettingItemManager::LoadItemsFromToml(const path& file)
     }
     for (const auto &item : items->as<vector<toml::Value>>()) {
         if (item.type() != toml::Value::TABLE_TYPE) continue;
-        shared_ptr<SettingItem> si;
+        if (!item.has("Group")) {
+            log->error(u8"設定項目にグループ指定が存在しません。");
+            continue;
+        }
+        if (!item.has("Group")) {
+            log->error(u8"設定項目にキー指定が存在しません。");
+            continue;
+        }
+        if (!item.has("Type")) {
+            log->error(u8"設定項目に種別指定が存在しません。");
+            continue;
+        }
+
         auto group = item.get<string>("Group");
         auto key = item.get<string>("Key");
         auto type = item.get<string>("Type");
 
+        shared_ptr<SettingItem> si;
         switch (Crc32Rec(0xffffffff, type.c_str())) {
             case "Integer"_crc32:
                 si = make_shared<IntegerSettingItem>(settingInstance, group, key);
@@ -221,11 +234,18 @@ void IntegerSettingItem::RetrieveValue()
 void IntegerSettingItem::Build(const toml::Value &table)
 {
     SettingItem::Build(table);
+
+    auto log = spdlog::get("main");
+
     const auto r = table.find("Range");
     if (r && r->is<vector<int64_t>>()) {
         auto v = r->as<vector<int64_t>>();
-        minValue = v[0];
-        maxValue = v[1];
+        if (v.size() != 2) {
+            log->warn(u8"整数型設定項目 {0}.{1} に対する範囲指定が不正です。", group, key);
+        } else {
+            minValue = v[0];
+            maxValue = v[1];
+        }
     }
     const auto s = table.find("Step");
     if (s && s->is<int64_t>()) {
@@ -277,11 +297,18 @@ void FloatSettingItem::RetrieveValue()
 void FloatSettingItem::Build(const toml::Value &table)
 {
     SettingItem::Build(table);
+
+    auto log = spdlog::get("main");
+
     const auto r = table.find("Range");
     if (r && r->is<vector<double>>()) {
         auto v = r->as<vector<double>>();
-        minValue = v[0];
-        maxValue = v[1];
+        if (v.size() != 2) {
+            log->warn(u8"実数型設定項目 {0}.{1} に対する範囲指定が不正です。", group, key);
+        } else {
+            minValue = v[0];
+            maxValue = v[1];
+        }
     }
     const auto s = table.find("Step");
     if (s && s->is<double>()) {
@@ -298,7 +325,8 @@ void FloatSettingItem::Build(const toml::Value &table)
 BooleanSettingItem::BooleanSettingItem(const std::shared_ptr<Setting> setting, const std::string &group, const std::string &key) : SettingItem(setting, group, key)
 {
     value = defaultValue = false;
-    falsy = truthy = "";
+    falsy = "false";
+    truthy = "true";
     type = SettingItemType::Boolean;
 }
 
@@ -330,11 +358,18 @@ void BooleanSettingItem::RetrieveValue()
 void BooleanSettingItem::Build(const toml::Value &table)
 {
     SettingItem::Build(table);
+
+    auto log = spdlog::get("main");
+
     const auto r = table.find("Values");
     if (r && r->is<vector<string>>()) {
         auto v = r->as<vector<string>>();
-        truthy = v[0];
-        falsy = v[1];
+        if (v.size() != 2) {
+            log->warn(u8"真偽値型設定項目 {0}.{1} に対する値指定が不正です。", group, key);
+        } else {
+            truthy = v[0];
+            falsy = v[1];
+        }
     }
     const auto d = table.find("Default");
     if (d && d->is<bool>()) {
@@ -428,7 +463,7 @@ void IntegerSelectSettingItem::Build(const toml::Value &table)
         defaultValue = d->as<int64_t>();
     }
     selected = 0;
-    if (values.size() == 0) values.push_back(0);
+    if (values.size() == 0) values.push_back(defaultValue);
 }
 
 // FloatSelectSettingItem
@@ -479,7 +514,7 @@ void FloatSelectSettingItem::Build(const toml::Value &table)
         defaultValue = d->as<double>();
     }
     selected = 0;
-    if (values.size() == 0) values.push_back(0);
+    if (values.size() == 0) values.push_back(defaultValue);
 }
 
 // StringSelectSettingItem
@@ -530,7 +565,7 @@ void StringSelectSettingItem::Build(const toml::Value &table)
         defaultValue = d->as<string>();
     }
     selected = 0;
-    if (values.size() == 0) values.push_back(nullptr);
+    if (values.size() == 0) values.push_back(defaultValue);
 }
 
 }
