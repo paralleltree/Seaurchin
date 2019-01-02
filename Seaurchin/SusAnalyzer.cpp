@@ -855,26 +855,49 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                     noteData->ExtraAttribute->RollHispeedNumber = -1;
                 }
             }
-            // Air接地処理
+            // Air設置処理
             // if ((下に別ノーツがある && それはロング終点) || 下に別ノーツがない)
             if (info.Type[size_t(SusNoteType::Air)] && !info.Type[size_t(SusNoteType::Grounded)]) {
-                auto found = false;
+                auto require = true;
                 for (const auto &target : notes) {
+                    // 自分自身はAir設置処理対象からはじく
                     if (get<1>(target) == get<1>(note)) continue;
+
+                    // 判定時刻が異なるノーツは処理対象からはじく
                     const auto gtime = get<0>(target);
-                    auto ginfo = get<1>(target);
-                    const auto tbits = ginfo.Type.to_ulong();
                     if (time != gtime) continue;
+
+                    // 自分自身と位置、サイズが異なるノーツは処理対象からはじく
+                    auto ginfo = get<1>(target);
                     if (info.NotePosition.StartLane != ginfo.NotePosition.StartLane
                         || info.NotePosition.Length != ginfo.NotePosition.Length)
                         continue;
-                    if (!(tbits & SU_NOTE_LONG_MASK)) continue;
-                    if (!ginfo.Type[size_t(SusNoteType::End)]) continue;
 
-                    found = true;
-                    break;
+                    // ショートノーツならば、Air系でないならば設置する必要なし、Air系なら処理対象からはじく
+                    const auto tbits = ginfo.Type.to_ulong();
+                    if (tbits & SU_NOTE_SHORT_MASK) {
+                        if (ginfo.Type[size_t(SusNoteType::Air)]) continue;
+
+                        require = false;
+                        break;
+                    }
+
+                    // (ショートノーツでなくて)Slide、Holdでなければ処理対象からはじく
+                    if (!ginfo.Type[size_t(SusNoteType::Slide)] && !ginfo.Type[size_t(SusNoteType::Hold)]) continue;
+
+                    // (Slide、Holdの)終点ならば、設置する必要あり
+                    if (ginfo.Type[size_t(SusNoteType::End)]) {
+                        require = true;
+                        break;
+                    }
+
+                    // (Slide、Holdの)始点ならば、設置する必要なし
+                    if (ginfo.Type[size_t(SusNoteType::Start)]) {
+                        require = false;
+                        break;
+                    }
                 }
-                if (!found) noteData->Type.set(size_t(SusNoteType::Grounded));
+                if (require) noteData->Type.set(size_t(SusNoteType::Grounded));
             }
             // 移動レーン処理
             noteData->CenterAtZero = noteData->StartLane + noteData->Length / 2.0;
