@@ -461,7 +461,22 @@ bool PlayableProcessor::CheckSlideJudgement(const shared_ptr<SusDrawableNoteData
             player->EnqueueJudgeSound(JudgeSoundType::SlideStep);
             player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
         }
+
+        if (held) {
+            note->OnTheFlyData.set(size_t(NoteAttribute::Activated));
+        }
+        else {
+            note->OnTheFlyData.reset(size_t(NoteAttribute::Activated));
+        }
+
         return held;
+    }
+
+    if (held) {
+        note->OnTheFlyData.set(size_t(NoteAttribute::Activated));
+    }
+    else {
+        note->OnTheFlyData.reset(size_t(NoteAttribute::Activated));
     }
 
     // Step~End判定

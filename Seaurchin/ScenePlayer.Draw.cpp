@@ -545,6 +545,9 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
     auto lastStep = note;
 	auto offsetTimeInBlock = 0.0; /* そのslideElementの、不可視中継点のつながり等を考慮した時の先頭位置、的な */
 	const auto strutBottom = 1.0;
+    const auto begin = !!note->OnTheFlyData[size_t(NoteAttribute::Finished)]; // Hold全体の判定が行われ始めていればtrueにしたい、これだと判定としては少し遅いかもしれないがまぁ実用上問題ないのでは
+    const auto activated = !!note->OnTheFlyData[size_t(NoteAttribute::Activated)]; // Holdが押されていればtrueにしたい、たぶん一致した論理になるはず
+    const auto completed = !!note->OnTheFlyData[size_t(NoteAttribute::Completed)]; // Hold全体の判定がすべて終わっていればtrueにしたい
     slideVertices.clear();
     slideIndices.clear();
 
@@ -619,6 +622,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
         auto lastSegmentPosition = segmentPositions[0];
         auto lastSegmentLength = double(lastStep->Length);
         auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / seenDuration;
+        auto lsRelY = lastSegmentRelativeY;
         auto lastTimeInBlock = get<0>(lastSegmentPosition) / (slideElement->StartTime - lastStep->StartTime);
 		auto lastTimeInBlock2 = get<0>(lastSegmentPosition) / (exData[i][1] - exData[i][0]);
 
@@ -629,38 +633,69 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 			const auto currentSegmentLength = glm::mix(double(lastStep->Length), double(slideElement->Length), currentTimeInBlock);
             const auto segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
             const auto currentSegmentRelativeY = 1.0 - segmentExPosition / seenDuration;
+            auto csRelY = currentSegmentRelativeY;
             if ((currentSegmentRelativeY >= 0 || lastSegmentRelativeY >= 0)
                 && (currentSegmentRelativeY < cullingLimit || lastSegmentRelativeY < cullingLimit)) {
+                auto currentTimeDiff = 0.0;
+                auto lastTimeDiff = 0.0;
+
+                if (begin && activated) {
+                    if (csRelY >= 1 && lsRelY >= 1) {
+                        // セグメントの全体が判定ラインを超えているとき
+                        // 表示はしたくないけど内部数値は普通に処理した時と一致させたい
+                        //    => 描画先座標を一致させてお茶を濁す
+                        lsRelY = csRelY;
+                    } else if (csRelY >= 1) {
+                        // セグメントの始点が判定ラインより手前、終点が判定ラインを超えているとき
+                        // 始点はそのまま、終点は判定ラインに一致させ、次の始点は判定ラインから
+                        csRelY = 1;
+
+                        const auto sep = (1.0 - csRelY) * seenDuration;
+                        const auto ctib = (sep - lastStep->ModifiedPosition) / (slideElement->ModifiedPosition - lastStep->ModifiedPosition);
+                        const auto g0sp = ctib * (slideElement->StartTime - lastStep->StartTime);
+                        const auto ctib2 = g0sp / (exData[i][1] - exData[i][0]);
+
+                        currentTimeDiff = ctib2 - currentTimeInBlock2;
+                    } else if (lsRelY >= 1) {
+                        // セグメントの終点は判定ラインより手前、始点が判定ラインを超えているとき(ハイスピ指定を行った場合に起こりうるはず)
+                        // どうしたいんだろう
+                        const auto ratio = (1.0 - csRelY) / (lsRelY - csRelY);
+                        lastTimeInBlock2 = currentTimeInBlock2 + (lastTimeInBlock2 - currentTimeInBlock2) * ratio;
+                        lsRelY = 1;
+                    }
+                }
+
+
                 slideVertices.push_back(
                     {
-                        VGet(get<1>(lastSegmentPosition) * laneBufferX - lastSegmentLength / 2 * widthPerLane, laneBufferY * lastSegmentRelativeY, 0),
+                        VGet(get<1>(lastSegmentPosition) * laneBufferX - lastSegmentLength / 2 * widthPerLane, laneBufferY * lsRelY, 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
-                        0.0f, float((offsetTimeInBlock + lastTimeInBlock2) * strutBottom)
+                        0.0f, float((offsetTimeInBlock + lastTimeInBlock2 + lastTimeDiff) * strutBottom)
                     }
                 );
                 slideVertices.push_back(
                     {
-                        VGet(get<1>(lastSegmentPosition) * laneBufferX + lastSegmentLength / 2 * widthPerLane, laneBufferY * lastSegmentRelativeY, 0),
+                        VGet(get<1>(lastSegmentPosition) * laneBufferX + lastSegmentLength / 2 * widthPerLane, laneBufferY * lsRelY, 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
-                        1.0f, float((offsetTimeInBlock + lastTimeInBlock2) * strutBottom)
+                        1.0f, float((offsetTimeInBlock + lastTimeInBlock2 + lastTimeDiff) * strutBottom)
                     }
                 );
                 slideVertices.push_back(
                     {
-                        VGet(get<1>(segmentPosition) * laneBufferX - currentSegmentLength / 2 * widthPerLane, laneBufferY * currentSegmentRelativeY, 0),
+                        VGet(get<1>(segmentPosition) * laneBufferX - currentSegmentLength / 2 * widthPerLane, laneBufferY * csRelY, 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
-                        0.0f, float((offsetTimeInBlock + currentTimeInBlock2) * strutBottom)
+                        0.0f, float((offsetTimeInBlock + currentTimeInBlock2 + currentTimeDiff) * strutBottom)
                     }
                 );
                 slideVertices.push_back(
                     {
-                        VGet(get<1>(segmentPosition) * laneBufferX + currentSegmentLength / 2 * widthPerLane, laneBufferY * currentSegmentRelativeY, 0),
+                        VGet(get<1>(segmentPosition) * laneBufferX + currentSegmentLength / 2 * widthPerLane, laneBufferY * csRelY, 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
-                        1.0f, float((offsetTimeInBlock + currentTimeInBlock2) * strutBottom)
+                        1.0f, float((offsetTimeInBlock + currentTimeInBlock2 + currentTimeDiff) * strutBottom)
                     }
                 );
                 vector<uint16_t> here = { base, uint16_t(base + 2), uint16_t(base + 1), uint16_t(base + 2), uint16_t(base + 1), uint16_t(base + 3) };
@@ -671,6 +706,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
             lastSegmentPosition = segmentPosition;
             lastSegmentLength = currentSegmentLength;
             lastSegmentRelativeY = currentSegmentRelativeY;
+            lsRelY = csRelY;
             lastTimeInBlock = currentTimeInBlock;
 			lastTimeInBlock2 = currentTimeInBlock2;
 		}
@@ -682,35 +718,76 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 		}
         lastStep = slideElement;
     }
-    SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
+
+    if (!begin) { // 判定前
+        SetDrawBlendMode(DX_BLENDMODE_ADD, 239);
+    } else if (activated) { // 判定中 : Slide時
+        SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
+    } else { // 判定中 : 非Slide時
+        SetDrawBlendMode(DX_BLENDMODE_ADD, 175);
+    }
+
     SetUseBackCulling(FALSE);
     DrawPolygonIndexed2D(slideVertices.data(), slideVertices.size(), slideIndices.data(), drawcount, imageSlideStrut->GetHandle(), TRUE);
 
     // 中心線
     if (showSlideLine) {
+        if (!begin) { // 判定前
+            SetDrawBlendMode(DX_BLENDMODE_ALPHA, 239);
+        }
+        else if (activated) { // 判定中 : Hold時
+            SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+        }
+        else { // 判定中 : 非Hold時
+            SetDrawBlendMode(DX_BLENDMODE_ALPHA, 175);
+        }
+
         lastStep = note;
         for (auto &slideElement : note->ExtraData) {
             if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
             if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
             auto &segmentPositions = curveData[slideElement];
             auto lastSegmentPosition = segmentPositions[0];
+            auto lastSegmentRelativeX = get<1>(lastSegmentPosition);
             auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / seenDuration;
 
             for (auto &segmentPosition : segmentPositions) {
                 if (lastSegmentPosition == segmentPosition) continue;
                 const auto currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - lastStep->StartTime);
                 const auto segmentExPosition = glm::mix(lastStep->ModifiedPosition, slideElement->ModifiedPosition, currentTimeInBlock);
-                const auto currentSegmentRelativeY = 1.0 - segmentExPosition / seenDuration;
+                auto currentSegmentRelativeX = get<1>(segmentPosition);
+                auto currentSegmentRelativeY = 1.0 - segmentExPosition / seenDuration;
                 if ((currentSegmentRelativeY >= 0 || lastSegmentRelativeY >= 0)
                     && (currentSegmentRelativeY < cullingLimit || lastSegmentRelativeY < cullingLimit)) {
-                    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+                    if (begin && activated) {
+                        if (currentSegmentRelativeY >= 1 && lastSegmentRelativeY >= 1) {
+                            // セグメントの全体が判定ラインを超えているとき
+                            // 表示はしたくないけど内部数値は普通に処理した時と一致させたい
+                            //    => 描画先座標を一致させてお茶を濁す
+                            lastSegmentRelativeX = currentSegmentRelativeX;
+                            lastSegmentRelativeY = currentSegmentRelativeY;
+                        } else if (currentSegmentRelativeY >= 1) {
+                            // セグメントの始点が判定ラインより手前、終点が判定ラインを超えているとき
+                            // 始点はそのまま、終点は判定ラインに一致させ、次の始点は判定ラインから
+                            currentSegmentRelativeX = lastSegmentRelativeX - (lastSegmentRelativeX - currentSegmentRelativeX) / (lastSegmentRelativeY - currentSegmentRelativeY) * (lastSegmentRelativeY - 1.0);
+                            currentSegmentRelativeY = 1;
+
+                        } else if (lastSegmentRelativeY >= 1) {
+                            // セグメントの終点は判定ラインより手前、始点が判定ラインを超えているとき(ハイスピ指定を行った場合に起こりうるはず)
+                            // どうしたいんだろう
+                            lastSegmentRelativeX = currentSegmentRelativeX - (currentSegmentRelativeX - lastSegmentRelativeX) / (currentSegmentRelativeY - lastSegmentRelativeY) * (currentSegmentRelativeY - 1.0);
+                            lastSegmentRelativeY = 1;
+                        }
+                    }
+
                     DrawLineAA(
-                        get<1>(lastSegmentPosition) * laneBufferX, laneBufferY * lastSegmentRelativeY,
-                        get<1>(segmentPosition) * laneBufferX, laneBufferY * currentSegmentRelativeY,
+                        lastSegmentRelativeX * laneBufferX, laneBufferY * lastSegmentRelativeY,
+                        currentSegmentRelativeX * laneBufferX, laneBufferY * currentSegmentRelativeY,
                         slideLineColor, 16
                     );
                 }
                 lastSegmentPosition = segmentPosition;
+                lastSegmentRelativeX = currentSegmentRelativeX;
                 lastSegmentRelativeY = currentSegmentRelativeY;
             }
             lastStep = slideElement;
@@ -719,11 +796,15 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 
     // Tap
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    DrawTap(note->StartLane, note->Length, 1.0 - note->ModifiedPosition / seenDuration, imageSlide->GetHandle());
+    if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ノーツがAttack以上の判定*/)) {
+        DrawTap(note->StartLane, note->Length, 1.0 - note->ModifiedPosition / seenDuration, imageSlide->GetHandle());
+    }
     for (auto &slideElement : note->ExtraData) {
         if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Invisible))) continue;
+        if (slideElement->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ノーツがAttack以上の判定*/) continue;
+
         const auto currentStepRelativeY = 1.0 - slideElement->ModifiedPosition / seenDuration;
 		if (currentStepRelativeY >= 0 && currentStepRelativeY < cullingLimit) {
 			if (slideElement->Type.test(size_t(SusNoteType::Start))) {

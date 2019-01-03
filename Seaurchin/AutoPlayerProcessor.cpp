@@ -170,8 +170,10 @@ void AutoPlayerProcessor::ProcessScore(const shared_ptr<SusDrawableNoteData>& no
 
             IncrementCombo(AbilityNoteType::Slide, "");
             note->OnTheFlyData.set(size_t(NoteAttribute::Finished));
-            return;
         }
+
+        note->OnTheFlyData.set(size_t(NoteAttribute::Activated));
+
         for (auto &extra : note->ExtraData) {
             const auto pos = player->currentTime - extra->StartTime + player->soundBufferingLatency;
             if (pos < 0) continue;
@@ -192,6 +194,9 @@ void AutoPlayerProcessor::ProcessScore(const shared_ptr<SusDrawableNoteData>& no
         }
     } else if (note->Type.test(size_t(SusNoteType::AirAction))) {
         isInAA = true;
+
+        note->OnTheFlyData.set(size_t(NoteAttribute::Activated));
+
         for (auto &extra : note->ExtraData) {
             const auto pos = player->currentTime - extra->StartTime + player->soundBufferingLatency;
             if (pos < 0) continue;
