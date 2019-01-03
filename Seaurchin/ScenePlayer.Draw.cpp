@@ -494,7 +494,7 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
             (slane + length) * widthPerLane, laneBufferY * head,
             (slane + length) * widthPerLane, laneBufferY * tail,
             slane * widthPerLane, laneBufferY * tail,
-            0, (192.0 * i) / segments, noteImageBlockX, 192.0 / segments,
+            0, (256.0 * i) / segments, noteImageBlockX, 256.0 / segments,
             imageHoldStrut->GetHandle(), TRUE
         );
     }
