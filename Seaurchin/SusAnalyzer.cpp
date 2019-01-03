@@ -776,12 +776,12 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                 if (!curNo.Type.test(size_t(ltype)) || curNo.Extra != info.Extra) continue;
                 if (curPos.Measure < time.Measure) continue;
                 if (curPos.Measure == time.Measure && curPos.Tick < time.Tick) continue;
+
                 switch (ltype) {
                     case SusNoteType::Hold: {
                         if (curNo.Type.test(size_t(SusNoteType::Control)) || curNo.Type.test(size_t(SusNoteType::Invisible)))
                             MakeMessage(curPos.Measure, curPos.Tick, curNo.NotePosition.StartLane, u8"HoldでControl/Invisibleは指定できません。");
-                        if (curNo.NotePosition.StartLane != info.NotePosition.StartLane || curNo.NotePosition.Length != info.NotePosition.Length)
-                            MakeMessage(curPos.Measure, curPos.Tick, curNo.NotePosition.StartLane, u8"Holdの長さ/位置が始点と一致していません。");
+                        if (curNo.NotePosition.StartLane != info.NotePosition.StartLane || curNo.NotePosition.Length != info.NotePosition.Length) continue;
                     }
                                             /* ホールドだけ追加チェックしてフォールスルー */
                     case SusNoteType::Slide:
