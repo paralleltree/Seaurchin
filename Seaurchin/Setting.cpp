@@ -91,7 +91,7 @@ void SettingItemManager::LoadItemsFromToml(const path& file)
             log->error(u8"設定項目にグループ指定が存在しません。");
             continue;
         }
-        if (!item.has("Group")) {
+        if (!item.has("Key")) {
             log->error(u8"設定項目にキー指定が存在しません。");
             continue;
         }
