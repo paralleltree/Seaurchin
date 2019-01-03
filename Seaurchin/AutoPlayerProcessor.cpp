@@ -99,6 +99,7 @@ void AutoPlayerProcessor::MovePosition(const double relative)
             } else {
                 note->OnTheFlyData.reset(size_t(NoteAttribute::Finished));
             }
+            note->OnTheFlyData.reset(size_t(NoteAttribute::Activated));
             for (auto &extra : note->ExtraData) {
                 if (!extra->Type.test(size_t(SusNoteType::End))
                     && !extra->Type.test(size_t(SusNoteType::Step))
@@ -142,6 +143,8 @@ void AutoPlayerProcessor::ProcessScore(const shared_ptr<SusDrawableNoteData>& no
             IncrementCombo(AbilityNoteType::Hold, "");
             note->OnTheFlyData.set(size_t(NoteAttribute::Finished));
         }
+
+        note->OnTheFlyData.set(size_t(NoteAttribute::Activated));
 
         for (auto &extra : note->ExtraData) {
             const auto pos = player->currentTime - extra->StartTime + player->soundBufferingLatency;

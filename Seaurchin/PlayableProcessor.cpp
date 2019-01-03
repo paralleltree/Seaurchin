@@ -136,6 +136,7 @@ void PlayableProcessor::MovePosition(const double relative)
             } else {
                 note->OnTheFlyData.reset(size_t(NoteAttribute::Finished));
             }
+            note->OnTheFlyData.reset(size_t(NoteAttribute::Activated));
             for (auto &extra : note->ExtraData) {
                 if (!extra->Type.test(size_t(SusNoteType::End))
                     && !extra->Type.test(size_t(SusNoteType::Step))
@@ -340,7 +341,19 @@ bool PlayableProcessor::CheckHoldJudgement(const shared_ptr<SusDrawableNoteData>
             player->EnqueueJudgeSound(JudgeSoundType::Tap);
             player->SpawnJudgeEffect(note, JudgeType::ShortNormal);
         }
+
+        if (held) {
+            note->OnTheFlyData.set(size_t(NoteAttribute::Activated));
+        } else {
+            note->OnTheFlyData.reset(size_t(NoteAttribute::Activated));
+        }
         return held;
+    }
+    if (held) {
+        note->OnTheFlyData.set(size_t(NoteAttribute::Activated));
+    }
+    else {
+        note->OnTheFlyData.reset(size_t(NoteAttribute::Activated));
     }
 
     // Step~End判定

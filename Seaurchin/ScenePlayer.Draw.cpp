@@ -481,29 +481,55 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
     const auto endpoint = note->ExtraData.back();
     const auto relpos = 1.0 - note->ModifiedPosition / seenDuration;
     const auto reltailpos = 1.0 - endpoint->ModifiedPosition / seenDuration;
+    const auto begin = !!note->OnTheFlyData[size_t(NoteAttribute::Finished)]; // Hold全体の判定が行われ始めていればtrueにしたい、これだと判定としては少し遅いかもしれないがまぁ実用上問題ないのでは
+    const auto activated = !!note->OnTheFlyData[size_t(NoteAttribute::Activated)]; // Holdが押されていればtrueにしたい、たぶん一致した論理になるはず
+    const auto completed = !!note->OnTheFlyData[size_t(NoteAttribute::Completed)]; // Hold全体の判定がすべて終わっていればtrueにしたい
+
     // 中身だけ先に描画
-    // 1画面分で8分割ぐらいでよさそう
-    const int segments = fabs(relpos - reltailpos) * 8 + 1;
-    SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
-    for (auto i = 0; i < segments; i++) {
-        const auto head = glm::mix(relpos, reltailpos, double(i) / segments);
-        const auto tail = glm::mix(relpos, reltailpos, double(i + 1) / segments);
-        if ((head < 0 && tail < 0) || (head >= cullingLimit && tail >= cullingLimit)) continue;
+    // 分割しないで描画すべき矩形領域計算してしまえばいいんじゃないでしょうか
+    auto head = relpos;
+    auto tail = reltailpos;
+    if (!(head < 0 && tail < 0) && !(head >= cullingLimit && tail >= cullingLimit)) {
+        if (!begin) { // 判定前
+            SetDrawBlendMode(DX_BLENDMODE_ADD, 239);
+        } else if (activated) { // 判定中 : Hold時
+            SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
+        } else { // 判定中 : 非Hold時
+            SetDrawBlendMode(DX_BLENDMODE_ADD, 175);
+        }
+
+        if (begin && activated) {
+            if (head > 1) head = 1;
+            if (tail > 1) tail = 1;
+        }
+
+        const auto wholelen = fabs(reltailpos - relpos);
+        const auto len = fabs(tail - head);
+
+        const auto y1 = laneBufferY * head;
+        const auto y2 = laneBufferY * tail;
+        const auto SrcY = (relpos - head) / wholelen * imageHoldStrut->GetHeight();
+        const auto Height = len / wholelen * imageHoldStrut->GetHeight();
+
         DrawRectModiGraphF(
-            slane * widthPerLane, laneBufferY * head,
-            (slane + length) * widthPerLane, laneBufferY * head,
-            (slane + length) * widthPerLane, laneBufferY * tail,
-            slane * widthPerLane, laneBufferY * tail,
-            0, (256.0 * i) / segments, noteImageBlockX, 256.0 / segments,
+            slane * widthPerLane, y1,
+            (slane + length) * widthPerLane, y1,
+            (slane + length) * widthPerLane, y2,
+            slane * widthPerLane, y2,
+            0, SrcY, noteImageBlockX, Height,
             imageHoldStrut->GetHandle(), TRUE
         );
     }
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    DrawTap(slane, length, relpos, imageHold->GetHandle());
+    if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ノーツがAttack以上の判定*/)) {
+        DrawTap(slane, length, relpos, imageHold->GetHandle());
+    }
 
     for (auto &ex : note->ExtraData) {
         if (ex->Type.test(size_t(SusNoteType::Injection))) continue;
+        if (ex->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ノーツがAttack以上の判定*/) continue;
+
         const auto relendpos = 1.0 - ex->ModifiedPosition / seenDuration;
 		if (ex->Type.test(size_t(SusNoteType::Start))) {
 			DrawTap(slane, length, relendpos, imageHold->GetHandle());
