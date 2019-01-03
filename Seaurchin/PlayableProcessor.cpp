@@ -525,6 +525,12 @@ bool PlayableProcessor::CheckAirActionJudgement(const shared_ptr<SusDrawableNote
 
     // Start判定
     // なし
+    if (held) {
+        note->OnTheFlyData.set(size_t(NoteAttribute::Activated));
+    }
+    else {
+        note->OnTheFlyData.reset(size_t(NoteAttribute::Activated));
+    }
 
     // Step~End判定
     for (const auto &extra : note->ExtraData) {
