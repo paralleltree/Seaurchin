@@ -222,6 +222,8 @@ public:
     void Resume();
     void Reload();
     void StoreResult() const;
+    double GetFirstNoteTime() const;
+    double GetLastNoteTime() const;
 };
 
 void RegisterPlayerScene(ExecutionManager *exm);

@@ -38,6 +38,8 @@ void RegisterPlayerScene(ExecutionManager * manager)
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void MovePositionBySecond(double)", asMETHOD(ScenePlayer, MovePositionBySecond), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void MovePositionByMeasure(int)", asMETHOD(ScenePlayer, MovePositionByMeasure), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void SetJudgeCallback(" SU_IF_JUDGE_CALLBACK "@)", asMETHOD(ScenePlayer, SetJudgeCallback), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "double GetFirstNoteTime()", asMETHOD(ScenePlayer, GetFirstNoteTime), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "double GetLastNoteTime()", asMETHOD(ScenePlayer, GetLastNoteTime), asCALL_THISCALL);
 }
 
 
@@ -569,4 +571,38 @@ void ScenePlayer::AdjustCamera(const double cy, const double cz, const double ct
 void ScenePlayer::StoreResult() const
 {
     currentResult->GetCurrentResult(&manager->lastResult);
+}
+
+double ScenePlayer::GetFirstNoteTime() const
+{
+    double time = DBL_MAX;
+    for (const auto &note : data) {
+        if (note->Type.to_ulong() & SU_NOTE_SHORT_MASK) {
+            if (note->StartTime < time) time = note->StartTime;
+        } else if (note->Type.to_ulong() & SU_NOTE_SHORT_MASK) {
+            if (note->StartTime < time) time = note->StartTime;
+
+            for (const auto &ex : note->ExtraData) {
+                if (note->StartTime < time) time = note->StartTime;
+            }
+        }
+    }
+    return time;
+}
+
+double ScenePlayer::GetLastNoteTime() const
+{
+    double time = 0.0;
+    for (const auto &note : data) {
+        if (note->Type.to_ulong() & SU_NOTE_SHORT_MASK) {
+            if (note->StartTime > time) time = note->StartTime;
+        } else if (note->Type.to_ulong() & SU_NOTE_SHORT_MASK) {
+            if (note->StartTime > time) time = note->StartTime;
+
+            for (const auto &ex : note->ExtraData) {
+                if (note->StartTime > time) time = note->StartTime;
+            }
+        }
+    }
+    return time;
 }
