@@ -25,15 +25,20 @@
     - [GitHub](https://github.com/amenoshita-429)
     - **Amenoshitaスキンの開発**
     - **不可視中継点問題の解決(0.44.0)**
+    - **スキン機能の拡充、検証、実用**
     - **様々な(クリティカルな)バグ報告**
-* t4nishi
-    - [Twitter @t4nishi](https://twitter.com/t4nishi)
-    - [GitHub](https://github.com/TinyTany)
-    - **NotesEditorForDの開発**
 * paralleltree
     - [Twitter @paralleltree](https://twitter.com/paralleltree)
     - [GitHub](https://github.com/paralleltree)
     - **Chedの開発**
+* mizucoffee
+    - [Twitter @kawakawaritsuki](https://twitter.com/kawakawaritsuki)
+    - [GitHub](https://github.com/mizucoffee)
+    - **Seaurchin Bootstrapの整備**
+* t4nishi
+    - [Twitter @t4nishi](https://twitter.com/t4nishi)
+    - [GitHub](https://github.com/TinyTany)
+    - **NotesEditorForD, M4pleの開発**
 * Discord「Seaurchin 創作譜面勢」のみなさん
     - **様々なバグ報告・要望**
 
