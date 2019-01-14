@@ -29,6 +29,7 @@ protected:
     std::vector<SSprite*> spritesPending;
     std::list<Coroutine*> coroutines;
     std::list<Coroutine*> coroutinesPending;
+    bool finished = false;
 
     void TickCoroutine(double delta);
     void TickSprite(double delta);
@@ -46,7 +47,7 @@ public:
     void OnEvent(const std::string &message) override;
     void Draw() override;
     bool IsDead() override;
-    virtual void Disappear();
+    void Disappear();
 
     friend void ScriptSceneKillCoroutine(const std::string &name);
 };
@@ -57,7 +58,6 @@ class ScriptCoroutineScene : public ScriptScene
 protected:
     asIScriptContext *runningContext;
     CoroutineWait wait;
-    bool finished = false;
 
 public:
     ScriptCoroutineScene(asIScriptObject *scene);
@@ -66,8 +66,6 @@ public:
     
     void Tick(double delta) override;
     void Initialize() override;
-    bool IsDead() override;
-    void Disappear() override;
 
 };
 
