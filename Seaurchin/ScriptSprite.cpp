@@ -853,6 +853,7 @@ void SAnimeSprite::DrawBy(const Transform2D &tf, const ColorTint &ct)
 SAnimeSprite::SAnimeSprite(SAnimatedImage * img)
 {
     images = img;
+    images->AddRef();
     loopCount = 1;
     count = 0;
     speed = 1;
