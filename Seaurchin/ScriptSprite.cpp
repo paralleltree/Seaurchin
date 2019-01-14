@@ -340,9 +340,9 @@ void SShape::RegisterType(asIScriptEngine * engine)
 
 void STextSprite::Refresh()
 {
-    if (!Font) return;
     delete target;
     delete scrollBuffer;
+    if (!Font) return;
 
     size = isRich ? Font->RenderRich(nullptr, Text, Color) : Font->RenderRaw(nullptr, Text);
     if (isScrolling) {
