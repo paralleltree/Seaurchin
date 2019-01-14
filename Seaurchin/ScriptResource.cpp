@@ -202,6 +202,7 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
     using namespace crc32_constexpr;
 
     const bx::sregex cmd = bx::bos >> "${" >> (bx::s1 = -+bx::_w) >> "}";
+    const bx::sregex cmdhex = bx::bos >> "${#" >> (bx::s1 = bx::repeat<2, 2>(bx::xdigit)) >> (bx::s2 = bx::repeat<2, 2>(bx::xdigit)) >> (bx::s3 = bx::repeat<2, 2>(bx::xdigit)) >> "}";
     double cx = 0, cy = 0;
     double mx = 0;
     auto line = 1;
@@ -241,6 +242,18 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
                     cb = 255;
                     cr = cg = 0;
                     break;
+                case "magenta"_crc32:
+                    cr = cb = 255;
+                    cg = 0;
+                    break;
+                case "cyan"_crc32:
+                    cg = cb = 255;
+                    cr = 0;
+                    break;
+                case "yellow"_crc32:
+                    cr = cg = 255;
+                    cb = 0;
+                    break;
                 case "defcolor"_crc32:
                     cr = defcol.R;
                     cg = defcol.G;
@@ -254,6 +267,13 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
                     break;
                 default: break;
             }
+            ccp += match[0].length();
+            continue;
+        }
+        if (bx::regex_search(sr, match, cmdhex)) {
+            cr = std::stoi(match[1].str(), nullptr, 16);
+            cg = std::stoi(match[2].str(), nullptr, 16);
+            cb = std::stoi(match[3].str(), nullptr, 16);
             ccp += match[0].length();
             continue;
         }
