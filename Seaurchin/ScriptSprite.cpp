@@ -211,7 +211,6 @@ void SSprite::RegisterType(asIScriptEngine * engine)
     RegisterSpriteBasic<SSprite>(engine, SU_IF_SPRITE);
     engine->RegisterObjectBehaviour(SU_IF_SPRITE, asBEHAVE_FACTORY, SU_IF_SPRITE "@ f()", asFUNCTIONPR(SSprite::Factory, (), SSprite*), asCALL_CDECL);
     engine->RegisterObjectBehaviour(SU_IF_SPRITE, asBEHAVE_FACTORY, SU_IF_SPRITE "@ f(" SU_IF_IMAGE "@)", asFUNCTIONPR(SSprite::Factory, (SImage*), SSprite*), asCALL_CDECL);
-    engine->RegisterObjectMethod(SU_IF_SPRITE, SU_IF_SPRITE "@ Clone()", asMETHOD(SSprite, Clone), asCALL_THISCALL);
 }
 
 // Shape -----------------
@@ -316,6 +315,17 @@ void SShape::Draw(const Transform2D &parent, const ColorTint &color)
     const auto tf = Transform.ApplyFrom(parent);
     const auto cl = Color.ApplyFrom(color);
     DrawBy(tf, cl);
+}
+
+SShape * SShape::Clone()
+{
+    //‚â‚Á‚Ï‚èƒRƒsƒRƒ“‚Å—Ç‚­‚È‚¢‚©‚±‚ê
+    auto clone = new SShape();
+    clone->CopyParameterFrom(this);
+    clone->Width = Width;
+    clone->Height = Height;
+    clone->AddRef();
+    return clone;
 }
 
 SShape * SShape::Factory()
@@ -528,7 +538,6 @@ void STextSprite::RegisterType(asIScriptEngine *engine)
     engine->RegisterObjectBehaviour(SU_IF_TXTSPRITE, asBEHAVE_FACTORY, SU_IF_TXTSPRITE "@ f(" SU_IF_FONT "@, const string &in)", asFUNCTIONPR(STextSprite::Factory, (SFont*, const string&), STextSprite*), asCALL_CDECL);
     engine->RegisterObjectMethod(SU_IF_SPRITE, SU_IF_TXTSPRITE "@ opCast()", asFUNCTION((CastReferenceType<SSprite, STextSprite>)), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod(SU_IF_TXTSPRITE, SU_IF_SPRITE "@ opImplCast()", asFUNCTION((CastReferenceType<STextSprite, SSprite>)), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectMethod(SU_IF_TXTSPRITE, SU_IF_TXTSPRITE "@ Clone()", asMETHOD(STextSprite, Clone), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_TXTSPRITE, "void SetFont(" SU_IF_FONT "@)", asMETHOD(STextSprite, SetFont), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_TXTSPRITE, "void SetText(const string &in)", asMETHOD(STextSprite, SetText), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_TXTSPRITE, "void SetAlignment(" SU_IF_TEXTALIGN ", " SU_IF_TEXTALIGN ")", asMETHOD(STextSprite, SetAlignment), asCALL_THISCALL);
@@ -862,6 +871,16 @@ void SAnimeSprite::Tick(const double delta)
     time = images->GetCellTime() * images->GetFrameCount();
 }
 
+SAnimeSprite *SAnimeSprite::Clone()
+{
+    auto clone = new SAnimeSprite(images);
+    clone->CopyParameterFrom(this);
+    clone->AddRef();
+    clone->loopCount = loopCount;
+    clone->speed = speed;
+    return clone;
+}
+
 void SAnimeSprite::SetSpeed(const double nspeed)
 {
     speed = nspeed;
@@ -927,6 +946,16 @@ void SContainer::Draw(const Transform2D & parent, const ColorTint &color)
     const auto tf = Transform.ApplyFrom(parent);
     const auto cl = Color.ApplyFrom(color);
     for (const auto &s : children) s->Draw(tf, cl);
+}
+
+SContainer *SContainer::Clone()
+{
+    auto clone = new SContainer();
+    clone->CopyParameterFrom(this);
+    clone->AddRef();
+    for (const auto &s : children) if (s) clone->AddChild(s->Clone());
+
+    return clone;
 }
 
 SContainer* SContainer::Factory()

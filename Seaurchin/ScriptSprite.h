@@ -91,6 +91,7 @@ public:
 
     void Draw() override;
     void Draw(const Transform2D &parent, const ColorTint &color) override;
+    SShape* Clone() override;
 
     static SShape* Factory();
     static void RegisterType(asIScriptEngine *engine);
@@ -234,6 +235,7 @@ public:
     void Draw() override;
     void Draw(const Transform2D &parent, const ColorTint &color) override;
     void Tick(double delta) override;
+    SAnimeSprite *Clone() override;
     void SetSpeed(double speed);
     void SetLoopCount(int lc);
 
@@ -261,6 +263,7 @@ public:
     void Tick(double delta) override;
     void Draw() override;
     void Draw(const Transform2D &parent, const ColorTint &color) override;
+    SContainer *Clone() override;
 
     static SContainer* Factory();
     static void RegisterType(asIScriptEngine *engine);
@@ -285,6 +288,7 @@ void RegisterSpriteBasic(asIScriptEngine *engine, const char *name)
     engine->RegisterObjectMethod(name, "void Apply(const dictionary@)", asMETHODPR(T, Apply, (const CScriptDictionary&), void), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void AddMove(const string &in)", asMETHOD(T, AddMove), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void AbortMove(bool = true)", asMETHOD(T, AbortMove), asCALL_THISCALL);
+    engine->RegisterObjectMethod(name, (std::string(name) + "@ Clone()").c_str(), asMETHOD(T, Clone), asCALL_THISCALL);
     //engine->RegisterObjectMethod(name, "void Tick(double)", asMETHOD(T, Tick), asCALL_THISCALL);
     //engine->RegisterObjectMethod(name, "void Draw()", asMETHOD(T, Draw), asCALL_THISCALL);
 }
