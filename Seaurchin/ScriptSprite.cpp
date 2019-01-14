@@ -352,7 +352,10 @@ void STextSprite::Refresh()
 {
     delete target;
     delete scrollBuffer;
-    if (!Font) return;
+    if (!Font) {
+        size = std::make_tuple<double, double, int>(0.0, 0.0, 0);
+        return;
+    }
 
     size = isRich ? Font->RenderRich(nullptr, Text, Color) : Font->RenderRaw(nullptr, Text);
     if (isScrolling) {
@@ -464,6 +467,14 @@ void STextSprite::SetRich(const bool enabled)
     Refresh();
 }
 
+double STextSprite::GetWidth() {
+    return get<0>(size);
+}
+
+double STextSprite::GetHeight() {
+    return get<1>(size);
+}
+
 STextSprite::~STextSprite()
 {
     if (Font) Font->Release();
@@ -543,6 +554,8 @@ void STextSprite::RegisterType(asIScriptEngine *engine)
     engine->RegisterObjectMethod(SU_IF_TXTSPRITE, "void SetAlignment(" SU_IF_TEXTALIGN ", " SU_IF_TEXTALIGN ")", asMETHOD(STextSprite, SetAlignment), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_TXTSPRITE, "void SetRangeScroll(int, int, double)", asMETHOD(STextSprite, SetRangeScroll), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_TXTSPRITE, "void SetRich(bool)", asMETHOD(STextSprite, SetRich), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_TXTSPRITE, "double get_Width()", asMETHOD(STextSprite, GetWidth), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_TXTSPRITE, "double get_Height()", asMETHOD(STextSprite, GetHeight), asCALL_THISCALL);
 }
 
 // STextInput ---------------------------------------

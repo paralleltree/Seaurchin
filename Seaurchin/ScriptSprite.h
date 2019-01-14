@@ -132,6 +132,8 @@ public:
     void SetAlignment(STextAlign hori, STextAlign vert);
     void SetRangeScroll(int width, int margin, double pps);
     void SetRich(bool enabled);
+    double GetWidth();
+    double GetHeight();
 
     ~STextSprite() override;
     void Tick(double delta) override;
