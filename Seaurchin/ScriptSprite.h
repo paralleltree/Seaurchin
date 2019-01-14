@@ -222,7 +222,7 @@ public:
 class SAnimeSprite : public SSprite {
 protected:
     SAnimatedImage *images;
-    int loopCount;
+    int loopCount, count;
     double speed;
     double time;
     void DrawBy(const Transform2D &tf, const ColorTint &ct) override;

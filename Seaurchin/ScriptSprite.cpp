@@ -832,6 +832,7 @@ SAnimeSprite::SAnimeSprite(SAnimatedImage * img)
 {
     images = img;
     loopCount = 1;
+    count = 0;
     speed = 1;
     time = img->GetCellTime() * img->GetFrameCount();
 }
@@ -857,8 +858,7 @@ void SAnimeSprite::Tick(const double delta)
 {
     time -= delta * speed;
     if (time > 0) return;
-    loopCount--;
-    if (!loopCount) Dismiss();
+    if(loopCount > 0 && ++count == loopCount) Dismiss();
     time = images->GetCellTime() * images->GetFrameCount();
 }
 
