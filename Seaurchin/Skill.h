@@ -86,6 +86,8 @@ public:
     void Previous();
     SkillParameter* GetSkillParameter(int relative);
     std::shared_ptr<SkillParameter> GetSkillParameterSafe(int relative);
+
+	int32_t GetSize() const;
 };
 
 class SkillIndicators final {

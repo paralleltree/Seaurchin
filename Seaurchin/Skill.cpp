@@ -53,6 +53,10 @@ shared_ptr<SkillParameter> SkillManager::GetSkillParameterSafe(const int relativ
     return skills[ri % skills.size()];
 }
 
+int32_t SkillManager::GetSize() const {
+	return int32_t(skills.size());
+}
+
 void SkillManager::LoadFromToml(boost::filesystem::path file)
 {
     using namespace boost::filesystem;
@@ -232,5 +236,6 @@ void RegisterSkillTypes(asIScriptEngine *engine)
     engine->RegisterObjectType(SU_IF_SKILL_MANAGER, 0, asOBJ_REF | asOBJ_NOCOUNT);
     engine->RegisterObjectMethod(SU_IF_SKILL_MANAGER, "void Next()", asMETHOD(SkillManager, Next), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SKILL_MANAGER, "void Previous()", asMETHOD(SkillManager, Previous), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_SKILL_MANAGER, SU_IF_SKILL "@ GetSkill(int)", asMETHOD(SkillManager, GetSkillParameter), asCALL_THISCALL);
+	engine->RegisterObjectMethod(SU_IF_SKILL_MANAGER, SU_IF_SKILL "@ GetSkill(int)", asMETHOD(SkillManager, GetSkillParameter), asCALL_THISCALL);
+	engine->RegisterObjectMethod(SU_IF_SKILL_MANAGER, "int GetSize()", asMETHOD(SkillManager, GetSize), asCALL_THISCALL);
 }
