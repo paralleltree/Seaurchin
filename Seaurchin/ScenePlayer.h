@@ -87,7 +87,6 @@ class ScenePlayer : public SSprite {
 protected:
     int reference = 0;
     int hGroundBuffer;
-    int hBlank;
     ExecutionManager *manager;
     SoundManager *soundManager;
     boost::lockfree::queue<JudgeSoundType> judgeSoundQueue;
@@ -127,7 +126,6 @@ protected:
     SImage *imageHold, *imageHoldStep, *imageHoldStrut;
     SImage *imageSlide, *imageSlideStep, *imageSlideStrut;
     SImage *imageAirAction;
-    int imageExtendedSlideStrut;
     SFont *fontCombo;
     SAnimatedImage *animeTap, *animeExTap, *animeSlideTap, *animeSlideLoop, *animeAirAction;
     STextSprite *textCombo;

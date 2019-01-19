@@ -90,18 +90,6 @@ void ScenePlayer::LoadResources()
     const float bufferV = exty / bufferY;
     for (auto i = 2; i < 4; i++) groundVertices[i].v = bufferV;
     hGroundBuffer = MakeScreen(laneBufferX, bufferY, TRUE);
-    hBlank = MakeScreen(128, 128, FALSE);
-    BEGIN_DRAW_TRANSACTION(hBlank);
-    DrawBox(0, 0, 128, 128, GetColor(255, 255, 255), TRUE);
-    FINISH_DRAW_TRANSACTION;
-    // ƒXƒ‰ƒCƒh‚Ì3DŠÖ”•`‰æ‚Å64x192‚©‚ç64x256‚É‚µ‚È‚¢‚Æ‚¢‚¯‚È‚¢‚Ë
-    if (imageSlideStrut) {
-        imageExtendedSlideStrut = MakeScreen(64, 256, TRUE);
-        BEGIN_DRAW_TRANSACTION(imageExtendedSlideStrut);
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-        DrawGraph(0, 0, imageSlideStrut->GetHandle(), TRUE);
-        FINISH_DRAW_TRANSACTION;
-    }
 
     fontCombo->AddRef();
     textCombo = STextSprite::Factory(fontCombo, "0000");
