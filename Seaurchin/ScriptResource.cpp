@@ -132,6 +132,15 @@ SAnimatedImage * SAnimatedImage::CreateLoadedImageFromFile(const std::string & f
     return result;
 }
 
+SAnimatedImage * SAnimatedImage::CreateLoadedImageFromMemory(void * buffer, const size_t size, const int xc, const int yc, const int w, const int h, const int count, const double time)
+{
+	auto result = new SAnimatedImage(w, h, count, time);
+	result->images.resize(count);
+	CreateDivGraphFromMem(buffer, size, count, xc, yc, w, h, result->images.data());
+	result->AddRef();
+	return result;
+}
+
 
 // SFont --------------------------------------
 
