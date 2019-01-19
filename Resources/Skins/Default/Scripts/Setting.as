@@ -22,6 +22,8 @@ class SettingScene : CoroutineScene {
       GetSettingItem("Sound", "VolumeTap"),
       GetSettingItem("Sound", "VolumeExTap"),
       GetSettingItem("Sound", "VolumeFlick"),
+      GetSettingItem("Sound", "VolumeHold"),
+      GetSettingItem("Sound", "VolumeSlide"),
       GetSettingItem("Sound", "VolumeAir"),
       GetSettingItem("Sound", "VolumeAirAction")
     },
@@ -30,8 +32,12 @@ class SettingScene : CoroutineScene {
       GetSettingItem("Play", "Hispeed"),
       GetSettingItem("Play", "JudgeAdjustSlider"),
       GetSettingItem("Play", "JudgeMultiplierSlider"),
+      GetSettingItem("Play", "AirRollMultiplier"),
       GetSettingItem("Play", "JudgeAdjustAirString"),
-      GetSettingItem("Play", "JudgeMultiplierAirString")
+      GetSettingItem("Play", "JudgeMultiplierAirString"),
+      GetSettingItem("Play", "ShowSlideLine"),
+      GetSettingItem("Play", "SlideLineThickness"),
+      GetSettingItem("Play", "ShowAirActionJudgeLine")
     }
   };
   
