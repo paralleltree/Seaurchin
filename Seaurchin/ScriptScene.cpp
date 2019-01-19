@@ -83,11 +83,13 @@ void ScriptScene::Draw()
 
 bool ScriptScene::IsDead()
 {
-    return false;
+    return finished;
 }
 
 void ScriptScene::Disappear()
-{}
+{
+    finished = true;
+}
 
 void ScriptScene::TickCoroutine(const double delta)
 {
@@ -215,16 +217,6 @@ void ScriptCoroutineScene::Initialize()
     const auto func = sceneType->GetMethodByDecl("void Run()");
     runningContext->Prepare(func);
     runningContext->SetObject(sceneObject);
-}
-
-bool ScriptCoroutineScene::IsDead()
-{
-    return finished;
-}
-
-void ScriptCoroutineScene::Disappear()
-{
-    finished = true;
 }
 
 void RegisterScriptScene(ExecutionManager *exm)

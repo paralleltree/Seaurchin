@@ -122,8 +122,6 @@ void ScenePlayer::Finalize()
 
     fontCombo->Release();
     DeleteGraph(hGroundBuffer);
-    DeleteGraph(hBlank);
-    DeleteGraph(imageExtendedSlideStrut);
     if (movieBackground) DeleteGraph(movieBackground);
     judgeSoundThread.join();
 }

@@ -77,6 +77,31 @@ Step = 0.1
 Default = 4.0
 
 [[SettingItems]]
+Group = "Play"
+Key = "ShowSlideLine"
+Description = "スライド中心線"
+Type = "Boolean"
+Values = [ "表示する", "表示しない" ]
+Default = true
+
+[[SettingItems]]
+Group = "Play"
+Key = "SlideLineThickness"
+Description = "スライド中心線幅"
+Type = "Float"
+Range = [ 0.0, 32.0 ]
+Step = 0.5
+Default = 16.0
+
+[[SettingItems]]
+Group = "Play"
+Key = "ShowAirActionJudgeLine"
+Description = "エアー入力線"
+Type = "Boolean"
+Values = [ "表示する", "表示しない" ]
+Default = true
+
+[[SettingItems]]
 Group = "Sound"
 Key = "BufferLatency"
 Description = "バッファ遅延(ms)"
@@ -125,6 +150,24 @@ Default = 1.0
 Group = "Sound"
 Key = "VolumeAirAction"
 Description = "AirAction音量"
+Type = "Float"
+Range = [ 0.0, 1.0 ]
+Step = 0.01
+Default = 1.0
+
+[[SettingItems]]
+Group = "Sound"
+Key = "VolumeHold"
+Description = "Hold音量"
+Type = "Float"
+Range = [ 0.0, 1.0 ]
+Step = 0.01
+Default = 1.0
+
+[[SettingItems]]
+Group = "Sound"
+Key = "VolumeSlide"
+Description = "Slide音量"
 Type = "Float"
 Range = [ 0.0, 1.0 ]
 Step = 0.01
