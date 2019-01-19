@@ -72,31 +72,44 @@ void SkillManager::LoadFromToml(boost::filesystem::path file)
 
     try {
         result->Name = root.get<string>("Name");
-        result->Description = root.get<string>("Description");
         result->IconPath = ConvertUnicodeToUTF8((iconRoot / ConvertUTF8ToUnicode(root.get<string>("Icon"))).wstring());
+		result->Details.clear();
+		result->CurrentLevel = 0;
+		result->MaxLevel = 0;
 
-        auto abilities = root.get<vector<toml::Table>>("Abilities");
-        for (const auto &ability : abilities) {
-            AbilityParameter ai;
-            ai.Name = ability.at("Type").as<string>();
-            auto args = ability.at("Arguments").as<toml::Table>();
-            for (const auto &p : args) {
-                switch (p.second.type()) {
-                    case toml::Value::INT_TYPE:
-                        ai.Arguments[p.first] = p.second.as<int>();
-                        break;
-                    case toml::Value::DOUBLE_TYPE:
-                        ai.Arguments[p.first] = p.second.as<double>();
-                        break;
-                    case toml::Value::STRING_TYPE:
-                        ai.Arguments[p.first] = p.second.as<string>();
-                        break;
-                    default:
-                        break;
-                }
-            }
-            result->Abilities.push_back(ai);
-        }
+		auto details = root.get<vector<toml::Table>>("Detail");
+		for (const auto &detail : details) {
+			SkillDetail sdt;
+			sdt.Description = detail.at("Description").as<string>();
+
+			auto abilities = detail.at("Abilities").as<vector<toml::Table>>();
+			for (const auto &ability : abilities) {
+				AbilityParameter ai;
+				ai.Name = ability.at("Type").as<string>();
+				auto args = ability.at("Arguments").as<toml::Table>();
+				for (const auto &p : args) {
+					switch (p.second.type()) {
+					case toml::Value::INT_TYPE:
+						ai.Arguments[p.first] = p.second.as<int>();
+						break;
+					case toml::Value::DOUBLE_TYPE:
+						ai.Arguments[p.first] = p.second.as<double>();
+						break;
+					case toml::Value::STRING_TYPE:
+						ai.Arguments[p.first] = p.second.as<string>();
+						break;
+					default:
+						break;
+					}
+				}
+				sdt.Abilities.push_back(ai);
+			}
+
+			int level = detail.at("Level").as<int>();
+			result->Details.emplace(level, sdt);
+
+			if (result->MaxLevel < level) result->MaxLevel = level;
+		}
     } catch (exception) {
         log->error(u8"ƒXƒLƒ‹ {0} ‚Ì“Ç‚Ýž‚Ý‚ÉŽ¸”s‚µ‚Ü‚µ‚½", ConvertUnicodeToUTF8(file.wstring()));
         return;
@@ -209,10 +222,12 @@ void RegisterSkillTypes(asIScriptEngine *engine)
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnAttack(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnMiss(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
 
-    engine->RegisterObjectType(SU_IF_SKILL, 0, asOBJ_REF | asOBJ_NOCOUNT);
-    engine->RegisterObjectProperty(SU_IF_SKILL, "string Name", asOFFSET(SkillParameter, Name));
-    engine->RegisterObjectProperty(SU_IF_SKILL, "string IconPath", asOFFSET(SkillParameter, IconPath));
-    engine->RegisterObjectProperty(SU_IF_SKILL, "string Description", asOFFSET(SkillParameter, Description));
+	engine->RegisterObjectType(SU_IF_SKILL, 0, asOBJ_REF | asOBJ_NOCOUNT);
+	engine->RegisterObjectProperty(SU_IF_SKILL, "string Name", asOFFSET(SkillParameter, Name));
+	engine->RegisterObjectProperty(SU_IF_SKILL, "string IconPath", asOFFSET(SkillParameter, IconPath));
+	engine->RegisterObjectProperty(SU_IF_SKILL, "int CurrentLevel", asOFFSET(SkillParameter, CurrentLevel));
+	engine->RegisterObjectMethod(SU_IF_SKILL, "string GetDescription(int)", asMETHOD(SkillParameter, GetDescription), asCALL_THISCALL);
+	engine->RegisterObjectMethod(SU_IF_SKILL, "int GetMaxLevel()", asMETHOD(SkillParameter, GetMaxLevel), asCALL_THISCALL);
 
     engine->RegisterObjectType(SU_IF_SKILL_MANAGER, 0, asOBJ_REF | asOBJ_NOCOUNT);
     engine->RegisterObjectMethod(SU_IF_SKILL_MANAGER, "void Next()", asMETHOD(SkillManager, Next), asCALL_THISCALL);

@@ -307,7 +307,7 @@ class CharacterInfo : CoroutineScene {
     
     @spDescription = TextSprite(skin.GetFont("Normal32"), "");
     spDescription.Apply("x:11, y: 208, r: 0, g: 0, b: 0, scaleX: 0.5, scaleY: 0.5");
-    spDescription.SetText(ci.GetSkill().Description);
+    spDescription.SetText(ci.GetSkill().GetDescription(0));
     spDescription.SetRich(true);
     
     container.AddChild(spBack);

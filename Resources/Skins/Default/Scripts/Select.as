@@ -318,7 +318,7 @@ class CharacterSelect : CoroutineScene {
   void UpdateSkill() {
     @sk = sm.GetSkill(0);
     spSkill.SetText(sk.Name);
-    spDescription.SetText(sk.Description);
+    spDescription.SetText(sk.GetDescription(0));
     spIcon.SetImage(Image(sk.IconPath));
   }
   

@@ -18,12 +18,36 @@ public:
     std::unordered_map<std::string, boost::any> Arguments;
 };
 
+class SkillDetail final {
+public:
+	int Level;
+    std::string Description;
+    std::vector<AbilityParameter> Abilities;
+};
+
 class SkillParameter final {
 public:
-    std::string Name;
-    std::string Description;
-    std::string IconPath;
-    std::vector<AbilityParameter> Abilities;
+	int32_t GetMaxLevel() { return MaxLevel;  }
+	SkillDetail& GetDetail(int32_t level) {
+		auto l = level;
+		if (l > MaxLevel) l = MaxLevel;
+		while (l >= 0) {
+			auto d = Details.find(l);
+			if (d != Details.end()) return d->second;
+			--l;
+		}
+		return Details.begin()->second;
+	}
+	std::string GetDescription(int32_t level) {
+		return GetDetail(level).Description;
+	}
+
+public:
+	std::string Name;
+	std::string IconPath;
+	std::map<int32_t, SkillDetail> Details;
+	int32_t CurrentLevel;
+	int32_t MaxLevel;
 };
 
 enum class AbilityNoteType {
