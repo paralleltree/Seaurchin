@@ -79,6 +79,7 @@ void ScenePlayer::LoadResources()
     scv = setting->ReadValue("Play", "ColorSlideLine", scv);
     aajcv = setting->ReadValue("Play", "ColorAirActionJudgeLine", aajcv);
     showSlideLine = setting->ReadValue("Play", "ShowSlideLine", true);
+	slideLineThickness = setting->ReadValue("Play", "SlideLineThickness", 16.0) / 2.0;
     showAirActionJudge = setting->ReadValue("Play", "ShowAirActionJudgeLine", true);
     slideLineColor = GetColor(scv[0].as<int>(), scv[1].as<int>(), scv[2].as<int>());
     airActionJudgeColor = GetColor(aajcv[0].as<int>(), aajcv[1].as<int>(), aajcv[2].as<int>());
@@ -768,12 +769,19 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                         }
                     }
 
-                    DrawLineAA(
-                        lastSegmentRelativeX * laneBufferX, laneBufferY * lastSegmentRelativeY,
-                        currentSegmentRelativeX * laneBufferX, laneBufferY * currentSegmentRelativeY,
+                    DrawTriangleAA(
+						lastSegmentRelativeX * laneBufferX - slideLineThickness, laneBufferY * lastSegmentRelativeY,
+						lastSegmentRelativeX * laneBufferX + slideLineThickness, laneBufferY * lastSegmentRelativeY,
+                        currentSegmentRelativeX * laneBufferX - slideLineThickness, laneBufferY * currentSegmentRelativeY,
                         slideLineColor, 16
                     );
-                }
+					DrawTriangleAA(
+						lastSegmentRelativeX * laneBufferX + slideLineThickness, laneBufferY * lastSegmentRelativeY,
+						currentSegmentRelativeX * laneBufferX - slideLineThickness, laneBufferY * currentSegmentRelativeY,
+						currentSegmentRelativeX * laneBufferX + slideLineThickness, laneBufferY * currentSegmentRelativeY,
+						slideLineColor, 16
+					);
+				}
                 lastSegmentPosition = segmentPosition;
                 lastSegmentRelativeX = currentSegmentRelativeX;
                 lastSegmentRelativeY = currentSegmentRelativeY;
