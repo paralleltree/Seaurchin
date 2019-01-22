@@ -79,6 +79,7 @@ void ScenePlayer::LoadResources()
     scv = setting->ReadValue("Play", "ColorSlideLine", scv);
     aajcv = setting->ReadValue("Play", "ColorAirActionJudgeLine", aajcv);
     showSlideLine = setting->ReadValue("Play", "ShowSlideLine", true);
+	slideLineThickness = setting->ReadValue("Play", "SlideLineThickness", 16.0) / 2.0;
     showAirActionJudge = setting->ReadValue("Play", "ShowAirActionJudgeLine", true);
     slideLineColor = GetColor(scv[0].as<int>(), scv[1].as<int>(), scv[2].as<int>());
     airActionJudgeColor = GetColor(aajcv[0].as<int>(), aajcv[1].as<int>(), aajcv[2].as<int>());
@@ -90,18 +91,6 @@ void ScenePlayer::LoadResources()
     const float bufferV = exty / bufferY;
     for (auto i = 2; i < 4; i++) groundVertices[i].v = bufferV;
     hGroundBuffer = MakeScreen(laneBufferX, bufferY, TRUE);
-    hBlank = MakeScreen(128, 128, FALSE);
-    BEGIN_DRAW_TRANSACTION(hBlank);
-    DrawBox(0, 0, 128, 128, GetColor(255, 255, 255), TRUE);
-    FINISH_DRAW_TRANSACTION;
-    // ƒXƒ‰ƒCƒh‚Ì3DŠÖ”•`‰æ‚Å64x192‚©‚ç64x256‚É‚µ‚È‚¢‚Æ‚¢‚¯‚È‚¢‚Ë
-    if (imageSlideStrut) {
-        imageExtendedSlideStrut = MakeScreen(64, 256, TRUE);
-        BEGIN_DRAW_TRANSACTION(imageExtendedSlideStrut);
-        SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-        DrawGraph(0, 0, imageSlideStrut->GetHandle(), TRUE);
-        FINISH_DRAW_TRANSACTION;
-    }
 
     fontCombo->AddRef();
     textCombo = STextSprite::Factory(fontCombo, "0000");
@@ -780,12 +769,19 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                         }
                     }
 
-                    DrawLineAA(
-                        lastSegmentRelativeX * laneBufferX, laneBufferY * lastSegmentRelativeY,
-                        currentSegmentRelativeX * laneBufferX, laneBufferY * currentSegmentRelativeY,
+                    DrawTriangleAA(
+						lastSegmentRelativeX * laneBufferX - slideLineThickness, laneBufferY * lastSegmentRelativeY,
+						lastSegmentRelativeX * laneBufferX + slideLineThickness, laneBufferY * lastSegmentRelativeY,
+                        currentSegmentRelativeX * laneBufferX - slideLineThickness, laneBufferY * currentSegmentRelativeY,
                         slideLineColor, 16
                     );
-                }
+					DrawTriangleAA(
+						lastSegmentRelativeX * laneBufferX + slideLineThickness, laneBufferY * lastSegmentRelativeY,
+						currentSegmentRelativeX * laneBufferX - slideLineThickness, laneBufferY * currentSegmentRelativeY,
+						currentSegmentRelativeX * laneBufferX + slideLineThickness, laneBufferY * currentSegmentRelativeY,
+						slideLineColor, 16
+					);
+				}
                 lastSegmentPosition = segmentPosition;
                 lastSegmentRelativeX = currentSegmentRelativeX;
                 lastSegmentRelativeY = currentSegmentRelativeY;

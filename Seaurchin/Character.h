@@ -71,6 +71,8 @@ public:
     CharacterParameter* GetCharacterParameter(int relative);
     std::shared_ptr<CharacterParameter> GetCharacterParameterSafe(int relative);
     CharacterImageSet* CreateCharacterImages(int relative);
+
+	int32_t GetSize() const;
 };
 
 void RegisterCharacterTypes(asIScriptEngine *engine);

@@ -95,6 +95,7 @@ public:
     int GetImageHandleAt(const double time) { return images[int(time / secondsPerFrame) % frameCount]; }
 
     static SAnimatedImage *CreateLoadedImageFromFile(const std::string &file, int xc, int yc, int w, int h, int count, double time);
+	static SAnimatedImage *CreateLoadedImageFromMemory(void *buffer, size_t size, int xc, int yc, int w, int h, int count, double time);
 };
 
 //ƒtƒHƒ“ƒg
