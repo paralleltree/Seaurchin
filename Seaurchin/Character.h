@@ -72,7 +72,7 @@ public:
     std::shared_ptr<CharacterParameter> GetCharacterParameterSafe(int relative);
     CharacterImageSet* CreateCharacterImages(int relative);
 
-	int32_t GetSize() const;
+    int32_t GetSize() const;
 };
 
 void RegisterCharacterTypes(asIScriptEngine *engine);

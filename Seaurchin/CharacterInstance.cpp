@@ -5,7 +5,7 @@
 
 using namespace std;
 
-CharacterInstance::CharacterInstance(const shared_ptr<CharacterParameter>& character, const shared_ptr<SkillParameter>& skill, const shared_ptr<AngelScript>& script, const shared_ptr<Result>& result):
+CharacterInstance::CharacterInstance(const shared_ptr<CharacterParameter>& character, const shared_ptr<SkillParameter>& skill, const shared_ptr<AngelScript>& script, const shared_ptr<Result>& result) :
     imageSet(nullptr)
 {
     characterSource = character;
@@ -42,7 +42,7 @@ void CharacterInstance::LoadAbilities()
     auto log = spdlog::get("main");
     const auto abroot = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_ABILITY_DIR;
 
-	const auto &Abilities = skillSource->GetDetail(skillSource->CurrentLevel).Abilities;
+    const auto &Abilities = skillSource->GetDetail(skillSource->CurrentLevel).Abilities;
     for (const auto &def : Abilities) {
         vector<string> params;
         auto scrpath = abroot / ConvertUTF8ToUnicode(def.Name + ".as");

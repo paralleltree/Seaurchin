@@ -3,8 +3,8 @@
 class SoundManager;
 
 enum class SoundType {
-	Sample,
-	Stream,
+    Sample,
+    Stream,
 };
 
 class Sound {
@@ -78,8 +78,8 @@ class SoundManager final {
 private:
 
 public:
-	SoundManager();
-	~SoundManager();
+    SoundManager();
+    ~SoundManager();
 
     static SoundMixerStream *CreateMixerStream();
     static void PlayGlobal(Sound *sound);

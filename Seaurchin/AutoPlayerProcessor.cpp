@@ -242,7 +242,7 @@ void AutoPlayerProcessor::ProcessScore(const shared_ptr<SusDrawableNoteData>& no
         IncrementCombo(
             AbilityNoteType::AwesomeExTap,
             note->Type[size_t(SusNoteType::Down)] ? "AwesomeExTapDown" : "AwesomeExTapUp"
-            );
+        );
         note->OnTheFlyData.set(size_t(NoteAttribute::Finished));
     } else if (note->Type.test(size_t(SusNoteType::Flick))) {
         player->EnqueueJudgeSound(JudgeSoundType::Flick);

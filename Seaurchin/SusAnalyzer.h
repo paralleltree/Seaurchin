@@ -4,20 +4,20 @@
 #define SU_NOTE_SHORT_MASK 0b00000000000001111110
 
 enum class SusNoteType : uint16_t {
-	Undefined = 0,
+    Undefined = 0,
 
     // ショート
     Tap,            // Tap
     ExTap,          // ExTap
-	Flick,          // Flick
-	Air,            // Air
+    Flick,          // Flick
+    Air,            // Air
     HellTap,        // AIR: Hell Tap
     AwesomeExTap,   // STAR PLUS: やべーExTap (https://twitter.com/chunithm/status/967959264055648256)
 
     // ロング
     Hold = 7,       // Hold
     Slide,          // Slide
-	AirAction,      // AirAction
+    AirAction,      // AirAction
 
     // 位置(ロング用)
     Start = 10,     // 開始
@@ -84,7 +84,7 @@ private:
 public:
     SusHispeedTimeline(std::function<double(uint32_t, uint32_t)> func);
     void AddKeysByString(const std::string &def, const std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)>&
-                         resolver);
+        resolver);
     void AddKeyByData(uint32_t meas, uint32_t tick, double hs);
     void AddKeyByData(uint32_t meas, uint32_t tick, bool vis);
     void Finialize();
@@ -159,7 +159,7 @@ struct SusRawNoteData {
     };
     uint8_t Extra;
     std::shared_ptr<SusNoteExtraAttribute> ExtraAttribute;
-    
+
     bool operator==(const SusRawNoteData& b) const
     {
         if (Type != b.Type) return false;
@@ -220,7 +220,7 @@ private:
     std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> notes;
     std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> bpmChanges;
     std::unordered_map<uint32_t, double> bpmDefinitions;
-	std::unordered_map<uint32_t, float> beatsDefinitions;
+    std::unordered_map<uint32_t, float> beatsDefinitions;
     std::unordered_map<uint32_t, std::shared_ptr<SusHispeedTimeline>> hispeedDefinitions;
     std::shared_ptr<SusHispeedTimeline> hispeedToApply, hispeedToMeasure;
     std::unordered_map<uint32_t, std::shared_ptr<SusNoteExtraAttribute>> extraAttributes;

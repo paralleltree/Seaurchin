@@ -92,7 +92,7 @@ private:
     uint16_t variantIndex;
     MusicSelectionState state;
 
-	std::shared_ptr<CategoryInfo> GetCategoryAt(int32_t relative) const;
+    std::shared_ptr<CategoryInfo> GetCategoryAt(int32_t relative) const;
     std::shared_ptr<MusicMetaInfo> GetMusicAt(int32_t relative) const;
     std::shared_ptr<MusicScoreInfo> GetScoreVariantAt(int32_t relative) const;
 
@@ -122,9 +122,9 @@ public:
     MusicSelectionState PreviousVariant();
     MusicSelectionState GetState() const;
 
-	int32_t GetCategorySize() const;
-	int32_t GetMusicSize(int32_t relativeIndex) const;
-	int32_t GetVariantSize(int32_t relativeIndex) const;
+    int32_t GetCategorySize() const;
+    int32_t GetMusicSize(int32_t relativeIndex) const;
+    int32_t GetVariantSize(int32_t relativeIndex) const;
 
     static void RegisterScriptInterface(asIScriptEngine *engine);
 };

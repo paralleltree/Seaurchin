@@ -7,7 +7,7 @@ using namespace std;
 
 void InterfacesRegisterSceneFunction(ExecutionManager *exm)
 {
-	auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
+    auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
 
     engine->RegisterGlobalFunction("void YieldTime(double)", asFUNCTION(YieldTime), asCALL_CDECL);
     engine->RegisterGlobalFunction("void YieldFrame(int64)", asFUNCTION(YieldFrames), asCALL_CDECL);
@@ -15,17 +15,17 @@ void InterfacesRegisterSceneFunction(ExecutionManager *exm)
 
 void InterfacesRegisterGlobalFunction(ExecutionManager *exm)
 {
-	auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
+    auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
 
     engine->RegisterGlobalFunction("void WriteLog(Severity, const string &in)", asFUNCTION(InterfacesWriteLog), asCALL_CDECL);
-	engine->RegisterGlobalFunction(SU_IF_FONT "@ LoadSystemFont(const string & in)", asFUNCTION(LoadSystemFont), asCALL_CDECL);
+    engine->RegisterGlobalFunction(SU_IF_FONT "@ LoadSystemFont(const string & in)", asFUNCTION(LoadSystemFont), asCALL_CDECL);
     engine->RegisterGlobalFunction(SU_IF_IMAGE "@ LoadSystemImage(const string &in)", asFUNCTION(LoadSystemImage), asCALL_CDECL);
     engine->RegisterGlobalFunction("void CreateImageFont(const string &in, const string &in, int)", asFUNCTION(CreateImageFont), asCALL_CDECL);
 }
 
 void InterfacesRegisterEnum(ExecutionManager *exm)
 {
-	auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
+    auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
 
     engine->RegisterEnum(SU_IF_KEY);
     engine->RegisterEnumValue(SU_IF_KEY, "INPUT_BACK", KEY_INPUT_BACK);

@@ -59,12 +59,10 @@ void ControlState::Update()
     // キーボード入力スライダー
     for (auto i = 0; i < 16; i++) sliderKeyboardPrevious[i] = sliderKeyboardCurrent[i];
     auto snum = 0;
-    for (const auto& targets : sliderKeyboardInputCombinations)
-    {
+    for (const auto& targets : sliderKeyboardInputCombinations) {
         auto bit = 0;
         uint32_t state = 0;
-        for (const auto &knum : targets)
-        {
+        for (const auto &knum : targets) {
             state |= (keyboardCurrent[knum] ? 1 : 0) << bit;
             ++bit;
         }
@@ -79,8 +77,7 @@ void ControlState::Update()
     airStringKeyboard[size_t(AirControlSource::AirDown)] = 0;
     airStringKeyboard[size_t(AirControlSource::AirHold)] = 0;
     airStringKeyboard[size_t(AirControlSource::AirAction)] = 0;
-    for(const auto &upkey : airStringKeyboardInputCombinations[size_t(AirControlSource::AirUp)])
-    {
+    for (const auto &upkey : airStringKeyboardInputCombinations[size_t(AirControlSource::AirUp)]) {
         airStringKeyboard[size_t(AirControlSource::AirUp)] |= keyboardTrigger[upkey];
     }
     for (const auto &downkey : airStringKeyboardInputCombinations[size_t(AirControlSource::AirDown)]) {

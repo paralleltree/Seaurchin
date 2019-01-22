@@ -467,11 +467,13 @@ void STextSprite::SetRich(const bool enabled)
     Refresh();
 }
 
-double STextSprite::GetWidth() {
+double STextSprite::GetWidth()
+{
     return get<0>(size);
 }
 
-double STextSprite::GetHeight() {
+double STextSprite::GetHeight()
+{
     return get<1>(size);
 }
 
@@ -881,7 +883,7 @@ void SAnimeSprite::Tick(const double delta)
 {
     time -= delta * speed;
     if (time > 0) return;
-    if(loopCount > 0 && ++count == loopCount) Dismiss();
+    if (loopCount > 0 && ++count == loopCount) Dismiss();
     time = images->GetCellTime() * images->GetFrameCount();
 }
 

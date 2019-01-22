@@ -55,7 +55,7 @@ struct ColorTint {
         };
         return result;
     }
-} ;
+};
 
 class Colors final {
 public:

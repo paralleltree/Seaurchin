@@ -601,12 +601,10 @@ string IntegerListSettingItem::GetItemString()
 }
 
 void IntegerListSettingItem::MoveNext()
-{
-}
+{}
 
 void IntegerListSettingItem::MovePrevious()
-{
-}
+{}
 
 void IntegerListSettingItem::SaveValue()
 {
@@ -662,12 +660,10 @@ string FloatListSettingItem::GetItemString()
 }
 
 void FloatListSettingItem::MoveNext()
-{
-}
+{}
 
 void FloatListSettingItem::MovePrevious()
-{
-}
+{}
 
 void FloatListSettingItem::SaveValue()
 {
@@ -723,12 +719,10 @@ string BooleanListSettingItem::GetItemString()
 }
 
 void BooleanListSettingItem::MoveNext()
-{
-}
+{}
 
 void BooleanListSettingItem::MovePrevious()
-{
-}
+{}
 
 void BooleanListSettingItem::SaveValue()
 {
@@ -787,12 +781,10 @@ string IntegerListVectorSettingItem::GetItemString()
 }
 
 void IntegerListVectorSettingItem::MoveNext()
-{
-}
+{}
 
 void IntegerListVectorSettingItem::MovePrevious()
-{
-}
+{}
 
 void IntegerListVectorSettingItem::SaveValue()
 {
@@ -869,12 +861,10 @@ string FloatListVectorSettingItem::GetItemString()
 }
 
 void FloatListVectorSettingItem::MoveNext()
-{
-}
+{}
 
 void FloatListVectorSettingItem::MovePrevious()
-{
-}
+{}
 
 void FloatListVectorSettingItem::SaveValue()
 {
@@ -951,12 +941,10 @@ string BooleanListVectorSettingItem::GetItemString()
 }
 
 void BooleanListVectorSettingItem::MoveNext()
-{
-}
+{}
 
 void BooleanListVectorSettingItem::MovePrevious()
-{
-}
+{}
 
 void BooleanListVectorSettingItem::SaveValue()
 {
