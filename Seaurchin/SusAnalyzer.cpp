@@ -203,13 +203,6 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
 {
     auto name = result[1].str();
     transform(name.cbegin(), name.cend(), name.begin(), toUpper);
-    if (ba::starts_with(name, "BPM")) {
-        // #BPMxx yyy.yy
-        const auto value = ConvertFloat(result[2].str());
-        bpmDefinitions[ConvertHexatridecimal(name.substr(3))] = value;
-        if (SharedMetaData.ShowBpm < 0) SharedMetaData.ShowBpm = value;
-        return;
-    }
     switch (Crc32Rec(0xffffffff, name.c_str())) {
         case "TITLE"_crc32:
             SharedMetaData.UTitle = convertRawString(result[2]);
