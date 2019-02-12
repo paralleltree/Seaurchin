@@ -86,8 +86,8 @@ void AutoPlayerProcessor::MovePosition(const double relative)
     player->EnqueueJudgeSound(JudgeSoundType::AirHoldingStop);
     player->RemoveSlideEffect();
 
-    // ‘—‚è: ”ò‚Î‚µ‚½•”•ª‚ðFinished‚É
-    // –ß‚µ: “ü‚Á‚Ä‚­‚é•”•ª‚ðUn-Finished‚É
+    // é€ã‚Š: é£›ã°ã—ãŸéƒ¨åˆ†ã‚’Finishedã«
+    // æˆ»ã—: å…¥ã£ã¦ãã‚‹éƒ¨åˆ†ã‚’Un-Finishedã«
     for (auto &note : data) {
         if (note->Type.test(size_t(SusNoteType::Hold))
             || note->Type.test(size_t(SusNoteType::Slide))

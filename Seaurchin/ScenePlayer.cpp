@@ -136,19 +136,19 @@ void ScenePlayer::LoadWorker()
     auto mm = manager->GetMusicsManager();
     auto scorefile = mm->GetSelectedScorePath();
 
-    // •ˆ–Ê‚Ì“Ç‚İ‚İ
+    // è­œé¢ã®èª­ã¿è¾¼ã¿
     analyzer->Reset();
     analyzer->LoadFromFile(scorefile.wstring());
     metronomeAvailable = !analyzer->SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::DisableMetronome)];
     analyzer->RenderScoreData(data, curveData);
-    // Šeíî•ñ‚Ìİ’è
+    // å„ç¨®æƒ…å ±ã®è¨­å®š
     segmentsPerSecond = analyzer->SharedMetaData.SegmentsPerSecond;
     usePrioritySort = analyzer->SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::EnableDrawPriority)];
     state = PlayingState::BgmNotLoaded;
     scoreDuration = analyzer->SharedMetaData.ScoreDuration;
     // Processor
     processor->Reset();
-    // ƒXƒ‰ƒCƒh•`‰æƒoƒbƒtƒ@
+    // ã‚¹ãƒ©ã‚¤ãƒ‰æç”»ãƒãƒƒãƒ•ã‚¡
     uint32_t maxElements = 0;
     for (const auto& note : data) {
         if (!note->Type[size_t(SusNoteType::Slide)]) continue;
@@ -163,7 +163,7 @@ void ScenePlayer::LoadWorker()
     slideIndices.reserve(maxElements * 6);
 
 
-    // “®‰æE‰¹º‚Ì“Ç‚İ‚İ
+    // å‹•ç”»ãƒ»éŸ³å£°ã®èª­ã¿è¾¼ã¿
     auto file = boost::filesystem::path(scorefile).parent_path() / ConvertUTF8ToUnicode(analyzer->SharedMetaData.UWaveFileName);
     bgmStream = SoundStream::CreateFromFile(file.wstring());
     state = PlayingState::ReadyToStart;
@@ -172,8 +172,8 @@ void ScenePlayer::LoadWorker()
         movieFileName = (boost::filesystem::path(scorefile).parent_path() / ConvertUTF8ToUnicode(analyzer->SharedMetaData.UMovieFileName)).wstring();
     }
 
-    // ‘OƒJƒEƒ“ƒg‚ÌŒvZ
-    // WaveOffset‚ª1¬ß•ª‚æ‚è’·‚¢‚Æ‚ß‚ñ‚Ç‚­‚³‚»‚¤‚È‚Ì‚Å·‚µˆø‚¢‚Ä‚­
+    // å‰ã‚«ã‚¦ãƒ³ãƒˆã®è¨ˆç®—
+    // WaveOffsetãŒ1å°ç¯€åˆ†ã‚ˆã‚Šé•·ã„ã¨ã‚ã‚“ã©ãã•ãã†ãªã®ã§å·®ã—å¼•ã„ã¦ã
     backingTime = -60.0 / analyzer->GetBpmAt(0, 0) * analyzer->GetBeatsAt(0);
     nextMetronomeTime = backingTime;
     while (backingTime > analyzer->SharedMetaData.WaveOffset) backingTime -= 60.0 / analyzer->GetBpmAt(0, 0) * analyzer->GetBeatsAt(0);
@@ -199,18 +199,18 @@ void ScenePlayer::CalculateNotes(double time, double duration, double preced)
     copy_if(data.begin(), data.end(), back_inserter(seenData), [&](shared_ptr<SusDrawableNoteData> n) {
         const auto types = n->Type.to_ulong();
         if (types & SU_NOTE_LONG_MASK) {
-            // ƒƒ“ƒO
+            // ãƒ­ãƒ³ã‚°
             if (time > n->StartTime + n->Duration) return false;
             auto st = n->GetStateAt(time);
-            // æ“ª‚ªŒ©‚¦‚Ä‚é‚È‚ç‚à‚¿‚ë‚ñŒ©‚¦‚é
+            // å…ˆé ­ãŒè¦‹ãˆã¦ã‚‹ãªã‚‰ã‚‚ã¡ã‚ã‚“è¦‹ãˆã‚‹
             if (n->ModifiedPosition >= -preced && n->ModifiedPosition <= duration) return get<0>(st);
-            // æ“ªŠÜ‚ß‚Ä‘S•”-preced‚æ‚èè‘O‚È‚çŒ©‚¦‚È‚¢
+            // å…ˆé ­å«ã‚ã¦å…¨éƒ¨-precedã‚ˆã‚Šæ‰‹å‰ãªã‚‰è¦‹ãˆãªã„
             if (all_of(n->ExtraData.begin(), n->ExtraData.end(), [preced](const shared_ptr<SusDrawableNoteData> en) {
                 if (isnan(en->ModifiedPosition)) return true;
                 if (en->ModifiedPosition < -preced) return true;
                 return false;
             }) && n->ModifiedPosition < -preced) return false;
-            //æ“ªŠÜ‚ß‚Ä‘S•”duration‚æ‚èŒã‚È‚çŒ©‚¦‚È‚¢
+            //å…ˆé ­å«ã‚ã¦å…¨éƒ¨durationã‚ˆã‚Šå¾Œãªã‚‰è¦‹ãˆãªã„
             if (all_of(n->ExtraData.begin(), n->ExtraData.end(), [duration](const shared_ptr<SusDrawableNoteData> en) {
                 if (isnan(en->ModifiedPosition)) return true;
                 if (en->ModifiedPosition > duration) return true;
@@ -219,7 +219,7 @@ void ScenePlayer::CalculateNotes(double time, double duration, double preced)
             return true;
         }
         if (types & SU_NOTE_SHORT_MASK) {
-            // ƒVƒ‡[ƒg
+            // ã‚·ãƒ§ãƒ¼ãƒˆ
             if (time > n->StartTime) return false;
             auto st = n->GetStateAt(time);
             if (n->ModifiedPosition < -preced || n->ModifiedPosition > duration) return false;
@@ -301,7 +301,7 @@ void ScenePlayer::ProcessSound()
             } else if (currentTime >= 0) {
                 state = PlayingState::OnlyScoreOngoing;
             } else if (nextMetronomeTime < 0 && currentTime >= nextMetronomeTime) {
-                // TODO: NextMetronome‚É‚àLatency“K—pH
+                // TODO: NextMetronomeã«ã‚‚Latencyé©ç”¨ï¼Ÿ
                 if (metronomeAvailable) SoundManager::PlayGlobal(soundMetronome->GetSample());
                 nextMetronomeTime += 60 / analyzer->GetBpmAt(0, 0);
             }
@@ -413,7 +413,7 @@ void ScenePlayer::ProcessSoundQueue()
     }
 }
 
-// ƒXƒNƒŠƒvƒg‘¤‚©‚çŒÄ‚×‚é‚â‚Â‚ç
+// ã‚¹ã‚¯ãƒªãƒ—ãƒˆå´ã‹ã‚‰å‘¼ã¹ã‚‹ã‚„ã¤ã‚‰
 
 void ScenePlayer::Load()
 {
@@ -432,16 +432,16 @@ void ScenePlayer::GetReady()
 {
     if (!isLoadCompleted || isReady) return;
 
-    // ‚±‚ê‚ÍUIƒXƒŒƒbƒh‚Å‚â‚é•K—v‚ ‚è ƒ}ƒW‚©‚æ
+    // ã“ã‚Œã¯UIã‚¹ãƒ¬ãƒƒãƒ‰ã§ã‚„ã‚‹å¿…è¦ã‚ã‚Š ãƒã‚¸ã‹ã‚ˆ
     if (!movieFileName.empty()) {
         movieBackground = LoadGraph(reinterpret_cast<const char*>(movieFileName.c_str()));
         const auto offset = analyzer->SharedMetaData.MovieOffset;
         if (offset < 0) {
-            // æ‚ÉƒV[ƒN‚µ‚Ä0.0‚©‚çÄ¶ŠJn
+            // å…ˆã«ã‚·ãƒ¼ã‚¯ã—ã¦0.0ã‹ã‚‰å†ç”Ÿé–‹å§‹
             SeekMovieToGraph(movieBackground, int(-offset * 1000));
             movieCurrentPosition = 0;
         } else {
-            // offset‘Ò‚Á‚ÄÄ¶ŠJn
+            // offsetå¾…ã£ã¦å†ç”Ÿé–‹å§‹
             movieCurrentPosition = -offset;
         }
     }
@@ -481,7 +481,7 @@ CharacterInstance* ScenePlayer::GetCharacterInstance() const
 
 void ScenePlayer::MovePositionBySecond(const double sec)
 {
-    //ÀÛ‚É“®‚¢‚½ŠÔ‚ÅŒvZ‚¹‚æ
+    //å®Ÿéš›ã«å‹•ã„ãŸæ™‚é–“ã§è¨ˆç®—ã›ã‚ˆ
     if (state < PlayingState::BothOngoing && state != PlayingState::Paused) return;
     if (hasEnded) return;
     const auto gap = analyzer->SharedMetaData.WaveOffset - soundBufferingLatency;
@@ -533,17 +533,17 @@ void ScenePlayer::Resume()
 
 void ScenePlayer::Reload()
 {
-    // TODO: ”ñ“¯Šúƒ[ƒfƒBƒ“ƒO‚É‘Î‰‚·‚é•û–@‚ğl‚¦‚é
-    // TODO: Ä¶’†ƒŠƒ[ƒh‚É‘Î‰
+    // TODO: éåŒæœŸãƒ­ãƒ¼ãƒ‡ã‚£ãƒ³ã‚°ã«å¯¾å¿œã™ã‚‹æ–¹æ³•ã‚’è€ƒãˆã‚‹
+    // TODO: å†ç”Ÿä¸­ãƒªãƒ­ãƒ¼ãƒ‰ã«å¯¾å¿œ
     if (state != PlayingState::Paused) return;
-    // LoadWorker()‚Å”j‰ó‚³‚ê‚éî•ñ‚ğ‚Æ‚Á‚Ä‚¨‚­
+    // LoadWorker()ã§ç ´å£Šã•ã‚Œã‚‹æƒ…å ±ã‚’ã¨ã£ã¦ãŠã
     const auto prevCurrentTime = currentTime;
     const auto prevOffset = analyzer->SharedMetaData.WaveOffset;
     const auto prevBgmPos = bgmStream->GetPlayingPosition();
     SoundManager::StopGlobal(bgmStream);
     delete bgmStream;
 
-    SetMainWindowText(reinterpret_cast<const char*>(L"ƒŠƒ[ƒh’†c"));
+    SetMainWindowText(reinterpret_cast<const char*>(L"ãƒªãƒ­ãƒ¼ãƒ‰ä¸­â€¦"));
     LoadWorker();
     SetMainWindowText(reinterpret_cast<const char*>(ConvertUTF8ToUnicode(SU_APP_NAME " " SU_APP_VERSION).c_str()));
 

@@ -25,7 +25,7 @@ void SkillManager::LoadAllSkills()
         if (!ends_with(filename, ".toml")) continue;
         LoadFromToml(fdata.path());
     }
-    spdlog::get("main")->info(u8"ƒXƒLƒ‹‘”: {0:d}", skills.size());
+    spdlog::get("main")->info(u8"ã‚¹ã‚­ãƒ«ç·æ•°: {0:d}", skills.size());
     selected = skills.size() ? 0 : -1;
 }
 
@@ -69,7 +69,7 @@ void SkillManager::LoadFromToml(boost::filesystem::path file)
     auto pr = toml::parse(ifs);
     ifs.close();
     if (!pr.valid()) {
-        log->error(u8"ƒXƒLƒ‹ {0} ‚Í•s³‚Èƒtƒ@ƒCƒ‹‚Å‚·", ConvertUnicodeToUTF8(file.wstring()));
+        log->error(u8"ã‚¹ã‚­ãƒ« {0} ã¯ä¸æ­£ãªãƒ•ã‚¡ã‚¤ãƒ«ã§ã™", ConvertUnicodeToUTF8(file.wstring()));
         log->error(pr.errorReason);
         return;
     }
@@ -116,7 +116,7 @@ void SkillManager::LoadFromToml(boost::filesystem::path file)
             if (result->MaxLevel < level) result->MaxLevel = level;
         }
     } catch (exception) {
-        log->error(u8"ƒXƒLƒ‹ {0} ‚Ì“Ç‚İ‚İ‚É¸”s‚µ‚Ü‚µ‚½", ConvertUnicodeToUTF8(file.wstring()));
+        log->error(u8"ã‚¹ã‚­ãƒ« {0} ã®èª­ã¿è¾¼ã¿ã«å¤±æ•—ã—ã¾ã—ãŸ", ConvertUnicodeToUTF8(file.wstring()));
         return;
     }
     skills.push_back(result);

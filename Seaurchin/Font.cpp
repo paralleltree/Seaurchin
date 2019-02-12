@@ -51,7 +51,7 @@ void Sif2Creator::InitializeFace(const string& fontpath)
     // error = FT_New_Face(freetype, up.string().c_str(), 0, &face);
     error = FT_New_Memory_Face(freetype, faceMemory, faceMemorySize, 0, &face);
     if (error) {
-        log->error(u8"ƒtƒHƒ“ƒg {0} ‚ğ“Ç‚İ‚ß‚Ü‚¹‚ñ‚Å‚µ‚½", fontpath);
+        log->error(u8"ãƒ•ã‚©ãƒ³ãƒˆ {0} ã‚’èª­ã¿è¾¼ã‚ã¾ã›ã‚“ã§ã—ãŸ", fontpath);
         delete[] faceMemory;
         faceMemory = nullptr;
         return;
@@ -173,7 +173,7 @@ bool Sif2Creator::RenderGlyph(uint32_t cp)
     ginfo.GlyphY = 0;
 
     if (ginfo.GlyphWidth * ginfo.GlyphWidth == 0) {
-        //‚Ü‚³‚©' '‚ªƒOƒŠƒt‚ğ‚½‚È‚¢‚Æ‚Ív‚í‚È‚©‚Á‚½(‚¢‚â“–‚½‚è‘O‚Å‚µ‚å)
+        //ã¾ã•ã‹' 'ãŒã‚°ãƒªãƒ•ã‚’æŒãŸãªã„ã¨ã¯æ€ã‚ãªã‹ã£ãŸ(ã„ã‚„å½“ãŸã‚Šå‰ã§ã—ã‚‡)
         sif2Stream.write(reinterpret_cast<const char*>(&ginfo), sizeof(Sif2Glyph));
         writtenGlyphs++;
         return true;
@@ -220,7 +220,7 @@ void Sif2Creator::CreateSif2(const Sif2CreatorOption &option, const boost::files
 
     InitializeFace(option.FontPath);
     RequestFace(option.Size);
-    log->info(u8"ƒtƒHƒ“ƒg\"{0:s}\"“à‚É{1:d}ƒOƒŠƒt‚ ‚è‚Ü‚·", face->family_name, face->num_glyphs);
+    log->info(u8"ãƒ•ã‚©ãƒ³ãƒˆ\"{0:s}\"å†…ã«{1:d}ã‚°ãƒªãƒ•ã‚ã‚Šã¾ã™", face->family_name, face->num_glyphs);
 
     currentSize = option.Size;
     OpenSif2(outputPath);

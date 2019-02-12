@@ -122,7 +122,7 @@ void ScriptScene::TickCoroutine(const double delta)
                 }
                 break;
             default:
-                spdlog::get("main")->critical(u8"ƒRƒ‹[ƒ`ƒ“‚ÌWaitƒXƒe[ƒ^ƒX‚ª•s³‚Å‚·");
+                spdlog::get("main")->critical(u8"ã‚³ãƒ«ãƒ¼ãƒãƒ³ã®Waitã‚¹ãƒ†ãƒ¼ã‚¿ã‚¹ãŒä¸æ­£ã§ã™");
                 abort();
         }
         const auto result = c->Context->Execute();
@@ -139,7 +139,7 @@ void ScriptScene::TickCoroutine(const double delta)
             const char *at;
             const auto row = c->Context->GetExceptionLineNumber(&col, &at);
             ostringstream str;
-            log->error(u8"{0} ({1:d}s{2:d}—ñ): {3}", at, row, col, c->Context->GetExceptionString());
+            log->error(u8"{0} ({1:d}è¡Œ{2:d}åˆ—): {3}", at, row, col, c->Context->GetExceptionString());
             abort();
         } else {
             ++i;
@@ -269,7 +269,7 @@ int ScriptSceneGetIndex()
     return psc->GetIndex();
 }
 
-// Scene—pƒƒ\ƒbƒh
+// Sceneç”¨ãƒ¡ã‚½ãƒƒãƒ‰
 
 bool ScriptSceneIsKeyHeld(const int keynum)
 {

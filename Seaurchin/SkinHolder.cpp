@@ -44,7 +44,7 @@ void SkinHolder::Initialize()
         break;
     }
     if (!ep) {
-        log->critical(u8"ƒXƒLƒ“‚ÉEntryPoint‚ª‚ ‚è‚Ü‚¹‚ñ");
+        log->critical(u8"ã‚¹ã‚­ãƒ³ã«EntryPointãŒã‚ã‚Šã¾ã›ã‚“");
         mod->Discard();
         return;
     }
@@ -68,7 +68,7 @@ void SkinHolder::Terminate()
 asIScriptObject* SkinHolder::ExecuteSkinScript(const wstring &file)
 {
     auto log = spdlog::get("main");
-    //‚¨’ƒ‚ð‘÷‚¹
+    //ãŠèŒ¶ã‚’æ¿ã›
     const auto modulename = ConvertUnicodeToUTF8(file);
     auto mod = scriptInterface->GetExistModule(modulename);
     if (!mod) {
@@ -86,12 +86,12 @@ asIScriptObject* SkinHolder::ExecuteSkinScript(const wstring &file)
         mod = scriptInterface->GetLastModule();
     }
 
-    //ƒGƒ“ƒgƒŠƒ|ƒCƒ“ƒgŒŸõ
+    //ã‚¨ãƒ³ãƒˆãƒªãƒã‚¤ãƒ³ãƒˆæ¤œç´¢
     const int cnt = mod->GetObjectTypeCount();
     asITypeInfo *type = nullptr;
     for (auto i = 0; i < cnt; i++) {
-        // ScriptBuilder‚ÌMetaData‚Ìƒe[ƒuƒ‹‚Í–ˆ‰ñ”jŠü‚³‚ê‚é‚Ì‚Å
-        // asITypeInfo‚Éî•ñ‚ð•ÛŽ
+        // ScriptBuilderã®MetaDataã®ãƒ†ãƒ¼ãƒ–ãƒ«ã¯æ¯Žå›žç ´æ£„ã•ã‚Œã‚‹ã®ã§
+        // asITypeInfoã«æƒ…å ±ã‚’ä¿æŒ
         const auto cti = mod->GetObjectTypeByIndex(i);
         if (!(scriptInterface->CheckMetaData(cti, "EntryPoint") || cti->GetUserData(SU_UDTYPE_ENTRYPOINT))) continue;
         type = cti;
@@ -100,7 +100,7 @@ asIScriptObject* SkinHolder::ExecuteSkinScript(const wstring &file)
         break;
     }
     if (!type) {
-        log->critical(u8"ƒXƒLƒ“‚ÉEntryPoint‚ª‚ ‚è‚Ü‚¹‚ñ");
+        log->critical(u8"ã‚¹ã‚­ãƒ³ã«EntryPointãŒã‚ã‚Šã¾ã›ã‚“");
         return nullptr;
     }
 
@@ -211,7 +211,7 @@ void RegisterScriptSkin(ExecutionManager *exm)
     engine->RegisterGlobalFunction(SU_IF_SKIN "@ GetSkin()", asFUNCTION(GetSkinObject), asCALL_CDECL);
 }
 
-//ƒXƒLƒ“ê—p
+//ã‚¹ã‚­ãƒ³å°‚ç”¨
 SkinHolder* GetSkinObject()
 {
     auto ctx = asGetActiveContext();

@@ -42,7 +42,7 @@ public:
     void Reload(bool recreateCache) const;
 };
 
-//music‚És‚Í‚Â‚©‚È‚¢‚Á‚ÄH’m‚é‚©ƒoƒJ
+//musicã«sã¯ã¤ã‹ãªã„ã£ã¦ï¼ŸçŸ¥ã‚‹ã‹ãƒã‚«
 class MusicSelectionCursor;
 enum class MusicSelectionState {
     OutOfFunction = 0,

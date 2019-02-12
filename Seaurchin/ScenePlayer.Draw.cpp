@@ -84,7 +84,7 @@ void ScenePlayer::LoadResources()
     slideLineColor = GetColor(scv[0].as<int>(), scv[1].as<int>(), scv[2].as<int>());
     airActionJudgeColor = GetColor(aajcv[0].as<int>(), aajcv[1].as<int>(), aajcv[2].as<int>());
 
-    // 2^x§ŒÀ‚ª‚ ‚é‚Ì‚Å‚±‚±‚ÅŒvZ
+    // 2^xåˆ¶é™ãŒã‚ã‚‹ã®ã§ã“ã“ã§è¨ˆç®—
     const int exty = laneBufferX * SU_LANE_ASPECT_EXT;
     auto bufferY = 2.0;
     while (exty > bufferY) bufferY *= 2;
@@ -123,7 +123,7 @@ void ScenePlayer::Draw()
     if (movieBackground) DrawExtendGraph(0, 0, SU_RES_WIDTH, SU_RES_HEIGHT, movieBackground, FALSE);
 
     BEGIN_DRAW_TRANSACTION(hGroundBuffer);
-    // ”wŒi•”
+    // èƒŒæ™¯éƒ¨
     DrawLaneBackground();
     DrawLaneDivisionLines();
     for (auto& note : seenData) {
@@ -131,14 +131,14 @@ void ScenePlayer::Draw()
         if (type[size_t(SusNoteType::MeasureLine)]) DrawMeasureLine(note);
     }
 
-    // ‰º‘¤‚Ìƒƒ“ƒOƒm[ƒc—Ş
+    // ä¸‹å´ã®ãƒ­ãƒ³ã‚°ãƒãƒ¼ãƒ„é¡
     for (auto& note : seenData) {
         auto &type = note->Type;
         if (type[size_t(SusNoteType::Hold)]) DrawHoldNotes(note);
         if (type[size_t(SusNoteType::Slide)]) DrawSlideNotes(note);
     }
 
-    // ã‘¤‚ÌƒVƒ‡[ƒgƒm[ƒc—Ş
+    // ä¸Šå´ã®ã‚·ãƒ§ãƒ¼ãƒˆãƒãƒ¼ãƒ„é¡
     for (auto& note : seenData) {
         auto &type = note->Type;
         if (type[size_t(SusNoteType::Tap)]) DrawShortNotes(note);
@@ -154,7 +154,7 @@ void ScenePlayer::Draw()
     DrawPolygonIndexed3D(groundVertices, 4, rectVertexIndices, 2, hGroundBuffer, TRUE);
     for (auto& i : sprites) i->Draw();
 
-    //3DŒnƒm[ƒc
+    //3Dç³»ãƒãƒ¼ãƒ„
     Prepare3DDrawCall();
     DrawAerialNotes(seenData);
 
@@ -252,7 +252,7 @@ void ScenePlayer::RefreshComboText() const
     textCombo->AddMove(app.str());
 }
 
-// position ‚Í 0 ~ 16
+// position ã¯ 0 ~ 16
 void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target, const JudgeType type)
 {
     Prepare3DDrawCall();
@@ -402,7 +402,7 @@ void ScenePlayer::DrawShortNotes(const shared_ptr<SusDrawableNoteData>& note) co
         handleToDraw = imageAir;
     }
 
-    //64*3 x 64 ‚ğ•`‰æ‚·‚é‚©‚ç1/2‚Å‚â‚é•K—v‚ª‚ ‚é
+    //64*3 x 64 ã‚’æç”»ã™ã‚‹ã‹ã‚‰1/2ã§ã‚„ã‚‹å¿…è¦ãŒã‚ã‚‹
 
     if (handleToDraw) DrawTap(rlane, length, relpos, handleToDraw->GetHandle());
 }
@@ -470,20 +470,20 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
     const auto endpoint = note->ExtraData.back();
     const auto relpos = 1.0 - note->ModifiedPosition / seenDuration;
     const auto reltailpos = 1.0 - endpoint->ModifiedPosition / seenDuration;
-    const auto begin = !!note->OnTheFlyData[size_t(NoteAttribute::Finished)]; // Hold‘S‘Ì‚Ì”»’è‚ªs‚í‚ên‚ß‚Ä‚¢‚ê‚Îtrue‚É‚µ‚½‚¢A‚±‚ê‚¾‚Æ”»’è‚Æ‚µ‚Ä‚Í­‚µ’x‚¢‚©‚à‚µ‚ê‚È‚¢‚ª‚Ü‚ŸÀ—pã–â‘è‚È‚¢‚Ì‚Å‚Í
-    const auto activated = !!note->OnTheFlyData[size_t(NoteAttribute::Activated)]; // Hold‚ª‰Ÿ‚³‚ê‚Ä‚¢‚ê‚Îtrue‚É‚µ‚½‚¢A‚½‚Ô‚ñˆê’v‚µ‚½˜_—‚É‚È‚é‚Í‚¸
-    const auto completed = !!note->OnTheFlyData[size_t(NoteAttribute::Completed)]; // Hold‘S‘Ì‚Ì”»’è‚ª‚·‚×‚ÄI‚í‚Á‚Ä‚¢‚ê‚Îtrue‚É‚µ‚½‚¢
+    const auto begin = !!note->OnTheFlyData[size_t(NoteAttribute::Finished)]; // Holdå…¨ä½“ã®åˆ¤å®šãŒè¡Œã‚ã‚Œå§‹ã‚ã¦ã„ã‚Œã°trueã«ã—ãŸã„ã€ã“ã‚Œã ã¨åˆ¤å®šã¨ã—ã¦ã¯å°‘ã—é…ã„ã‹ã‚‚ã—ã‚Œãªã„ãŒã¾ãå®Ÿç”¨ä¸Šå•é¡Œãªã„ã®ã§ã¯
+    const auto activated = !!note->OnTheFlyData[size_t(NoteAttribute::Activated)]; // HoldãŒæŠ¼ã•ã‚Œã¦ã„ã‚Œã°trueã«ã—ãŸã„ã€ãŸã¶ã‚“ä¸€è‡´ã—ãŸè«–ç†ã«ãªã‚‹ã¯ãš
+    const auto completed = !!note->OnTheFlyData[size_t(NoteAttribute::Completed)]; // Holdå…¨ä½“ã®åˆ¤å®šãŒã™ã¹ã¦çµ‚ã‚ã£ã¦ã„ã‚Œã°trueã«ã—ãŸã„
 
-    // ’†g‚¾‚¯æ‚É•`‰æ
-    // •ªŠ„‚µ‚È‚¢‚Å•`‰æ‚·‚×‚«‹éŒ`—ÌˆæŒvZ‚µ‚Ä‚µ‚Ü‚¦‚Î‚¢‚¢‚ñ‚¶‚á‚È‚¢‚Å‚µ‚å‚¤‚©
+    // ä¸­èº«ã ã‘å…ˆã«æç”»
+    // åˆ†å‰²ã—ãªã„ã§æç”»ã™ã¹ãçŸ©å½¢é ˜åŸŸè¨ˆç®—ã—ã¦ã—ã¾ãˆã°ã„ã„ã‚“ã˜ã‚ƒãªã„ã§ã—ã‚‡ã†ã‹
     auto head = relpos;
     auto tail = reltailpos;
     if (!(head < 0 && tail < 0) && !(head >= cullingLimit && tail >= cullingLimit)) {
-        if (!begin) { // ”»’è‘O
+        if (!begin) { // åˆ¤å®šå‰
             SetDrawBlendMode(DX_BLENDMODE_ADD, 239);
-        } else if (activated) { // ”»’è’† : Hold
+        } else if (activated) { // åˆ¤å®šä¸­ : Holdæ™‚
             SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
-        } else { // ”»’è’† : ”ñHold
+        } else { // åˆ¤å®šä¸­ : éHoldæ™‚
             SetDrawBlendMode(DX_BLENDMODE_ADD, 175);
         }
 
@@ -511,13 +511,13 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
     }
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ƒm[ƒc‚ªAttackˆÈã‚Ì”»’è*/)) {
+    if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ãƒãƒ¼ãƒ„ãŒAttackä»¥ä¸Šã®åˆ¤å®š*/)) {
         DrawTap(slane, length, relpos, imageHold->GetHandle());
     }
 
     for (auto &ex : note->ExtraData) {
         if (ex->Type.test(size_t(SusNoteType::Injection))) continue;
-        if (ex->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ƒm[ƒc‚ªAttackˆÈã‚Ì”»’è*/) continue;
+        if (ex->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ãƒãƒ¼ãƒ„ãŒAttackä»¥ä¸Šã®åˆ¤å®š*/) continue;
 
         const auto relendpos = 1.0 - ex->ModifiedPosition / seenDuration;
         if (ex->Type.test(size_t(SusNoteType::Start))) {
@@ -531,43 +531,43 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
 void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 {
     auto lastStep = note;
-    auto offsetTimeInBlock = 0.0; /* ‚»‚ÌslideElement‚ÌA•s‰Â‹’†Œp“_‚Ì‚Â‚È‚ª‚è“™‚ğl—¶‚µ‚½‚Ìæ“ªˆÊ’uA“I‚È */
+    auto offsetTimeInBlock = 0.0; /* ãã®slideElementã®ã€ä¸å¯è¦–ä¸­ç¶™ç‚¹ã®ã¤ãªãŒã‚Šç­‰ã‚’è€ƒæ…®ã—ãŸæ™‚ã®å…ˆé ­ä½ç½®ã€çš„ãª */
     const auto strutBottom = 1.0;
-    const auto begin = !!note->OnTheFlyData[size_t(NoteAttribute::Finished)]; // Hold‘S‘Ì‚Ì”»’è‚ªs‚í‚ên‚ß‚Ä‚¢‚ê‚Îtrue‚É‚µ‚½‚¢A‚±‚ê‚¾‚Æ”»’è‚Æ‚µ‚Ä‚Í­‚µ’x‚¢‚©‚à‚µ‚ê‚È‚¢‚ª‚Ü‚ŸÀ—pã–â‘è‚È‚¢‚Ì‚Å‚Í
-    const auto activated = !!note->OnTheFlyData[size_t(NoteAttribute::Activated)]; // Hold‚ª‰Ÿ‚³‚ê‚Ä‚¢‚ê‚Îtrue‚É‚µ‚½‚¢A‚½‚Ô‚ñˆê’v‚µ‚½˜_—‚É‚È‚é‚Í‚¸
-    const auto completed = !!note->OnTheFlyData[size_t(NoteAttribute::Completed)]; // Hold‘S‘Ì‚Ì”»’è‚ª‚·‚×‚ÄI‚í‚Á‚Ä‚¢‚ê‚Îtrue‚É‚µ‚½‚¢
+    const auto begin = !!note->OnTheFlyData[size_t(NoteAttribute::Finished)]; // Holdå…¨ä½“ã®åˆ¤å®šãŒè¡Œã‚ã‚Œå§‹ã‚ã¦ã„ã‚Œã°trueã«ã—ãŸã„ã€ã“ã‚Œã ã¨åˆ¤å®šã¨ã—ã¦ã¯å°‘ã—é…ã„ã‹ã‚‚ã—ã‚Œãªã„ãŒã¾ãå®Ÿç”¨ä¸Šå•é¡Œãªã„ã®ã§ã¯
+    const auto activated = !!note->OnTheFlyData[size_t(NoteAttribute::Activated)]; // HoldãŒæŠ¼ã•ã‚Œã¦ã„ã‚Œã°trueã«ã—ãŸã„ã€ãŸã¶ã‚“ä¸€è‡´ã—ãŸè«–ç†ã«ãªã‚‹ã¯ãš
+    const auto completed = !!note->OnTheFlyData[size_t(NoteAttribute::Completed)]; // Holdå…¨ä½“ã®åˆ¤å®šãŒã™ã¹ã¦çµ‚ã‚ã£ã¦ã„ã‚Œã°trueã«ã—ãŸã„
     slideVertices.clear();
     slideIndices.clear();
 
-    /* Šî–{•ûj */
-    /* ]—ˆ : [n“_,’†Œp“_,•s‰Â‹’†Œp“_]‚©‚çŸ‚Ì[’†Œp“_,•s‰Â‹’†Œp“_,I“_]‚É‚©‚¯‚Ä(u,v)‚ÌŒvZ‚ğs‚Á‚Ä‚¢‚é */
-    /* ‰ü—Ç : [n“_,’†Œp“_]‚©‚çŸ‚Ì[’†Œp“_,I“_]‚É‚©‚¯‚ÄAh•s‰Â‹’†Œp“_‚ğ’´‚¦‚Äh(u,v)‚ÌŒvZ‚ğs‚¤ */
-    /*        •ªŠ„“_(?)‚Ì”z’u‚Í‚·‚Å‚É³‚µ‚­ŒvZ‚³‚ê‚Ä‚¢‚é‚Ì‚Åè‚ğ‰Á‚¦‚È‚¢ */
-    /*        ]—ˆ‚Ì(u,v)ŒvZ‚ğs‚Á‚Ä‚¢‚½—Ìˆæ‚ÅA 0 <= v <= 1 ‚Å‚ ‚Á‚½‚Æ‚±‚ë‚ğ a <= v <= b ‚É•ÏX‚µ */
-    /*        •s‰Â‹’†Œp“_‚ğ‚Ü‚½‚¢‚¾—Ìˆæ‘S‘Ì‚ÌŠÔ‚©‚ça,b‚ğ“K“–‚É’è‚ß‚é */
+    /* åŸºæœ¬æ–¹é‡ */
+    /* å¾“æ¥ : [å§‹ç‚¹,ä¸­ç¶™ç‚¹,ä¸å¯è¦–ä¸­ç¶™ç‚¹]ã‹ã‚‰æ¬¡ã®[ä¸­ç¶™ç‚¹,ä¸å¯è¦–ä¸­ç¶™ç‚¹,çµ‚ç‚¹]ã«ã‹ã‘ã¦(u,v)ã®è¨ˆç®—ã‚’è¡Œã£ã¦ã„ã‚‹ */
+    /* æ”¹è‰¯ : [å§‹ç‚¹,ä¸­ç¶™ç‚¹]ã‹ã‚‰æ¬¡ã®[ä¸­ç¶™ç‚¹,çµ‚ç‚¹]ã«ã‹ã‘ã¦ã€â€ä¸å¯è¦–ä¸­ç¶™ç‚¹ã‚’è¶…ãˆã¦â€(u,v)ã®è¨ˆç®—ã‚’è¡Œã† */
+    /*        åˆ†å‰²ç‚¹(?)ã®é…ç½®ã¯ã™ã§ã«æ­£ã—ãè¨ˆç®—ã•ã‚Œã¦ã„ã‚‹ã®ã§æ‰‹ã‚’åŠ ãˆãªã„ */
+    /*        å¾“æ¥ã®(u,v)è¨ˆç®—ã‚’è¡Œã£ã¦ã„ãŸé ˜åŸŸã§ã€ 0 <= v <= 1 ã§ã‚ã£ãŸã¨ã“ã‚ã‚’ a <= v <= b ã«å¤‰æ›´ã— */
+    /*        ä¸å¯è¦–ä¸­ç¶™ç‚¹ã‚’ã¾ãŸã„ã é ˜åŸŸå…¨ä½“ã®æ™‚é–“ã‹ã‚‰a,bã‚’é©å½“ã«å®šã‚ã‚‹ */
 
-    /* d—v */
-    /* ‚·‚×‚Ä‚Ì•Ï”A‰‰Z‚ÌˆÓ–¡‚ğ—‰ğ‚µ‚½‚í‚¯‚Å‚Í‚È‚¢‚Ì‚ÅA•Ï”qAƒnƒCƒXƒsİ’è“™‚Å€‚Ê‰Â”\«‚ª‘½•ª‚É‚ ‚é */
+    /* é‡è¦ */
+    /* ã™ã¹ã¦ã®å¤‰æ•°ã€æ¼”ç®—ã®æ„å‘³ã‚’ç†è§£ã—ãŸã‚ã‘ã§ã¯ãªã„ã®ã§ã€å¤‰æ‹å­ã€ãƒã‚¤ã‚¹ãƒ”è¨­å®šç­‰ã§æ­»ã¬å¯èƒ½æ€§ãŒå¤šåˆ†ã«ã‚ã‚‹ */
 
-    /* ŠeSlideElement‚É‘Î‰‚·‚é’Ç‰Áî•ñ‚ğŒvZ‚µ‚ÄŠi”[‚·‚é */
-    /* ‹N“_, I“_ ‚Ì2—v‘fƒxƒNƒ^[‚ÌƒxƒNƒ^[ */
-    /* ‹N“_ : ‚»‚ÌSlideElementˆÈ‘O‚ÉŒ»‚ê‚½n“_or’†Œp“_‚Ìæ“ª */
-    /* I“_ : ‚»‚ÌSlideElementˆÈ~‚ÉŒ»‚ê‚éI“_or’†Œp“_‚ÌI’[ */
+    /* å„SlideElementã«å¯¾å¿œã™ã‚‹è¿½åŠ æƒ…å ±ã‚’è¨ˆç®—ã—ã¦æ ¼ç´ã™ã‚‹ */
+    /* èµ·ç‚¹æ™‚åˆ», çµ‚ç‚¹æ™‚åˆ» ã®2è¦ç´ ãƒ™ã‚¯ã‚¿ãƒ¼ã®ãƒ™ã‚¯ã‚¿ãƒ¼ */
+    /* èµ·ç‚¹æ™‚åˆ» : ãã®SlideElementä»¥å‰ã«ç¾ã‚ŒãŸå§‹ç‚¹orä¸­ç¶™ç‚¹ã®å…ˆé ­æ™‚åˆ» */
+    /* çµ‚ç‚¹æ™‚åˆ» : ãã®SlideElementä»¥é™ã«ç¾ã‚Œã‚‹çµ‚ç‚¹orä¸­ç¶™ç‚¹ã®çµ‚ç«¯æ™‚åˆ» */
     std::vector<std::vector<double>> exData(note->ExtraData.size() + 1);
     {
         unsigned int i = 0;
         std::vector<double> tmp(2);
         auto lastStartTime = note->StartTime;
 
-        /* æ“ª—v‘f(note)‚ÍSusNoteType::Start‚É‚È‚é‚Í‚¸(–{“–‚©?) */
+        /* å…ˆé ­è¦ç´ (note)ã¯SusNoteType::Startã«ãªã‚‹ã¯ãš(æœ¬å½“ã‹?) */
         tmp[0] = note->StartTime;
         tmp[1] = 0;
         exData[i] = tmp;
         ++i;
 
-        /* ’¼‘O‚ÌSlideElement‚ÌŠJn‚ğ‹¤—L‚·‚é */
-        /* ’†Œp“_‚Ìê‡‚ÍŠJn‚ğ‹¤—L‚µ‚½hŒãh‚ÉA‹¤—L‚·‚éŠJn‚ğXV‚·‚é */
-        /* ’†Œp“_AI“_‚Ìê‡‚ÍI—¹‚ªŒˆ’è‚·‚é‚Ì‚Å•Û‘¶‚µ‚Ä‚¨‚­(‚»‚êˆÈŠO‚È‚çI’[‚Í‚Æ‚è‚ ‚¦‚¸0‚É‚µ‚Ä‚¨‚­) */
+        /* ç›´å‰ã®SlideElementã®é–‹å§‹æ™‚åˆ»ã‚’å…±æœ‰ã™ã‚‹ */
+        /* ä¸­ç¶™ç‚¹ã®å ´åˆã¯é–‹å§‹æ™‚åˆ»ã‚’å…±æœ‰ã—ãŸâ€å¾Œâ€ã«ã€å…±æœ‰ã™ã‚‹é–‹å§‹æ™‚åˆ»ã‚’æ›´æ–°ã™ã‚‹ */
+        /* ä¸­ç¶™ç‚¹ã€çµ‚ç‚¹ã®å ´åˆã¯çµ‚äº†æ™‚åˆ»ãŒæ±ºå®šã™ã‚‹ã®ã§ä¿å­˜ã—ã¦ãŠã(ãã‚Œä»¥å¤–ãªã‚‰çµ‚ç«¯æ™‚åˆ»ã¯ã¨ã‚Šã‚ãˆãš0ã«ã—ã¦ãŠã) */
         for (auto &slideElement : note->ExtraData) {
             tmp[0] = lastStartTime;
             tmp[1] = 0;
@@ -577,7 +577,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                 tmp[1] = slideElement->StartTime;
             }
             if (slideElement->Type.test(size_t(SusNoteType::End))) {
-                /* ‚±‚êSlideI’[‚ÌŒã‚Éƒf[ƒ^—ˆ‚È‚¢‘O’ñ‚É‚È‚Á‚Ä‚é‚¯‚Ç(‘åä•v‚©?) */
+                /* ã“ã‚ŒSlideçµ‚ç«¯ã®å¾Œã«ãƒ‡ãƒ¼ã‚¿æ¥ãªã„å‰æã«ãªã£ã¦ã‚‹ã‘ã©(å¤§ä¸ˆå¤«ã‹?) */
                 tmp[1] = slideElement->StartTime;
             }
 
@@ -586,22 +586,22 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
         }
 
         for (i = exData.size() - 1; i > 0; --i) {
-            /* ©•ª©g‚Ì’¼‘O‚Ì‰½‚©‚ªŠJn‚ğ‹¤—L‚µ‚Ä‚¢‚é */
+            /* è‡ªåˆ†è‡ªèº«ã®ç›´å‰ã®ä½•ã‹ãŒé–‹å§‹æ™‚åˆ»ã‚’å…±æœ‰ã—ã¦ã„ã‚‹ */
             if (exData[i - 1][0] == exData[i][0]) {
-                /* I—¹‚à‹¤—L‚µ‚½‚¢ */
+                /* çµ‚äº†æ™‚åˆ»ã‚‚å…±æœ‰ã—ãŸã„ */
                 exData[i - 1][1] = exData[i][1];
             } else {
-                /* I—¹‚ÍŠù‚ÉexData[i - 1][1]‚É“ü‚Á‚Ä‚¢‚é‚Í‚¸(–{“–‚©?) */
+                /* çµ‚äº†æ™‚åˆ»ã¯æ—¢ã«exData[i - 1][1]ã«å…¥ã£ã¦ã„ã‚‹ã¯ãš(æœ¬å½“ã‹?) */
             }
         }
     }
 
-    // x’Œ
+    // æ”¯æŸ±
     auto drawcount = 0;
     uint16_t base = 0;
     unsigned int i = 0;
     for (auto &slideElement : note->ExtraData) {
-        ++i; /* exData[0] ‚Ínote‚»‚Ì‚à‚Ì‚Ìî•ñ‚¾‚©‚ç‚±‚ÌƒCƒ“ƒNƒŠƒƒ“ƒg‚Í•K{ */
+        ++i; /* exData[0] ã¯noteãã®ã‚‚ã®ã®æƒ…å ±ã ã‹ã‚‰ã“ã®ã‚¤ãƒ³ã‚¯ãƒªãƒ¡ãƒ³ãƒˆã¯å¿…é ˆ */
         if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
         auto &segmentPositions = curveData[slideElement];
@@ -628,13 +628,13 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 
                 if (begin && activated) {
                     if (csRelY >= 1 && lsRelY >= 1) {
-                        // ƒZƒOƒƒ“ƒg‚Ì‘S‘Ì‚ª”»’èƒ‰ƒCƒ“‚ğ’´‚¦‚Ä‚¢‚é‚Æ‚«
-                        // •\¦‚Í‚µ‚½‚­‚È‚¢‚¯‚Ç“à•””’l‚Í•’Ê‚Éˆ—‚µ‚½‚Æˆê’v‚³‚¹‚½‚¢
-                        //    => •`‰ææÀ•W‚ğˆê’v‚³‚¹‚Ä‚¨’ƒ‚ğ‘÷‚·
+                        // ã‚»ã‚°ãƒ¡ãƒ³ãƒˆã®å…¨ä½“ãŒåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚’è¶…ãˆã¦ã„ã‚‹ã¨ã
+                        // è¡¨ç¤ºã¯ã—ãŸããªã„ã‘ã©å†…éƒ¨æ•°å€¤ã¯æ™®é€šã«å‡¦ç†ã—ãŸæ™‚ã¨ä¸€è‡´ã•ã›ãŸã„
+                        //    => æç”»å…ˆåº§æ¨™ã‚’ä¸€è‡´ã•ã›ã¦ãŠèŒ¶ã‚’æ¿ã™
                         lsRelY = csRelY;
                     } else if (csRelY >= 1) {
-                        // ƒZƒOƒƒ“ƒg‚Ìn“_‚ª”»’èƒ‰ƒCƒ“‚æ‚èè‘OAI“_‚ª”»’èƒ‰ƒCƒ“‚ğ’´‚¦‚Ä‚¢‚é‚Æ‚«
-                        // n“_‚Í‚»‚Ì‚Ü‚ÜAI“_‚Í”»’èƒ‰ƒCƒ“‚Éˆê’v‚³‚¹AŸ‚Ìn“_‚Í”»’èƒ‰ƒCƒ“‚©‚ç
+                        // ã‚»ã‚°ãƒ¡ãƒ³ãƒˆã®å§‹ç‚¹ãŒåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚ˆã‚Šæ‰‹å‰ã€çµ‚ç‚¹ãŒåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚’è¶…ãˆã¦ã„ã‚‹ã¨ã
+                        // å§‹ç‚¹ã¯ãã®ã¾ã¾ã€çµ‚ç‚¹ã¯åˆ¤å®šãƒ©ã‚¤ãƒ³ã«ä¸€è‡´ã•ã›ã€æ¬¡ã®å§‹ç‚¹ã¯åˆ¤å®šãƒ©ã‚¤ãƒ³ã‹ã‚‰
                         csRelY = 1;
 
                         const auto sep = (1.0 - csRelY) * seenDuration;
@@ -644,8 +644,8 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 
                         currentTimeDiff = ctib2 - currentTimeInBlock2;
                     } else if (lsRelY >= 1) {
-                        // ƒZƒOƒƒ“ƒg‚ÌI“_‚Í”»’èƒ‰ƒCƒ“‚æ‚èè‘OAn“_‚ª”»’èƒ‰ƒCƒ“‚ğ’´‚¦‚Ä‚¢‚é‚Æ‚«(ƒnƒCƒXƒsw’è‚ğs‚Á‚½ê‡‚É‹N‚±‚è‚¤‚é‚Í‚¸)
-                        // ‚Ç‚¤‚µ‚½‚¢‚ñ‚¾‚ë‚¤
+                        // ã‚»ã‚°ãƒ¡ãƒ³ãƒˆã®çµ‚ç‚¹ã¯åˆ¤å®šãƒ©ã‚¤ãƒ³ã‚ˆã‚Šæ‰‹å‰ã€å§‹ç‚¹ãŒåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚’è¶…ãˆã¦ã„ã‚‹ã¨ã(ãƒã‚¤ã‚¹ãƒ”æŒ‡å®šã‚’è¡Œã£ãŸå ´åˆã«èµ·ã“ã‚Šã†ã‚‹ã¯ãš)
+                        // ã©ã†ã—ãŸã„ã‚“ã ã‚ã†
                         const auto ratio = (1.0 - csRelY) / (lsRelY - csRelY);
                         lastTimeInBlock2 = currentTimeInBlock2 + (lastTimeInBlock2 - currentTimeInBlock2) * ratio;
                         lsRelY = 1;
@@ -705,24 +705,24 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
         lastStep = slideElement;
     }
 
-    if (!begin) { // ”»’è‘O
+    if (!begin) { // åˆ¤å®šå‰
         SetDrawBlendMode(DX_BLENDMODE_ADD, 239);
-    } else if (activated) { // ”»’è’† : Slide
+    } else if (activated) { // åˆ¤å®šä¸­ : Slideæ™‚
         SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
-    } else { // ”»’è’† : ”ñSlide
+    } else { // åˆ¤å®šä¸­ : éSlideæ™‚
         SetDrawBlendMode(DX_BLENDMODE_ADD, 175);
     }
 
     SetUseBackCulling(FALSE);
     DrawPolygonIndexed2D(slideVertices.data(), slideVertices.size(), slideIndices.data(), drawcount, imageSlideStrut->GetHandle(), TRUE);
 
-    // ’†Sü
+    // ä¸­å¿ƒç·š
     if (showSlideLine) {
-        if (!begin) { // ”»’è‘O
+        if (!begin) { // åˆ¤å®šå‰
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, 239);
-        } else if (activated) { // ”»’è’† : Hold
+        } else if (activated) { // åˆ¤å®šä¸­ : Holdæ™‚
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-        } else { // ”»’è’† : ”ñHold
+        } else { // åˆ¤å®šä¸­ : éHoldæ™‚
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, 175);
         }
 
@@ -745,20 +745,20 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                     && (currentSegmentRelativeY < cullingLimit || lastSegmentRelativeY < cullingLimit)) {
                     if (begin && activated) {
                         if (currentSegmentRelativeY >= 1 && lastSegmentRelativeY >= 1) {
-                            // ƒZƒOƒƒ“ƒg‚Ì‘S‘Ì‚ª”»’èƒ‰ƒCƒ“‚ğ’´‚¦‚Ä‚¢‚é‚Æ‚«
-                            // •\¦‚Í‚µ‚½‚­‚È‚¢‚¯‚Ç“à•””’l‚Í•’Ê‚Éˆ—‚µ‚½‚Æˆê’v‚³‚¹‚½‚¢
-                            //    => •`‰ææÀ•W‚ğˆê’v‚³‚¹‚Ä‚¨’ƒ‚ğ‘÷‚·
+                            // ã‚»ã‚°ãƒ¡ãƒ³ãƒˆã®å…¨ä½“ãŒåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚’è¶…ãˆã¦ã„ã‚‹ã¨ã
+                            // è¡¨ç¤ºã¯ã—ãŸããªã„ã‘ã©å†…éƒ¨æ•°å€¤ã¯æ™®é€šã«å‡¦ç†ã—ãŸæ™‚ã¨ä¸€è‡´ã•ã›ãŸã„
+                            //    => æç”»å…ˆåº§æ¨™ã‚’ä¸€è‡´ã•ã›ã¦ãŠèŒ¶ã‚’æ¿ã™
                             lastSegmentRelativeX = currentSegmentRelativeX;
                             lastSegmentRelativeY = currentSegmentRelativeY;
                         } else if (currentSegmentRelativeY >= 1) {
-                            // ƒZƒOƒƒ“ƒg‚Ìn“_‚ª”»’èƒ‰ƒCƒ“‚æ‚èè‘OAI“_‚ª”»’èƒ‰ƒCƒ“‚ğ’´‚¦‚Ä‚¢‚é‚Æ‚«
-                            // n“_‚Í‚»‚Ì‚Ü‚ÜAI“_‚Í”»’èƒ‰ƒCƒ“‚Éˆê’v‚³‚¹AŸ‚Ìn“_‚Í”»’èƒ‰ƒCƒ“‚©‚ç
+                            // ã‚»ã‚°ãƒ¡ãƒ³ãƒˆã®å§‹ç‚¹ãŒåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚ˆã‚Šæ‰‹å‰ã€çµ‚ç‚¹ãŒåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚’è¶…ãˆã¦ã„ã‚‹ã¨ã
+                            // å§‹ç‚¹ã¯ãã®ã¾ã¾ã€çµ‚ç‚¹ã¯åˆ¤å®šãƒ©ã‚¤ãƒ³ã«ä¸€è‡´ã•ã›ã€æ¬¡ã®å§‹ç‚¹ã¯åˆ¤å®šãƒ©ã‚¤ãƒ³ã‹ã‚‰
                             currentSegmentRelativeX = lastSegmentRelativeX - (lastSegmentRelativeX - currentSegmentRelativeX) / (lastSegmentRelativeY - currentSegmentRelativeY) * (lastSegmentRelativeY - 1.0);
                             currentSegmentRelativeY = 1;
 
                         } else if (lastSegmentRelativeY >= 1) {
-                            // ƒZƒOƒƒ“ƒg‚ÌI“_‚Í”»’èƒ‰ƒCƒ“‚æ‚èè‘OAn“_‚ª”»’èƒ‰ƒCƒ“‚ğ’´‚¦‚Ä‚¢‚é‚Æ‚«(ƒnƒCƒXƒsw’è‚ğs‚Á‚½ê‡‚É‹N‚±‚è‚¤‚é‚Í‚¸)
-                            // ‚Ç‚¤‚µ‚½‚¢‚ñ‚¾‚ë‚¤
+                            // ã‚»ã‚°ãƒ¡ãƒ³ãƒˆã®çµ‚ç‚¹ã¯åˆ¤å®šãƒ©ã‚¤ãƒ³ã‚ˆã‚Šæ‰‹å‰ã€å§‹ç‚¹ãŒåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚’è¶…ãˆã¦ã„ã‚‹ã¨ã(ãƒã‚¤ã‚¹ãƒ”æŒ‡å®šã‚’è¡Œã£ãŸå ´åˆã«èµ·ã“ã‚Šã†ã‚‹ã¯ãš)
+                            // ã©ã†ã—ãŸã„ã‚“ã ã‚ã†
                             lastSegmentRelativeX = currentSegmentRelativeX - (currentSegmentRelativeX - lastSegmentRelativeX) / (currentSegmentRelativeY - lastSegmentRelativeY) * (currentSegmentRelativeY - 1.0);
                             lastSegmentRelativeY = 1;
                         }
@@ -787,14 +787,14 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 
     // Tap
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ƒm[ƒc‚ªAttackˆÈã‚Ì”»’è*/)) {
+    if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ãƒãƒ¼ãƒ„ãŒAttackä»¥ä¸Šã®åˆ¤å®š*/)) {
         DrawTap(note->StartLane, note->Length, 1.0 - note->ModifiedPosition / seenDuration, imageSlide->GetHandle());
     }
     for (auto &slideElement : note->ExtraData) {
         if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Invisible))) continue;
-        if (slideElement->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ƒm[ƒc‚ªAttackˆÈã‚Ì”»’è*/) continue;
+        if (slideElement->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ãƒãƒ¼ãƒ„ãŒAttackä»¥ä¸Šã®åˆ¤å®š*/) continue;
 
         const auto currentStepRelativeY = 1.0 - slideElement->ModifiedPosition / seenDuration;
         if (currentStepRelativeY >= 0 && currentStepRelativeY < cullingLimit) {
@@ -890,35 +890,35 @@ void ScenePlayer::DrawAirActionStepBox(const AirDrawQuery &query) const
         { VGet(right, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.5f, 0.0f, 0.0f },
         };
         uint16_t indices[] = {
-            // –{“–‚Íã2‚Â‚¢‚ç‚È‚¢‚¯‚ÇindexŒvZ‚ª–Ê“|‚È‚Ì‚Å•ú’u
-            //‰º‚Ì‚â‚Â
+            // æœ¬å½“ã¯ä¸Š2ã¤ã„ã‚‰ãªã„ã‘ã©indexè¨ˆç®—ãŒé¢å€’ãªã®ã§æ”¾ç½®
+            //ä¸‹ã®ã‚„ã¤
             0, 1, 11,
             0, 11, 10,
-            //–{‘Ì
-            //ã
+            //æœ¬ä½“
+            //ä¸Š
             3, 7, 17,
             3, 17, 13,
-            //¶
+            //å·¦
             6, 7, 3,
             6, 3, 2,
-            //‰E
+            //å³
             12, 13, 17,
             12, 17, 16,
-            //è‘O
+            //æ‰‹å‰
             20, 3, 13,
             20, 13, 21,
 
-            //‚Ö‚Î‚è‚Â‚¢‚Ä‚é‚Ì
-            //è‘O
+            //ã¸ã°ã‚Šã¤ã„ã¦ã‚‹ã®
+            //æ‰‹å‰
             4, 5, 15,
             4, 15, 14,
-            //Œã‚ë
+            //å¾Œã‚
             8, 9, 19,
             8, 19, 18,
-            //¶
+            //å·¦
             8, 9, 5,
             8, 5, 4,
-            //‰E
+            //å³
             14, 15, 19,
             14, 19, 18,
         };

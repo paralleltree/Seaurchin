@@ -27,7 +27,7 @@ void CharacterManager::LoadAllCharacters()
         if (!ends_with(filename, ".toml")) continue;
         LoadFromToml(fdata.path());
     }
-    log->info(u8"ƒLƒƒƒ‰ƒNƒ^[‘”: {0:d}", characters.size());
+    log->info(u8"ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ç·æ•°: {0:d}", characters.size());
     selected = 0;
 }
 
@@ -80,7 +80,7 @@ void CharacterManager::LoadFromToml(const boost::filesystem::path& file)
     auto pr = toml::parse(ifs);
     ifs.close();
     if (!pr.valid()) {
-        log->error(u8"ƒLƒƒƒ‰ƒNƒ^[ {0} ‚Í•s³‚Èƒtƒ@ƒCƒ‹‚Å‚·", ConvertUnicodeToUTF8(file.wstring()));
+        log->error(u8"ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ {0} ã¯ä¸æ­£ãªãƒ•ã‚¡ã‚¤ãƒ«ã§ã™", ConvertUnicodeToUTF8(file.wstring()));
         log->error(pr.errorReason);
         return;
     }
@@ -125,7 +125,7 @@ void CharacterManager::LoadFromToml(const boost::filesystem::path& file)
             result->Metric.FaceRange[3] = 128;
         }
     } catch (exception ex) {
-        log->error(u8"ƒLƒƒƒ‰ƒNƒ^[ {0} ‚Ì“Ç‚İ‚İ‚É¸”s‚µ‚Ü‚µ‚½", ConvertUnicodeToUTF8(file.wstring()));
+        log->error(u8"ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ {0} ã®èª­ã¿è¾¼ã¿ã«å¤±æ•—ã—ã¾ã—ãŸ", ConvertUnicodeToUTF8(file.wstring()));
         return;
     }
     characters.push_back(result);

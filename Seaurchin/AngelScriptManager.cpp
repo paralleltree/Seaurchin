@@ -74,13 +74,13 @@ void AngelScript::ScriptMessageCallback(const asSMessageInfo * message) const
     auto log = spdlog::get("main");
     switch (message->type) {
         case asMSGTYPE_INFORMATION:
-            log->info(u8"{0} ({1:d}s{2:d}—ñ): {3}", message->section, message->row, message->col, message->message);
+            log->info(u8"{0} ({1:d}è¡Œ{2:d}åˆ—): {3}", message->section, message->row, message->col, message->message);
             break;
         case asMSGTYPE_WARNING:
-            log->warn(u8"{0} ({1:d}s{2:d}—ñ): {3}", message->section, message->row, message->col, message->message);
+            log->warn(u8"{0} ({1:d}è¡Œ{2:d}åˆ—): {3}", message->section, message->row, message->col, message->message);
             break;
         case asMSGTYPE_ERROR:
-            log->error(u8"{0} ({1:d}s{2:d}—ñ): {3}", message->section, message->row, message->col, message->message);
+            log->error(u8"{0} ({1:d}è¡Œ{2:d}åˆ—): {3}", message->section, message->row, message->col, message->message);
             break;
     }
 }

@@ -4,7 +4,7 @@
 
 using namespace std;
 using namespace crc32_constexpr;
-// ˆê”Ê
+// ä¸€èˆ¬
 
 void RegisterScriptSprite(ExecutionManager *exm)
 {
@@ -138,7 +138,7 @@ void SSprite::DrawBy(const Transform2D &tf, const ColorTint &ct)
 
 SSprite * SSprite::Clone()
 {
-    //ƒRƒsƒRƒ“‚Å—Ç‚­‚È‚¢‚©‚±‚ê
+    //ã‚³ãƒ”ã‚³ãƒ³ã§è‰¯ããªã„ã‹ã“ã‚Œ
     auto clone = new SSprite();
     clone->AddRef();
     clone->CopyParameterFrom(this);
@@ -319,7 +319,7 @@ void SShape::Draw(const Transform2D &parent, const ColorTint &color)
 
 SShape * SShape::Clone()
 {
-    //‚â‚Á‚Ï‚èƒRƒsƒRƒ“‚Å—Ç‚­‚È‚¢‚©‚±‚ê
+    //ã‚„ã£ã±ã‚Šã‚³ãƒ”ã‚³ãƒ³ã§è‰¯ããªã„ã‹ã“ã‚Œ
     auto clone = new SShape();
     clone->CopyParameterFrom(this);
     clone->Width = Width;
@@ -514,7 +514,7 @@ void STextSprite::Draw(const Transform2D & parent, const ColorTint & color)
 
 STextSprite * STextSprite::Clone()
 {
-    //‚â‚Á‚Ï‚èƒRƒsƒRƒ“‚Å—Ç‚­‚È‚¢‚©‚±‚ê
+    //ã‚„ã£ã±ã‚Šã‚³ãƒ”ã‚³ãƒ³ã§è‰¯ããªã„ã‹ã“ã‚Œ
     auto clone = new STextSprite();
     clone->CopyParameterFrom(this);
     clone->AddRef();
@@ -564,7 +564,7 @@ void STextSprite::RegisterType(asIScriptEngine *engine)
 
 STextInput::STextInput()
 {
-    //TODO: ƒfƒtƒHƒ‹ƒg’l‚Ìˆø”‰»
+    //TODO: ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ã®å¼•æ•°åŒ–
     inputHandle = MakeKeyInput(1024, TRUE, FALSE, FALSE, FALSE, FALSE);
 }
 

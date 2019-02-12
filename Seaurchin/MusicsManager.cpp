@@ -66,7 +66,7 @@ void MusicsManager::CreateMusicCache()
             if (!is_directory(mdir)) continue;
             for (const auto& file : make_iterator_range(directory_iterator(mdir), {})) {
                 if (is_directory(file)) continue;
-                if (file.path().extension() != ".sus") continue;     //‚±‚ê‘å•¶š‚Ç‚¤‚·‚ñ‚Ì
+                if (file.path().extension() != ".sus") continue;     //ã“ã‚Œå¤§æ–‡å­—ã©ã†ã™ã‚“ã®
                 analyzer->Reset();
                 analyzer->LoadFromFile(file.path().wstring(), true);
                 auto music = find_if(category->Musics.begin(), category->Musics.end(), [&](const std::shared_ptr<MusicMetaInfo> info) {
@@ -246,7 +246,7 @@ MusicSelectionState MusicSelectionCursor::Enter()
             variantIndex = 0;
             return state;
         case MusicSelectionState::Music:
-            //‘I‹ÈI—¹
+            //é¸æ›²çµ‚äº†
             manager->manager->SetData<int>("Selected:Category", categoryIndex);
             manager->manager->SetData<int>("Selected:Music", musicIndex);
             manager->manager->SetData<int>("Selected:Variant", variantIndex);

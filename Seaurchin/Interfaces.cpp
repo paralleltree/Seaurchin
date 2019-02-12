@@ -147,7 +147,7 @@ void InterfacesRegisterEnum(ExecutionManager *exm)
     engine->RegisterEnumValue(SU_IF_SEVERITY, "Critical", int(ScriptLogSeverity::Critical));
 }
 
-// ‚»‚Ì‘¼“K“–‚ÈŠÖ”
+// ãã®ä»–é©å½“ãªé–¢æ•°
 
 void InterfacesExitApplication()
 {
