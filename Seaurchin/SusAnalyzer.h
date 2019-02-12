@@ -6,37 +6,37 @@
 enum class SusNoteType : uint16_t {
     Undefined = 0,
 
-    // ƒVƒ‡[ƒg
+    // ã‚·ãƒ§ãƒ¼ãƒˆ
     Tap,            // Tap
     ExTap,          // ExTap
     Flick,          // Flick
     Air,            // Air
     HellTap,        // AIR: Hell Tap
-    AwesomeExTap,   // STAR PLUS: ‚â‚×[ExTap (https://twitter.com/chunithm/status/967959264055648256)
+    AwesomeExTap,   // STAR PLUS: ã‚„ã¹ãƒ¼ExTap (https://twitter.com/chunithm/status/967959264055648256)
 
-    // ƒƒ“ƒO
+    // ãƒ­ãƒ³ã‚°
     Hold = 7,       // Hold
     Slide,          // Slide
     AirAction,      // AirAction
 
-    // ˆÊ’u(ƒƒ“ƒO—p)
-    Start = 10,     // ŠJn
-    Control,        // •Ï‹È
-    Step,           // ’†Œp
-    End,            // I—¹
+    // ä½ç½®(ãƒ­ãƒ³ã‚°ç”¨)
+    Start = 10,     // é–‹å§‹
+    Control,        // å¤‰æ›²
+    Step,           // ä¸­ç¶™
+    End,            // çµ‚äº†
 
-    // •ûŒü(Air—pA‘g‚İ‡‚í‚¹‰Â)
-    Up = 14,        // ã
-    Down,           // ‰º
-    Left,           // ¶
-    Right,          // ‰E
+    // æ–¹å‘(Airç”¨ã€çµ„ã¿åˆã‚ã›å¯)
+    Up = 14,        // ä¸Š
+    Down,           // ä¸‹
+    Left,           // å·¦
+    Right,          // å³
 
-    // ‚»‚Ì‘¼
-    Injection = 18, // (ƒƒ“ƒO)ƒRƒ“ƒ{‘}“ü
-    Invisible,      // •s‰Â‹
-    MeasureLine,    // ¬ßü
-    Grounded,       // Air‚Ì‘«‚ªŒÂ•Ê‚É•`‰æ‚³‚ê‚é
-    StartPosition,  // ƒŒ[ƒ“‰œ‚Å‚ÌŠJnˆÊ’u(ƒIƒ“ƒQƒL—p)
+    // ãã®ä»–
+    Injection = 18, // (ãƒ­ãƒ³ã‚°)ã‚³ãƒ³ãƒœæŒ¿å…¥
+    Invisible,      // ä¸å¯è¦–
+    MeasureLine,    // å°ç¯€ç·š
+    Grounded,       // Airã®è¶³ãŒå€‹åˆ¥ã«æç”»ã•ã‚Œã‚‹
+    StartPosition,  // ãƒ¬ãƒ¼ãƒ³å¥¥ã§ã®é–‹å§‹ä½ç½®(ã‚ªãƒ³ã‚²ã‚­ç”¨)
 };
 
 struct SusRelativeNoteTime {
@@ -184,15 +184,15 @@ struct SusDrawableNoteData {
     uint8_t Length = 0;
     float CenterAtZero = 0;
 
-    //À•`‰æˆÊ’u
+    //å®Ÿæç”»ä½ç½®
     double ModifiedPosition = 0;
     double StartTimeEx = 0;
     double DurationEx = 0;
-    //•`‰æ"n‚ß‚é"
+    //æç”»"å§‹ã‚ã‚‹"æ™‚åˆ»
     double StartTime = 0;
-    //•`‰æ‚ª"‘±‚­"
+    //æç”»ãŒ"ç¶šã"æ™‚åˆ»
     double Duration = 0;
-    //ƒXƒ‰ƒCƒhEAA—p§Œäƒf[ƒ^
+    //ã‚¹ãƒ©ã‚¤ãƒ‰ãƒ»AAç”¨åˆ¶å¾¡ãƒ‡ãƒ¼ã‚¿
     std::vector<std::shared_ptr<SusDrawableNoteData>> ExtraData;
 
     std::tuple<bool, double> GetStateAt(double time);
@@ -202,7 +202,7 @@ struct SusDrawableNoteData {
 using DrawableNotesList = std::vector<std::shared_ptr<SusDrawableNoteData>>;
 using NoteCurvesList = std::unordered_map<std::shared_ptr<SusDrawableNoteData>, std::vector<std::tuple<double, double>>>;
 
-// BMS”h¶ƒtƒH[ƒ}ƒbƒg‚±‚ÆSUS(SeaUrchinScore)‚Ì‰ğÍ
+// BMSæ´¾ç”Ÿãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã“ã¨SUS(SeaUrchinScore)ã®è§£æ
 class SusAnalyzer final {
 private:
     static boost::xpressive::sregex regexSusCommand;
