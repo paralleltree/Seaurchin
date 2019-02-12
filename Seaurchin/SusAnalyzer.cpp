@@ -888,6 +888,9 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                         || info.NotePosition.Length != ginfo.NotePosition.Length)
                         continue;
 
+                    // 自分自身と異なるハイスピ指定がなされているノーツは処理対象からはじく
+                    if (info.Timeline != ginfo.Timeline) continue;
+
                     // ショートノーツならば、Air系でないならば設置する必要なし、Air系なら処理対象からはじく
                     const auto tbits = ginfo.Type.to_ulong();
                     if (tbits & SU_NOTE_SHORT_MASK) {
