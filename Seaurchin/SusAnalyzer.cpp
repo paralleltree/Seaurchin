@@ -228,12 +228,18 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
             SharedMetaData.UDesigner = convertRawString(result[2]);
             break;
         case "PLAYLEVEL"_crc32: {
+            if (SharedMetaData.DifficultyType == 4) {
+                MakeMessage(line, u8"難易度指定がWORLD'S END時は譜面レベル指定は無効です。");
+                break;
+            }
+
             string lstr = result[2];
             const auto pluspos = lstr.find('+');
             if (pluspos != string::npos) {
                 SharedMetaData.UExtraDifficulty = u8"+";
                 SharedMetaData.Level = ConvertInteger(lstr.substr(0, pluspos));
             } else {
+                SharedMetaData.UExtraDifficulty = u8"";
                 SharedMetaData.Level = ConvertInteger(lstr);
             }
             break;
@@ -241,16 +247,32 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
         case "DIFFICULTY"_crc32: {
             if (xp::regex_match(result[2], allNumeric)) {
                 //通常記法
-                SharedMetaData.DifficultyType = ConvertInteger(result[2]);
+                auto difficultyType = ConvertInteger(result[2]);
+                if (difficultyType < 0 || 3 < difficultyType) {
+                    MakeMessage(line, u8"不明な難易度指定です。");
+                    break;
+                }
+
+                // 複数回PLAYLEVEL、DIFFICULTY指定しないでくれって話ではあるけど
+                // WE指定した後に再度通常の難易度指定したならLevel、UExtraDifficultyはパラメータとして互換性ないので初期化
+                // 通常の難易度指定した後に再度通常の難易度指定したならパラメータを引き継ぐ
+                if (SharedMetaData.DifficultyType == 4) {
+                    SharedMetaData.Level = 0;
+                    SharedMetaData.UExtraDifficulty = u8"";
+                }
+                SharedMetaData.DifficultyType = difficultyType;
             } else {
                 //WE記法
                 auto dd = convertRawString(result[2]);
                 vector<string> params;
                 ba::split(params, dd, ba::is_any_of(":"));
-                if (params.size() < 2) return;
+                if (params.size() < 2) {
+                    MakeMessage(line, u8"難易度指定書式が不正です。");
+                    return;
+                }
                 SharedMetaData.DifficultyType = 4;
-                SharedMetaData.Level = ConvertInteger(params[0]);
-                SharedMetaData.UExtraDifficulty = params[1];
+                SharedMetaData.Level = ConvertInteger(params[0]); // 星の数として扱う
+                SharedMetaData.UExtraDifficulty = params[1]; // 難易度文字として扱う
             }
             break;
         }
