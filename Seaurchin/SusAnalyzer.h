@@ -45,11 +45,11 @@ struct SusRelativeNoteTime {
 
     bool operator<(const SusRelativeNoteTime& b) const
     {
-        return Measure < b.Measure || Tick < b.Tick;
+        return Measure < b.Measure || (Measure == b.Measure && Tick < b.Tick);
     }
     bool operator>(const SusRelativeNoteTime& b) const
     {
-        return Measure > b.Measure || Tick > b.Tick;
+        return Measure > b.Measure || (Measure == b.Measure && Tick > b.Tick);
     }
     bool operator==(const SusRelativeNoteTime& b) const
     {
@@ -83,8 +83,7 @@ private:
 
 public:
     SusHispeedTimeline(std::function<double(uint32_t, uint32_t)> func);
-    void AddKeysByString(const std::string &def, const std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)>&
-        resolver);
+    void AddKeysByString(const std::string &def, const std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)>& resolver);
     void AddKeyByData(uint32_t meas, uint32_t tick, double hs);
     void AddKeyByData(uint32_t meas, uint32_t tick, bool vis);
     void Finialize();
@@ -151,13 +150,13 @@ struct SusRawNoteData {
     std::bitset<32> Type;
     std::shared_ptr<SusHispeedTimeline> Timeline;
     union {
-        uint16_t DefinitionNumber;
+        uint16_t DefinitionNumber = 0;
         struct {
             uint8_t StartLane;
             uint8_t Length;
         } NotePosition;
     };
-    uint8_t Extra;
+    uint8_t Extra = 0;
     std::shared_ptr<SusNoteExtraAttribute> ExtraAttribute;
 
     bool operator==(const SusRawNoteData& b) const
@@ -176,13 +175,17 @@ struct SusRawNoteData {
 };
 
 struct SusDrawableNoteData {
+    // SusRawNoteData からそのまま引き継ぐ奴ら
     std::bitset<32> Type;
-    std::bitset<8> OnTheFlyData;
     std::shared_ptr<SusHispeedTimeline> Timeline;
     std::shared_ptr<SusNoteExtraAttribute> ExtraAttribute;
-    uint8_t StartLane = 0;
-    uint8_t Length = 0;
-    float CenterAtZero = 0;
+
+    // それ以外
+    std::bitset<8> OnTheFlyData;
+
+    uint8_t StartLane = 0;  // ノーツ左端位置
+    uint8_t Length = 0;     // ノーツ幅
+    float CenterAtZero = 0; // ノーツ中心
 
     //実描画位置
     double ModifiedPosition = 0;
@@ -208,30 +211,38 @@ private:
     static boost::xpressive::sregex regexSusCommand;
     static boost::xpressive::sregex regexSusData;
 
-    double defaultBeats = 4.0;
-    double defaultBpm = 120.0;
-    uint32_t defaultHispeedNumber = std::numeric_limits<uint32_t>::max();
-    uint32_t defaultExtraAttributeNumber = std::numeric_limits<uint32_t>::max();
-    uint32_t ticksPerBeat;
-    uint32_t measureCountOffset;
-    double longInjectionPerBeat;
-    std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)> timelineResolver = nullptr;
+    const double defaultBeats = 4.0;
+    const double defaultBpm = 120.0;
+    const uint32_t defaultHispeedNumber = std::numeric_limits<uint32_t>::max();
+    const uint32_t defaultExtraAttributeNumber = std::numeric_limits<uint32_t>::max();
+
     std::vector<std::function<void(std::string, std::string)>> errorCallbacks;
-    std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> notes;
-    std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> bpmChanges;
+    const std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)> timelineResolver;
+
+    uint32_t ticksPerBeat;          // 1拍あたりの分割数(分解能)
+    uint32_t measureCountOffset;    // SUSデータから読み込んだ小節数に加算するオフセット
+    double longInjectionPerBeat;    // 1拍あたりのロングノーツのカウント(コンボ)数
+
+    std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> notes; // BPM指定、小節線、ノーツデータ全部入ってる
+
     std::unordered_map<uint32_t, double> bpmDefinitions;
     std::unordered_map<uint32_t, float> beatsDefinitions;
     std::unordered_map<uint32_t, std::shared_ptr<SusHispeedTimeline>> hispeedDefinitions;
-    std::shared_ptr<SusHispeedTimeline> hispeedToApply, hispeedToMeasure;
     std::unordered_map<uint32_t, std::shared_ptr<SusNoteExtraAttribute>> extraAttributes;
+
+    std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> bpmChanges; // notesからBPM指定だけコピーしてきて使う
+
+    std::shared_ptr<SusHispeedTimeline> hispeedToApply, hispeedToMeasure;
     std::shared_ptr<SusNoteExtraAttribute> extraAttributeToApply;
 
     void ProcessCommand(const boost::xpressive::smatch &result, bool onlyMeta, uint32_t line);
     void ProcessRequest(const std::string &cmd, uint32_t line);
     void ProcessData(const boost::xpressive::smatch &result, uint32_t line);
-    void MakeMessage(uint32_t line, const std::string &message);
-    void MakeMessage(uint32_t meas, uint32_t tick, uint32_t lane, const std::string &message);
+    void MakeMessage(const std::string &message) const;
+    void MakeMessage(uint32_t line, const std::string &message) const;
+    void MakeMessage(uint32_t meas, uint32_t tick, uint32_t lane, const std::string &message) const;
     void CalculateCurves(const std::shared_ptr<SusDrawableNoteData>& note, NoteCurvesList &curveData) const;
+    uint32_t GetMeasureCount(uint32_t relativeMeasureCount) const;
 
 public:
     SusMetaData SharedMetaData;
