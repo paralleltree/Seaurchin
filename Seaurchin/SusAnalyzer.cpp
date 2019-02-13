@@ -95,6 +95,7 @@ void SusAnalyzer::Reset()
     ticksPerBeat = 192;
     longInjectionPerBeat = 2;
     measureCountOffset = 0;
+    longNoteChannelOffset = 0;
 
     notes.clear();
 
@@ -362,6 +363,18 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
             break;
         }
 
+        case "CHANNELBS"_crc32: {
+            if (onlyMeta) break;
+
+            const auto bsc = ConvertInteger(result[2]);
+            if (bsc < 0) {
+                MakeMessage(line, u8"チャンネルオフセットの値が不正です。");
+                break;
+            }
+            longNoteChannelOffset = bsc;
+            break;
+        }
+
         default:
             MakeMessage(line, u8"SUSコマンドが無効です。");
             break;
@@ -590,7 +603,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
             SusRawNoteData noteData;
             noteData.NotePosition.StartLane = ConvertHexatridecimal(lane.substr(1, 1));
             noteData.NotePosition.Length = ConvertHexatridecimal(note.substr(1, 1));
-            noteData.Extra = ConvertHexatridecimal(lane.substr(2, 1));
+            noteData.Extra = GetLongNoteChannel(ConvertHexatridecimal(lane.substr(2, 1)));
             noteData.Timeline = hispeedToApply;
             noteData.ExtraAttribute = extraAttributeToApply;
 
@@ -1015,6 +1028,10 @@ void SusAnalyzer::CalculateCurves(const shared_ptr<SusDrawableNoteData>& note, N
 
 uint32_t SusAnalyzer::GetMeasureCount(uint32_t relativeMeasureCount) const {
     return measureCountOffset + relativeMeasureCount;
+}
+
+uint32_t SusAnalyzer::GetLongNoteChannel(uint32_t relativeLongNoteChannel) const {
+    return longNoteChannelOffset + relativeLongNoteChannel;
 }
 
 // SusHispeedTimeline ------------------------------------------------------------------

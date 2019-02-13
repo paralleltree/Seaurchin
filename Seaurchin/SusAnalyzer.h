@@ -156,7 +156,7 @@ struct SusRawNoteData {
             uint8_t Length;
         } NotePosition;
     };
-    uint8_t Extra = 0;
+    uint32_t Extra = 0;
     std::shared_ptr<SusNoteExtraAttribute> ExtraAttribute;
 
     bool operator==(const SusRawNoteData& b) const
@@ -221,6 +221,7 @@ private:
 
     uint32_t ticksPerBeat;          // 1拍あたりの分割数(分解能)
     uint32_t measureCountOffset;    // SUSデータから読み込んだ小節数に加算するオフセット
+    uint32_t longNoteChannelOffset; // SUSデータから読み込んだロングノーツ識別番号に加算するオフセット
     double longInjectionPerBeat;    // 1拍あたりのロングノーツのカウント(コンボ)数
 
     std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> notes; // BPM指定、小節線、ノーツデータ全部入ってる
@@ -243,6 +244,7 @@ private:
     void MakeMessage(uint32_t meas, uint32_t tick, uint32_t lane, const std::string &message) const;
     void CalculateCurves(const std::shared_ptr<SusDrawableNoteData>& note, NoteCurvesList &curveData) const;
     uint32_t GetMeasureCount(uint32_t relativeMeasureCount) const;
+    uint32_t GetLongNoteChannel(uint32_t relativeLongNoteChannel) const;
 
 public:
     SusMetaData SharedMetaData;
