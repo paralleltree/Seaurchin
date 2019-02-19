@@ -232,14 +232,7 @@ if (!(Test-Path "freetype")) {
   Set-Location "$LIBRARY_PATH"
 }
 
-# ========  DxLib  ========
-if (!(Test-Path "dxlib")) {
-  dlSourceRename "http://dxlib.o.oo7.jp/DxLib/DxLib_VC3_19d.zip" "dxlib" "DxLib_VC"
-  Set-Location "dxlib"
-  Rename-Item "プロジェクトに追加すべきファイル_VC用" "include"
-  Set-Location "$LIBRARY_PATH"
-}
-
+dlSource "https://rbjhjw.dm.files.1drv.com/y4mrerPw3Zd1tXLWrxQ2ubuFvPJkaniGX82gfkIIYnYJZNIepUOtHiMIAirmikXEyAppmwN3_V7UbdevmEpU5kdR20PEflO1RICwjrUuZcfB0CcarCHeQrNw6ex9qQyyDTJVfCVB4vixKXpucTsma2Q-N2C7tF7_YuN0vjfmoKs8aO-TNk3p-6xoVWGSUpTblwJshqDZPxeZPQlPdYdgf_I6Q/dxlib.7z?download&psid=1" "dxlib" "."
 dlSourceRename "https://github.com/gabime/spdlog/archive/v$SPDLOG_VER.zip" "spdlog" "spdlog-$SPDLOG_VER"
 dlSourceRename "https://github.com/fmtlib/fmt/releases/download/$FMT_VER/fmt-$FMT_VER.zip" "fmt" "fmt-$FMT_VER"
 
