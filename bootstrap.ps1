@@ -168,16 +168,6 @@ if (!(Test-Path "angelscript")) {
   Set-Location "$LIBRARY_PATH"
 }
 
-# ========  Boost  ========
-if (!(Test-Path "boost")) {
-  dlSourceRename "https://dl.bintray.com/boostorg/release/$BOOST_VER/source/boost_$BOOST_VER_UNDERLINE.zip" "boost" "boost_$BOOST_VER_UNDERLINE"
-  Write-Host "** boost をビルドします。"
-  Set-Location "boost"
-  cmd /c "bootstrap.bat"
-  cmd /c "b2 -j 4"
-  Set-Location "$LIBRARY_PATH"
-}
-
 # ========  libpng  ========
 if (!(Test-Path "libpng")) {
   dlSourceRename "https://zlib.net/zlib$ZLIB_VER_NUM.zip" "zlib" "zlib-$ZLIB_VER"
@@ -253,6 +243,7 @@ if (!(Test-Path "dxlib")) {
 dlSourceRename "https://github.com/gabime/spdlog/archive/v$SPDLOG_VER.zip" "spdlog" "spdlog-$SPDLOG_VER"
 dlSourceRename "https://github.com/fmtlib/fmt/releases/download/$FMT_VER/fmt-$FMT_VER.zip" "fmt" "fmt-$FMT_VER"
 
+dlSource "https://sljhjw.dm.files.1drv.com/y4m_ttflbSwtU5qSJt5J47yBqYztzuSzEdEnXb0Ce2BaO0wrf_hfA1pMcJJbOnv-_PtTzKc5OjE_iaCv0pHOqKqLwZIN0Qx0j6JiBNbWiv62IJPv4w5fSqBbr-106Biak3UE2qxNIwY2E0xcMJYwDA5oTsJlDWzeb8RhPzIvNqbEvG_ngusUWEN_KFxWAcK8T32/boost.7z?download&psid=1" "boost" "."
 dlSource "http://us.un4seen.com/files/bass24.zip" "bass24" "bass24"
 dlSource "http://us.un4seen.com/files/z/0/bass_fx24.zip" "bass24_fx" "bass24_fx"
 dlSource "http://us.un4seen.com/files/bassmix24.zip" "bass24_mix" "bass24_mix"
