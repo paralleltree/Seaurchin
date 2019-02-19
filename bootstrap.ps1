@@ -29,9 +29,6 @@ if (Test-Path "C:\Program Files (x86)\Microsoft Visual Studio\2017\$EDITION\VC\T
   $VS_TOOLS_VER = Get-ChildItem "C:\Program Files (x86)\Microsoft Visual Studio\2017\$EDITION\VC\Tools\MSVC\" -NAME  | Select-Object -Last 1
   $NMAKE = "C:\Program Files (x86)\Microsoft Visual Studio\2017\$EDITION\VC\Tools\MSVC\$VS_TOOLS_VER\bin\Hostx86\x86\nmake.exe"
 }
-if (Test-Path "C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.Midi.GmDls") {
-  $WIN_SDK_VER = Get-ChildItem "C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.Midi.GmDls" -NAME | Select-Object -Last 1
-}
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 
@@ -58,8 +55,9 @@ Write-Host '                                                                    
 Write-Host '                                                                        888     '
 Write-Host '======================================================================= 888 ===='
 Write-Host ''
-Write-Host "Seaurchin BootStrapではSeaurchinの開発環境を構築します。"
-Write-Host ""
+Write-Host 'Seaurchin BootStrapではSeaurchinの開発環境を構築します。'
+Write-Host ''
+
 if (!(Test-Path "C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs\Microsoft.Midi.GmDls\10.0.17763.0")) {
   Write-Host "Windows SDK 10.0.17663.0がインストールされてない為、Bootstrapを続ける事が出来ません。終了します。"
   Write-Host "Windows SDK 10.0.17763.0をインストールしてから再度実行してください。"
@@ -70,27 +68,27 @@ if (!(Test-Path "C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\Extension
   exit
 }
 if (!(Test-Path "C:\Program Files (x86)\Microsoft Visual Studio\2017\$EDITION\VC\Tools\MSVC\$VS_TOOLS_VER\lib\spectre")){
-  Write-Host '注意： Spectre用ライブラリがインストールされていません。'
-  Write-Host '       Bootstrapは動作しますが、Seaurchinのビルドが失敗する原因になります。'
-  Write-Host '       VC++ 2017 version XX.X vXX.XX Libs for Spectre (x86 and x64)をインストールしてください。'
+  Write-Host "注意： Spectre用ライブラリがインストールされていません。"
+  Write-Host "       Bootstrapは動作しますが、Seaurchinのビルドが失敗する原因になります。"
+  Write-Host "       VC++ 2017 version XX.X vXX.XX Libs for Spectre (x86 and x64)をインストールしてください。"
   Write-Host ""
 }
 if($Args[0] -ne "quiet") {
-  Read-Host '続行するには Enter キーを押してください'
+  Read-Host "続行するには Enter キーを押してください"
 }
 
-Write-Host '================================================================================='
-Write-Host ''
+Write-Host "================================================================================="
+Write-Host ""
 Write-Host "* ライブラリ展開先フォルダと一時フォルダを生成します。"
-Write-Host ''
+Write-Host ""
 
 New-Item library\ -ItemType Directory >$null 2>&1
 New-Item tmp\ -ItemType Directory >$null 2>&1
 
-Write-Host '================================================================================='
-Write-Host ''
+Write-Host "================================================================================="
+Write-Host ""
 Write-Host "* 環境構築に必要なコマンドを準備します。"
-Write-Host ''
+Write-Host ""
 
 function getBin($url,$name) {
   if (!(Test-Path "$name.zip")) {
@@ -104,7 +102,7 @@ function getBin($url,$name) {
   Write-Host ""
 }
 
-Set-Location"tmp"
+Set-Location "tmp"
 getBin "https://blogs.osdn.jp/2015/01/13/download/patch-2.5.9-7-bin.zip" "patch"
 getBin "https://ja.osdn.net/frs/redir.php?m=ymu&f=sevenzip%2F64455%2F7za920.zip" "7z"
 getBin "http://ftp.vector.co.jp/52/68/2195/nkfwin.zip" "nkf"
@@ -145,14 +143,14 @@ function dlSourceRename($url,$name,$from) {
 }
 
 # ========  UTF-8/LF -> S-JIS/CRLF  ========
-Set-Location"$BASE_PATH\bootstrap"
+Set-Location "$BASE_PATH\bootstrap"
 foreach($a in Get-ChildItem){
   (Get-Content $a.name) -join "`r`n" | set-content $a.name
 }
-Set-Location"$BASE_PATH\Seaurchin"
+Set-Location "$BASE_PATH\Seaurchin"
 &$NKF -sc --overwrite *.cpp
 &$NKF -sc --overwrite *.h
-Set-Location$LIBRARY_PATH
+Set-Location $LIBRARY_PATH
 
 Write-Host "================================================================================="
 Write-Host ""
@@ -163,21 +161,21 @@ Write-Host ""
 if (!(Test-Path "angelscript")) {
   dlSourceRename "https://www.angelcode.com/angelscript/sdk/files/angelscript_$ANGELSCRIPT_VER.zip" "angelscript" "sdk"
   Write-Host "** angelscript をビルドします。"
-  Set-Location"angelscript\angelscript\projects\msvc2015"
+  Set-Location "angelscript\angelscript\projects\msvc2015"
   &$PATCH "angelscript.vcxproj" "$PATCH_PATH\angelscript.patch"
   &$MSBUILD "angelscript.vcxproj" /p:Configuration=Release
   &$MSBUILD "angelscript.vcxproj" /p:Configuration=Debug
-  Set-Location"$LIBRARY_PATH"
+  Set-Location "$LIBRARY_PATH"
 }
 
 # ========  Boost  ========
 if (!(Test-Path "boost")) {
   dlSourceRename "https://dl.bintray.com/boostorg/release/$BOOST_VER/source/boost_$BOOST_VER_UNDERLINE.zip" "boost" "boost_$BOOST_VER_UNDERLINE"
   Write-Host "** boost をビルドします。"
-  Set-Location"boost"
+  Set-Location "boost"
   cmd /c "bootstrap.bat"
   cmd /c "b2 -j 4"
-  Set-Location"$LIBRARY_PATH"
+  Set-Location "$LIBRARY_PATH"
 }
 
 # ========  libpng  ========
@@ -185,7 +183,7 @@ if (!(Test-Path "libpng")) {
   dlSourceRename "https://zlib.net/zlib$ZLIB_VER_NUM.zip" "zlib" "zlib-$ZLIB_VER"
   dlSourceRename "http://ftp-osl.osuosl.org/pub/libpng/src/libpng$LIBPNG_VER_NUM2/lpng$LIBPNG_VER_NUM.zip" "libpng" "lpng$LIBPNG_VER_NUM"
   Write-Host "** libpng をビルドします。"  
-  Set-Location"libpng\projects\vstudio"
+  Set-Location "libpng\projects\vstudio"
   &$PATCH libpng\libpng.vcxproj         "$PATCH_PATH\libpng.patch"
   &$PATCH pnglibconf\pnglibconf.vcxproj "$PATCH_PATH\pnglibconf.patch"
   &$PATCH pngstest\pngstest.vcxproj     "$PATCH_PATH\pngstest.patch"
@@ -195,61 +193,61 @@ if (!(Test-Path "libpng")) {
   &$PATCH zlib\zlib.vcxproj             "$PATCH_PATH\zlib.patch"
   &$PATCH zlib.props                    "$PATCH_PATH\zlib.props.patch"
   &$MSBUILD vstudio.sln /p:Configuration=Release # なんか失敗するけど多分正常
-  Set-Location"$LIBRARY_PATH"
+  Set-Location "$LIBRARY_PATH"
 }
 
 # ========  libjpeg  ========
 if (!(Test-Path "libjpeg")) {
   dlSourceRename "https://www.ijg.org/files/jpegsr$LIBJPEG_VER.zip" "libjpeg" "jpeg-$LIBJPEG_VER"
   Write-Host "** libjpeg をビルドします。"
-  Set-Location"libjpeg"
+  Set-Location "libjpeg"
   &$NMAKE /f makefile.vs setup-v15
   &$PATCH --force jpeg.vcxproj         "$PATCH_PATH\libjpeg.patch"
   &$MSBUILD jpeg.sln /p:Configuration=Release
-  Set-Location"$LIBRARY_PATH"
+  Set-Location "$LIBRARY_PATH"
 }
 
 # ========  libogg  ========
 if (!(Test-Path "libogg")) {
   dlSourceRename "http://downloads.xiph.org/releases/ogg/libogg-$LIBOGG_VER.zip" "libogg" "libogg-$LIBOGG_VER"
   Write-Host "** libogg をビルドします。"  
-  Set-Location"libogg\win32\VS2015"
+  Set-Location "libogg\win32\VS2015"
   &$PATCH --force libogg_static.vcxproj "$PATCH_PATH\libogg.patch"
   &$MSBUILD libogg_static.sln /p:Configuration=Release
-  Set-Location"$LIBRARY_PATH"
+  Set-Location "$LIBRARY_PATH"
 }
 
 # ========  libvorbis  ========
 if (!(Test-Path "libvorbis")) {
   dlSourceRename "http://downloads.xiph.org/releases/vorbis/libvorbis-$LIBVORBIS_VER.zip" "libvorbis" "libvorbis-$LIBVORBIS_VER"
   Write-Host "** libvorbis をビルドします。"  
-  Set-Location"libvorbis\win32\VS2010"
+  Set-Location "libvorbis\win32\VS2010"
   &$PATCH libvorbis\libvorbis_static.vcxproj         "$PATCH_PATH\libvorbis.patch"
   &$PATCH libvorbisfile\libvorbisfile_static.vcxproj "$PATCH_PATH\libvorbisfile.patch"
   &$PATCH vorbisdec\vorbisdec_static.vcxproj         "$PATCH_PATH\vorbisdec.patch"
   &$PATCH vorbisenc\vorbisenc_static.vcxproj         "$PATCH_PATH\vorbisenc.patch"
   &$PATCH libogg.props                               "$PATCH_PATH\libogg.props.patch"
   &$MSBUILD vorbis_static.sln /p:Configuration=Release
-  Set-Location"$LIBRARY_PATH"
+  Set-Location "$LIBRARY_PATH"
 }
 
 # ========  freetype  ========
 if (!(Test-Path "freetype")) {
   dlSourceRename "https://download.savannah.gnu.org/releases/freetype/ft$FREETYPE_VER_NUM.zip" "freetype" "freetype-$FREETYPE_VER"
   Write-Host "** freetype をビルドします。"  
-  Set-Location"freetype\builds\windows\vc2010"
+  Set-Location "freetype\builds\windows\vc2010"
   &$PATCH freetype.vcxproj "$PATCH_PATH\freetype.patch"
   &$MSBUILD freetype.sln /p:Configuration="Release Static"
   &$MSBUILD freetype.sln /p:Configuration="Debug Static"
-  Set-Location"$LIBRARY_PATH"
+  Set-Location "$LIBRARY_PATH"
 }
 
 # ========  DxLib  ========
 if (!(Test-Path "dxlib")) {
   dlSourceRename "http://dxlib.o.oo7.jp/DxLib/DxLib_VC3_19d.zip" "dxlib" "DxLib_VC"
-  Set-Location"dxlib"
+  Set-Location "dxlib"
   Rename-Item "プロジェクトに追加すべきファイル_VC用" "include"
-  Set-Location"$LIBRARY_PATH"
+  Set-Location "$LIBRARY_PATH"
 }
 
 dlSourceRename "https://github.com/gabime/spdlog/archive/v$SPDLOG_VER.zip" "spdlog" "spdlog-$SPDLOG_VER"
