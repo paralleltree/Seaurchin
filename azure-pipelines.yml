@@ -1,5 +1,5 @@
 pool:
-  vmImage: Hosted VS2017
+  vmImage: 'vs2017-win2016'
   demands:
   - Cmd
   - msbuild
@@ -18,6 +18,6 @@ steps:
   inputs:
     solution: 'Seaurchin.sln'
     vsVersion: 15.0
-    platform: x64
+    platform: x86
     configuration: 'debug'
 
