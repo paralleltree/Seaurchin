@@ -1,0 +1,23 @@
+pool:
+  vmImage: 'vs2017-win2016'
+  demands:
+  - Cmd
+  - msbuild
+  - visualstudio
+
+steps:
+- task: BatchScript@1
+  displayName: 'Run script bootstrap.bat'
+  inputs:
+    filename: bootstrap.bat
+    arguments: quiet
+    modifyEnvironment: false
+
+- task: VSBuild@1
+  displayName: 'Build solution Seaurchin.sln'
+  inputs:
+    solution: 'Seaurchin.sln'
+    vsVersion: 15.0
+    platform: x86
+    configuration: 'debug'
+
