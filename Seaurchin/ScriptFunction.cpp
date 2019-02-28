@@ -20,8 +20,7 @@ void YieldTime(const double time)
 {
     auto ctx = asGetActiveContext();
     auto pcw = static_cast<CoroutineWait*>(ctx->GetUserData(SU_UDTYPE_WAIT));
-    if (!pcw)
-    {
+    if (!pcw) {
         ScriptSceneWarnOutOf("Coroutine Function", ctx);
         return;
     }
@@ -34,8 +33,7 @@ void YieldFrames(const int64_t frames)
 {
     auto ctx = asGetActiveContext();
     auto pcw = static_cast<CoroutineWait*>(ctx->GetUserData(SU_UDTYPE_WAIT));
-    if (!pcw)
-    {
+    if (!pcw) {
         ScriptSceneWarnOutOf("Coroutine Function", ctx);
         return;
     }
@@ -56,9 +54,10 @@ SFont* LoadSystemFont(const std::string &file)
     return SFont::CreateLoadedFontFromFile(ConvertUnicodeToUTF8(p.wstring()));
 }
 
-SSound *LoadSystemSound(SoundManager *smng, const std::string & file) {
+SSound *LoadSystemSound(SoundManager *smng, const std::string & file)
+{
     auto p = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SOUND_DIR / ConvertUTF8ToUnicode(file);
-	return SSound::CreateSoundFromFile(smng, ConvertUnicodeToUTF8(p.wstring()), 4);
+    return SSound::CreateSoundFromFile(smng, ConvertUnicodeToUTF8(p.wstring()), 4);
 }
 
 void CreateImageFont(const string &fileName, const string &saveName, const int size)

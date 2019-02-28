@@ -3,8 +3,8 @@
 class SoundManager;
 
 enum class SoundType {
-	Sample,
-	Stream,
+    Sample,
+    Stream,
 };
 
 class Sound {
@@ -49,7 +49,7 @@ public:
     DWORD GetSoundHandle() override;
     void StopSound() override;
     void SetVolume(float vol) override;
-    // “K“–‚Él‚¦‚½‚ñ‚Å‚·‚ª‘½•ªPause/Resume‚Í“Æ©‚É‚â‚Á‚¿‚á‚Á‚Äok‚Å‚·‚Ë
+    // é©å½“ã«è€ƒãˆãŸã‚“ã§ã™ãŒå¤šåˆ†Pause/Resumeã¯ç‹¬è‡ªã«ã‚„ã£ã¡ã‚ƒã£ã¦okã§ã™ã­
     void Pause() const;
     void Resume() const;
 
@@ -78,8 +78,8 @@ class SoundManager final {
 private:
 
 public:
-	SoundManager();
-	~SoundManager();
+    SoundManager();
+    ~SoundManager();
 
     static SoundMixerStream *CreateMixerStream();
     static void PlayGlobal(Sound *sound);

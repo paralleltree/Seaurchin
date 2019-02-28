@@ -20,7 +20,7 @@
 #define SU_IF_CONTAINER "Container"
 
 struct Mover;
-//Šî’ê‚ªImageSprite‚Å‚à‚¢‚¢‹C‚ª‚µ‚Ä‚é‚ñ‚¾‚æ‚Ë³’¼
+//åŸºåº•ãŒImageSpriteã§ã‚‚ã„ã„æ°—ãŒã—ã¦ã‚‹ã‚“ã ã‚ˆã­æ­£ç›´
 class SSprite {
 private:
     virtual void DrawBy(const Transform2D &tf, const ColorTint &ct);
@@ -32,13 +32,13 @@ protected:
     void CopyParameterFrom(SSprite *original);
 
 public:
-    //’l(CopyParameterFrom‚ÅˆêŠ‡)
+    //å€¤(CopyParameterFromã§ä¸€æ‹¬)
     Transform2D Transform;
     int32_t ZIndex = 0;
     ColorTint Color = Colors::white;
     bool IsDead = false;
     bool HasAlpha = true;
-    //QÆ(è“®ƒRƒs[)
+    //å‚ç…§(æ‰‹å‹•ã‚³ãƒ”ãƒ¼)
     SImage *Image = nullptr;
     void SetImage(SImage *img);
     const SImage* GetImage() const;
@@ -79,7 +79,7 @@ enum class SShapeType {
     OvalFill,
 };
 
-//”CˆÓ‚Ì‘½ŠpŒ`‚È‚Ç‚ğ•\¦‚Å‚«‚é
+//ä»»æ„ã®å¤šè§’å½¢ãªã©ã‚’è¡¨ç¤ºã§ãã‚‹
 class SShape : public SSprite {
 private:
     void DrawBy(const Transform2D &tf, const ColorTint &ct) override;
@@ -105,7 +105,7 @@ enum class STextAlign {
     Right = 2
 };
 
-//•¶š—ñ‚ğƒXƒvƒ‰ƒCƒg‚Æ‚µ‚Äˆµ‚¢‚Ü‚·
+//æ–‡å­—åˆ—ã‚’ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã¨ã—ã¦æ‰±ã„ã¾ã™
 class STextSprite : public SSprite {
 protected:
     SRenderTarget * target = nullptr;
@@ -146,8 +146,8 @@ public:
     static void RegisterType(asIScriptEngine *engine);
 };
 
-//•¶š“ü—Í‚ğˆµ‚¤ƒXƒvƒ‰ƒCƒg‚Å‚·
-//‘¼‚Æˆá‚Á‚ÄDXƒ‰ƒCƒuƒ‰ƒŠ‚ÌƒŠƒ\[ƒX‚ğƒiƒ}‚Åæ“¾‚·‚é‚Ì‚Å‚ ‚ñ‚Ü‚èƒ{ƒRƒ{ƒRg‚í‚È‚¢‚Å‚­‚¾‚³‚¢B
+//æ–‡å­—å…¥åŠ›ã‚’æ‰±ã†ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã§ã™
+//ä»–ã¨é•ã£ã¦DXãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®ãƒªã‚½ãƒ¼ã‚¹ã‚’ãƒŠãƒã§å–å¾—ã™ã‚‹ã®ã§ã‚ã‚“ã¾ã‚Šãƒœã‚³ãƒœã‚³ä½¿ã‚ãªã„ã§ãã ã•ã„ã€‚
 class STextInput : public SSprite {
 protected:
     int inputHandle = 0;
@@ -172,7 +172,7 @@ public:
     static void RegisterType(asIScriptEngine *engine);
 };
 
-//‰æ‘œ‚ğ”CˆÓ‚ÌƒXƒvƒ‰ƒCƒg‚©‚ç‡¬‚µ‚ÄƒEƒFƒC‚Å‚«‚Ü‚·
+//ç”»åƒã‚’ä»»æ„ã®ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‹ã‚‰åˆæˆã—ã¦ã‚¦ã‚§ã‚¤ã§ãã¾ã™
 class SSynthSprite : public SSprite {
 protected:
     SRenderTarget * target = nullptr;
@@ -197,7 +197,7 @@ public:
     static void RegisterType(asIScriptEngine *engine);
 };
 
-//‰æ‘œ‚ğ”CˆÓ‚ÌƒXƒvƒ‰ƒCƒg‚©‚ç‡¬‚µ‚ÄƒEƒFƒC‚Å‚«‚Ü‚·
+//ç”»åƒã‚’ä»»æ„ã®ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‹ã‚‰åˆæˆã—ã¦ã‚¦ã‚§ã‚¤ã§ãã¾ã™
 class SClippingSprite : public SSynthSprite {
 protected:
     double u1;

@@ -26,16 +26,16 @@ void Setting::Load(const wstring &filename)
     auto log = spdlog::get("main");
     file = filename;
     if (!exists(rootDirectory / file)) {
-        log->info(u8"İ’èƒtƒ@ƒCƒ‹‚ğì¬‚µ‚Ü‚µ‚½");
+        log->info(u8"è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä½œæˆã—ã¾ã—ãŸ");
         Save();
     }
     std::ifstream ifs((rootDirectory / file).wstring(), ios::in);
     auto pr = toml::parse(ifs);
     if (!pr.valid()) {
-        log->error(u8"İ’èƒtƒ@ƒCƒ‹‚Ì‹Lq‚ª•s³‚Å‚·: {0}", pr.errorReason);
+        log->error(u8"è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã®è¨˜è¿°ãŒä¸æ­£ã§ã™: {0}", pr.errorReason);
     } else {
         settingTree = pr.value;
-        log->info(u8"İ’èƒtƒ@ƒCƒ‹‚ğ“Ç‚İ‚İ‚Ü‚µ‚½");
+        log->info(u8"è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã‚’èª­ã¿è¾¼ã¿ã¾ã—ãŸ");
     }
     ifs.close();
 }
@@ -50,7 +50,7 @@ void Setting::Save() const
     auto log = spdlog::get("main");
     std::ofstream ofs((rootDirectory / file).wstring(), ios::out);
     if (settingTree.valid()) settingTree.write(&ofs);
-    log->info(u8"İ’èƒtƒ@ƒCƒ‹‚ğ•Û‘¶‚µ‚Ü‚µ‚½");
+    log->info(u8"è¨­å®šãƒ•ã‚¡ã‚¤ãƒ«ã‚’ä¿å­˜ã—ã¾ã—ãŸ");
     ofs.close();
 }
 
@@ -75,28 +75,28 @@ void SettingItemManager::LoadItemsFromToml(const path& file)
     auto pr = toml::parse(ifs);
     ifs.close();
     if (!pr.valid()) {
-        log->error(u8"İ’è’è‹` {0} ‚Í•s³‚Èƒtƒ@ƒCƒ‹‚Å‚·", ConvertUnicodeToUTF8(file.wstring()));
+        log->error(u8"è¨­å®šå®šç¾© {0} ã¯ä¸æ­£ãªãƒ•ã‚¡ã‚¤ãƒ«ã§ã™", ConvertUnicodeToUTF8(file.wstring()));
         log->error(pr.errorReason);
         return;
     }
     auto &root = pr.value;
     const auto items = root.find("SettingItems");
     if (!items || !items->is<toml::Array>()) {
-        log->warn(u8"İ’è’è‹` {0} ‚Éİ’è€–Ú‚ª‚ ‚è‚Ü‚¹‚ñ", ConvertUnicodeToUTF8(file.wstring()));
+        log->warn(u8"è¨­å®šå®šç¾© {0} ã«è¨­å®šé …ç›®ãŒã‚ã‚Šã¾ã›ã‚“", ConvertUnicodeToUTF8(file.wstring()));
         return;
     }
     for (const auto &item : items->as<vector<toml::Value>>()) {
         if (item.type() != toml::Value::TABLE_TYPE) continue;
         if (!item.has("Group")) {
-            log->error(u8"İ’è€–Ú‚ÉƒOƒ‹[ƒvw’è‚ª‘¶İ‚µ‚Ü‚¹‚ñB");
+            log->error(u8"è¨­å®šé …ç›®ã«ã‚°ãƒ«ãƒ¼ãƒ—æŒ‡å®šãŒå­˜åœ¨ã—ã¾ã›ã‚“ã€‚");
             continue;
         }
         if (!item.has("Key")) {
-            log->error(u8"İ’è€–Ú‚ÉƒL[w’è‚ª‘¶İ‚µ‚Ü‚¹‚ñB");
+            log->error(u8"è¨­å®šé …ç›®ã«ã‚­ãƒ¼æŒ‡å®šãŒå­˜åœ¨ã—ã¾ã›ã‚“ã€‚");
             continue;
         }
         if (!item.has("Type")) {
-            log->error(u8"İ’è€–Ú‚Éí•Êw’è‚ª‘¶İ‚µ‚Ü‚¹‚ñB");
+            log->error(u8"è¨­å®šé …ç›®ã«ç¨®åˆ¥æŒ‡å®šãŒå­˜åœ¨ã—ã¾ã›ã‚“ã€‚");
             continue;
         }
 
@@ -146,7 +146,7 @@ void SettingItemManager::LoadItemsFromToml(const path& file)
                 si = make_shared<BooleanListVectorSettingItem>(settingInstance, group, key);
                 break;
             default:
-                log->warn(u8"•s–¾‚Èİ’èƒ^ƒCƒv‚Å‚·: {0}", type);
+                log->warn(u8"ä¸æ˜ãªè¨­å®šã‚¿ã‚¤ãƒ—ã§ã™: {0}", type);
                 continue;
         }
         si->Build(item);
@@ -185,7 +185,7 @@ SettingItem::SettingItem(const shared_ptr<Setting> setting, const string &igroup
     settingInstance = setting;
     group = igroup;
     key = ikey;
-    description = u8"à–¾‚Í‚ ‚è‚Ü‚¹‚ñ";
+    description = u8"èª¬æ˜ã¯ã‚ã‚Šã¾ã›ã‚“";
     findName = "";
 }
 
@@ -259,7 +259,7 @@ void IntegerSettingItem::Build(const toml::Value &table)
     if (r && r->is<vector<int64_t>>()) {
         auto v = r->as<vector<int64_t>>();
         if (v.size() != 2) {
-            log->warn(u8"®”Œ^İ’è€–Ú {0}.{1} ‚É‘Î‚·‚é”ÍˆÍw’è‚ª•s³‚Å‚·B", group, key);
+            log->warn(u8"æ•´æ•°å‹è¨­å®šé …ç›® {0}.{1} ã«å¯¾ã™ã‚‹ç¯„å›²æŒ‡å®šãŒä¸æ­£ã§ã™ã€‚", group, key);
         } else {
             minValue = v[0];
             maxValue = v[1];
@@ -322,7 +322,7 @@ void FloatSettingItem::Build(const toml::Value &table)
     if (r && r->is<vector<double>>()) {
         auto v = r->as<vector<double>>();
         if (v.size() != 2) {
-            log->warn(u8"À”Œ^İ’è€–Ú {0}.{1} ‚É‘Î‚·‚é”ÍˆÍw’è‚ª•s³‚Å‚·B", group, key);
+            log->warn(u8"å®Ÿæ•°å‹è¨­å®šé …ç›® {0}.{1} ã«å¯¾ã™ã‚‹ç¯„å›²æŒ‡å®šãŒä¸æ­£ã§ã™ã€‚", group, key);
         } else {
             minValue = v[0];
             maxValue = v[1];
@@ -383,7 +383,7 @@ void BooleanSettingItem::Build(const toml::Value &table)
     if (r && r->is<vector<string>>()) {
         auto v = r->as<vector<string>>();
         if (v.size() != 2) {
-            log->warn(u8"^‹U’lŒ^İ’è€–Ú {0}.{1} ‚É‘Î‚·‚é’lw’è‚ª•s³‚Å‚·B", group, key);
+            log->warn(u8"çœŸå½å€¤å‹è¨­å®šé …ç›® {0}.{1} ã«å¯¾ã™ã‚‹å€¤æŒ‡å®šãŒä¸æ­£ã§ã™ã€‚", group, key);
         } else {
             truthy = v[0];
             falsy = v[1];
@@ -601,12 +601,10 @@ string IntegerListSettingItem::GetItemString()
 }
 
 void IntegerListSettingItem::MoveNext()
-{
-}
+{}
 
 void IntegerListSettingItem::MovePrevious()
-{
-}
+{}
 
 void IntegerListSettingItem::SaveValue()
 {
@@ -626,7 +624,7 @@ void IntegerListSettingItem::RetrieveValue()
     uint64_t cnt = 0;
     for (const auto &val : arr) {
         if (!val.is<int64_t>()) {
-            log->warn(u8"®”Œ^ƒŠƒXƒgİ’è€–Ú {0}.{1} ‚Ì‘æ{2}—v‘f‚ª®”Œ^‚Å‚Í‚ ‚è‚Ü‚¹‚ñB", group, key, cnt);
+            log->warn(u8"æ•´æ•°å‹ãƒªã‚¹ãƒˆè¨­å®šé …ç›® {0}.{1} ã®ç¬¬{2}è¦ç´ ãŒæ•´æ•°å‹ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚", group, key, cnt);
             continue;
         }
         values.push_back(val.as<int64_t>());
@@ -662,12 +660,10 @@ string FloatListSettingItem::GetItemString()
 }
 
 void FloatListSettingItem::MoveNext()
-{
-}
+{}
 
 void FloatListSettingItem::MovePrevious()
-{
-}
+{}
 
 void FloatListSettingItem::SaveValue()
 {
@@ -687,7 +683,7 @@ void FloatListSettingItem::RetrieveValue()
     uint64_t cnt = 0;
     for (const auto &val : arr) {
         if (!val.is<double>()) {
-            log->warn(u8"À”Œ^ƒŠƒXƒgİ’è€–Ú {0}.{1} ‚Ì‘æ{2}—v‘f‚ªÀ”Œ^‚Å‚Í‚ ‚è‚Ü‚¹‚ñB", group, key, cnt);
+            log->warn(u8"å®Ÿæ•°å‹ãƒªã‚¹ãƒˆè¨­å®šé …ç›® {0}.{1} ã®ç¬¬{2}è¦ç´ ãŒå®Ÿæ•°å‹ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚", group, key, cnt);
             continue;
         }
         values.push_back(val.as<double>());
@@ -723,12 +719,10 @@ string BooleanListSettingItem::GetItemString()
 }
 
 void BooleanListSettingItem::MoveNext()
-{
-}
+{}
 
 void BooleanListSettingItem::MovePrevious()
-{
-}
+{}
 
 void BooleanListSettingItem::SaveValue()
 {
@@ -748,7 +742,7 @@ void BooleanListSettingItem::RetrieveValue()
     uint64_t cnt = 0;
     for (const auto &val : arr) {
         if (!val.is<bool>()) {
-            log->warn(u8"^‹U’lŒ^ƒŠƒXƒgİ’è€–Ú {0}.{1} ‚Ì‘æ{2}—v‘f‚ª^‹U’lŒ^‚Å‚Í‚ ‚è‚Ü‚¹‚ñB", group, key, cnt);
+            log->warn(u8"çœŸå½å€¤å‹ãƒªã‚¹ãƒˆè¨­å®šé …ç›® {0}.{1} ã®ç¬¬{2}è¦ç´ ãŒçœŸå½å€¤å‹ã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚", group, key, cnt);
             continue;
         }
         values.push_back(val.as<bool>());
@@ -787,12 +781,10 @@ string IntegerListVectorSettingItem::GetItemString()
 }
 
 void IntegerListVectorSettingItem::MoveNext()
-{
-}
+{}
 
 void IntegerListVectorSettingItem::MovePrevious()
-{
-}
+{}
 
 void IntegerListVectorSettingItem::SaveValue()
 {
@@ -820,7 +812,7 @@ void IntegerListVectorSettingItem::RetrieveValue()
     uint64_t cnt = 0;
     for (const auto &list : arr) {
         if (!list.is<std::vector<int64_t>>()) {
-            log->warn(u8"®”Œ^2dƒŠƒXƒgİ’è€–Ú {0}.{1} ‚Ì‘æ{2}—v‘f‚ª®”Œ^ƒŠƒXƒg‚Å‚Í‚ ‚è‚Ü‚¹‚ñB", group, key, cnt);
+            log->warn(u8"æ•´æ•°å‹2é‡ãƒªã‚¹ãƒˆè¨­å®šé …ç›® {0}.{1} ã®ç¬¬{2}è¦ç´ ãŒæ•´æ•°å‹ãƒªã‚¹ãƒˆã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚", group, key, cnt);
             continue;
         }
 
@@ -869,12 +861,10 @@ string FloatListVectorSettingItem::GetItemString()
 }
 
 void FloatListVectorSettingItem::MoveNext()
-{
-}
+{}
 
 void FloatListVectorSettingItem::MovePrevious()
-{
-}
+{}
 
 void FloatListVectorSettingItem::SaveValue()
 {
@@ -902,7 +892,7 @@ void FloatListVectorSettingItem::RetrieveValue()
     uint64_t cnt = 0;
     for (const auto &list : arr) {
         if (!list.is<std::vector<double>>()) {
-            log->warn(u8"À”Œ^2dƒŠƒXƒgİ’è€–Ú {0}.{1} ‚Ì‘æ{2}—v‘f‚ªÀ”Œ^ƒŠƒXƒg‚Å‚Í‚ ‚è‚Ü‚¹‚ñB", group, key, cnt);
+            log->warn(u8"å®Ÿæ•°å‹2é‡ãƒªã‚¹ãƒˆè¨­å®šé …ç›® {0}.{1} ã®ç¬¬{2}è¦ç´ ãŒå®Ÿæ•°å‹ãƒªã‚¹ãƒˆã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚", group, key, cnt);
             continue;
         }
 
@@ -951,12 +941,10 @@ string BooleanListVectorSettingItem::GetItemString()
 }
 
 void BooleanListVectorSettingItem::MoveNext()
-{
-}
+{}
 
 void BooleanListVectorSettingItem::MovePrevious()
-{
-}
+{}
 
 void BooleanListVectorSettingItem::SaveValue()
 {
@@ -984,7 +972,7 @@ void BooleanListVectorSettingItem::RetrieveValue()
     uint64_t cnt = 0;
     for (const auto &list : arr) {
         if (!list.is<std::vector<bool>>()) {
-            log->warn(u8"^‹U’lŒ^2dƒŠƒXƒgİ’è€–Ú {0}.{1} ‚Ì‘æ{2}—v‘f‚ª^‹U’lŒ^ƒŠƒXƒg‚Å‚Í‚ ‚è‚Ü‚¹‚ñB", group, key, cnt);
+            log->warn(u8"çœŸå½å€¤å‹2é‡ãƒªã‚¹ãƒˆè¨­å®šé …ç›® {0}.{1} ã®ç¬¬{2}è¦ç´ ãŒçœŸå½å€¤å‹ãƒªã‚¹ãƒˆã§ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚", group, key, cnt);
             continue;
         }
 

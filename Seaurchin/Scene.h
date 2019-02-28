@@ -2,8 +2,7 @@
 
 
 class ExecutionManager;
-class Scene
-{
+class Scene {
 protected:
     int index;
     ExecutionManager *manager;

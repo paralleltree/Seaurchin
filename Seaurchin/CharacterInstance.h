@@ -52,7 +52,7 @@ public:
     void Release() { if (--reference == 0) delete this; }
 
     CharacterInstance(const std::shared_ptr<CharacterParameter>& character, const std::shared_ptr<SkillParameter>& skill,
-                      const std::shared_ptr<AngelScript>& script, const std::shared_ptr<Result>& result);
+        const std::shared_ptr<AngelScript>& script, const std::shared_ptr<Result>& result);
     ~CharacterInstance();
 
     void OnStart();

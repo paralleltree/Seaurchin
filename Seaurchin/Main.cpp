@@ -28,7 +28,7 @@ int WINAPI WinMain(const HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpC
     Run();
 
     Terminate();
-    return 0;				
+    return 0;
 }
 
 void PreInitialize(HINSTANCE hInstance)
@@ -55,13 +55,13 @@ void PreInitialize(HINSTANCE hInstance)
 void Initialize()
 {
     if (DxLib_Init() == -1) abort();
-    logger->LogInfo(u8"DxLib‰Šú‰»OK");
-    
-    //WndProc·‚µ‘Ö‚¦
+    logger->LogInfo(u8"DxLibåˆæœŸåŒ–OK");
+
+    //WndProcå·®ã—æ›¿ãˆ
     hDxlibWnd = GetMainWindowHandle();
     dxlibWndProc = WNDPROC(GetWindowLong(hDxlibWnd, GWL_WNDPROC));
     SetWindowLong(hDxlibWnd, GWL_WNDPROC, LONG(CustomWindowProc));
-    //D3DÝ’è
+    //D3Dè¨­å®š
     SetUseZBuffer3D(TRUE);
     SetWriteZBuffer3D(TRUE);
     SetDrawScreen(DX_SCREEN_BACK);
@@ -72,12 +72,9 @@ void Initialize()
 
 void Run()
 {
-    if (CheckHitKey(KEY_INPUT_F2))
-    {
+    if (CheckHitKey(KEY_INPUT_F2)) {
         manager->ExecuteSystemMenu();
-    }
-    else
-    {
+    } else {
         manager->EnumerateSkins();
         manager->ExecuteSkin();
     }
@@ -86,8 +83,7 @@ void Run()
 
     auto start = high_resolution_clock::now();
     auto pstart = start;
-    while (ProcessMessage() != -1)
-    {
+    while (ProcessMessage() != -1) {
         pstart = start;
         start = high_resolution_clock::now();
         const auto delta = duration_cast<nanoseconds>(start - pstart).count() / 1000000000.0;
@@ -111,11 +107,10 @@ LRESULT CALLBACK CustomWindowProc(const HWND hWnd, const UINT msg, const WPARAM 
     bool processed;
     LRESULT result;
     tie(processed, result) = manager->CustomWindowProc(hWnd, msg, wParam, lParam);
-    
+
     if (processed) {
         return result;
-    }
-    else {
+    } else {
         return CallWindowProc(dxlibWndProc, hWnd, msg, wParam, lParam);
     }
 }

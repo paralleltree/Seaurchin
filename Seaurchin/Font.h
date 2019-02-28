@@ -1,15 +1,13 @@
 #pragma once
 
-struct Rect
-{
+struct Rect {
     int X;
     int Y;
     int Width;
     int Height;
 };
 
-class RectPacker final
-{
+class RectPacker final {
 private:
     int width = 0;
     int height = 0;

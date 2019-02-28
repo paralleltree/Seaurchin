@@ -24,7 +24,7 @@ static auto isUpperHexadecimalChar = [](const char c) {
 };
 
 static auto convertRawString = [](const string &input) -> string {
-    // TIL: ASCII•¶š”ÍˆÍ‚Å‚ÍUTF-8‚Æ–{—ˆ‚ÌASCII‚ğŠÔˆá‚¤‚±‚Æ‚Í‚È‚¢
+    // TIL: ASCIIæ–‡å­—ç¯„å›²ã§ã¯UTF-8ã¨æœ¬æ¥ã®ASCIIã‚’é–“é•ã†ã“ã¨ã¯ãªã„
     if (ba::starts_with(input, "\"")) {
         ostringstream result;
         auto rest = input;
@@ -50,15 +50,15 @@ static auto convertRawString = [](const string &input) -> string {
                     break;
                 case 'u': {
                     /*
-                    //utf-8 4byteH‚¤
+                    //utf-8 4byteé£Ÿã†
                     char cp[5] = { 0 };
                     for (auto i = 0; i < 4; i++) {
                         cp[i] = *(++it);
                     }
                     */
                     // wchar_t r = stoi(cp, 0, 16);
-                    //‚Å‚à“Ë‚Á‚Ş‚Ì‚ß‚ñ‚Ç‚­‚³‚¢‚Ì‚Å‚Å‘ã—p‚µ‚Ü‚·
-                    result << u8"";
+                    //ã§ã‚‚çªã£è¾¼ã‚€ã®ã‚ã‚“ã©ãã•ã„ã®ã§ğŸ™…ã§ä»£ç”¨ã—ã¾ã™
+                    result << u8"ğŸ™…";
                     break;
                 }
                 default:
@@ -72,15 +72,11 @@ static auto convertRawString = [](const string &input) -> string {
 };
 
 SusAnalyzer::SusAnalyzer(const uint32_t tpb)
+    : ticksPerBeat(tpb)
+    , longInjectionPerBeat(2)
+    , measureCountOffset(0)
+    , timelineResolver([=](const uint32_t number) { return hispeedDefinitions[number]; })
 {
-    ticksPerBeat = tpb;
-    longInjectionPerBeat = 2;
-    measureCountOffset = 0;
-    timelineResolver = [=](const uint32_t number) { return hispeedDefinitions[number]; };
-    errorCallbacks.emplace_back([](auto type, auto message) {
-        auto log = spdlog::get("main");
-        log->error(message);
-    });
 }
 
 SusAnalyzer::~SusAnalyzer()
@@ -90,21 +86,33 @@ SusAnalyzer::~SusAnalyzer()
 
 void SusAnalyzer::Reset()
 {
+    errorCallbacks.clear();
+    errorCallbacks.emplace_back([](auto type, auto message) {
+        auto log = spdlog::get("main");
+        log->error(message);
+    });
+
+    ticksPerBeat = 192;
+    longInjectionPerBeat = 2;
+    measureCountOffset = 0;
+    longNoteChannelOffset = 0;
+
     notes.clear();
-    bpmChanges.clear();
+
     bpmDefinitions.clear();
     beatsDefinitions.clear();
     hispeedDefinitions.clear();
     extraAttributes.clear();
-    ticksPerBeat = 192;
-    longInjectionPerBeat = 2;
-    measureCountOffset = 0;
+
+    bpmChanges.clear();
+
     SharedMetaData.Reset();
+    SharedBpmChanges.clear();
 
     bpmDefinitions[1] = 120.0;
     beatsDefinitions[0] = 4.0;
 
-    auto defhs = make_shared<SusHispeedTimeline>([&](const uint32_t m, const uint32_t t) { return GetAbsoluteTime(m, t); });
+    const auto defhs = make_shared<SusHispeedTimeline>([&](const uint32_t m, const uint32_t t) { return GetAbsoluteTime(m, t); });
     defhs->AddKeysByString("0'0:1.0:v", timelineResolver);
     hispeedDefinitions[defaultHispeedNumber] = defhs;
     hispeedToApply = defhs;
@@ -122,8 +130,8 @@ void SusAnalyzer::SetMessageCallBack(const function<void(string, string)>& func)
     errorCallbacks.push_back(func);
 }
 
-//ˆê‰UTF-8‚Æ‚µ‚Äˆ—‚·‚é‚±‚Æ‚É‚µ‚Ü‚·‚ª‚Ç‚¤‚¹•Ï‚í‚ç‚È‚¢‚¾‚ë‚¤‚È‚Ÿ
-//‚ ‚Æ—ñ‹“Ï‚İƒtƒ@ƒCƒ‹‚ğ—¬‚µ‚Ş‘O’ñ‚ÅƒGƒ‰[ƒ`ƒFƒbƒN‚µ‚È‚¢
+//ä¸€å¿œUTF-8ã¨ã—ã¦å‡¦ç†ã™ã‚‹ã“ã¨ã«ã—ã¾ã™ãŒã©ã†ã›å¤‰ã‚ã‚‰ãªã„ã ã‚ã†ãªã
+//ã‚ã¨åˆ—æŒ™æ¸ˆã¿ãƒ•ã‚¡ã‚¤ãƒ«ã‚’æµã—è¾¼ã‚€å‰æã§ã‚¨ãƒ©ãƒ¼ãƒã‚§ãƒƒã‚¯ã—ãªã„
 void SusAnalyzer::LoadFromFile(const wstring &fileName, const bool analyzeOnlyMetaData)
 {
     auto log = spdlog::get("main");
@@ -133,40 +141,40 @@ void SusAnalyzer::LoadFromFile(const wstring &fileName, const bool analyzeOnlyMe
     uint32_t line = 0;
 
     Reset();
-    if (!analyzeOnlyMetaData) log->info(u8"{0}‚Ì‰ğÍ‚ğŠJnc", ConvertUnicodeToUTF8(fileName));
+    if (!analyzeOnlyMetaData) log->info(u8"{0}ã®è§£æã‚’é–‹å§‹â€¦", ConvertUnicodeToUTF8(fileName));
 
     file.open(fileName, ios::in);
-    char bom[3];
+
+    char bom[3] = { 0 };
     file.read(bom, 3);
-    if (bom[0] != char(0xEF) || bom[1] != char(0xBB) || bom[2] != char(0xBF)) file.seekg(0);
+    if (file.gcount() != 3 || bom[0] != char(0xEF) || bom[1] != char(0xBB) || bom[2] != char(0xBF)) file.seekg(0);
+
     while (getline(file, rawline)) {
-        line++;
-        if (!rawline.length()) continue;
-        if (rawline[0] != '#') continue;
+        ++line;
+        if (rawline.empty() || rawline[0] != '#') continue;
+
         if (xp::regex_match(rawline, match, regexSusCommand)) {
             ProcessCommand(match, analyzeOnlyMetaData, line);
         } else if (xp::regex_match(rawline, match, regexSusData)) {
             if (!analyzeOnlyMetaData || boost::starts_with(rawline, "#BPM")) ProcessData(match, line);
         } else {
-            MakeMessage(line, u8"SUS—LŒøs‚Å‚·‚ª‰ğÍ‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½B");
+            MakeMessage(line, u8"SUSæœ‰åŠ¹è¡Œã§ã™ãŒè§£æã§ãã¾ã›ã‚“ã§ã—ãŸã€‚");
         }
     }
     file.close();
-    if (!analyzeOnlyMetaData) log->info(u8"cI—¹");
+
+    if (!analyzeOnlyMetaData) log->info(u8"â€¦çµ‚äº†");
     if (!analyzeOnlyMetaData) {
-        // ‚¢‚¢Š´‚¶‚Éƒ\[ƒg
+        // ã„ã„æ„Ÿã˜ã«ã‚½ãƒ¼ãƒˆ
         stable_sort(notes.begin(), notes.end(), [](tuple<SusRelativeNoteTime, SusRawNoteData> a, tuple<SusRelativeNoteTime, SusRawNoteData> b) {
-            return get<1>(a).Type.to_ulong() > get<1>(b).Type.to_ulong();
-        });
-        stable_sort(notes.begin(), notes.end(), [](tuple<SusRelativeNoteTime, SusRawNoteData> a, tuple<SusRelativeNoteTime, SusRawNoteData> b) {
-            return get<0>(a).Tick < get<0>(b).Tick;
-        });
-        stable_sort(notes.begin(), notes.end(), [](tuple<SusRelativeNoteTime, SusRawNoteData> a, tuple<SusRelativeNoteTime, SusRawNoteData> b) {
-            return get<0>(a).Measure < get<0>(b).Measure;
+            const auto &at = get<0>(a);
+            const auto &bt = get<0>(b);
+
+            return at < bt || (at == bt && get<1>(a).Type.to_ulong() > get<1>(b).Type.to_ulong());
         });
 
-        // ¬ßüƒm[ƒc
-        // ‚±‚Ì“_‚ÅƒPƒc‚ÍÅIƒm[ƒc‚Ì‚Í‚¸
+        // å°ç¯€ç·šãƒãƒ¼ãƒ„
+        // ã“ã®æ™‚ç‚¹ã§ã‚±ãƒ„ã¯æœ€çµ‚ãƒãƒ¼ãƒ„ã®ã¯ãš
         const auto lastMeasure = get<0>(notes[notes.size() - 1]).Measure + 2;
         for (auto i = 0u; i <= lastMeasure; i++) {
             SusRawNoteData ml;
@@ -184,7 +192,7 @@ void SusAnalyzer::LoadFromFile(const wstring &fileName, const bool analyzeOnlyMe
             SusRawNoteData noteData;
             SusRelativeNoteTime time = { 0, 0 };
             noteData.Type.set(size_t(SusNoteType::Undefined));
-            noteData.DefinitionNumber = 1; // ƒŠƒZƒbƒg‚ÉbpmDefinitions[1]‚ªİ’è‚³‚ê‚Ä‚¢‚é‚±‚Æ‚æ‚èA1‚Í•K‚¸—LŒø‚Å‚ ‚é‚Æ‰¼’è‚µ‚Ä‚¢‚éB(0 based‚¶‚á‚È‚¢‚Ì‚Í‚È‚º?)
+            noteData.DefinitionNumber = 1; // ãƒªã‚»ãƒƒãƒˆæ™‚ã«bpmDefinitions[1]ãŒè¨­å®šã•ã‚Œã¦ã„ã‚‹ã“ã¨ã‚ˆã‚Šã€1ã¯å¿…ãšæœ‰åŠ¹ã§ã‚ã‚‹ã¨ä»®å®šã—ã¦ã„ã‚‹ã€‚(0 basedã˜ã‚ƒãªã„ã®ã¯ãªãœ?)
             bpmChanges.emplace_back(time, noteData);
         }
 
@@ -203,13 +211,6 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
 {
     auto name = result[1].str();
     transform(name.cbegin(), name.cend(), name.begin(), toUpper);
-    if (ba::starts_with(name, "BPM")) {
-        // #BPMxx yyy.yy
-        const auto value = ConvertFloat(result[2].str());
-        bpmDefinitions[ConvertHexatridecimal(name.substr(3))] = value;
-        if (SharedMetaData.ShowBpm < 0) SharedMetaData.ShowBpm = value;
-        return;
-    }
     switch (Crc32Rec(0xffffffff, name.c_str())) {
         case "TITLE"_crc32:
             SharedMetaData.UTitle = convertRawString(result[2]);
@@ -224,33 +225,55 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
             // SharedMetaData.UGenre = ConvertRawString(result[2]);
             break;
         case "DESIGNER"_crc32:
-        case "SUBARTIST"_crc32:  // BMSŒİŠ·
+        case "SUBARTIST"_crc32:  // BMSäº’æ›
             SharedMetaData.UDesigner = convertRawString(result[2]);
             break;
         case "PLAYLEVEL"_crc32: {
+            if (SharedMetaData.DifficultyType == 4) {
+                MakeMessage(line, u8"é›£æ˜“åº¦æŒ‡å®šãŒWORLD'S ENDæ™‚ã¯è­œé¢ãƒ¬ãƒ™ãƒ«æŒ‡å®šã¯ç„¡åŠ¹ã§ã™ã€‚");
+                break;
+            }
+
             string lstr = result[2];
             const auto pluspos = lstr.find('+');
             if (pluspos != string::npos) {
                 SharedMetaData.UExtraDifficulty = u8"+";
                 SharedMetaData.Level = ConvertInteger(lstr.substr(0, pluspos));
             } else {
+                SharedMetaData.UExtraDifficulty = u8"";
                 SharedMetaData.Level = ConvertInteger(lstr);
             }
             break;
         }
         case "DIFFICULTY"_crc32: {
             if (xp::regex_match(result[2], allNumeric)) {
-                //’Êí‹L–@
-                SharedMetaData.DifficultyType = ConvertInteger(result[2]);
+                //é€šå¸¸è¨˜æ³•
+                auto difficultyType = ConvertInteger(result[2]);
+                if (difficultyType < 0 || 3 < difficultyType) {
+                    MakeMessage(line, u8"ä¸æ˜ãªé›£æ˜“åº¦æŒ‡å®šã§ã™ã€‚");
+                    break;
+                }
+
+                // è¤‡æ•°å›PLAYLEVELã€DIFFICULTYæŒ‡å®šã—ãªã„ã§ãã‚Œã£ã¦è©±ã§ã¯ã‚ã‚‹ã‘ã©
+                // WEæŒ‡å®šã—ãŸå¾Œã«å†åº¦é€šå¸¸ã®é›£æ˜“åº¦æŒ‡å®šã—ãŸãªã‚‰Levelã€UExtraDifficultyã¯ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã¨ã—ã¦äº’æ›æ€§ãªã„ã®ã§åˆæœŸåŒ–
+                // é€šå¸¸ã®é›£æ˜“åº¦æŒ‡å®šã—ãŸå¾Œã«å†åº¦é€šå¸¸ã®é›£æ˜“åº¦æŒ‡å®šã—ãŸãªã‚‰ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’å¼•ãç¶™ã
+                if (SharedMetaData.DifficultyType == 4) {
+                    SharedMetaData.Level = 0;
+                    SharedMetaData.UExtraDifficulty = u8"";
+                }
+                SharedMetaData.DifficultyType = difficultyType;
             } else {
-                //WE‹L–@
+                //WEè¨˜æ³•
                 auto dd = convertRawString(result[2]);
                 vector<string> params;
                 ba::split(params, dd, ba::is_any_of(":"));
-                if (params.size() < 2) return;
+                if (params.size() < 2) {
+                    MakeMessage(line, u8"é›£æ˜“åº¦æŒ‡å®šæ›¸å¼ãŒä¸æ­£ã§ã™ã€‚");
+                    return;
+                }
                 SharedMetaData.DifficultyType = 4;
-                SharedMetaData.Level = ConvertInteger(params[0]);
-                SharedMetaData.UExtraDifficulty = params[1];
+                SharedMetaData.Level = ConvertInteger(params[0]); // æ˜Ÿã®æ•°ã¨ã—ã¦æ‰±ã†
+                SharedMetaData.UExtraDifficulty = params[1]; // é›£æ˜“åº¦æ–‡å­—ã¨ã—ã¦æ‰±ã†
             }
             break;
         }
@@ -282,40 +305,46 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
             SharedMetaData.BaseBpm = ConvertFloat(result[2]);
             break;
 
-            //Ÿˆ‚©‚çæ‚Íƒf[ƒ^“à‚Åg‚¤—p
+            //æ­¤å‡¦ã‹ã‚‰å…ˆã¯ãƒ‡ãƒ¼ã‚¿å†…ã§ä½¿ã†ç”¨
         case "HISPEED"_crc32: {
             if (onlyMeta) break;
             const auto hsn = ConvertHexatridecimal(result[2]);
             if (hispeedDefinitions.find(hsn) == hispeedDefinitions.end()) {
-                MakeMessage(line, u8"w’è‚³‚ê‚½ƒ^ƒCƒ€ƒ‰ƒCƒ“‚ª‘¶İ‚µ‚Ü‚¹‚ñ");
+                MakeMessage(line, u8"æŒ‡å®šã•ã‚ŒãŸã‚¿ã‚¤ãƒ ãƒ©ã‚¤ãƒ³ãŒå­˜åœ¨ã—ã¾ã›ã‚“ã€‚");
                 break;
             }
             hispeedToApply = hispeedDefinitions[hsn];
             break;
         }
         case "NOSPEED"_crc32:
-            if (!onlyMeta) hispeedToApply = hispeedDefinitions[defaultHispeedNumber];
+            if (onlyMeta) break;
+
+            hispeedToApply = hispeedDefinitions[defaultHispeedNumber];
             break;
 
         case "ATTRIBUTE"_crc32: {
             if (onlyMeta) break;
+
             const auto ean = ConvertHexatridecimal(result[2]);
             if (extraAttributes.find(ean) == extraAttributes.end()) {
-                MakeMessage(line, u8"w’è‚³‚ê‚½ƒAƒgƒŠƒrƒ…[ƒg‚ª‘¶İ‚µ‚Ü‚¹‚ñ");
+                MakeMessage(line, u8"æŒ‡å®šã•ã‚ŒãŸã‚¢ãƒˆãƒªãƒ“ãƒ¥ãƒ¼ãƒˆãŒå­˜åœ¨ã—ã¾ã›ã‚“ã€‚");
                 break;
             }
             extraAttributeToApply = extraAttributes[ean];
             break;
         }
         case "NOATTRIBUTE"_crc32:
-            if (!onlyMeta) extraAttributeToApply = extraAttributes[defaultExtraAttributeNumber];
+            if (onlyMeta) break;
+
+            extraAttributeToApply = extraAttributes[defaultExtraAttributeNumber];
             break;
 
         case "MEASUREHS"_crc32: {
             if (onlyMeta) break;
+
             const auto hsn = ConvertHexatridecimal(result[2]);
             if (hispeedDefinitions.find(hsn) == hispeedDefinitions.end()) {
-                MakeMessage(line, u8"w’è‚³‚ê‚½ƒ^ƒCƒ€ƒ‰ƒCƒ“‚ª‘¶İ‚µ‚Ü‚¹‚ñ");
+                MakeMessage(line, u8"æŒ‡å®šã•ã‚ŒãŸã‚¿ã‚¤ãƒ ãƒ©ã‚¤ãƒ³ãŒå­˜åœ¨ã—ã¾ã›ã‚“ã€‚");
                 break;
             }
             hispeedToMeasure = hispeedDefinitions[hsn];
@@ -324,17 +353,30 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
 
         case "MEASUREBS"_crc32: {
             if (onlyMeta) break;
+
             const auto bsc = ConvertInteger(result[2]);
             if (bsc < 0) {
-                MakeMessage(line, u8"¬ßƒIƒtƒZƒbƒg‚Ì’l‚ª•s³‚Å‚·");
+                MakeMessage(line, u8"å°ç¯€ã‚ªãƒ•ã‚»ãƒƒãƒˆã®å€¤ãŒä¸æ­£ã§ã™ã€‚");
                 break;
             }
             measureCountOffset = bsc;
             break;
         }
 
+        case "CHANNELBS"_crc32: {
+            if (onlyMeta) break;
+
+            const auto bsc = ConvertInteger(result[2]);
+            if (bsc < 0) {
+                MakeMessage(line, u8"ãƒãƒ£ãƒ³ãƒãƒ«ã‚ªãƒ•ã‚»ãƒƒãƒˆã®å€¤ãŒä¸æ­£ã§ã™ã€‚");
+                break;
+            }
+            longNoteChannelOffset = bsc;
+            break;
+        }
+
         default:
-            MakeMessage(line, u8"SUSƒRƒ}ƒ“ƒh‚ª–³Œø‚Å‚·");
+            MakeMessage(line, u8"SUSã‚³ãƒãƒ³ãƒ‰ãŒç„¡åŠ¹ã§ã™ã€‚");
             break;
     }
 
@@ -356,11 +398,11 @@ void SusAnalyzer::ProcessRequest(const string &cmd, const uint32_t line)
             ticksPerBeat = ConvertInteger(params[1]);
             break;
         case "enable_priority"_crc32:
-            MakeMessage(line, u8"—Dæ“x‚Â‚«ƒm[ƒc•`‰æ‚ªİ’è‚³‚ê‚Ü‚·");
+            MakeMessage(line, u8"å„ªå…ˆåº¦ã¤ããƒãƒ¼ãƒ„æç”»ãŒè¨­å®šã•ã‚Œã¾ã™ã€‚");
             SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::EnableDrawPriority)] = ConvertBoolean(params[1]);
             break;
         case "enable_moving_lane"_crc32:
-            MakeMessage(line, u8"ˆÚ“®ƒŒ[ƒ“ƒTƒ|[ƒg‚ªİ’è‚³‚ê‚Ü‚·");
+            MakeMessage(line, u8"ç§»å‹•ãƒ¬ãƒ¼ãƒ³ã‚µãƒãƒ¼ãƒˆãŒè¨­å®šã•ã‚Œã¾ã™ã€‚");
             SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::EnableMovingLane)] = ConvertBoolean(params[1]);
             break;
         case "segments_per_second"_crc32:
@@ -379,19 +421,19 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
     ba::erase_all(pattern, " ");
 
     /*
-     ”»’è‡‚É‚Â‚¢‚Ä
-     0. #...** (BPM‚È‚Ç)
-     1. #---0* (“Áêƒf[ƒ^A’è‹`•ªŠ„•s‰Â)
+     åˆ¤å®šé †ã«ã¤ã„ã¦
+     0. #...** (BPMãªã©)
+     1. #---0* (ç‰¹æ®Šãƒ‡ãƒ¼ã‚¿ã€å®šç¾©åˆ†å‰²ä¸å¯)
      2. #---1* (Short)
      3. #---5* (Air)
      4. #---[234]*. (Long)
     */
 
     const auto noteCount = pattern.length() / 2;
-    const auto step = uint32_t(ticksPerBeat * GetBeatsAt(measureCountOffset + ConvertInteger(meas))) / (!noteCount ? 1 : noteCount);
+    const auto step = uint32_t(ticksPerBeat * GetBeatsAt(GetMeasureCount(ConvertInteger(meas)))) / (!noteCount ? 1 : noteCount);
 
     if (!regex_match(meas, allNumeric)) {
-        // ƒRƒ}ƒ“ƒhƒf[ƒ^
+        // ã‚³ãƒãƒ³ãƒ‰ãƒ‡ãƒ¼ã‚¿
         transform(meas.cbegin(), meas.cend(), meas.begin(), toUpper);
         if (meas == "BPM") {
             const auto number = ConvertHexatridecimal(lane);
@@ -419,36 +461,39 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
                 it->second->Apply(convertRawString(pattern));
             }
         } else {
-            MakeMessage(line, u8"•s³‚Èƒf[ƒ^ƒRƒ}ƒ“ƒh‚Å‚·");
+            MakeMessage(line, u8"ä¸æ­£ãªãƒ‡ãƒ¼ã‚¿ã‚³ãƒãƒ³ãƒ‰ã§ã™ã€‚");
         }
     } else if (lane[0] == '0') {
         switch (lane[1]) {
             case '2':
-                // ¬ß’·
-                beatsDefinitions[measureCountOffset + ConvertInteger(meas)] = ConvertFloat(pattern);
+                // å°ç¯€é•·
+                beatsDefinitions[GetMeasureCount(ConvertInteger(meas))] = ConvertFloat(pattern);
                 break;
             case '8': {
                 // BPM
                 for (auto i = 0u; i < noteCount; i++) {
                     const auto note = pattern.substr(i * 2, 2);
+
                     SusRawNoteData noteData;
-                    SusRelativeNoteTime time = { measureCountOffset + ConvertInteger(meas), step * i };
                     noteData.Type.set(size_t(SusNoteType::Undefined));
                     noteData.DefinitionNumber = ConvertHexatridecimal(note);
-                    if (noteData.DefinitionNumber) notes.emplace_back(time, noteData);
+                    if (!noteData.DefinitionNumber) continue;
+
+                    const SusRelativeNoteTime time = { GetMeasureCount(ConvertInteger(meas)), step * i };
+                    notes.emplace_back(time, noteData);
                 }
                 break;
             }
             default:
-                MakeMessage(line, u8"•s³‚Èƒf[ƒ^ƒRƒ}ƒ“ƒh‚Å‚·");
+                MakeMessage(line, u8"ä¸æ­£ãªãƒ‡ãƒ¼ã‚¿ã‚³ãƒãƒ³ãƒ‰ã§ã™ã€‚");
                 break;
         }
     } else if (lane[0] == '1') {
-        // ƒVƒ‡[ƒgƒm[ƒc
+        // ã‚·ãƒ§ãƒ¼ãƒˆãƒãƒ¼ãƒ„
         for (auto i = 0u; i < noteCount; i++) {
-            auto note = pattern.substr(i * 2, 2);
+            const auto note = pattern.substr(i * 2, 2);
+
             SusRawNoteData noteData;
-            SusRelativeNoteTime time = { measureCountOffset + ConvertInteger(meas), step * i };
             noteData.NotePosition.StartLane = ConvertHexatridecimal(lane.substr(1, 1));
             noteData.NotePosition.Length = ConvertHexatridecimal(note.substr(1, 1));
             noteData.Timeline = hispeedToApply;
@@ -477,17 +522,19 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
                     break;
                 default:
                     if (note[1] == '0') continue;
-                    MakeMessage(line, u8"ƒVƒ‡[ƒgƒŒ[ƒ“‚Ìw’è‚ª•s³‚Å‚·B");
+                    MakeMessage(line, u8"ã‚·ãƒ§ãƒ¼ãƒˆãƒ¬ãƒ¼ãƒ³ã®æŒ‡å®šãŒä¸æ­£ã§ã™ã€‚");
                     continue;
             }
+
+            const SusRelativeNoteTime time = { GetMeasureCount(ConvertInteger(meas)), step * i };
             notes.emplace_back(time, noteData);
         }
     } else if (lane[0] == '5') {
-        // Airƒm[ƒc
+        // Airãƒãƒ¼ãƒ„
         for (auto i = 0u; i < noteCount; i++) {
-            auto note = pattern.substr(i * 2, 2);
+            const auto note = pattern.substr(i * 2, 2);
+
             SusRawNoteData noteData;
-            SusRelativeNoteTime time = { measureCountOffset + ConvertInteger(meas), step * i };
             noteData.NotePosition.StartLane = ConvertHexatridecimal(lane.substr(1, 1));
             noteData.NotePosition.Length = ConvertHexatridecimal(note.substr(1, 1));
             noteData.Timeline = hispeedToApply;
@@ -541,20 +588,22 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
                     break;
                 default:
                     if (note[1] == '0') continue;
-                    MakeMessage(line, u8"AirƒŒ[ƒ“‚Ìw’è‚ª•s³‚Å‚·B");
+                    MakeMessage(line, u8"Airãƒ¬ãƒ¼ãƒ³ã®æŒ‡å®šãŒä¸æ­£ã§ã™ã€‚");
                     continue;
             }
+
+            const SusRelativeNoteTime time = { GetMeasureCount(ConvertInteger(meas)), step * i };
             notes.emplace_back(time, noteData);
         }
     } else if (lane.length() == 3 && lane[0] >= '2' && lane[0] <= '4') {
-        // ƒƒ“ƒOƒ^ƒCƒv
+        // ãƒ­ãƒ³ã‚°ã‚¿ã‚¤ãƒ—
         for (auto i = 0u; i < noteCount; i++) {
-            auto note = pattern.substr(i * 2, 2);
+            const auto note = pattern.substr(i * 2, 2);
+
             SusRawNoteData noteData;
-            SusRelativeNoteTime time = { measureCountOffset + ConvertInteger(meas), step * i };
             noteData.NotePosition.StartLane = ConvertHexatridecimal(lane.substr(1, 1));
             noteData.NotePosition.Length = ConvertHexatridecimal(note.substr(1, 1));
-            noteData.Extra = ConvertHexatridecimal(lane.substr(2, 1));
+            noteData.Extra = GetLongNoteChannel(ConvertHexatridecimal(lane.substr(2, 1)));
             noteData.Timeline = hispeedToApply;
             noteData.ExtraAttribute = extraAttributeToApply;
 
@@ -569,7 +618,7 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
                     noteData.Type.set(size_t(SusNoteType::AirAction));
                     break;
                 default:
-                    MakeMessage(line, u8"ƒƒ“ƒOƒŒ[ƒ“‚Ìw’è‚ª•s³‚Å‚·B");
+                    MakeMessage(line, u8"ãƒ­ãƒ³ã‚°ãƒ¬ãƒ¼ãƒ³ã®æŒ‡å®šãŒä¸æ­£ã§ã™ã€‚");
                     continue;
             }
             switch (note[0]) {
@@ -590,57 +639,66 @@ void SusAnalyzer::ProcessData(const xp::smatch &result, const uint32_t line)
                     break;
                 default:
                     if (note[1] == '0') continue;
-                    MakeMessage(line, u8"ƒm[ƒcí—Ş‚Ìw’è‚ª•s³‚Å‚·B");
+                    MakeMessage(line, u8"ãƒãƒ¼ãƒ„ç¨®é¡ã®æŒ‡å®šãŒä¸æ­£ã§ã™ã€‚");
                     continue;
             }
+
+            const SusRelativeNoteTime time = { GetMeasureCount(ConvertInteger(meas)), step * i };
             notes.emplace_back(time, noteData);
         }
     } else if (lane.length() == 3 && lane[0] == '9') {
-        // z = 0‚ÌƒŒ[ƒ“w’è(Tap) #mmm800~#mmm80f~#mmm8ff
+        // z = 0ã®ãƒ¬ãƒ¼ãƒ³æŒ‡å®š(Tap) #mmm800~#mmm80f~#mmm8ff
         const auto endlane = lane.substr(1, 1);
         const auto startlane = lane.substr(2, 1);
 
         for (auto i = 0u; i < noteCount; i++) {
-            auto note = pattern.substr(i * 2, 2);
+            const auto note = pattern.substr(i * 2, 2);
             if (note[1] == '0') continue;
             if (note[0] != '1') {
-                MakeMessage(line, u8"ƒXƒ^[ƒgƒŒ[ƒ“‚Ìw’è‚ª•s³‚Å‚·B");
+                MakeMessage(line, u8"ã‚¹ã‚¿ãƒ¼ãƒˆãƒ¬ãƒ¼ãƒ³ã®æŒ‡å®šãŒä¸æ­£ã§ã™ã€‚");
                 continue;
             }
+
             SusRawNoteData noteData;
-            SusRelativeNoteTime time = { measureCountOffset + ConvertInteger(meas), step * i };
             noteData.NotePosition.StartLane = ConvertHexatridecimal(endlane);
             noteData.Extra = ConvertHexatridecimal(startlane);
             noteData.NotePosition.Length = ConvertHexatridecimal(note.substr(1, 1));
             noteData.Type.set(size_t(SusNoteType::StartPosition));
             // noteData.Timeline = hispeedToApply;
             // noteData.ExtraAttribute = extraAttributeToApply;
+
+            const SusRelativeNoteTime time = { GetMeasureCount(ConvertInteger(meas)), step * i };
             notes.emplace_back(time, noteData);
         }
     } else {
-        // •s³
-        MakeMessage(line, u8"•s³‚Èƒf[ƒ^’è‹`‚Å‚·B");
+        // ä¸æ­£
+        MakeMessage(line, u8"ä¸æ­£ãªãƒ‡ãƒ¼ã‚¿å®šç¾©ã§ã™ã€‚");
     }
 }
 
-void SusAnalyzer::MakeMessage(const uint32_t line, const string &message)
+void SusAnalyzer::MakeMessage(const string &message) const
 {
-    ostringstream ss;
-    ss << line << u8"s–Ú: " << message;
-    for (const auto &cb : errorCallbacks) cb("Error", ss.str());
+    for (const auto &cb : errorCallbacks) cb("Error", message);
 }
 
-void SusAnalyzer::MakeMessage(const uint32_t meas, const uint32_t tick, const uint32_t lane, const std::string &message)
+void SusAnalyzer::MakeMessage(const uint32_t line, const string &message) const
+{
+    ostringstream ss;
+    ss << line << u8"è¡Œç›®: " << message;
+    MakeMessage(ss.str());
+}
+
+void SusAnalyzer::MakeMessage(const uint32_t meas, const uint32_t tick, const uint32_t lane, const std::string &message) const
 {
     ostringstream ss;
     ss << meas << u8"'" << tick << u8"@" << lane << u8": " << message;
-    for (const auto &cb : errorCallbacks) cb("Error", ss.str());
+    MakeMessage(ss.str());
 }
 
 float SusAnalyzer::GetBeatsAt(const uint32_t measure)
 {
     float result = defaultBeats;
-    auto last = 0;
+    auto last = 0u;
     for (auto &t : beatsDefinitions) {
         if (t.first >= last && t.first <= measure) {
             result = t.second;
@@ -653,10 +711,18 @@ float SusAnalyzer::GetBeatsAt(const uint32_t measure)
 double SusAnalyzer::GetBpmAt(const uint32_t measure, const uint32_t tick)
 {
     auto result = defaultBpm;
+    auto lastMeasure = 0u;
+    auto lastTick = 0u;
     for (auto &t : bpmChanges) {
-        if (get<0>(t).Measure != measure) continue;
-        if (get<0>(t).Tick < tick) continue;
+        const auto tMeasure = get<0>(t).Measure;
+        const auto tTick = get<0>(t).Tick;
+        if (tMeasure > measure || tMeasure < lastMeasure) continue;
+        if (tMeasure == measure && lastTick >= tTick) continue;
+
         result = bpmDefinitions[get<1>(t).DefinitionNumber];
+
+        lastMeasure = tMeasure;
+        lastTick = tTick;
     }
     return result;
 }
@@ -665,7 +731,7 @@ double SusAnalyzer::GetAbsoluteTime(uint32_t meas, uint32_t tick)
 {
     auto time = 0.0;
     auto lastBpm = defaultBpm;
-    //’´‰ß‚µ‚½tickw’è‚É‚à‘Î‰‚µ‚½‚Ù‚¤‚ªg‚¢‚â‚·‚¢‚æ‚Ë
+    //è¶…éã—ãŸtickæŒ‡å®šã«ã‚‚å¯¾å¿œã—ãŸã»ã†ãŒä½¿ã„ã‚„ã™ã„ã‚ˆã­
     while (tick >= GetBeatsAt(meas) * ticksPerBeat) tick -= GetBeatsAt(meas++) * ticksPerBeat;
 
     for (auto i = 0u; i < meas + 1; i++) {
@@ -726,33 +792,39 @@ uint32_t SusAnalyzer::GetRelativeTicks(const uint32_t measure, const uint32_t ti
 
 void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curveData)
 {
-    // •s³ƒ`ƒFƒbƒNƒŠƒXƒg
-    // ƒVƒ‡[ƒg: ‚Í‚İo‚µ‚Í‘S•”ƒAƒEƒg
-    // ƒz[ƒ‹ƒh: ƒPƒc–³‚µƒAƒEƒg(ƒPƒc˜A‚Í–³‹)AStep/Control–â“š–³—pƒAƒEƒgAƒPƒcˆá‚¢ƒAƒEƒg
-    // ƒXƒ‰ƒCƒhAAA: ƒPƒc–³‚µƒAƒEƒg(ƒPƒc˜A‚Í–³‹)
+    // ä¸æ­£ãƒã‚§ãƒƒã‚¯ãƒªã‚¹ãƒˆ
+    // ã‚·ãƒ§ãƒ¼ãƒˆ: ã¯ã¿å‡ºã—ã¯å…¨éƒ¨ã‚¢ã‚¦ãƒˆ
+    // ãƒ›ãƒ¼ãƒ«ãƒ‰: ã‚±ãƒ„ç„¡ã—ã‚¢ã‚¦ãƒˆ(ã‚±ãƒ„é€£ã¯ç„¡è¦–)ã€Step/Controlå•ç­”ç„¡ç”¨ã‚¢ã‚¦ãƒˆã€ã‚±ãƒ„é•ã„ã‚¢ã‚¦ãƒˆ
+    // ã‚¹ãƒ©ã‚¤ãƒ‰ã€AA: ã‚±ãƒ„ç„¡ã—ã‚¢ã‚¦ãƒˆ(ã‚±ãƒ„é€£ã¯ç„¡è¦–)
     data.clear();
-    for (auto& note : notes) {
+    for (const auto& note : notes) {
         const auto time = get<0>(note);
-        auto info = get<1>(note);
+        const auto info = get<1>(note);
         if (info.Type[size_t(SusNoteType::Step)]) continue;
         if (info.Type[size_t(SusNoteType::Control)]) continue;
         if (info.Type[size_t(SusNoteType::Invisible)]) continue;
         if (info.Type[size_t(SusNoteType::End)]) continue;
         if (info.Type[size_t(SusNoteType::Undefined)]) continue;
 
-        const auto bits = info.Type.to_ulong();
+        if (info.NotePosition.StartLane + info.NotePosition.Length > 16) {
+            MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"ã‚·ãƒ§ãƒ¼ãƒˆãƒãƒ¼ãƒ„ãŒã¯ã¿å‡ºã—ã¦ã„ã¾ã™ã€‚");
+            continue;
+        }
+
         auto noteData = make_shared<SusDrawableNoteData>();
+        noteData->Type = info.Type;
+        noteData->Timeline = info.Timeline;
+        noteData->ExtraAttribute = info.ExtraAttribute;
+        noteData->StartTime = GetAbsoluteTime(time.Measure, time.Tick);
+        noteData->Duration = 0;
+        noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
+        noteData->StartLane = info.NotePosition.StartLane;
+        noteData->Length = info.NotePosition.Length;
+        noteData->CenterAtZero = noteData->StartLane + noteData->Length / 2.0;
+
+        const auto bits = info.Type.to_ulong();
         if (bits & SU_NOTE_LONG_MASK) {
             auto genCurve = true;
-            noteData->Type = info.Type;
-            noteData->StartTime = GetAbsoluteTime(time.Measure, time.Tick);
-            noteData->StartLane = info.NotePosition.StartLane;
-            noteData->Length = info.NotePosition.Length;
-            noteData->CenterAtZero = noteData->StartLane + noteData->Length / 2.0;
-            noteData->Timeline = info.Timeline;
-            noteData->ExtraAttribute = info.ExtraAttribute;
-            noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
-
             auto ltype = SusNoteType::Undefined;
             switch ((bits >> 7) & 7) {
                 case 1:
@@ -765,39 +837,47 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                 case 4:
                     ltype = SusNoteType::AirAction;
                     break;
-                default: break;
+                default:
+                    MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"è‡´å‘½çš„ãªãƒãƒ¼ãƒ„ã‚¨ãƒ©ãƒ¼(ä¸æ­£ãªå†…éƒ¨è¡¨ç¾ã§ã™)ã€‚");
+                    continue;
             }
 
             auto completed = false;
             auto lastStep = note;
             for (const auto &it : notes) {
                 const auto curPos = get<0>(it);
-                auto curNo = get<1>(it);
+                const auto curNo = get<1>(it);
+
+                if (curNo.Type.test(size_t(SusNoteType::Start))) continue;
                 if (!curNo.Type.test(size_t(ltype)) || curNo.Extra != info.Extra) continue;
-                if (curPos.Measure < time.Measure) continue;
-                if (curPos.Measure == time.Measure && curPos.Tick < time.Tick) continue;
+                if (curPos < time) continue;
+
+                if (curNo.NotePosition.StartLane + curNo.NotePosition.Length > 16) {
+                    MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"ãƒãƒ¼ãƒ„ãŒã¯ã¿å‡ºã—ã¦ã„ã¾ã™ã€‚");
+                    continue;
+                }
 
                 switch (ltype) {
                     case SusNoteType::Hold: {
-                        if (curNo.Type.test(size_t(SusNoteType::Control)) || curNo.Type.test(size_t(SusNoteType::Invisible)))
-                            MakeMessage(curPos.Measure, curPos.Tick, curNo.NotePosition.StartLane, u8"Hold‚ÅControl/Invisible‚Íw’è‚Å‚«‚Ü‚¹‚ñB");
-                        if (curNo.NotePosition.StartLane != info.NotePosition.StartLane || curNo.NotePosition.Length != info.NotePosition.Length) continue;
+                        if (curNo.Type.test(size_t(SusNoteType::Control)) || curNo.Type.test(size_t(SusNoteType::Invisible))) {
+                            MakeMessage(curPos.Measure, curPos.Tick, curNo.NotePosition.StartLane, u8"Holdã§Control/Invisibleã¯æŒ‡å®šã§ãã¾ã›ã‚“ã€‚");
+                            continue;
+                        }
+                        if (curNo.DefinitionNumber != info.DefinitionNumber) continue;
                     }
-                                            /* ƒz[ƒ‹ƒh‚¾‚¯’Ç‰Áƒ`ƒFƒbƒN‚µ‚ÄƒtƒH[ƒ‹ƒXƒ‹[ */
+                                            /* ãƒ›ãƒ¼ãƒ«ãƒ‰ã ã‘è¿½åŠ ãƒã‚§ãƒƒã‚¯ã—ã¦ãƒ•ã‚©ãƒ¼ãƒ«ã‚¹ãƒ«ãƒ¼ */
                     case SusNoteType::Slide:
                     case SusNoteType::AirAction: {
-                        if (curNo.Type.test(size_t(SusNoteType::Start))) break;
-
                         auto nextNote = make_shared<SusDrawableNoteData>();
-                        nextNote->StartTime = GetAbsoluteTime(curPos.Measure, curPos.Tick);
-                        nextNote->StartLane = curNo.NotePosition.StartLane;
-                        nextNote->Length = curNo.NotePosition.Length;
-                        // b’è
-                        nextNote->CenterAtZero = nextNote->StartLane + nextNote->Length / 2.0;
                         nextNote->Type = curNo.Type;
                         nextNote->Timeline = curNo.Timeline;
                         nextNote->ExtraAttribute = curNo.ExtraAttribute;
+                        nextNote->StartTime = GetAbsoluteTime(curPos.Measure, curPos.Tick);
                         nextNote->StartTimeEx = get<1>(nextNote->Timeline->GetRawDrawStateAt(nextNote->StartTime));
+                        nextNote->StartLane = curNo.NotePosition.StartLane;
+                        nextNote->Length = curNo.NotePosition.Length;
+                        // æš«å®š
+                        nextNote->CenterAtZero = nextNote->StartLane + nextNote->Length / 2.0;
 
                         if (curNo.Type.test(size_t(SusNoteType::Step)) || curNo.Type.test(size_t(SusNoteType::End))) {
                             const auto lsrt = get<0>(lastStep);
@@ -820,60 +900,45 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                         noteData->ExtraData.push_back(nextNote);
                         break;
                     }
-                    default:
-                        // TODO: ‘½•ªƒGƒ‰[
-                        break;
                 }
                 if (completed) break;
             }
             if (!completed) {
-                MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"ƒƒ“ƒOƒm[ƒc‚ÉI“_‚ª‚ ‚è‚Ü‚¹‚ñB");
-            } else {
-                data.push_back(noteData);
-                SharedMetaData.ScoreDuration = max(SharedMetaData.ScoreDuration, noteData->StartTime + noteData->Duration);
-                if (genCurve) CalculateCurves(noteData, curveData);
+                MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"ãƒ­ãƒ³ã‚°ãƒãƒ¼ãƒ„ã«çµ‚ç‚¹ãŒã‚ã‚Šã¾ã›ã‚“ã€‚");
+                continue;
             }
+
+            SharedMetaData.ScoreDuration = max(SharedMetaData.ScoreDuration, noteData->StartTime + noteData->Duration);
+            if (genCurve) CalculateCurves(noteData, curveData);
         } else if (bits & SU_NOTE_SHORT_MASK) {
-            // ƒVƒ‡[ƒg
-            if (info.NotePosition.StartLane + info.NotePosition.Length > 16) {
-                MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"ƒVƒ‡[ƒgƒm[ƒc‚ª‚Í‚İo‚µ‚Ä‚¢‚Ü‚·B");
-            }
-            noteData->Type = info.Type;
-            noteData->StartTime = GetAbsoluteTime(time.Measure, time.Tick);
-            noteData->Duration = 0;
-            noteData->StartLane = info.NotePosition.StartLane;
-            noteData->Length = info.NotePosition.Length;
-            noteData->Timeline = info.Timeline;
-            noteData->ExtraAttribute = info.ExtraAttribute;
-            noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
-            // RollHispeed‘g‚İ‚İ
+            // RollHispeedçµ„ã¿è¾¼ã¿
             if (noteData->ExtraAttribute->RollHispeedNumber >= 0) {
                 if (hispeedDefinitions.find(noteData->ExtraAttribute->RollHispeedNumber) != hispeedDefinitions.end()) {
                     noteData->ExtraAttribute->RollTimeline = hispeedDefinitions[noteData->ExtraAttribute->RollHispeedNumber];
                 } else {
-                    MakeMessage(0, u8"w’è‚³‚ê‚½ƒ^ƒCƒ€ƒ‰ƒCƒ“‚ª‘¶İ‚µ‚Ü‚¹‚ñ");
+                    MakeMessage(0, u8"æŒ‡å®šã•ã‚ŒãŸã‚¿ã‚¤ãƒ ãƒ©ã‚¤ãƒ³ãŒå­˜åœ¨ã—ã¾ã›ã‚“ã€‚");
                     noteData->ExtraAttribute->RollHispeedNumber = -1;
                 }
             }
-            // Airİ’uˆ—
-            // if ((‰º‚É•Êƒm[ƒc‚ª‚ ‚é && ‚»‚ê‚Íƒƒ“ƒOI“_) || ‰º‚É•Êƒm[ƒc‚ª‚È‚¢)
+
+            // Airè¨­ç½®å‡¦ç†
+            // if ((ä¸‹ã«åˆ¥ãƒãƒ¼ãƒ„ãŒã‚ã‚‹ && ãã‚Œã¯ãƒ­ãƒ³ã‚°çµ‚ç‚¹) || ä¸‹ã«åˆ¥ãƒãƒ¼ãƒ„ãŒãªã„)
             if (info.Type[size_t(SusNoteType::Air)] && !info.Type[size_t(SusNoteType::Grounded)]) {
                 auto require = true;
                 for (const auto &target : notes) {
-                    // ©•ª©g‚ÍAirİ’uˆ—‘ÎÛ‚©‚ç‚Í‚¶‚­
-                    if (get<1>(target) == get<1>(note)) continue;
-
-                    // ”»’è‚ªˆÙ‚È‚éƒm[ƒc‚Íˆ—‘ÎÛ‚©‚ç‚Í‚¶‚­
                     const auto gtime = get<0>(target);
+                    const auto ginfo = get<1>(target);
+
+                    // åˆ¤å®šæ™‚åˆ»ãŒç•°ãªã‚‹ãƒãƒ¼ãƒ„ã¯å‡¦ç†å¯¾è±¡ã‹ã‚‰ã¯ã˜ã
                     if (time != gtime) continue;
 
-                    // ©•ª©g‚ÆˆÊ’uAƒTƒCƒY‚ªˆÙ‚È‚éƒm[ƒc‚Íˆ—‘ÎÛ‚©‚ç‚Í‚¶‚­
-                    auto ginfo = get<1>(target);
-                    if (info.NotePosition.StartLane != ginfo.NotePosition.StartLane
-                        || info.NotePosition.Length != ginfo.NotePosition.Length)
-                        continue;
+                    // è‡ªåˆ†è‡ªèº«ã¨ä½ç½®ã€ã‚µã‚¤ã‚ºãŒç•°ãªã‚‹ãƒãƒ¼ãƒ„ã¯å‡¦ç†å¯¾è±¡ã‹ã‚‰ã¯ã˜ã
+                    if (info.DefinitionNumber != ginfo.DefinitionNumber) continue;
 
-                    // ƒVƒ‡[ƒgƒm[ƒc‚È‚ç‚ÎAAirŒn‚Å‚È‚¢‚È‚ç‚Îİ’u‚·‚é•K—v‚È‚µAAirŒn‚È‚çˆ—‘ÎÛ‚©‚ç‚Í‚¶‚­
+                    // è‡ªåˆ†è‡ªèº«ã¨ç•°ãªã‚‹ãƒã‚¤ã‚¹ãƒ”æŒ‡å®šãŒãªã•ã‚Œã¦ã„ã‚‹ãƒãƒ¼ãƒ„ã¯å‡¦ç†å¯¾è±¡ã‹ã‚‰ã¯ã˜ã
+                    if (info.Timeline != ginfo.Timeline) continue;
+
+                    // ã‚·ãƒ§ãƒ¼ãƒˆãƒãƒ¼ãƒ„ãªã‚‰ã°ã€Airç³»ã§ãªã„ãªã‚‰ã°è¨­ç½®ã™ã‚‹å¿…è¦ãªã—ã€Airç³»ãªã‚‰å‡¦ç†å¯¾è±¡ã‹ã‚‰ã¯ã˜ã
                     const auto tbits = ginfo.Type.to_ulong();
                     if (tbits & SU_NOTE_SHORT_MASK) {
                         if (ginfo.Type[size_t(SusNoteType::Air)]) continue;
@@ -882,24 +947,25 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                         break;
                     }
 
-                    // (ƒVƒ‡[ƒgƒm[ƒc‚Å‚È‚­‚Ä)SlideAHold‚Å‚È‚¯‚ê‚Îˆ—‘ÎÛ‚©‚ç‚Í‚¶‚­
+                    // (ã‚·ãƒ§ãƒ¼ãƒˆãƒãƒ¼ãƒ„ã§ãªãã¦)Slideã€Holdã§ãªã‘ã‚Œã°å‡¦ç†å¯¾è±¡ã‹ã‚‰ã¯ã˜ã
                     if (!ginfo.Type[size_t(SusNoteType::Slide)] && !ginfo.Type[size_t(SusNoteType::Hold)]) continue;
 
-                    // (SlideAHold‚Ì)I“_‚È‚ç‚ÎAİ’u‚·‚é•K—v‚ ‚è
+                    // (Slideã€Holdã®)çµ‚ç‚¹ãªã‚‰ã°ã€è¨­ç½®ã™ã‚‹å¿…è¦ã‚ã‚Š
                     if (ginfo.Type[size_t(SusNoteType::End)]) {
                         require = true;
                         break;
                     }
 
-                    // (SlideAHold‚Ì)n“_‚È‚ç‚ÎAİ’u‚·‚é•K—v‚È‚µ
+                    // (Slideã€Holdã®)å§‹ç‚¹ãªã‚‰ã°ã€è¨­ç½®ã™ã‚‹å¿…è¦ã¯ç„¡ã„ãŒã€ç¢ºå®šã§ã¯ãªã„
+                    // å§‹ç‚¹çµ‚ç‚¹ãŒã‹ã¶ã£ã¦ã„ãŸå ´åˆã«å®šç¾©é †(ã¨ã„ã†ã‹ã‚½ãƒ¼ãƒˆé †)ã«ä¾å­˜ã—ã¦ã—ã¾ã†ã®ã§ã‚ˆãã‚ã‹ã‚‰ã‚“
                     if (ginfo.Type[size_t(SusNoteType::Start)]) {
                         require = false;
-                        break;
+                        //break;
                     }
                 }
                 if (require) noteData->Type.set(size_t(SusNoteType::Grounded));
             }
-            // ˆÚ“®ƒŒ[ƒ“ˆ—
+            // ç§»å‹•ãƒ¬ãƒ¼ãƒ³å‡¦ç†
             noteData->CenterAtZero = noteData->StartLane + noteData->Length / 2.0;
             if (SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::EnableMovingLane)]) {
                 for (const auto &startSource : notes) {
@@ -911,38 +977,33 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                     noteData->CenterAtZero = mlinfo.Extra + mlinfo.NotePosition.Length / 2.0;
                 }
             }
-            data.push_back(noteData);
+
             SharedMetaData.ScoreDuration = max(SharedMetaData.ScoreDuration, noteData->StartTime);
         } else if (info.Type[size_t(SusNoteType::MeasureLine)]) {
-            noteData->Type = info.Type;
-            noteData->ExtraAttribute = info.ExtraAttribute;
-            noteData->StartTime = GetAbsoluteTime(time.Measure, 0);
-            noteData->Duration = 0;
-            noteData->Timeline = info.Timeline;
-            noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
-            data.push_back(noteData);
         } else if (!info.Type[size_t(SusNoteType::StartPosition)]) {
-            MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"’v–½“I‚Èƒm[ƒcƒGƒ‰[(•s³‚È“à•”•\Œ»‚Å‚·)B");
+            MakeMessage(time.Measure, time.Tick, info.NotePosition.StartLane, u8"è‡´å‘½çš„ãªãƒãƒ¼ãƒ„ã‚¨ãƒ©ãƒ¼(ä¸æ­£ãªå†…éƒ¨è¡¨ç¾ã§ã™)ã€‚");
+            continue;
         }
+
+        data.push_back(noteData);
     }
 }
 
 void SusAnalyzer::CalculateCurves(const shared_ptr<SusDrawableNoteData>& note, NoteCurvesList &curveData) const
 {
     auto lastStep = note;
-    vector<tuple<double, double>> controlPoints;    // lastStep‚©‚ç‚ÌŠÔ, X’†‰›ˆÊ’u(0~1)
+    vector<tuple<double, double>> controlPoints;    // lastStepã‹ã‚‰ã®æ™‚é–“, Xä¸­å¤®ä½ç½®(0~1)
     vector<tuple<double, double>> bezierBuffer;
 
-    controlPoints.emplace_back(0, (lastStep->StartLane + lastStep->Length / 2.0) / 16.0);
+    controlPoints.emplace_back(0, lastStep->CenterAtZero / 16.0);
     for (auto &slideElement : note->ExtraData) {
         if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
-        if (slideElement->Type.test(size_t(SusNoteType::Control))) {
-            const auto cpi = make_tuple(slideElement->StartTime - lastStep->StartTime, (slideElement->StartLane + slideElement->Length / 2.0) / 16.0);
-            controlPoints.push_back(cpi);
-            continue;
-        }
-        // End‚©Step‚©Invisible
-        controlPoints.emplace_back(slideElement->StartTime - lastStep->StartTime, (slideElement->StartLane + slideElement->Length / 2.0) / 16.0);
+
+        const auto cpi = make_tuple(slideElement->StartTime - lastStep->StartTime, slideElement->CenterAtZero / 16.0);
+        controlPoints.push_back(cpi);
+        if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
+
+        // Endã‹Stepã‹Invisible
         const int segmentPoints = SharedMetaData.SegmentsPerSecond * (slideElement->StartTime - lastStep->StartTime) + 2;
         vector<tuple<double, double>> segmentPositions;
         for (auto j = 0; j < segmentPoints; j++) {
@@ -961,8 +1022,16 @@ void SusAnalyzer::CalculateCurves(const shared_ptr<SusDrawableNoteData>& note, N
         curveData[slideElement] = segmentPositions;
         lastStep = slideElement;
         controlPoints.clear();
-        controlPoints.emplace_back(0, (slideElement->StartLane + slideElement->Length / 2.0) / 16.0);
+        controlPoints.emplace_back(0, slideElement->CenterAtZero / 16.0);
     }
+}
+
+uint32_t SusAnalyzer::GetMeasureCount(uint32_t relativeMeasureCount) const {
+    return measureCountOffset + relativeMeasureCount;
+}
+
+uint32_t SusAnalyzer::GetLongNoteChannel(uint32_t relativeLongNoteChannel) const {
+    return longNoteChannelOffset + relativeLongNoteChannel;
 }
 
 // SusHispeedTimeline ------------------------------------------------------------------
@@ -985,19 +1054,28 @@ void SusHispeedTimeline::AddKeysByString(const string &def, const function<share
     for (const auto &k : ks) {
         vector<string> params;
         split(params, k, b::is_any_of(":"));
-        if (params.size() < 2) return;
+        if (params.size() < 2) {
+            //MakeMessage("ãƒã‚¤ã‚¹ãƒ”ãƒ¼ãƒ‰ã‚¿ã‚¤ãƒ ãƒ©ã‚¤ãƒ³ã®è§£æã«å¤±æ•—"); ã‚¨ãƒ©ãƒ¼ãƒ­ã‚°å‡ºã—ãŸã„ãŒâ€¦â€¦
+            continue;
+        }
+
         if (params[0] == "inherit") {
-            // ƒf[ƒ^—¬—p
-            const auto from = ConvertHexatridecimal(params[1]);
-            auto parent = resolver(from);
+            // ãƒ‡ãƒ¼ã‚¿æµç”¨
+            const auto parent = resolver(ConvertHexatridecimal(params[1]));
             if (!parent) continue;
-            for (auto &parentKey : parent->keys) keys.push_back(parentKey);
+
+            for (const auto &parentKey : parent->keys) keys.push_back(parentKey);
             continue;
         }
 
         vector<string> timing;
         split(timing, params[0], b::is_any_of("'"));
-        SusRelativeNoteTime time = { ConvertInteger(timing[0]), ConvertInteger(timing[1]) };
+        if (timing.size() < 2) {
+            //MakeMessage("ãƒã‚¤ã‚¹ãƒ”ãƒ¼ãƒ‰ã‚¿ã‚¤ãƒ ãƒ©ã‚¤ãƒ³ã®è§£æã«å¤±æ•—"); ã‚¨ãƒ©ãƒ¼ãƒ­ã‚°å‡ºã—ãŸã„ãŒâ€¦â€¦
+            continue;
+        }
+
+        const SusRelativeNoteTime time = { ConvertInteger(timing[0]), ConvertInteger(timing[1]) };
         SusHispeedData data = { SusHispeedData::Visibility::Keep, SusHispeedData::keepSpeed };
         for (auto i = 1u; i < params.size(); i++) {
             if (params[i] == "v" || params[i] == "visible") {
@@ -1008,6 +1086,7 @@ void SusHispeedTimeline::AddKeysByString(const string &def, const function<share
                 data.Speed = ConvertFloat(params[i]);
             }
         }
+
         auto found = false;
         for (auto &p : keys) {
             if (p.first == time) {
@@ -1034,7 +1113,7 @@ void SusHispeedTimeline::AddKeyByData(const uint32_t meas, const uint32_t tick, 
 
 void SusHispeedTimeline::AddKeyByData(const uint32_t meas, const uint32_t tick, const bool vis)
 {
-    SusRelativeNoteTime time = { meas, tick };
+    const SusRelativeNoteTime time = { meas, tick };
     const auto vv = vis ? SusHispeedData::Visibility::Visible : SusHispeedData::Visibility::Invisible;
     for (auto &p : keys) {
         if (p.first != time) continue;
@@ -1048,11 +1127,9 @@ void SusHispeedTimeline::AddKeyByData(const uint32_t meas, const uint32_t tick, 
 void SusHispeedTimeline::Finialize()
 {
     stable_sort(keys.begin(), keys.end(), [](const pair<SusRelativeNoteTime, SusHispeedData> &a, const pair<SusRelativeNoteTime, SusHispeedData> &b) {
-        return a.first.Tick < b.first.Tick;
+        return a.first < b.first;
     });
-    stable_sort(keys.begin(), keys.end(), [](const pair<SusRelativeNoteTime, SusHispeedData> &a, const pair<SusRelativeNoteTime, SusHispeedData> &b) {
-        return a.first.Measure < b.first.Measure;
-    });
+
     auto hs = 1.0;
     auto vis = true;
     for (auto &key : keys) {
@@ -1068,12 +1145,11 @@ void SusHispeedTimeline::Finialize()
         }
     }
 
-    auto it = keys.begin();
     double sum = 0;
     double lastAt = 0;
     auto lastSpeed = 1.0;
-    for (auto &rd : keys) {
-        auto t = relToAbs(rd.first.Measure, rd.first.Tick);
+    for (const auto &rd : keys) {
+        const auto t = relToAbs(rd.first.Measure, rd.first.Tick);
         sum += (t - lastAt) * lastSpeed;
         data.emplace_back(t, sum, rd.second);
         lastAt = t;
@@ -1086,7 +1162,7 @@ tuple<bool, double> SusHispeedTimeline::GetRawDrawStateAt(const double time)
 {
     auto lastData = data[0];
     auto check = 0;
-    for (auto &d : data) {
+    for (const auto &d : data) {
         if (!check++) continue;
         const auto keyTime = get<0>(d);
         if (keyTime >= time) break;
@@ -1100,7 +1176,7 @@ double SusHispeedTimeline::GetSpeedAt(const double time)
 {
     auto lastData = data[0];
     auto check = 0;
-    for (auto &d : data) {
+    for (const auto &d : data) {
         if (!check++) continue;
         const auto keyTime = get<0>(d);
         if (keyTime >= time) break;
@@ -1133,7 +1209,7 @@ void SusNoteExtraAttribute::Apply(const string &props)
     split(params, list, is_any_of(","));
 
     vector<string> pr;
-    for (auto& p : params) {
+    for (const auto& p : params) {
         pr.clear();
         split(pr, p, is_any_of(":"));
         if (pr.size() != 2) continue;
@@ -1151,7 +1227,7 @@ void SusNoteExtraAttribute::Apply(const string &props)
                 HeightScale = double(strtod(pr[1].c_str(), nullptr));
                 break;
             default:
-                // TODO: ƒƒbƒZ[ƒWo‚·
+                // TODO: ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸å‡ºã™
                 break;
         }
     }

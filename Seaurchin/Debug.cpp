@@ -34,14 +34,14 @@ void Logger::Terminate() const
 StandardOutputUnicodeSink::StandardOutputUnicodeSink()
 {
     using namespace spdlog::level;
-    colors[level_enum::trace] = FOREGROUND_INTENSITY;   // 灰色
-    colors[level_enum::debug] = FOREGROUND_INTENSITY;   // 灰色
-    colors[level_enum::info] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;  // 白
-    colors[level_enum::warn] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;    // 黄色
-    colors[level_enum::err] = FOREGROUND_RED | FOREGROUND_INTENSITY;    // 赤
+    colors[level_enum::trace] = FOREGROUND_INTENSITY;   // 轣ｰ濶ｲ
+    colors[level_enum::debug] = FOREGROUND_INTENSITY;   // 轣ｰ濶ｲ
+    colors[level_enum::info] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY;  // 逋ｽ
+    colors[level_enum::warn] = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;    // 鮟�濶ｲ
+    colors[level_enum::err] = FOREGROUND_RED | FOREGROUND_INTENSITY;    // 襍､
     colors[level_enum::critical] =
         FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE | FOREGROUND_INTENSITY
-        | BACKGROUND_RED | BACKGROUND_INTENSITY;    // 赤地に白
+        | BACKGROUND_RED | BACKGROUND_INTENSITY;    // 襍､蝨ｰ縺ｫ逋ｽ
     colors[level_enum::off] = 0;
 
     hStdout = GetStdHandle(STD_OUTPUT_HANDLE);

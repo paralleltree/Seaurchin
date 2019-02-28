@@ -45,39 +45,39 @@ void ExecutionManager::Initialize()
     auto log = spdlog::get("main");
     std::ifstream slfile;
     string procline;
-    // ƒ‹[ƒg‚ÌSettingList“Ç‚İ‚İ
+    // ãƒ«ãƒ¼ãƒˆã®SettingListèª­ã¿è¾¼ã¿
     const auto slpath = sharedSetting->GetRootDirectory() / SU_DATA_DIR / SU_SCRIPT_DIR / SU_SETTING_DEFINITION_FILE;
     settingManager->LoadItemsFromToml(slpath);
     settingManager->RetrieveAllValues();
 
-    // “ü—Íİ’è
+    // å…¥åŠ›è¨­å®š
     sharedControlState->Initialize();
 
     auto loadedSliderKeys = sharedSetting->ReadValue<toml::Array>("Play", "SliderKeys", defaultSliderKeys);
     if (loadedSliderKeys.size() >= 16) {
         for (auto i = 0; i < 16; i++) sharedControlState->SetSliderKeyCombination(i, loadedSliderKeys[i].as<vector<int>>());
     } else {
-        log->warn(u8"ƒXƒ‰ƒCƒ_[ƒL[İ’è‚Ì”z—ñ‚ª16—v‘f–¢–‚Ì‚½‚ßAƒtƒH[ƒ‹ƒoƒbƒN‚ğ—˜—p‚µ‚Ü‚·");
+        log->warn(u8"ã‚¹ãƒ©ã‚¤ãƒ€ãƒ¼ã‚­ãƒ¼è¨­å®šã®é…åˆ—ãŒ16è¦ç´ æœªæº€ã®ãŸã‚ã€ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‚’åˆ©ç”¨ã—ã¾ã™");
     }
 
     auto loadedAirStringKeys = sharedSetting->ReadValue<toml::Array>("Play", "AirStringKeys", defaultAirStringKeys);
     if (loadedAirStringKeys.size() >= 4) {
         for (auto i = 0; i < 4; i++) sharedControlState->SetAirStringKeyCombination(i, loadedAirStringKeys[i].as<vector<int>>());
     } else {
-        log->warn(u8"ƒGƒAƒXƒgƒŠƒ“ƒOƒL[İ’è‚Ì”z—ñ‚ª16—v‘f–¢–‚Ì‚½‚ßAƒtƒH[ƒ‹ƒoƒbƒN‚ğ—˜—p‚µ‚Ü‚·");
+        log->warn(u8"ã‚¨ã‚¢ã‚¹ãƒˆãƒªãƒ³ã‚°ã‚­ãƒ¼è¨­å®šã®é…åˆ—ãŒ16è¦ç´ æœªæº€ã®ãŸã‚ã€ãƒ•ã‚©ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‚’åˆ©ç”¨ã—ã¾ã™");
     }
 
-    // Šg’£ƒ‰ƒCƒuƒ‰ƒŠ“Ç‚İ‚İ
+    // æ‹¡å¼µãƒ©ã‚¤ãƒ–ãƒ©ãƒªèª­ã¿è¾¼ã¿
     extensions->LoadExtensions();
     extensions->Initialize(scriptInterface->GetEngine());
 
-    // ƒTƒEƒ“ƒh‰Šú‰»
+    // ã‚µã‚¦ãƒ³ãƒ‰åˆæœŸåŒ–
     mixerBgm = SSoundMixer::CreateMixer(sound.get());
     mixerSe = SSoundMixer::CreateMixer(sound.get());
     mixerBgm->AddRef();
     mixerSe->AddRef();
 
-    // AngelScriptƒCƒ“ƒ^[ƒtƒF[ƒX“o˜^
+    // AngelScriptã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹ç™»éŒ²
     InterfacesRegisterEnum(this);
     RegisterScriptResource(this);
     RegisterScriptSprite(this);
@@ -90,11 +90,11 @@ void ExecutionManager::Initialize()
     RegisterGlobalManagementFunction();
     extensions->RegisterInterfaces();
 
-    // ƒLƒƒƒ‰EƒXƒLƒ‹“Ç‚İ‚İ
+    // ã‚­ãƒ£ãƒ©ãƒ»ã‚¹ã‚­ãƒ«èª­ã¿è¾¼ã¿
     characters->LoadAllCharacters();
     skills->LoadAllSkills();
 
-    // ŠO•”’ÊM
+    // å¤–éƒ¨é€šä¿¡
     hCommunicationPipe = CreateNamedPipe(
         SU_NAMED_PIPE_NAME,
         PIPE_ACCESS_DUPLEX, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
@@ -169,7 +169,7 @@ void ExecutionManager::EnumerateSkins()
         if (!CheckSkinStructure(fdata.path())) continue;
         skinNames.push_back(fdata.path().filename().wstring());
     }
-    log->info(u8"ƒXƒLƒ“‘”: {0:d}", skinNames.size());
+    log->info(u8"ã‚¹ã‚­ãƒ³ç·æ•°: {0:d}", skinNames.size());
 }
 
 bool ExecutionManager::CheckSkinStructure(const path& name) const
@@ -192,19 +192,19 @@ void ExecutionManager::ExecuteSkin()
 
     const auto sn = sharedSetting->ReadValue<string>(SU_SETTING_GENERAL, SU_SETTING_SKIN, "Default");
     if (find(skinNames.begin(), skinNames.end(), ConvertUTF8ToUnicode(sn)) == skinNames.end()) {
-        log->error(u8"ƒXƒLƒ“ \"{0}\"‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ‚Å‚µ‚½", sn);
+        log->error(u8"ã‚¹ã‚­ãƒ³ \"{0}\"ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸ", sn);
         return;
     }
     const auto skincfg = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SKIN_DIR / ConvertUTF8ToUnicode(sn) / SU_SETTING_DEFINITION_FILE;
     if (exists(skincfg)) {
-        log->info(u8"ƒXƒLƒ“‚Ìİ’è’è‹`ƒtƒ@ƒCƒ‹‚ª—LŒø‚Å‚·");
+        log->info(u8"ã‚¹ã‚­ãƒ³ã®è¨­å®šå®šç¾©ãƒ•ã‚¡ã‚¤ãƒ«ãŒæœ‰åŠ¹ã§ã™");
         settingManager->LoadItemsFromToml(skincfg);
         settingManager->RetrieveAllValues();
     }
 
     skin = make_unique<SkinHolder>(ConvertUTF8ToUnicode(sn), scriptInterface, sound);
     skin->Initialize();
-    log->info(u8"ƒXƒLƒ““Ç‚İ‚İŠ®—¹");
+    log->info(u8"ã‚¹ã‚­ãƒ³èª­ã¿è¾¼ã¿å®Œäº†");
     ExecuteSkin(ConvertUnicodeToUTF8(SU_SKIN_TITLE_FILE));
 }
 
@@ -213,12 +213,12 @@ bool ExecutionManager::ExecuteSkin(const string &file)
     auto log = spdlog::get("main");
     const auto obj = skin->ExecuteSkinScript(ConvertUTF8ToUnicode(file));
     if (!obj) {
-        log->error(u8"ƒXƒNƒŠƒvƒg‚ğƒRƒ“ƒpƒCƒ‹‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½");
+        log->error(u8"ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚’ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ã§ãã¾ã›ã‚“ã§ã—ãŸ");
         return false;
     }
     const auto s = CreateSceneFromScriptObject(obj);
     if (!s) {
-        log->error(u8"{0}‚ÉEntryPoint‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ‚Å‚µ‚½", file);
+        log->error(u8"{0}ã«EntryPointãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸ", file);
         return false;
     }
     AddScene(s);
@@ -232,7 +232,7 @@ bool ExecutionManager::ExecuteScene(asIScriptObject *sceneObject)
     if (!s) return false;
     sceneObject->SetUserData(skin.get(), SU_UDTYPE_SKIN);
     AddScene(s);
-    // ƒJƒEƒ“ƒ^‰ÁZ‚ª—]Œv‚È‚Ì‚Å1‰ñ–ß‚·
+    // ã‚«ã‚¦ãƒ³ã‚¿åŠ ç®—ãŒä½™è¨ˆãªã®ã§1å›æˆ»ã™
     sceneObject->Release();
     return true;
 }
@@ -245,19 +245,19 @@ void ExecutionManager::ExecuteSystemMenu()
 
     auto sysmf = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SCRIPT_DIR / SU_SYSTEM_MENU_FILE;
     if (!exists(sysmf)) {
-        log->error(u8"ƒVƒXƒeƒ€ƒƒjƒ…[ƒXƒNƒŠƒvƒg‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ‚Å‚µ‚½");
+        log->error(u8"ã‚·ã‚¹ãƒ†ãƒ ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¹ã‚¯ãƒªãƒ—ãƒˆãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸ");
         return;
     }
 
     scriptInterface->StartBuildModule("SystemMenu", [](auto inc, auto from, auto sb) { return true; });
     scriptInterface->LoadFile(sysmf.wstring());
     if (!scriptInterface->FinishBuildModule()) {
-        log->error(u8"ƒVƒXƒeƒ€ƒƒjƒ…[ƒXƒNƒŠƒvƒg‚ğƒRƒ“ƒpƒCƒ‹‚Å‚«‚Ü‚¹‚ñ‚Å‚µ‚½");
+        log->error(u8"ã‚·ã‚¹ãƒ†ãƒ ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚’ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ã§ãã¾ã›ã‚“ã§ã—ãŸ");
         return;
     }
     const auto mod = scriptInterface->GetLastModule();
 
-    //ƒGƒ“ƒgƒŠƒ|ƒCƒ“ƒgŒŸõ
+    //ã‚¨ãƒ³ãƒˆãƒªãƒã‚¤ãƒ³ãƒˆæ¤œç´¢
     const int cnt = mod->GetObjectTypeCount();
     asITypeInfo *type = nullptr;
     for (auto i = 0; i < cnt; i++) {
@@ -268,7 +268,7 @@ void ExecutionManager::ExecuteSystemMenu()
         break;
     }
     if (!type) {
-        log->error(u8"ƒVƒXƒeƒ€ƒƒjƒ…[ƒXƒNƒŠƒvƒg‚ÉEntryPoint‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ‚Å‚µ‚½");
+        log->error(u8"ã‚·ã‚¹ãƒ†ãƒ ãƒ¡ãƒ‹ãƒ¥ãƒ¼ã‚¹ã‚¯ãƒªãƒ—ãƒˆã«EntryPointãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã§ã—ãŸ");
         return;
     }
 
@@ -283,7 +283,7 @@ void ExecutionManager::Tick(const double delta)
 {
     sharedControlState->Update();
 
-    //ƒV[ƒ“‘€ì
+    //ã‚·ãƒ¼ãƒ³æ“ä½œ
     for (auto& scene : scenesPending) scenes.push_back(scene);
     scenesPending.clear();
     sort(scenes.begin(), scenes.end(), [](const shared_ptr<Scene> sa, const shared_ptr<Scene> sb) { return sa->GetIndex() < sb->GetIndex(); });
@@ -297,7 +297,7 @@ void ExecutionManager::Tick(const double delta)
         }
     }
 
-    //Œãˆ—
+    //å¾Œå‡¦ç†
     static double ps = 0;
     ps += delta;
     if (ps >= 1.0) {
@@ -331,12 +331,12 @@ shared_ptr<ScriptScene> ExecutionManager::CreateSceneFromScriptType(asITypeInfo 
         auto obj = scriptInterface->InstantiateObject(type);
         return static_pointer_cast<ScriptScene>(make_shared<ScriptCoroutineScene>(obj));
     }
-    if (scriptInterface->CheckImplementation(type, SU_IF_SCENE))  //ÅŒã
+    if (scriptInterface->CheckImplementation(type, SU_IF_SCENE))  //æœ€å¾Œ
     {
         auto obj = scriptInterface->InstantiateObject(type);
         return make_shared<ScriptScene>(obj);
     }
-    log->error(u8"{0}ƒNƒ‰ƒX‚ÉSceneŒnƒCƒ“ƒ^[ƒtƒF[ƒX‚ªÀ‘•‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ", type->GetName());
+    log->error(u8"{0}ã‚¯ãƒ©ã‚¹ã«Sceneç³»ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹ãŒå®Ÿè£…ã•ã‚Œã¦ã„ã¾ã›ã‚“", type->GetName());
     return nullptr;
 }
 
@@ -348,11 +348,11 @@ shared_ptr<ScriptScene> ExecutionManager::CreateSceneFromScriptObject(asIScriptO
     if (scriptInterface->CheckImplementation(type, SU_IF_COSCENE)) {
         return static_pointer_cast<ScriptScene>(make_shared<ScriptCoroutineScene>(obj));
     }
-    if (scriptInterface->CheckImplementation(type, SU_IF_SCENE))  //ÅŒã
+    if (scriptInterface->CheckImplementation(type, SU_IF_SCENE))  //æœ€å¾Œ
     {
         return make_shared<ScriptScene>(obj);
     }
-    log->error(u8"{0}ƒNƒ‰ƒX‚ÉSceneŒnƒCƒ“ƒ^[ƒtƒF[ƒX‚ªÀ‘•‚³‚ê‚Ä‚¢‚Ü‚¹‚ñ", type->GetName());
+    log->error(u8"{0}ã‚¯ãƒ©ã‚¹ã«Sceneç³»ã‚¤ãƒ³ã‚¿ãƒ¼ãƒ•ã‚§ãƒ¼ã‚¹ãŒå®Ÿè£…ã•ã‚Œã¦ã„ã¾ã›ã‚“", type->GetName());
     return nullptr;
 }
 

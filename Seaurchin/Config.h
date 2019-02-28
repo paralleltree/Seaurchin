@@ -32,30 +32,30 @@
 #define SU_SYSTEM_MENU_FILE L"System.as"
 #define SU_SETTING_DEFINITION_FILE L"SettingList.toml"
 
-#define SU_FONT_SYSTEM "‚l‚r ƒSƒVƒbƒN"
+#define SU_FONT_SYSTEM "ï¼­ï¼³ ã‚´ã‚·ãƒƒã‚¯"
 
 #define SU_RES_WIDTH 1280
 #define SU_RES_HEIGHT 720
 
 #define SU_EFX_PMAX 1024
 
-//AngelScript‚ÌUserData—p
+//AngelScriptã®UserDataç”¨
 #define SU_UDTYPE_SCENE 100
 #define SU_UDTYPE_WAIT 101
 #define SU_UDTYPE_SKIN 102
 #define SU_UDTYPE_ENTRYPOINT 103
 
-// ƒJƒXƒ^ƒ€ƒEƒBƒ“ƒhƒEƒƒbƒZ[ƒW
+// ã‚«ã‚¹ã‚¿ãƒ ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸
 
-// Seaurchin‚ğ—‚Æ‚·
-// wp, lp: ‚È‚µ
+// Seaurchinã‚’è½ã¨ã™
+// wp, lp: ãªã—
 #define WM_SEAURCHIN_ABORT (WM_APP + 1)
 
-// Ä¶ŠJn‚·‚é
-// wp, lp: ‚È‚µ
-// \\.\pipe\seaurchin ‚ÉŠ’è‚ÌŒ`®‚Åƒf[ƒ^‚ğ‘‚«o‚·‚±‚Æ
+// å†ç”Ÿé–‹å§‹ã™ã‚‹
+// wp, lp: ãªã—
+// \\.\pipe\seaurchin ã«æ‰€å®šã®å½¢å¼ã§ãƒ‡ãƒ¼ã‚¿ã‚’æ›¸ãå‡ºã™ã“ã¨
 #define WM_SEAURCHIN_PLAY (WM_APP + 10)
 
-// î•ñ‚ğæ“¾‚·‚é
-// wp, lp: ‚È‚µ
+// æƒ…å ±ã‚’å–å¾—ã™ã‚‹
+// wp, lp: ãªã—
 #define WM_SEAURCHIN_GET_INFO (WM_APP + 11)

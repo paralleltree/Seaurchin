@@ -9,12 +9,12 @@ namespace mover_function
 unordered_map<string, Action> actions =
 {
     { "move_to", ActionMoveTo },
-    { "move_by", ActionMoveBy },
-    { "angle_to", ActionAngleTo },
-    { "angle_by", ActionAngleBy },
-    { "scale_to", ActionScaleTo },
-    { "alpha", ActionAlpha },
-    { "death", ActionDeath }
+{ "move_by", ActionMoveBy },
+{ "angle_to", ActionAngleTo },
+{ "angle_by", ActionAngleBy },
+{ "scale_to", ActionScaleTo },
+{ "alpha", ActionAlpha },
+{ "death", ActionDeath }
 };
 
 bool ActionMoveTo(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &data, const double delta)

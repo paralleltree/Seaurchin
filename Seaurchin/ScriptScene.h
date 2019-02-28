@@ -8,8 +8,7 @@
 #define SU_IF_COSCENE "CoroutineScene"
 #define SU_IF_COROUTINE "Coroutine"
 
-typedef struct
-{
+typedef struct {
     std::string Name;
     void *Object;
     asIScriptContext *Context;
@@ -18,8 +17,7 @@ typedef struct
     CoroutineWait Wait;
 } Coroutine;
 
-class ScriptScene : public Scene
-{
+class ScriptScene : public Scene {
     typedef Scene Base;
 protected:
     asIScriptContext *context;
@@ -52,8 +50,7 @@ public:
     friend void ScriptSceneKillCoroutine(const std::string &name);
 };
 
-class ScriptCoroutineScene : public ScriptScene
-{
+class ScriptCoroutineScene : public ScriptScene {
     typedef ScriptScene Base;
 protected:
     asIScriptContext *runningContext;
@@ -62,8 +59,8 @@ protected:
 public:
     ScriptCoroutineScene(asIScriptObject *scene);
     ~ScriptCoroutineScene();
-    
-    
+
+
     void Tick(double delta) override;
     void Initialize() override;
 

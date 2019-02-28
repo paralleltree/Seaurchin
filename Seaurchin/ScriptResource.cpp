@@ -134,11 +134,11 @@ SAnimatedImage * SAnimatedImage::CreateLoadedImageFromFile(const std::string & f
 
 SAnimatedImage * SAnimatedImage::CreateLoadedImageFromMemory(void * buffer, const size_t size, const int xc, const int yc, const int w, const int h, const int count, const double time)
 {
-	auto result = new SAnimatedImage(w, h, count, time);
-	result->images.resize(count);
-	CreateDivGraphFromMem(buffer, size, count, xc, yc, w, h, result->images.data());
-	result->AddRef();
-	return result;
+    auto result = new SAnimatedImage(w, h, count, time);
+    result->images.resize(count);
+    CreateDivGraphFromMem(buffer, size, count, xc, yc, w, h, result->images.data());
+    result->AddRef();
+    return result;
 }
 
 
@@ -214,7 +214,7 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
     const bx::sregex cmdhex = bx::bos >> "${#" >> (bx::s1 = bx::repeat<2, 2>(bx::xdigit)) >> (bx::s2 = bx::repeat<2, 2>(bx::xdigit)) >> (bx::s3 = bx::repeat<2, 2>(bx::xdigit)) >> "}";
     double cx = 0, cy = 0;
     double mx = 0;
-	bool visible = true;
+    bool visible = true;
     auto line = 1;
 
     auto cr = defcol.R, cg = defcol.G, cb = defcol.B;
@@ -239,7 +239,7 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
                     cg = defcol.G;
                     cb = defcol.B;
                     cw = 1;
-					visible = true;
+                    visible = true;
                     break;
                 case "red"_crc32:
                     cr = 255;
@@ -276,10 +276,10 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
                 case "normal"_crc32:
                     cw = 1;
                     break;
-				case "hide"_crc32:
-					visible = false;
-					break;
-				default: break;
+                case "hide"_crc32:
+                    visible = false;
+                    break;
+                default: break;
             }
             ccp += match[0].length();
             continue;
@@ -306,7 +306,7 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
             gi = uint8_t(*ccp) & 0x7F;
             ++ccp;
         }
-		if (!visible) continue;
+        if (!visible) continue;
         if (gi == 0x0A) {
             line++;
             mx = max(mx, cx);

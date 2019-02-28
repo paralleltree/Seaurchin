@@ -136,7 +136,7 @@ protected:
     unsigned int slideLineColor = GetColor(0, 200, 255);
     unsigned int airActionJudgeColor = GetColor(128, 255, 160);
     bool showSlideLine, showAirActionJudge;
-	double slideLineThickness;
+    double slideLineThickness;
     int segmentsPerSecond;
     std::vector<VERTEX2D> slideVertices;
     std::vector<uint16_t> slideIndices;

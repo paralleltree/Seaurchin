@@ -51,36 +51,33 @@ void ControlState::Terminate()
 
 void ControlState::Update()
 {
-    // ¶‚ÌƒL[ƒ{[ƒh“ü—Í
+    // ç”Ÿã®ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰å…¥åŠ›
     memcpy_s(keyboardLast, sizeof(char) * 256, keyboardCurrent, sizeof(char) * 256);
     GetHitKeyStateAll(keyboardCurrent);
     for (auto i = 0; i < 256; i++) keyboardTrigger[i] = !keyboardLast[i] && keyboardCurrent[i];
 
-    // ƒL[ƒ{[ƒh“ü—ÍƒXƒ‰ƒCƒ_[
+    // ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰å…¥åŠ›ã‚¹ãƒ©ã‚¤ãƒ€ãƒ¼
     for (auto i = 0; i < 16; i++) sliderKeyboardPrevious[i] = sliderKeyboardCurrent[i];
     auto snum = 0;
-    for (const auto& targets : sliderKeyboardInputCombinations)
-    {
+    for (const auto& targets : sliderKeyboardInputCombinations) {
         auto bit = 0;
         uint32_t state = 0;
-        for (const auto &knum : targets)
-        {
+        for (const auto &knum : targets) {
             state |= (keyboardCurrent[knum] ? 1 : 0) << bit;
             ++bit;
         }
         sliderKeyboardCurrent[snum] = state;
         ++snum;
     }
-    // ƒgƒŠƒK[”»’è‚Í1ŒÂ‚Å‚à“ü—ÍƒL[‚ª‘‚¦‚ê‚Î‚æ‚µ‚Æ‚·‚é
+    // ãƒˆãƒªã‚¬ãƒ¼åˆ¤å®šã¯1å€‹ã§ã‚‚å…¥åŠ›ã‚­ãƒ¼ãŒå¢—ãˆã‚Œã°ã‚ˆã—ã¨ã™ã‚‹
     for (auto i = 0; i < 16; i++) sliderKeyboardTrigger[i] = sliderKeyboardCurrent[i] > sliderKeyboardPrevious[i];
 
-    // ƒL[ƒ{[ƒh“ü—ÍƒGƒAƒXƒgƒŠƒ“ƒO
+    // ã‚­ãƒ¼ãƒœãƒ¼ãƒ‰å…¥åŠ›ã‚¨ã‚¢ã‚¹ãƒˆãƒªãƒ³ã‚°
     airStringKeyboard[size_t(AirControlSource::AirUp)] = 0;
     airStringKeyboard[size_t(AirControlSource::AirDown)] = 0;
     airStringKeyboard[size_t(AirControlSource::AirHold)] = 0;
     airStringKeyboard[size_t(AirControlSource::AirAction)] = 0;
-    for(const auto &upkey : airStringKeyboardInputCombinations[size_t(AirControlSource::AirUp)])
-    {
+    for (const auto &upkey : airStringKeyboardInputCombinations[size_t(AirControlSource::AirUp)]) {
         airStringKeyboard[size_t(AirControlSource::AirUp)] |= keyboardTrigger[upkey];
     }
     for (const auto &downkey : airStringKeyboardInputCombinations[size_t(AirControlSource::AirDown)]) {
@@ -93,7 +90,7 @@ void ControlState::Update()
         airStringKeyboard[size_t(AirControlSource::AirAction)] |= keyboardTrigger[actkey];
     }
 
-    // “‡‰»
+    // çµ±åˆåŒ–
     for (auto i = 0; i < 16; i++) integratedSliderLast[i] = integratedSliderCurrent[i];
     for (auto i = 0; i < 16; i++) integratedSliderCurrent[i] = !!sliderKeyboardCurrent[i];
     for (auto i = 0; i < 16; i++) integratedSliderTrigger[i] = !!sliderKeyboardTrigger[i];
@@ -180,21 +177,21 @@ void ControlState::InitializeWacomTouchDevice()
 {
     auto log = spdlog::get("main");
     isWacomDeviceAvailable = false;
-    log->info(u8"Wacomƒ^ƒuƒŒƒbƒg‚Í0.43.0‚©‚çˆê“I‚É‹@”\‚ğíœ‚µ‚Ä‚¢‚Ü‚·");
+    log->info(u8"Wacomã‚¿ãƒ–ãƒ¬ãƒƒãƒˆã¯0.43.0ã‹ã‚‰ä¸€æ™‚çš„ã«æ©Ÿèƒ½ã‚’å‰Šé™¤ã—ã¦ã„ã¾ã™");
     /*
     if (!LoadWacomMTLib()) {
-        log->info(u8"Wacomƒhƒ‰ƒCƒo‚ª‚ ‚è‚Ü‚¹‚ñ‚Å‚µ‚½");
+        log->info(u8"Wacomãƒ‰ãƒ©ã‚¤ãƒãŒã‚ã‚Šã¾ã›ã‚“ã§ã—ãŸ");
         return;
     }
     if (WacomMTInitialize(WACOM_MULTI_TOUCH_API_VERSION)) {
-        log->warn(u8"Wacomƒhƒ‰ƒCƒo‚Ì‰Šú‰»‚É¸”s‚µ‚Ü‚µ‚½");
+        log->warn(u8"Wacomãƒ‰ãƒ©ã‚¤ãƒã®åˆæœŸåŒ–ã«å¤±æ•—ã—ã¾ã—ãŸ");
         return;
     }
-    log->info(u8"Wacomƒhƒ‰ƒCƒo—˜—p‰Â”\");
+    log->info(u8"Wacomãƒ‰ãƒ©ã‚¤ãƒåˆ©ç”¨å¯èƒ½");
 
     const auto devices = WacomMTGetAttachedDeviceIDs(nullptr, 0);
     if (devices <= 0) {
-        log->info(u8"WacomƒfƒoƒCƒX‚ª‚ ‚è‚Ü‚¹‚ñ‚Å‚µ‚½");
+        log->info(u8"Wacomãƒ‡ãƒã‚¤ã‚¹ãŒã‚ã‚Šã¾ã›ã‚“ã§ã—ãŸ");
         return;
     }
     wacomDeviceIds = new int[devices];
@@ -205,7 +202,7 @@ void ControlState::InitializeWacomTouchDevice()
         WacomMTGetDeviceCapabilities(wacomDeviceIds[i], &cap);
         wacomDeviceCapabilities[i] = cap;
 
-        log->info(u8"ƒfƒoƒCƒXID {0:2d}: {1:d}", wacomDeviceIds[i], wacomDeviceCapabilities[i].CapabilityFlags);
+        log->info(u8"ãƒ‡ãƒã‚¤ã‚¹ID {0:2d}: {1:d}", wacomDeviceIds[i], wacomDeviceCapabilities[i].CapabilityFlags);
     }
 
     WacomMTRegisterFingerReadCallback(wacomDeviceIds[0], nullptr, WMTProcessingModeNone, WacomFingerCallback, this);
@@ -213,7 +210,7 @@ void ControlState::InitializeWacomTouchDevice()
     */
 }
 
-// 0.43.0‚Åˆê’Uíœ‚µ‚½‚Ì‚ÅŒÄ‚Î‚ê‚È‚¢
+// 0.43.0ã§ä¸€æ—¦å‰Šé™¤ã—ãŸã®ã§å‘¼ã°ã‚Œãªã„
 void ControlState::UpdateWacomTouchDeviceFinger(WacomMTFingerCollection *fingers)
 {
     const auto cap = wacomDeviceCapabilities[0];
@@ -258,7 +255,7 @@ void ControlState::UpdateWacomTouchDeviceFinger(WacomMTFingerCollection *fingers
 
 // Wacom Multi-Touch Callbacks
 
-// 0.43.0‚Åˆê’Uíœ‚µ‚½‚Ì‚ÅŒÄ‚Î‚ê‚È‚¢
+// 0.43.0ã§ä¸€æ—¦å‰Šé™¤ã—ãŸã®ã§å‘¼ã°ã‚Œãªã„
 int WacomFingerCallback(WacomMTFingerCollection *fingerPacket, void *userData)
 {
     auto controller = static_cast<ControlState*>(userData);
