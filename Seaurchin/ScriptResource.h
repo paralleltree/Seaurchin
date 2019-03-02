@@ -25,6 +25,7 @@ public:
     void Release();
 
     int GetHandle() const { return handle; }
+    int GetRefCount() const { return reference; }
 };
 
 //画像

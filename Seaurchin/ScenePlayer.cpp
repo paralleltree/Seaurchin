@@ -113,11 +113,17 @@ void ScenePlayer::Finalize()
     SoundManager::StopGlobal(soundSlideLoop->GetSample());
     SoundManager::StopGlobal(soundAirLoop->GetSample());
     for (auto& res : resources) if (res.second) res.second->Release();
+    for (auto &i : sprites) i->Release();
+    sprites.clear();
+    for (auto &i : spritesPending) i->Release();
+    spritesPending.clear();
+    for (auto &i : slideEffects) i.second->Release();
+    slideEffects.clear();
     SoundManager::StopGlobal(bgmStream);
     delete processor;
     delete bgmStream;
 
-    fontCombo->Release();
+    textCombo->Release();
     DeleteGraph(hGroundBuffer);
     if (movieBackground) DeleteGraph(movieBackground);
     judgeSoundThread.join();
@@ -553,7 +559,11 @@ void ScenePlayer::Reload()
 void ScenePlayer::SetJudgeCallback(asIScriptFunction *func) const
 {
     if (!currentCharacterInstance) return;
+
+    func->AddRef();
     currentCharacterInstance->SetCallback(func);
+
+    func->Release();
 }
 
 void ScenePlayer::AdjustCamera(const double cy, const double cz, const double ctz)

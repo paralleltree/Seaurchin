@@ -11,9 +11,9 @@ using namespace xpressive;
 //path sepath = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SKIN_DIR;
 
 MusicsManager::MusicsManager(ExecutionManager *exm)
-    : manager(exm)
-    , analyzer(make_unique<SusAnalyzer>(192))
 {
+    manager = exm;
+    analyzer = make_unique<SusAnalyzer>(192);
 }
 
 MusicsManager::~MusicsManager()
@@ -102,6 +102,8 @@ MusicSelectionCursor *MusicsManager::CreateMusicSelectionCursor()
 {
     auto result = new MusicSelectionCursor(this);
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 

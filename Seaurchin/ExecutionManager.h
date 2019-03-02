@@ -46,7 +46,7 @@ public:
     void Tick(double delta);
     void Draw();
     void Initialize();
-    void Shutdown() const;
+    void Shutdown();
     void AddScene(const std::shared_ptr<Scene>& scene);
     std::shared_ptr<ScriptScene> CreateSceneFromScriptType(asITypeInfo *type) const;
     std::shared_ptr<ScriptScene> CreateSceneFromScriptObject(asIScriptObject *obj) const;

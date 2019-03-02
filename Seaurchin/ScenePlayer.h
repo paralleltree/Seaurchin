@@ -134,9 +134,8 @@ protected:
     SImage *imageHold, *imageHoldStep, *imageHoldStrut;
     SImage *imageSlide, *imageSlideStep, *imageSlideStrut;
     SImage *imageAirAction;
-    SFont *fontCombo;
     SAnimatedImage *animeTap, *animeExTap, *animeSlideTap, *animeSlideLoop, *animeAirAction;
-    STextSprite *textCombo;
+    STextSprite *textCombo; // コンボ数フォント こいつだけLoadResourcesで自力で生成、Finalizeで自力で破棄する
     double textScale;       // コンボ数フォント拡大率 textComboに設定したフォントサイズで計算し保持する
 
     // LoadResourcesで初期化 (設定ファイルから取得)

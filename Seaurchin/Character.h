@@ -39,6 +39,7 @@ private:
 public:
     void AddRef() { reference++; }
     void Release() { if (--reference == 0) delete this; }
+    int GetRefCount() const { return reference; }
     explicit CharacterImageSet(std::shared_ptr<CharacterParameter> param);
     ~CharacterImageSet();
 

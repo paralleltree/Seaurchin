@@ -51,7 +51,8 @@ void ScenePlayer::LoadResources()
     soundSlideStep = dynamic_cast<SSound*>(resources["SoundSlideStep"]);
     soundHoldStep = dynamic_cast<SSound*>(resources["SoundHoldStep"]);
     soundMetronome = dynamic_cast<SSound*>(resources["Metronome"]);
-    fontCombo = dynamic_cast<SFont*>(resources["FontCombo"]);
+
+    SFont * const fontCombo = dynamic_cast<SFont*>(resources["FontCombo"]);
 
     const auto setting = manager->GetSettingInstanceSafe();
     if (soundHoldLoop) soundHoldLoop->SetLoop(true);
@@ -92,9 +93,15 @@ void ScenePlayer::LoadResources()
     for (auto i = 2; i < 4; i++) groundVertices[i].v = bufferV;
     hGroundBuffer = MakeScreen(laneBufferX, bufferY, TRUE);
 
-    fontCombo->AddRef();
+    if(fontCombo) fontCombo->AddRef();
     textCombo = STextSprite::Factory(fontCombo, "");
     textCombo->SetAlignment(STextAlign::Center, STextAlign::Center);
+    if (fontCombo == nullptr) {
+        textScale = 0.0;
+    } else {
+        const auto fontSize = fontCombo->GetSize();
+        textScale = 320.0 / ((fontSize <= 0.0)? 1.0 : fontSize);
+    }
     ostringstream app;
     app << setprecision(5);
     app << "x:512, y:3200, " << "scaleX:" << textScale << ", scaleY:" << textScale;
@@ -267,7 +274,12 @@ void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target
             sp->Apply("origX:128, origY:224");
             sp->Transform.X = spawnAt.x;
             sp->Transform.Y = spawnAt.y;
-            AddSprite(sp);
+            {
+                sp->AddRef();
+                AddSprite(sp);
+            }
+
+            sp->Release();
             break;
         }
         case JudgeType::ShortEx: {
@@ -278,7 +290,12 @@ void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target
             sp->Transform.X = spawnAt.x;
             sp->Transform.Y = spawnAt.y;
             sp->Transform.ScaleX = target->Length / 6.0;
-            AddSprite(sp);
+            {
+                sp->AddRef();
+                AddSprite(sp);
+            }
+
+            sp->Release();
             break;
         }
         case JudgeType::SlideTap: {
@@ -288,7 +305,12 @@ void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target
             sp->Apply("origX:128, origY:224");
             sp->Transform.X = spawnAt.x;
             sp->Transform.Y = spawnAt.y;
-            AddSprite(sp);
+            {
+                sp->AddRef();
+                AddSprite(sp);
+            }
+
+            sp->Release();
             break;
         }
         case JudgeType::Action: {
@@ -298,7 +320,12 @@ void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target
             sp->Apply("origX:128, origY:128");
             sp->Transform.X = spawnAt.x;
             sp->Transform.Y = spawnAt.y;
-            AddSprite(sp);
+            {
+                sp->AddRef();
+                AddSprite(sp);
+            }
+
+            sp->Release();
             break;
         }
     }
@@ -309,12 +336,14 @@ void ScenePlayer::SpawnSlideLoopEffect(const shared_ptr<SusDrawableNoteData>& ta
     SpawnJudgeEffect(target, JudgeType::SlideTap);
 
     animeSlideLoop->AddRef();
-    imageTap->AddRef();
     auto loopefx = SAnimeSprite::Factory(animeSlideLoop);
     loopefx->Apply("origX:128, origY:224");
     loopefx->SetLoopCount(-1);
     slideEffects[target] = loopefx;
-    AddSprite(loopefx);
+    {
+        loopefx->AddRef();
+        AddSprite(loopefx);
+    }
 }
 
 void ScenePlayer::RemoveSlideEffect()
@@ -323,6 +352,7 @@ void ScenePlayer::RemoveSlideEffect()
     while (it != slideEffects.end()) {
         auto effect = (*it).second;
         effect->Dismiss();
+        effect->Release();
         it = slideEffects.erase(it);
     }
 }
@@ -336,6 +366,7 @@ void ScenePlayer::UpdateSlideEffect()
         auto effect = (*it).second;
         if (currentTime >= note->StartTime + note->Duration) {
             effect->Dismiss();
+            effect->Release();
             it = slideEffects.erase(it);
             continue;
         }

@@ -99,6 +99,7 @@ public:
     MusicSelectionCursor(MusicsManager *manager);
     void AddRef() { refcount++; }
     void Release() { if (--refcount == 0) delete this; }
+    int GetRefCount() const { return refcount; }
 
     std::string GetPrimaryString(int32_t relativeIndex) const;
     std::string GetCategoryName(int32_t relativeIndex) const;

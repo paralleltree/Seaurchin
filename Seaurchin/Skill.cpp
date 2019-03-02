@@ -133,6 +133,7 @@ SkillIndicators::~SkillIndicators()
         callbackContext->Release();
         callbackFunction->Release();
         engine->ReleaseScriptObject(callbackObject, callbackObjectType);
+        callbackObjectType->Release();
     }
 }
 
@@ -145,6 +146,7 @@ void SkillIndicators::SetCallback(asIScriptFunction *func)
         callbackContext->Release();
         callbackFunction->Release();
         engine->ReleaseScriptObject(callbackObject, callbackObjectType);
+        callbackObjectType->Release();
     }
 
     const auto ctx = asGetActiveContext();
@@ -153,7 +155,11 @@ void SkillIndicators::SetCallback(asIScriptFunction *func)
     callbackFunction = func->GetDelegateFunction();
     callbackFunction->AddRef();
     callbackObject = static_cast<asIScriptObject*>(func->GetDelegateObject());
+    callbackObject->AddRef();
     callbackObjectType = func->GetDelegateObjectType();
+    callbackObjectType->AddRef();
+
+    func->Release();
 }
 
 int SkillIndicators::AddSkillIndicator(const string &icon)
@@ -172,7 +178,7 @@ void SkillIndicators::TriggerSkillIndicator(const int index) const
         callbackContext->SetObject(callbackObject);
         callbackContext->SetArgDWord(0, index);
         callbackContext->Execute();
-        // CallbackContext->Unprepare();
+        callbackContext->Unprepare();
     }
 }
 
@@ -185,6 +191,7 @@ SImage* SkillIndicators::GetSkillIndicatorImage(const int index)
 {
     if (index >= indicatorIcons.size()) return nullptr;
     auto result = indicatorIcons[index];
+
     result->AddRef();
     return result;
 }

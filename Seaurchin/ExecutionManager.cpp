@@ -72,8 +72,6 @@ void ExecutionManager::Initialize()
     // サウンド初期化
     mixerBgm = SSoundMixer::CreateMixer(sound.get());
     mixerSe = SSoundMixer::CreateMixer(sound.get());
-    mixerBgm->AddRef();
-    mixerSe->AddRef();
 
     // AngelScriptインターフェース登録
     InterfacesRegisterEnum(this);
@@ -108,11 +106,20 @@ void ExecutionManager::Initialize()
     */
 }
 
-void ExecutionManager::Shutdown() const
+void ExecutionManager::Shutdown()
 {
+    for (auto& scene : scenes) scene->Disappear();
+    scenes.clear();
+    for (auto& scene : scenesPending) scene->Disappear();
+    scenesPending.clear();
+
     if (skin) skin->Terminate();
     settingManager->SaveAllValues();
     sharedControlState->Terminate();
+
+    BOOST_ASSERT(mixerBgm->GetRefCount() == 1);
+    BOOST_ASSERT(mixerSe->GetRefCount() == 1);
+
     mixerBgm->Release();
     mixerSe->Release();
     if (hCommunicationPipe != INVALID_HANDLE_VALUE) {
@@ -216,9 +223,12 @@ bool ExecutionManager::ExecuteSkin(const string &file)
     const auto s = CreateSceneFromScriptObject(obj);
     if (!s) {
         log->error(u8"{0}にEntryPointが見つかりませんでした", file);
+        obj->Release();
         return false;
     }
     AddScene(s);
+
+    obj->Release();
     return true;
 }
 
@@ -229,7 +239,7 @@ bool ExecutionManager::ExecuteScene(asIScriptObject *sceneObject)
     if (!s) return false;
     sceneObject->SetUserData(skin.get(), SU_UDTYPE_SKIN);
     AddScene(s);
-    // カウンタ加算が余計なので1回戻す
+
     sceneObject->Release();
     return true;
 }

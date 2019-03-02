@@ -15,14 +15,13 @@ AngelScript::AngelScript()
 
     //Script Interface
     sharedContext = engine->CreateContext();
-    sharedContext->AddRef();
     builder.SetIncludeCallback(ScriptIncludeCallback, this);
 }
 
 AngelScript::~AngelScript()
 {
     sharedContext->Release();
-    // engine->ShutDownAndRelease();
+    engine->ShutDownAndRelease();
 }
 
 void AngelScript::StartBuildModule(const string &name, const IncludeCallback callback)
@@ -63,7 +62,11 @@ asIScriptObject *AngelScript::InstantiateObject(asITypeInfo * type) const
     const auto factory = type->GetFactoryByIndex(0);
     sharedContext->Prepare(factory);
     sharedContext->Execute();
-    return *static_cast<asIScriptObject**>(sharedContext->GetAddressOfReturnValue());
+    auto ptr = *static_cast<asIScriptObject**>(sharedContext->GetAddressOfReturnValue());
+    ptr->AddRef();
+    sharedContext->Unprepare();
+
+    return ptr;
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
@@ -98,7 +101,11 @@ CallbackObject::CallbackObject(asIScriptFunction *callback)
     Function = callback->GetDelegateFunction();
     Function->AddRef();
     Object = static_cast<asIScriptObject*>(callback->GetDelegateObject());
+    Object->AddRef();
     Type = callback->GetDelegateObjectType();
+    Type->AddRef();
+
+    callback->Release();
 }
 
 CallbackObject::~CallbackObject()
@@ -107,4 +114,5 @@ CallbackObject::~CallbackObject()
     Context->Release();
     Function->Release();
     engine->ReleaseScriptObject(Object, Type);
+    Type->Release();
 }

@@ -95,9 +95,9 @@ void Run()
 void Terminate()
 {
     manager->Shutdown();
-    manager = nullptr;
+    manager.reset(nullptr);
     setting->Save();
-    setting = nullptr;
+    setting.reset();
     DxLib_End();
     logger->Terminate();
 }
