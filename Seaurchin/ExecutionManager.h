@@ -17,20 +17,21 @@ class ExecutionManager final {
     friend class ScenePlayer;
 
 private:
-    std::shared_ptr<Setting> sharedSetting;
-    std::unique_ptr<setting2::SettingItemManager> settingManager;
-    std::shared_ptr<AngelScript> scriptInterface;
+    const std::shared_ptr<Setting> sharedSetting;
+    const std::unique_ptr<setting2::SettingItemManager> settingManager;
+    const std::shared_ptr<AngelScript> scriptInterface;
+    const std::shared_ptr<SoundManager> sound;
+    const std::shared_ptr<MusicsManager> musics;
+    const std::shared_ptr<CharacterManager> characters;
+    const std::shared_ptr<SkillManager> skills;
+    const std::unique_ptr<ExtensionManager> extensions;
+    const std::shared_ptr<std::mt19937> random;
+    const std::shared_ptr<ControlState> sharedControlState;
+
     std::vector<std::shared_ptr<Scene>> scenes;
     std::vector<std::shared_ptr<Scene>> scenesPending;
-    std::shared_ptr<ControlState> sharedControlState;
     std::vector<std::wstring> skinNames;
     std::unique_ptr<SkinHolder> skin;
-    std::unique_ptr<ExtensionManager> extensions;
-    std::shared_ptr<std::mt19937> random;
-    std::shared_ptr<SoundManager> sound;
-    std::shared_ptr<MusicsManager> musics;
-    std::shared_ptr<CharacterManager> characters;
-    std::shared_ptr<SkillManager> skills;
     std::unordered_map<std::string, boost::any> optionalData;
     DrawableResult lastResult;
     HIMC hImc;
@@ -45,7 +46,7 @@ public:
     void Tick(double delta);
     void Draw();
     void Initialize();
-    void Shutdown() const;
+    void Shutdown();
     void AddScene(const std::shared_ptr<Scene>& scene);
     std::shared_ptr<ScriptScene> CreateSceneFromScriptType(asITypeInfo *type) const;
     std::shared_ptr<ScriptScene> CreateSceneFromScriptObject(asIScriptObject *obj) const;

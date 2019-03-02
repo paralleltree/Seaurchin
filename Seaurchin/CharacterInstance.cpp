@@ -87,6 +87,7 @@ void CharacterInstance::LoadAbilities()
         context->SetArgAddress(0, args);
         context->SetArgAddress(1, indicators.get());
         context->Execute();
+        context->Unprepare();
         log->info(u8"アビリティー " + ConvertUnicodeToUTF8(scrpath.c_str()));
     }
 }
@@ -135,7 +136,6 @@ asIScriptObject* CharacterInstance::LoadAbilityObject(const boost::filesystem::p
     }
 
     const auto obj = scriptInterface->InstantiateObject(type);
-    obj->AddRef();
     type->Release();
     return obj;
 }
@@ -146,6 +146,7 @@ void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunctio
     context->SetObject(obj);
     context->SetArgAddress(0, targetResult.get());
     context->Execute();
+    context->Unprepare();
 }
 
 void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunction *func, AbilityNoteType type) const
@@ -155,6 +156,7 @@ void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunctio
     context->SetArgAddress(0, targetResult.get());
     context->SetArgDWord(1, asDWORD(type));
     context->Execute();
+    context->Unprepare();
 }
 
 void CharacterInstance::CallJudgeCallback(const AbilityJudgeType judge, const AbilityNoteType type, const string& extra) const
@@ -167,6 +169,7 @@ void CharacterInstance::CallJudgeCallback(const AbilityJudgeType judge, const Ab
     judgeCallback->Context->SetArgDWord(1, asDWORD(type));
     judgeCallback->Context->SetArgObject(2, static_cast<void*>(&message));
     judgeCallback->Context->Execute();
+    judgeCallback->Context->Unprepare();
 }
 
 void CharacterInstance::OnStart()
@@ -231,7 +234,11 @@ void CharacterInstance::SetCallback(asIScriptFunction *func)
 {
     if (!func || func->GetFuncType() != asFUNC_DELEGATE) return;
     delete judgeCallback;
+
+    func->AddRef();
     judgeCallback = new CallbackObject(func);
+
+    func->Release();
 }
 
 CharacterParameter* CharacterInstance::GetCharacterParameter() const

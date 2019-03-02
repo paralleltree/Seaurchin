@@ -27,3 +27,6 @@ bool Scene::IsDead()
 {
     return false;
 }
+
+void Scene::Disappear()
+{}

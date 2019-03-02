@@ -47,6 +47,7 @@ public:
     virtual ~SSprite();
     void AddRef();
     void Release();
+    int GetRefCount() const { return reference; }
 
     virtual void Dismiss() { IsDead = true; }
     void Revive() { IsDead = false; }
@@ -54,7 +55,7 @@ public:
     void AddMove(const std::string &move) const;
     void AbortMove(bool terminate) const;
     void Apply(const std::string &dict);
-    void Apply(const CScriptDictionary &dict);
+    void Apply(const CScriptDictionary *dict);
     virtual void Tick(double delta);
     virtual void Draw();
     virtual void Draw(const Transform2D &parent, const ColorTint &color);
@@ -287,7 +288,7 @@ void RegisterSpriteBasic(asIScriptEngine *engine, const char *name)
     //engine->RegisterObjectMethod(name, SU_IF_IMAGE "@ get_Image()", asMETHOD(T, get_Image), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void Dismiss()", asMETHOD(T, Dismiss), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void Apply(const string &in)", asMETHODPR(T, Apply, (const std::string&), void), asCALL_THISCALL);
-    engine->RegisterObjectMethod(name, "void Apply(const dictionary@)", asMETHODPR(T, Apply, (const CScriptDictionary&), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod(name, "void Apply(const dictionary@)", asMETHODPR(T, Apply, (const CScriptDictionary*), void), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void AddMove(const string &in)", asMETHOD(T, AddMove), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void AbortMove(bool = true)", asMETHOD(T, AbortMove), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, (std::string(name) + "@ Clone()").c_str(), asMETHOD(T, Clone), asCALL_THISCALL);

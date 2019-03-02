@@ -8,21 +8,38 @@ using namespace std;
 using namespace boost::filesystem;
 
 ScriptScene::ScriptScene(asIScriptObject *scene)
+    : sceneObject(scene)
+    , sceneType(scene->GetObjectType())
+    , context(scene->GetEngine()->CreateContext())
 {
-    sceneObject = scene;
     sceneObject->AddRef();
-
-    sceneType = sceneObject->GetObjectType();
     sceneType->AddRef();
-
-    auto eng = sceneObject->GetEngine();
-    context = eng->CreateContext();
     context->SetUserData(this, SU_UDTYPE_SCENE);
 }
 
 ScriptScene::~ScriptScene()
 {
     for (auto &i : sprites) i->Release();
+    sprites.clear();
+    for (auto &i : spritesPending) i->Release();
+    spritesPending.clear();
+    for (auto &i : coroutines) {
+        auto c = i;
+        auto e = c->Context->GetEngine();
+        c->Context->Release();
+        c->Function->Release();
+        e->ReleaseScriptObject(c->Object, c->Type);
+        c->Type->Release();
+        delete c;
+    }
+    coroutines.clear();
+    for (auto &i : coroutinesPending) {
+        auto c = i;
+        c->Function->Release();
+        c->Type->Release();
+        delete c;
+    }
+    coroutinesPending.clear();
     context->Release();
     sceneType->Release();
     sceneObject->Release();
@@ -38,7 +55,6 @@ void ScriptScene::Initialize()
 
 void ScriptScene::AddSprite(SSprite *sprite)
 {
-    //sprite->AddRef();
     spritesPending.push_back(sprite);
 }
 
@@ -69,6 +85,7 @@ void ScriptScene::OnEvent(const string &message)
     evc->SetObject(sceneObject);
     evc->SetArgAddress(0, static_cast<void*>(&msg));
     evc->Execute();
+    evc->Unprepare();
     evc->Release();
 }
 
@@ -98,6 +115,7 @@ void ScriptScene::TickCoroutine(const double delta)
         coroutine->Context->SetUserData(this, SU_UDTYPE_SCENE);
         coroutine->Context->SetUserData(&coroutine->Wait, SU_UDTYPE_WAIT);
         coroutine->Context->Prepare(coroutine->Function);
+        static_cast<asIScriptObject*>(coroutine->Object)->AddRef();
         coroutine->Context->SetObject(coroutine->Object);
         coroutines.push_back(coroutine);
     }
@@ -128,9 +146,11 @@ void ScriptScene::TickCoroutine(const double delta)
         const auto result = c->Context->Execute();
         if (result == asEXECUTION_FINISHED) {
             auto e = c->Context->GetEngine();
+            c->Context->Unprepare();
             c->Context->Release();
             c->Function->Release();
             e->ReleaseScriptObject(c->Object, c->Type);
+            c->Type->Release();
             delete c;
             i = coroutines.erase(i);
         } else if (result == asEXECUTION_EXCEPTION) {
@@ -168,10 +188,10 @@ void ScriptScene::DrawSprite()
     for (auto& i : sprites) i->Draw();
 }
 
-ScriptCoroutineScene::ScriptCoroutineScene(asIScriptObject *scene) : Base(scene)
+ScriptCoroutineScene::ScriptCoroutineScene(asIScriptObject *scene)
+    : Base(scene)
+    , runningContext(scene->GetEngine()->CreateContext())
 {
-    auto eng = sceneObject->GetEngine();
-    runningContext = eng->CreateContext();
     runningContext->SetUserData(this, SU_UDTYPE_SCENE);
     runningContext->SetUserData(&wait, SU_UDTYPE_WAIT);
     wait.Type = WaitType::Time;
@@ -181,14 +201,6 @@ ScriptCoroutineScene::ScriptCoroutineScene(asIScriptObject *scene) : Base(scene)
 ScriptCoroutineScene::~ScriptCoroutineScene()
 {
     runningContext->Release();
-    for (auto& i : coroutines) {
-        auto e = i->Context->GetEngine();
-        i->Context->Release();
-        i->Function->Release();
-        e->ReleaseScriptObject(i->Object, i->Type);
-        delete i;
-    }
-    coroutines.clear();
 }
 
 void ScriptCoroutineScene::Tick(const double delta)
@@ -302,6 +314,7 @@ void ScriptSceneAddScene(asIScriptObject *sceneObject)
         return;
     }
     psc->GetManager()->CreateSceneFromScriptObject(sceneObject);
+    sceneObject->Release();
 }
 
 void ScriptSceneAddSprite(SSprite * sprite)
@@ -312,7 +325,12 @@ void ScriptSceneAddSprite(SSprite * sprite)
         ScriptSceneWarnOutOf("Scene Class", ctx);
         return;
     }
-    psc->AddSprite(sprite);
+    {
+        if (sprite) sprite->AddRef();
+        psc->AddSprite(sprite);
+    }
+
+    if (sprite) sprite->Release();
 }
 
 void ScriptSceneRunCoroutine(asIScriptFunction *cofunc, const string &name)
@@ -330,9 +348,12 @@ void ScriptSceneRunCoroutine(asIScriptFunction *cofunc, const string &name)
     c->Function->AddRef();
     c->Object = cofunc->GetDelegateObject();
     c->Type = cofunc->GetDelegateObjectType();
+    c->Type->AddRef();
     c->Wait.Type = WaitType::Time;
     c->Wait.time = 0;
     psc->AddCoroutine(c);
+
+    cofunc->Release();
 }
 
 void ScriptSceneKillCoroutine(const std::string &name)
@@ -344,23 +365,45 @@ void ScriptSceneKillCoroutine(const std::string &name)
         return;
     }
     if (name.empty()) {
+        for (auto& i : psc->coroutinesPending) {
+            i->Function->Release();
+            i->Type->Release();
+            delete i;
+        }
+        psc->coroutinesPending.clear();
         for (auto& i : psc->coroutines) {
             auto e = i->Context->GetEngine();
+            i->Context->Unprepare();
             i->Context->Release();
             i->Function->Release();
             e->ReleaseScriptObject(i->Object, i->Type);
+            i->Type->Release();
             delete i;
         }
         psc->coroutines.clear();
     } else {
-        auto i = psc->coroutines.begin();
+        auto i = psc->coroutinesPending.begin();
+        while (i != psc->coroutinesPending.end()) {
+            const auto c = *i;
+            if (c->Name == name) {
+                c->Function->Release();
+                c->Type->Release();
+                delete c;
+                i = psc->coroutinesPending.erase(i);
+            } else {
+                ++i;
+            }
+        }
+        i = psc->coroutines.begin();
         while (i != psc->coroutines.end()) {
             const auto c = *i;
             if (c->Name == name) {
                 auto e = c->Context->GetEngine();
+                c->Context->Unprepare();
                 c->Context->Release();
                 c->Function->Release();
                 e->ReleaseScriptObject(c->Object, c->Type);
+                c->Type->Release();
                 delete c;
                 i = psc->coroutines.erase(i);
             } else {

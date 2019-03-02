@@ -13,7 +13,6 @@ using namespace xpressive;
 MusicsManager::MusicsManager(ExecutionManager *exm)
 {
     manager = exm;
-    sharedSetting = manager->GetSettingInstanceSafe();
     analyzer = make_unique<SusAnalyzer>(192);
 }
 
@@ -103,6 +102,8 @@ MusicSelectionCursor *MusicsManager::CreateMusicSelectionCursor()
 {
     auto result = new MusicSelectionCursor(this);
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 

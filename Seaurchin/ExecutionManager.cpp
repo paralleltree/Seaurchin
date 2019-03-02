@@ -25,19 +25,17 @@ const static toml::Array defaultAirStringKeys = {
 };
 
 ExecutionManager::ExecutionManager(const shared_ptr<Setting>& setting)
+    : sharedSetting(setting)
+    , settingManager(new setting2::SettingItemManager(sharedSetting))
+    , scriptInterface(new AngelScript())
+    , sound(new SoundManager())
+    , musics(new MusicsManager(this)) // this渡すの怖いけどMusicsManagerのコンストラクタ内で逆参照してないから多分セーフ
+    , characters(new CharacterManager())
+    , skills(new SkillManager())
+    , random(new mt19937(random_device()()))
+    , extensions(new ExtensionManager())
+    , sharedControlState(new ControlState)
 {
-    random_device seed;
-
-    sharedSetting = setting;
-    settingManager = make_unique<setting2::SettingItemManager>(sharedSetting);
-    scriptInterface = make_shared<AngelScript>();
-    sound = make_shared<SoundManager>();
-    random = make_shared<mt19937>(seed());
-    sharedControlState = make_shared<ControlState>();
-    musics = make_shared<MusicsManager>(this);
-    characters = make_shared<CharacterManager>(this);
-    skills = make_shared<SkillManager>(this);
-    extensions = make_unique<ExtensionManager>();
 }
 
 void ExecutionManager::Initialize()
@@ -64,7 +62,7 @@ void ExecutionManager::Initialize()
     if (loadedAirStringKeys.size() >= 4) {
         for (auto i = 0; i < 4; i++) sharedControlState->SetAirStringKeyCombination(i, loadedAirStringKeys[i].as<vector<int>>());
     } else {
-        log->warn(u8"エアストリングキー設定の配列が16要素未満のため、フォールバックを利用します");
+        log->warn(u8"エアストリングキー設定の配列が4要素未満のため、フォールバックを利用します");
     }
 
     // 拡張ライブラリ読み込み
@@ -74,8 +72,6 @@ void ExecutionManager::Initialize()
     // サウンド初期化
     mixerBgm = SSoundMixer::CreateMixer(sound.get());
     mixerSe = SSoundMixer::CreateMixer(sound.get());
-    mixerBgm->AddRef();
-    mixerSe->AddRef();
 
     // AngelScriptインターフェース登録
     InterfacesRegisterEnum(this);
@@ -110,18 +106,26 @@ void ExecutionManager::Initialize()
     */
 }
 
-void ExecutionManager::Shutdown() const
+void ExecutionManager::Shutdown()
 {
+    for (auto& scene : scenes) scene->Disappear();
+    scenes.clear();
+    for (auto& scene : scenesPending) scene->Disappear();
+    scenesPending.clear();
+
     if (skin) skin->Terminate();
     settingManager->SaveAllValues();
     sharedControlState->Terminate();
+
+    BOOST_ASSERT(mixerBgm->GetRefCount() == 1);
+    BOOST_ASSERT(mixerSe->GetRefCount() == 1);
+
     mixerBgm->Release();
     mixerSe->Release();
     if (hCommunicationPipe != INVALID_HANDLE_VALUE) {
         DisconnectNamedPipe(hCommunicationPipe);
         CloseHandle(hCommunicationPipe);
     }
-
 }
 
 void ExecutionManager::RegisterGlobalManagementFunction()
@@ -219,9 +223,12 @@ bool ExecutionManager::ExecuteSkin(const string &file)
     const auto s = CreateSceneFromScriptObject(obj);
     if (!s) {
         log->error(u8"{0}にEntryPointが見つかりませんでした", file);
+        obj->Release();
         return false;
     }
     AddScene(s);
+
+    obj->Release();
     return true;
 }
 
@@ -232,7 +239,7 @@ bool ExecutionManager::ExecuteScene(asIScriptObject *sceneObject)
     if (!s) return false;
     sceneObject->SetUserData(skin.get(), SU_UDTYPE_SKIN);
     AddScene(s);
-    // カウンタ加算が余計なので1回戻す
+
     sceneObject->Release();
     return true;
 }

@@ -6,9 +6,8 @@
 
 using namespace std;
 
-CharacterManager::CharacterManager(ExecutionManager *exm)
+CharacterManager::CharacterManager()
 {
-    manager = exm;
     selected = -1;
 }
 

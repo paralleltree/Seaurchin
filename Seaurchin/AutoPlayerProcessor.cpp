@@ -13,6 +13,10 @@ AutoPlayerProcessor::AutoPlayerProcessor(ScenePlayer *splayer)
     player = splayer;
 }
 
+void AutoPlayerProcessor::SetJudgeAdjusts(const double jas, const double jms, const double jaa, const double jma)
+{
+}
+
 void AutoPlayerProcessor::Reset()
 {
     player->currentResult->Reset();

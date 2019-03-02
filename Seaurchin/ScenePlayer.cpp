@@ -42,13 +42,38 @@ void RegisterPlayerScene(ExecutionManager * manager)
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "double GetLastNoteTime()", asMETHOD(ScenePlayer, GetLastNoteTime), asCALL_THISCALL);
 }
 
+namespace {
+    ScoreProcessor* CreateScoreProcessor(ExecutionManager *pMng, ScenePlayer *src)
+    {
+        if(pMng == nullptr) return nullptr;
 
-ScenePlayer::ScenePlayer(ExecutionManager *exm) : manager(exm), judgeSoundQueue(32)
+        switch (pMng->GetData<int>("AutoPlay", 1)) {
+        case 0: return new PlayableProcessor(src);
+        case 1: return new AutoPlayerProcessor(src);
+        case 2: return new PlayableProcessor(src, true);
+        }
+
+        return nullptr;
+    }
+}
+
+ScenePlayer::ScenePlayer(ExecutionManager *exm)
+    : manager(exm)
+    , judgeSoundQueue(32)
+    , analyzer(make_unique<SusAnalyzer>(192))
+    , isLoadCompleted(false)
+    , currentResult(new Result())
+    , processor(CreateScoreProcessor(exm, this)) // 若干危険ですけどね……
+    , hispeedMultiplier(exm->GetSettingInstanceSafe()->ReadValue<double>("Play", "Hispeed", 6))
+    , airRollSpeed(manager->GetSettingInstanceSafe()->ReadValue<double>("Play", "AirRollMultiplier", 1.5))
+    , soundBufferingLatency(manager->GetSettingInstanceSafe()->ReadValue<int>("Sound", "BufferLatency", 30) / 1000.0)
+    , soundManager(manager->GetSoundManagerUnsafe())
 {
-    soundManager = manager->GetSoundManagerUnsafe();
     judgeSoundThread = thread([this]() {
         ProcessSoundQueue();
     });
+
+    SetProcessorOptions(processor);
 }
 
 ScenePlayer::~ScenePlayer()
@@ -58,34 +83,6 @@ ScenePlayer::~ScenePlayer()
 
 void ScenePlayer::Initialize()
 {
-    analyzer = make_unique<SusAnalyzer>(192);
-    isLoadCompleted = false;
-    currentResult = make_shared<Result>();
-    switch (manager->GetData<int>("AutoPlay", 1)) {
-        case 0: {
-            const auto pp = new PlayableProcessor(this);
-            SetProcessorOptions(pp);
-            processor = pp;
-            break;
-        }
-        case 1:
-            processor = new AutoPlayerProcessor(this);
-            break;
-        case 2: {
-            const auto pp = new PlayableProcessor(this, true);
-            SetProcessorOptions(pp);
-            processor = pp;
-            break;
-        }
-        default: break;
-    }
-
-    auto setting = manager->GetSettingInstanceSafe();
-    hispeedMultiplier = setting->ReadValue<double>("Play", "Hispeed", 6);
-    airRollSpeed = setting->ReadValue<double>("Play", "AirRollMultiplier", 1.5);
-    soundBufferingLatency = setting->ReadValue<int>("Sound", "BufferLatency", 30) / 1000.0;
-    preloadingTime = 0.5;
-
     LoadResources();
 
     const auto cp = manager->GetCharacterManagerSafe()->GetCharacterParameterSafe(0);
@@ -93,7 +90,7 @@ void ScenePlayer::Initialize()
     currentCharacterInstance = CharacterInstance::CreateInstance(cp, sp, manager->GetScriptInterfaceSafe(), currentResult);
 }
 
-void ScenePlayer::SetProcessorOptions(PlayableProcessor *processor) const
+void ScenePlayer::SetProcessorOptions(ScoreProcessor *processor) const
 {
     auto setting = manager->GetSettingInstanceSafe();
     const auto jas = setting->ReadValue<int>("Play", "JudgeAdjustSlider", 0) / 1000.0;
@@ -116,11 +113,17 @@ void ScenePlayer::Finalize()
     SoundManager::StopGlobal(soundSlideLoop->GetSample());
     SoundManager::StopGlobal(soundAirLoop->GetSample());
     for (auto& res : resources) if (res.second) res.second->Release();
+    for (auto &i : sprites) i->Release();
+    sprites.clear();
+    for (auto &i : spritesPending) i->Release();
+    spritesPending.clear();
+    for (auto &i : slideEffects) i.second->Release();
+    slideEffects.clear();
     SoundManager::StopGlobal(bgmStream);
     delete processor;
     delete bgmStream;
 
-    fontCombo->Release();
+    textCombo->Release();
     DeleteGraph(hGroundBuffer);
     if (movieBackground) DeleteGraph(movieBackground);
     judgeSoundThread.join();
@@ -556,7 +559,11 @@ void ScenePlayer::Reload()
 void ScenePlayer::SetJudgeCallback(asIScriptFunction *func) const
 {
     if (!currentCharacterInstance) return;
+
+    func->AddRef();
     currentCharacterInstance->SetCallback(func);
+
+    func->Release();
 }
 
 void ScenePlayer::AdjustCamera(const double cy, const double cz, const double ctz)
