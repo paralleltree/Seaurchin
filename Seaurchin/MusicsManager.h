@@ -59,7 +59,6 @@ class ExecutionManager;
 class MusicsManager final {
     friend class MusicSelectionCursor;
 private:
-    std::shared_ptr<Setting> sharedSetting;
     ExecutionManager *manager;
 
     bool loading = false;

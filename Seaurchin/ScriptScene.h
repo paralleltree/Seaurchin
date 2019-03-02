@@ -20,9 +20,10 @@ typedef struct {
 class ScriptScene : public Scene {
     typedef Scene Base;
 protected:
-    asIScriptContext *context;
-    asIScriptObject *sceneObject;
-    asITypeInfo *sceneType;
+    asIScriptContext * const context;
+    asIScriptObject * const sceneObject;
+    asITypeInfo * const sceneType;
+
     std::multiset<SSprite*, SSprite::Comparator> sprites;
     std::vector<SSprite*> spritesPending;
     std::list<Coroutine*> coroutines;
@@ -35,7 +36,7 @@ protected:
 
 public:
     ScriptScene(asIScriptObject *scene);
-    ~ScriptScene();
+    virtual ~ScriptScene();
 
     void Initialize() override;
 
@@ -45,7 +46,7 @@ public:
     void OnEvent(const std::string &message) override;
     void Draw() override;
     bool IsDead() override;
-    void Disappear();
+    void Disappear() override;
 
     friend void ScriptSceneKillCoroutine(const std::string &name);
 };
@@ -58,12 +59,10 @@ protected:
 
 public:
     ScriptCoroutineScene(asIScriptObject *scene);
-    ~ScriptCoroutineScene();
-
+    virtual ~ScriptCoroutineScene();
 
     void Tick(double delta) override;
     void Initialize() override;
-
 };
 
 class ExecutionManager;

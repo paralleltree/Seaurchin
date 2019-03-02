@@ -6,9 +6,8 @@
 
 using namespace std;
 
-SkillManager::SkillManager(ExecutionManager *exm)
+SkillManager::SkillManager()
 {
-    manager = exm;
     selected = -1;
 }
 

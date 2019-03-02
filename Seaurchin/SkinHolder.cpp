@@ -12,11 +12,11 @@ bool SkinHolder::IncludeScript(std::wstring include, std::wstring from, CWScript
 }
 
 SkinHolder::SkinHolder(const wstring &name, const shared_ptr<AngelScript> &script, const std::shared_ptr<SoundManager>& sound)
+    : scriptInterface(script)
+    , soundInterface(sound)
+    , skinName(name)
+    , skinRoot(Setting::GetRootDirectory() / SU_DATA_DIR / SU_SKIN_DIR / skinName)
 {
-    scriptInterface = script;
-    soundInterface = sound;
-    skinName = name;
-    skinRoot = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SKIN_DIR / skinName;
 }
 
 SkinHolder::~SkinHolder()
@@ -65,13 +65,13 @@ void SkinHolder::Terminate()
     for (const auto &it : animatedImages) it.second->Release();
 }
 
-asIScriptObject* SkinHolder::ExecuteSkinScript(const wstring &file)
+asIScriptObject* SkinHolder::ExecuteSkinScript(const wstring &file, bool forceReload)
 {
     auto log = spdlog::get("main");
     //お茶を濁せ
     const auto modulename = ConvertUnicodeToUTF8(file);
     auto mod = scriptInterface->GetExistModule(modulename);
-    if (!mod) {
+    if (!mod || forceReload) {
         scriptInterface->StartBuildModule(modulename,
             [this](wstring inc, wstring from, CWScriptBuilder *b) {
             if (!exists(skinRoot / SU_SCRIPT_DIR / inc)) return false;

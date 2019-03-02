@@ -8,15 +8,12 @@ using namespace std;
 using namespace boost::filesystem;
 
 ScriptScene::ScriptScene(asIScriptObject *scene)
+    : sceneObject(scene)
+    , sceneType(scene->GetObjectType())
+    , context(scene->GetEngine()->CreateContext())
 {
-    sceneObject = scene;
     sceneObject->AddRef();
-
-    sceneType = sceneObject->GetObjectType();
     sceneType->AddRef();
-
-    auto eng = sceneObject->GetEngine();
-    context = eng->CreateContext();
     context->SetUserData(this, SU_UDTYPE_SCENE);
 }
 
@@ -168,10 +165,10 @@ void ScriptScene::DrawSprite()
     for (auto& i : sprites) i->Draw();
 }
 
-ScriptCoroutineScene::ScriptCoroutineScene(asIScriptObject *scene) : Base(scene)
+ScriptCoroutineScene::ScriptCoroutineScene(asIScriptObject *scene)
+    : Base(scene)
+    , runningContext(scene->GetEngine()->CreateContext())
 {
-    auto eng = sceneObject->GetEngine();
-    runningContext = eng->CreateContext();
     runningContext->SetUserData(this, SU_UDTYPE_SCENE);
     runningContext->SetUserData(&wait, SU_UDTYPE_WAIT);
     wait.Type = WaitType::Time;

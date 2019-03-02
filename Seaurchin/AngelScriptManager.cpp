@@ -4,17 +4,16 @@ using namespace std;
 static int ScriptIncludeCallback(const wchar_t *include, const wchar_t *from, CWScriptBuilder *builder, void *userParam);
 
 AngelScript::AngelScript()
+    : engine(asCreateScriptEngine())
 {
-    engine = asCreateScriptEngine();
+    engine->SetMessageCallback(asMETHOD(AngelScript, ScriptMessageCallback), this, asCALL_THISCALL);
     RegisterScriptMath(engine);
     RegisterScriptArray(engine, true);
     RegisterStdString(engine);
     RegisterStdStringUtils(engine);
     RegisterScriptDictionary(engine);
-    engine->SetMessageCallback(asMETHOD(AngelScript, ScriptMessageCallback), this, asCALL_THISCALL);
 
     //Script Interface
-
     sharedContext = engine->CreateContext();
     sharedContext->AddRef();
     builder.SetIncludeCallback(ScriptIncludeCallback, this);

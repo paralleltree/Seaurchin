@@ -13,14 +13,6 @@
 #define SU_IF_ANIMEIMAGE "AnimatedImage"
 #define SU_IF_SETTING_ITEM "SettingItem"
 
-//interface 自動解放対象
-class SResouceAutoRelease {
-public:
-    virtual ~SResouceAutoRelease() = default;
-private:
-    virtual bool Dispose() = 0;
-};
-
 //リソース基底クラス
 class SResource {
 protected:

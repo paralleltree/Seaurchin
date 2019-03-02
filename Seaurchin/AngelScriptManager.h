@@ -4,7 +4,7 @@ typedef std::function<bool(std::wstring, std::wstring, CWScriptBuilder*)> Includ
 
 class AngelScript {
 private:
-    asIScriptEngine *engine;
+    asIScriptEngine * const engine;
     asIScriptContext *sharedContext;
     CWScriptBuilder builder;
     IncludeCallback includeFunc;

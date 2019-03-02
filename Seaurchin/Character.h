@@ -54,7 +54,6 @@ class ExecutionManager;
 
 class CharacterManager final {
 private:
-    ExecutionManager * manager;
     std::vector<std::shared_ptr<CharacterParameter>> characters;
 
     int selected;
@@ -62,7 +61,7 @@ private:
     void LoadFromToml(const boost::filesystem::path& file);
 
 public:
-    explicit CharacterManager(ExecutionManager *exm);
+    explicit CharacterManager();
 
     void LoadAllCharacters();
 

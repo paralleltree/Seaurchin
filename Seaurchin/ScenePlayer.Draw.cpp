@@ -53,7 +53,7 @@ void ScenePlayer::LoadResources()
     soundMetronome = dynamic_cast<SSound*>(resources["Metronome"]);
     fontCombo = dynamic_cast<SFont*>(resources["FontCombo"]);
 
-    auto setting = manager->GetSettingInstanceSafe();
+    const auto setting = manager->GetSettingInstanceSafe();
     if (soundHoldLoop) soundHoldLoop->SetLoop(true);
     if (soundSlideLoop) soundSlideLoop->SetLoop(true);
     if (soundAirLoop) soundAirLoop->SetLoop(true);
@@ -86,19 +86,18 @@ void ScenePlayer::LoadResources()
 
     // 2^x制限があるのでここで計算
     const int exty = laneBufferX * SU_LANE_ASPECT_EXT;
-    auto bufferY = 2.0;
-    while (exty > bufferY) bufferY *= 2;
+    auto bufferY = 2.0f;
+    while (exty > bufferY) bufferY *= 2.0f;
     const float bufferV = exty / bufferY;
     for (auto i = 2; i < 4; i++) groundVertices[i].v = bufferV;
     hGroundBuffer = MakeScreen(laneBufferX, bufferY, TRUE);
 
     fontCombo->AddRef();
-    textCombo = STextSprite::Factory(fontCombo, "0000");
+    textCombo = STextSprite::Factory(fontCombo, "");
     textCombo->SetAlignment(STextAlign::Center, STextAlign::Center);
-    const auto size = 320.0 / fontCombo->GetSize();
     ostringstream app;
     app << setprecision(5);
-    app << "x:512, y:3200, " << "scaleX:" << size << ", scaleY:" << size;
+    app << "x:512, y:3200, " << "scaleX:" << textScale << ", scaleY:" << textScale;
     textCombo->Apply(app.str());
 }
 
@@ -111,7 +110,10 @@ void ScenePlayer::TickGraphics(const double delta)
 {
     if (status.Combo > previousStatus.Combo) RefreshComboText();
     UpdateSlideEffect();
+
+#ifdef SU_ENABLE_BACKGROUND_ROLLING
     laneBackgroundRoll += laneBackgroundSpeed * delta;
+#endif
 }
 
 void ScenePlayer::Draw()
@@ -123,6 +125,8 @@ void ScenePlayer::Draw()
     if (movieBackground) DrawExtendGraph(0, 0, SU_RES_WIDTH, SU_RES_HEIGHT, movieBackground, FALSE);
 
     BEGIN_DRAW_TRANSACTION(hGroundBuffer);
+    ClearDrawScreen();
+
     // 背景部
     DrawLaneBackground();
     DrawLaneDivisionLines();
@@ -140,13 +144,11 @@ void ScenePlayer::Draw()
 
     // 上側のショートノーツ類
     for (auto& note : seenData) {
-        auto &type = note->Type;
-        if (type[size_t(SusNoteType::Tap)]) DrawShortNotes(note);
-        if (type[size_t(SusNoteType::ExTap)]) DrawShortNotes(note);
-        if (type[size_t(SusNoteType::AwesomeExTap)]) DrawShortNotes(note);
-        if (type[size_t(SusNoteType::Flick)]) DrawShortNotes(note);
-        if (type[size_t(SusNoteType::HellTap)]) DrawShortNotes(note);
-        if (type[size_t(SusNoteType::Air)] && type[size_t(SusNoteType::Grounded)]) DrawShortNotes(note);
+        auto type = note->Type.to_ulong();
+#define GET_BIT(num) (1UL << (int(num)))
+        const auto mask = GET_BIT(SusNoteType::Tap) | GET_BIT(SusNoteType::ExTap) | GET_BIT(SusNoteType::AwesomeExTap) | GET_BIT(SusNoteType::Flick) | GET_BIT(SusNoteType::HellTap) | GET_BIT(SusNoteType::Grounded);
+#undef GET_BIT
+        if (type & mask) DrawShortNotes(note);
     }
 
     FINISH_DRAW_TRANSACTION;
@@ -239,16 +241,15 @@ void ScenePlayer::DrawAerialNotes(const vector<shared_ptr<SusDrawableNoteData>>&
 
 void ScenePlayer::RefreshComboText() const
 {
-    const auto size = 320.0 / fontCombo->GetSize();
     ostringstream app;
     textCombo->AbortMove(true);
 
     app << setprecision(5);
-    app << "scaleX:" << size * 1.05 << ", scaleY:" << size * 1.05;
+    app << "scaleX:" << textScale * 1.05 << ", scaleY:" << textScale * 1.05;
     textCombo->Apply(app.str());
     app.str("");
     app << setprecision(5);
-    app << "scale_to(" << "x:" << size << ", y:" << size << ", time: 0.2, ease:out_quad)";
+    app << "scale_to(" << "x:" << textScale << ", y:" << textScale << ", time: 0.2, ease:out_quad)";
     textCombo->AddMove(app.str());
 }
 
@@ -305,11 +306,12 @@ void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target
 
 void ScenePlayer::SpawnSlideLoopEffect(const shared_ptr<SusDrawableNoteData>& target)
 {
+    SpawnJudgeEffect(target, JudgeType::SlideTap);
+
     animeSlideLoop->AddRef();
     imageTap->AddRef();
     auto loopefx = SAnimeSprite::Factory(animeSlideLoop);
     loopefx->Apply("origX:128, origY:224");
-    SpawnJudgeEffect(target, JudgeType::SlideTap);
     loopefx->SetLoopCount(-1);
     slideEffects[target] = loopefx;
     AddSprite(loopefx);
@@ -319,7 +321,6 @@ void ScenePlayer::RemoveSlideEffect()
 {
     auto it = slideEffects.begin();
     while (it != slideEffects.end()) {
-        auto note = (*it).first;
         auto effect = (*it).second;
         effect->Dismiss();
         it = slideEffects.erase(it);
@@ -383,28 +384,30 @@ void ScenePlayer::DrawShortNotes(const shared_ptr<SusDrawableNoteData>& note) co
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
     const auto relpos = 1.0 - note->ModifiedPosition / seenDuration;
     const auto length = note->Length;
-    const auto slane = note->StartLane;
+#ifdef SU_ENABLE_NOTE_HORIZONTAL_MOVING
     const auto zlane = note->CenterAtZero - length / 2.0f;
-    const auto rlane = glm::mix(zlane, float(slane), relpos);
+    const auto slane = glm::mix(zlane, float(note->StartLane), relpos);
+#else
+    const auto slane = float(note->StartLane);
+#endif
     SImage *handleToDraw = nullptr;
 
-    if (note->Type.test(size_t(SusNoteType::Tap))) {
+    const auto &type = note->Type;
+    if (type[size_t(SusNoteType::Tap)]) {
         handleToDraw = imageTap;
-    } else if (note->Type.test(size_t(SusNoteType::ExTap))) {
+    } else if (type[size_t(SusNoteType::ExTap)] || type[size_t(SusNoteType::AwesomeExTap)]) {
         handleToDraw = imageExTap;
-    } else if (note->Type.test(size_t(SusNoteType::AwesomeExTap))) {
-        handleToDraw = imageExTap;
-    } else if (note->Type.test(size_t(SusNoteType::Flick))) {
+    } else if (type[size_t(SusNoteType::Flick)]) {
         handleToDraw = imageFlick;
-    } else if (note->Type.test(size_t(SusNoteType::HellTap))) {
+    } else if (type[size_t(SusNoteType::HellTap)]) {
         handleToDraw = imageHellTap;
-    } else if (note->Type.test(size_t(SusNoteType::Air))) {
+    } else if (type[size_t(SusNoteType::Air)] && type[size_t(SusNoteType::Grounded)]) {
         handleToDraw = imageAir;
     }
 
     //64*3 x 64 を描画するから1/2でやる必要がある
 
-    if (handleToDraw) DrawTap(rlane, length, relpos, handleToDraw->GetHandle());
+    if (handleToDraw) DrawTap(slane, length, relpos, handleToDraw->GetHandle());
 }
 
 void ScenePlayer::DrawAirNotes(const AirDrawQuery &query) const
@@ -1050,8 +1053,8 @@ void ScenePlayer::DrawLaneDivisionLines() const
 
 void ScenePlayer::DrawLaneBackground() const
 {
-    ClearDrawScreen();
     // bg
+#ifdef SU_ENABLE_BACKGROUND_ROLLING
     const int exty = laneBufferX * SU_LANE_ASPECT_EXT;
     const auto bgiw = imageLaneGround->GetWidth();
     const auto scale = laneBufferX / bgiw;
@@ -1063,6 +1066,10 @@ void ScenePlayer::DrawLaneBackground() const
         DrawRotaGraph2F(0, cy, 0, 0, scale, 0, imageLaneGround->GetHandle(), TRUE, FALSE);
         cy += imageLaneGround->GetHeight() * scale;
     }
+#else
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+    DrawGraph(0, 0, imageLaneGround->GetHandle(), TRUE);
+#endif
 
     SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
     DrawRectRotaGraph3F(

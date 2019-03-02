@@ -965,8 +965,9 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                 }
                 if (require) noteData->Type.set(size_t(SusNoteType::Grounded));
             }
+
+#ifdef SU_ENABLE_NOTE_HORIZONTAL_MOVING
             // 移動レーン処理
-            noteData->CenterAtZero = noteData->StartLane + noteData->Length / 2.0;
             if (SharedMetaData.ExtraFlags[size_t(SusMetaDataFlags::EnableMovingLane)]) {
                 for (const auto &startSource : notes) {
                     const auto mltime = get<0>(startSource);
@@ -977,6 +978,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                     noteData->CenterAtZero = mlinfo.Extra + mlinfo.NotePosition.Length / 2.0;
                 }
             }
+#endif
 
             SharedMetaData.ScoreDuration = max(SharedMetaData.ScoreDuration, noteData->StartTime);
         } else if (info.Type[size_t(SusNoteType::MeasureLine)]) {

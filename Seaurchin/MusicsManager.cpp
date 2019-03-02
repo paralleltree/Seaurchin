@@ -11,10 +11,9 @@ using namespace xpressive;
 //path sepath = Setting::GetRootDirectory() / SU_DATA_DIR / SU_SKIN_DIR;
 
 MusicsManager::MusicsManager(ExecutionManager *exm)
+    : manager(exm)
+    , analyzer(make_unique<SusAnalyzer>(192))
 {
-    manager = exm;
-    sharedSetting = manager->GetSettingInstanceSafe();
-    analyzer = make_unique<SusAnalyzer>(192);
 }
 
 MusicsManager::~MusicsManager()

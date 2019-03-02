@@ -75,7 +75,8 @@ SImage * SImage::CreateLoadedImageFromMemory(void * buffer, const size_t size)
 
 // SRenderTarget -----------------------------
 
-SRenderTarget::SRenderTarget(const int w, const int h) : SImage(0)
+SRenderTarget::SRenderTarget(const int w, const int h)
+    : SImage(0)
 {
     width = w;
     height = h;
@@ -90,7 +91,8 @@ SRenderTarget * SRenderTarget::CreateBlankTarget(const int w, const int h)
 }
 
 // SNinePatchImage ----------------------------
-SNinePatchImage::SNinePatchImage(const int ih) : SImage(ih)
+SNinePatchImage::SNinePatchImage(const int ih)
+    : SImage(ih)
 {}
 
 SNinePatchImage::~SNinePatchImage()
@@ -110,7 +112,8 @@ void SNinePatchImage::SetArea(const int leftw, const int toph, const int bodyw, 
 
 // SAnimatedImage --------------------------------
 
-SAnimatedImage::SAnimatedImage(const int w, const int h, const int count, const double time) : SImage(0)
+SAnimatedImage::SAnimatedImage(const int w, const int h, const int count, const double time)
+    : SImage(0)
 {
     cellWidth = width = w;
     cellHeight = height = h;
@@ -446,9 +449,9 @@ SSound * SSound::CreateSoundFromFile(SoundManager *smanager, const std::string &
 
 // SSettingItem --------------------------------------------
 
-SSettingItem::SSettingItem(const shared_ptr<setting2::SettingItem> s) : setting(s)
+SSettingItem::SSettingItem(const shared_ptr<setting2::SettingItem> s)
+    : setting(s)
 {
-
 }
 
 SSettingItem::~SSettingItem()
