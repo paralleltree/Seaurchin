@@ -46,8 +46,13 @@ double ToDouble(const char *str)
 double NormalizedFmod(const double x, double y)
 {
     if (y < 0) y = -y;
-    const int q = x >= 0 ? x / y : (x / y) - 1;
+    const int q = SU_TO_INT32(x >= 0 ? x / y : (x / y) - 1);
     return x - q * y;
+}
+
+uint32_t ConvertUnsignedInteger(const string &input)
+{
+    return SU_TO_UINT32(atoi(input.c_str()));
 }
 
 int32_t ConvertInteger(const string &input)
@@ -60,9 +65,9 @@ uint32_t ConvertHexatridecimal(const string &input)
     return stoul(input, nullptr, 36);
 }
 
-double ConvertFloat(const string &input)
+float ConvertFloat(const string &input)
 {
-    return ToDouble(input.c_str());
+    return SU_TO_FLOAT(ToDouble(input.c_str()));
 }
 
 bool ConvertBoolean(const string &input)

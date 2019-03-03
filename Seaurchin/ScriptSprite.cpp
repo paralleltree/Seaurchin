@@ -189,13 +189,13 @@ void SSprite::RegisterType(asIScriptEngine * engine)
     engine->RegisterObjectType(SU_IF_TF2D, sizeof(Transform2D), asOBJ_VALUE | asOBJ_APP_CLASS_CD);
     engine->RegisterObjectBehaviour(SU_IF_TF2D, asBEHAVE_CONSTRUCT, "void f()", asFUNCTION(AngelScriptValueConstruct<Transform2D>), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectBehaviour(SU_IF_TF2D, asBEHAVE_DESTRUCT, "void f()", asFUNCTION(AngelScriptValueDestruct<Transform2D>), asCALL_CDECL_OBJLAST);
-    engine->RegisterObjectProperty(SU_IF_TF2D, "double X", asOFFSET(Transform2D, X));
-    engine->RegisterObjectProperty(SU_IF_TF2D, "double Y", asOFFSET(Transform2D, Y));
-    engine->RegisterObjectProperty(SU_IF_TF2D, "double Angle", asOFFSET(Transform2D, Angle));
-    engine->RegisterObjectProperty(SU_IF_TF2D, "double OriginX", asOFFSET(Transform2D, OriginX));
-    engine->RegisterObjectProperty(SU_IF_TF2D, "double OriginY", asOFFSET(Transform2D, OriginY));
-    engine->RegisterObjectProperty(SU_IF_TF2D, "double ScaleX", asOFFSET(Transform2D, ScaleX));
-    engine->RegisterObjectProperty(SU_IF_TF2D, "double ScaleY", asOFFSET(Transform2D, ScaleY));
+    engine->RegisterObjectProperty(SU_IF_TF2D, "float X", asOFFSET(Transform2D, X));
+    engine->RegisterObjectProperty(SU_IF_TF2D, "float Y", asOFFSET(Transform2D, Y));
+    engine->RegisterObjectProperty(SU_IF_TF2D, "float Angle", asOFFSET(Transform2D, Angle));
+    engine->RegisterObjectProperty(SU_IF_TF2D, "float OriginX", asOFFSET(Transform2D, OriginX));
+    engine->RegisterObjectProperty(SU_IF_TF2D, "float OriginY", asOFFSET(Transform2D, OriginY));
+    engine->RegisterObjectProperty(SU_IF_TF2D, "float ScaleX", asOFFSET(Transform2D, ScaleX));
+    engine->RegisterObjectProperty(SU_IF_TF2D, "float ScaleY", asOFFSET(Transform2D, ScaleY));
 
     //Color
     engine->RegisterObjectType(SU_IF_COLOR, sizeof(ColorTint), asOBJ_VALUE | asOBJ_APP_CLASS_CD);
@@ -235,7 +235,7 @@ void SShape::DrawBy(const Transform2D & tf, const ColorTint & ct)
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, ct.A);
     switch (Type) {
         case SShapeType::Pixel:
-            DrawPixel(tf.X, tf.Y, GetColor(255, 255, 255));
+            DrawPixel(SU_TO_INT32(tf.X), SU_TO_INT32(tf.Y), GetColor(255, 255, 255));
             break;
         case SShapeType::Box: {
             const glm::vec2 points[] = {
@@ -399,8 +399,8 @@ void STextSprite::DrawNormal(const Transform2D &tf, const ColorTint &ct)
     } else {
         SetDrawBright(ct.R, ct.G, ct.B);
     }
-    const auto tox = get<0>(size) / 2 * int(horizontalAlignment);
-    const auto toy = get<1>(size) / 2 * int(verticalAlignment);
+    const auto tox = SU_TO_FLOAT(get<0>(size) / 2 * int(horizontalAlignment));
+    const auto toy = SU_TO_FLOAT(get<1>(size) / 2 * int(verticalAlignment));
     DrawRotaGraph3F(
         tf.X, tf.Y,
         tf.OriginX + tox, tf.OriginY + toy,
@@ -419,8 +419,8 @@ void STextSprite::DrawScroll(const Transform2D &tf, const ColorTint &ct)
         auto reach = -scrollPosition + int(scrollPosition / (get<0>(size) + scrollMargin)) * (get<0>(size) + scrollMargin);
         while (reach < scrollWidth) {
             DrawRectGraphF(
-                reach, 0,
-                0, 0, get<0>(size), get<1>(size),
+                SU_TO_FLOAT(reach), 0,
+                0, 0, SU_TO_INT32(get<0>(size)), SU_TO_INT32(get<1>(size)),
                 target->GetHandle(), TRUE, FALSE);
             reach += get<0>(size) + scrollMargin;
         }
@@ -428,8 +428,8 @@ void STextSprite::DrawScroll(const Transform2D &tf, const ColorTint &ct)
         auto reach = -scrollPosition - int(scrollPosition / (get<0>(size) + scrollMargin)) * (get<0>(size) + scrollMargin);
         while (reach > 0) {
             DrawRectGraphF(
-                reach, 0,
-                0, 0, get<0>(size), get<1>(size),
+                SU_TO_FLOAT(reach), 0,
+                0, 0, SU_TO_INT32(get<0>(size)), SU_TO_INT32(get<1>(size)),
                 target->GetHandle(), TRUE, FALSE);
             reach -= get<0>(size) + scrollMargin;
         }
@@ -443,8 +443,8 @@ void STextSprite::DrawScroll(const Transform2D &tf, const ColorTint &ct)
     }
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, ct.A);
     SetDrawMode(DX_DRAWMODE_ANISOTROPIC);
-    const auto tox = scrollWidth / 2 * int(horizontalAlignment);
-    const auto toy = get<1>(size) / 2 * int(verticalAlignment);
+    const auto tox = SU_TO_FLOAT(scrollWidth / 2 * int(horizontalAlignment));
+    const auto toy = SU_TO_FLOAT(get<1>(size) / 2 * int(verticalAlignment));
     DrawRotaGraph3F(
         tf.X, tf.Y,
         tf.OriginX + tox, tf.OriginY + toy,
@@ -715,7 +715,7 @@ void SSynthSprite::Transfer(SImage * image, const double x, const double y)
     BEGIN_DRAW_TRANSACTION(target->GetHandle());
     SetDrawBright(255, 255, 255);
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    DrawGraphF(x, y, image->GetHandle(), HasAlpha ? TRUE : FALSE);
+    DrawGraphF(SU_TO_FLOAT(x), SU_TO_FLOAT(y), image->GetHandle(), HasAlpha ? TRUE : FALSE);
     FINISH_DRAW_TRANSACTION;
 
     image->Release();
@@ -778,10 +778,10 @@ void SSynthSprite::RegisterType(asIScriptEngine * engine)
 void SClippingSprite::DrawBy(const Transform2D & tf, const ColorTint & ct)
 {
     if (!target) return;
-    const auto x = width * u1;
-    const auto y = height * v1;
-    const auto w = width * u2;
-    const auto h = height * v2;
+    const auto x = SU_TO_INT32(width * u1);
+    const auto y = SU_TO_INT32(height * v1);
+    const auto w = SU_TO_INT32(width * u2);
+    const auto h = SU_TO_INT32(height * v2);
     SetDrawBright(ct.R, ct.G, ct.B);
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, ct.A);
     DrawRectRotaGraph3F(
@@ -797,8 +797,8 @@ bool SClippingSprite::ActionMoveRangeTo(SSprite *thisObj, SpriteMoverArgument &a
 {
     const auto target = dynamic_cast<SClippingSprite*>(thisObj);
     if (delta == 0) {
-        data.Extra1 = target->u2;
-        data.Extra2 = target->v2;
+        data.Extra1 = SU_TO_FLOAT(target->u2);
+        data.Extra2 = SU_TO_FLOAT(target->v2);
         return false;
     }
     if (delta >= 0) {

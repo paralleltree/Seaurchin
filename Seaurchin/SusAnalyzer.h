@@ -211,7 +211,7 @@ private:
     static boost::xpressive::sregex regexSusCommand;
     static boost::xpressive::sregex regexSusData;
 
-    const double defaultBeats = 4.0;
+    const float defaultBeats = 4.0;
     const double defaultBpm = 120.0;
     const uint32_t defaultHispeedNumber = std::numeric_limits<uint32_t>::max();
     const uint32_t defaultExtraAttributeNumber = std::numeric_limits<uint32_t>::max();

@@ -86,12 +86,12 @@ void ScenePlayer::LoadResources()
     airActionJudgeColor = GetColor(aajcv[0].as<int>(), aajcv[1].as<int>(), aajcv[2].as<int>());
 
     // 2^x制限があるのでここで計算
-    const int exty = laneBufferX * SU_LANE_ASPECT_EXT;
+    const auto exty = laneBufferX * SU_LANE_ASPECT_EXT;
     auto bufferY = 2.0f;
     while (exty > bufferY) bufferY *= 2.0f;
-    const float bufferV = exty / bufferY;
+    const float bufferV = SU_TO_FLOAT(exty / bufferY);
     for (auto i = 2; i < 4; i++) groundVertices[i].v = bufferV;
-    hGroundBuffer = MakeScreen(laneBufferX, bufferY, TRUE);
+    hGroundBuffer = MakeScreen(SU_TO_INT32(laneBufferX), SU_TO_INT32(bufferY), TRUE);
 
     if(fontCombo) fontCombo->AddRef();
     textCombo = STextSprite::Factory(fontCombo, "");
@@ -264,8 +264,8 @@ void ScenePlayer::RefreshComboText() const
 void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target, const JudgeType type)
 {
     Prepare3DDrawCall();
-    const auto position = target->StartLane + target->Length / 2.0;
-    const auto x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, position / 16.0);
+    const auto position = target->StartLane + target->Length / 2.0f;
+    const auto x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, position / 16.0f);
     switch (type) {
         case JudgeType::ShortNormal: {
             const auto spawnAt = ConvWorldPosToScreenPos(VGet(x, SU_LANE_Y_GROUND, SU_LANE_Z_MIN));
@@ -289,7 +289,7 @@ void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target
             sp->Apply("origX:128, origY:256");
             sp->Transform.X = spawnAt.x;
             sp->Transform.Y = spawnAt.y;
-            sp->Transform.ScaleX = target->Length / 6.0;
+            sp->Transform.ScaleX = target->Length / 6.0f;
             {
                 sp->AddRef();
                 AddSprite(sp);
@@ -457,8 +457,8 @@ void ScenePlayer::DrawAirNotes(const AirDrawQuery &query) const
     } else {
         refroll = NormalizedFmod(-note->ModifiedPosition * airRollSpeed, 0.5);
     }
-    const auto roll = note->Type.test(size_t(SusNoteType::Up)) ? refroll : 0.5 - refroll;
-    const auto xadjust = note->Type.test(size_t(SusNoteType::Left)) ? -80.0 : (note->Type.test(size_t(SusNoteType::Right)) ? 80.0 : 0);
+    const auto roll = SU_TO_FLOAT(note->Type.test(size_t(SusNoteType::Up)) ? refroll : 0.5 - refroll);
+    const auto xadjust = note->Type.test(size_t(SusNoteType::Left)) ? -80.0f : (note->Type.test(size_t(SusNoteType::Right)) ? 80.0f : 0.0f);
     const auto handle = note->Type.test(size_t(SusNoteType::Up)) ? imageAirUp->GetHandle() : imageAirDown->GetHandle();
 
     VERTEX3D vertices[] = {
@@ -529,17 +529,17 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
         const auto wholelen = fabs(reltailpos - relpos);
         const auto len = fabs(tail - head);
 
-        const auto y1 = laneBufferY * head;
-        const auto y2 = laneBufferY * tail;
-        const auto SrcY = (relpos - head) / wholelen * imageHoldStrut->GetHeight();
-        const auto Height = len / wholelen * imageHoldStrut->GetHeight();
+        const auto y1 = SU_TO_FLOAT(laneBufferY * head);
+        const auto y2 = SU_TO_FLOAT(laneBufferY * tail);
+        const auto SrcY = SU_TO_INT32((relpos - head) / wholelen * imageHoldStrut->GetHeight());
+        const auto Height = SU_TO_INT32(len / wholelen * imageHoldStrut->GetHeight());
 
         DrawRectModiGraphF(
             slane * widthPerLane, y1,
             (slane + length) * widthPerLane, y1,
             (slane + length) * widthPerLane, y2,
             slane * widthPerLane, y2,
-            0, SrcY, noteImageBlockX, Height,
+            0, SrcY, SU_TO_INT32(noteImageBlockX), Height,
             imageHoldStrut->GetHandle(), TRUE
         );
     }
@@ -689,7 +689,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 
                 slideVertices.push_back(
                     {
-                        VGet(get<1>(lastSegmentPosition) * laneBufferX - lastSegmentLength / 2 * widthPerLane, laneBufferY * lsRelY, 0),
+                        VGet(SU_TO_FLOAT(get<1>(lastSegmentPosition) * laneBufferX - lastSegmentLength / 2 * widthPerLane), SU_TO_FLOAT(laneBufferY * lsRelY), 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
                         0.0f, float((offsetTimeInBlock + lastTimeInBlock2 + lastTimeDiff) * strutBottom)
@@ -697,7 +697,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                 );
                 slideVertices.push_back(
                     {
-                        VGet(get<1>(lastSegmentPosition) * laneBufferX + lastSegmentLength / 2 * widthPerLane, laneBufferY * lsRelY, 0),
+                        VGet(SU_TO_FLOAT(get<1>(lastSegmentPosition) * laneBufferX + lastSegmentLength / 2 * widthPerLane), SU_TO_FLOAT(laneBufferY * lsRelY), 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
                         1.0f, float((offsetTimeInBlock + lastTimeInBlock2 + lastTimeDiff) * strutBottom)
@@ -705,7 +705,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                 );
                 slideVertices.push_back(
                     {
-                        VGet(get<1>(segmentPosition) * laneBufferX - currentSegmentLength / 2 * widthPerLane, laneBufferY * csRelY, 0),
+                        VGet(SU_TO_FLOAT(get<1>(segmentPosition) * laneBufferX - currentSegmentLength / 2 * widthPerLane), SU_TO_FLOAT(laneBufferY * csRelY), 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
                         0.0f, float((offsetTimeInBlock + currentTimeInBlock2 + currentTimeDiff) * strutBottom)
@@ -713,7 +713,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                 );
                 slideVertices.push_back(
                     {
-                        VGet(get<1>(segmentPosition) * laneBufferX + currentSegmentLength / 2 * widthPerLane, laneBufferY * csRelY, 0),
+                        VGet(SU_TO_FLOAT(get<1>(segmentPosition) * laneBufferX + currentSegmentLength / 2 * widthPerLane), SU_TO_FLOAT(laneBufferY * csRelY), 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
                         1.0f, float((offsetTimeInBlock + currentTimeInBlock2 + currentTimeDiff) * strutBottom)
@@ -799,15 +799,15 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                     }
 
                     DrawTriangleAA(
-                        lastSegmentRelativeX * laneBufferX - slideLineThickness, laneBufferY * lastSegmentRelativeY,
-                        lastSegmentRelativeX * laneBufferX + slideLineThickness, laneBufferY * lastSegmentRelativeY,
-                        currentSegmentRelativeX * laneBufferX - slideLineThickness, laneBufferY * currentSegmentRelativeY,
+                        SU_TO_FLOAT(lastSegmentRelativeX * laneBufferX - slideLineThickness), SU_TO_FLOAT(laneBufferY * lastSegmentRelativeY),
+                        SU_TO_FLOAT(lastSegmentRelativeX * laneBufferX + slideLineThickness), SU_TO_FLOAT(laneBufferY * lastSegmentRelativeY),
+                        SU_TO_FLOAT(currentSegmentRelativeX * laneBufferX - slideLineThickness), SU_TO_FLOAT(laneBufferY * currentSegmentRelativeY),
                         slideLineColor, 16
                     );
                     DrawTriangleAA(
-                        lastSegmentRelativeX * laneBufferX + slideLineThickness, laneBufferY * lastSegmentRelativeY,
-                        currentSegmentRelativeX * laneBufferX - slideLineThickness, laneBufferY * currentSegmentRelativeY,
-                        currentSegmentRelativeX * laneBufferX + slideLineThickness, laneBufferY * currentSegmentRelativeY,
+                        SU_TO_FLOAT(lastSegmentRelativeX * laneBufferX + slideLineThickness), SU_TO_FLOAT(laneBufferY * lastSegmentRelativeY),
+                        SU_TO_FLOAT(currentSegmentRelativeX * laneBufferX - slideLineThickness), SU_TO_FLOAT(laneBufferY * currentSegmentRelativeY),
+                        SU_TO_FLOAT(currentSegmentRelativeX * laneBufferX + slideLineThickness), SU_TO_FLOAT(laneBufferY * currentSegmentRelativeY),
                         slideLineColor, 16
                     );
                 }
@@ -858,14 +858,14 @@ void ScenePlayer::DrawAirActionStart(const AirDrawQuery &query) const
             0.9375f, 1.0f, 1.0f, 0.0f
         },
         {
-            VGet(center - 10, SU_LANE_Y_AIR * lastStep->ExtraAttribute->HeightScale, aasz),
+            VGet(center - 10, SU_TO_FLOAT(SU_LANE_Y_AIR * lastStep->ExtraAttribute->HeightScale), aasz),
             VGet(0, 0, -1),
             GetColorU8(255, 255, 255, 255),
             GetColorU8(0, 0, 0, 0),
             0.9375f, 0.0f, 0.0f, 0.0f
         },
         {
-            VGet(center + 10, SU_LANE_Y_AIR * lastStep->ExtraAttribute->HeightScale, aasz),
+            VGet(center + 10, SU_TO_FLOAT(SU_LANE_Y_AIR * lastStep->ExtraAttribute->HeightScale), aasz),
             VGet(0, 0, -1),
             GetColorU8(255, 255, 255, 255),
             GetColorU8(0, 0, 0, 0),
@@ -896,7 +896,7 @@ void ScenePlayer::DrawAirActionStepBox(const AirDrawQuery &query) const
         const auto right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atRight) - 5;
         const auto z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentStepRelativeY);
         const auto color = GetColorU8(255, 255, 255, 255);
-        const auto yBase = SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale;
+        const auto yBase = SU_TO_FLOAT(SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale);
         VERTEX3D vertices[] = {
             { VGet(left, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 1.0f, 0.0f, 0.0f },
         { VGet(left, yBase, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 0.0f, 0.0f, 0.0f },
@@ -974,7 +974,7 @@ void ScenePlayer::DrawAirActionStep(const AirDrawQuery &query) const
         const auto left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atLeft) + 5;
         const auto right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atRight) - 5;
         const auto z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentStepRelativeY);
-        const auto yBase = SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale;
+        const auto yBase = SU_TO_FLOAT(SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale);
         VERTEX3D vertices[] = {
             VERTEX3D { VGet(left, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 1.0f, 0.0f, 0.0f },
             VERTEX3D { VGet(left, yBase, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 0.0f, 0.0f, 0.0f },
@@ -1022,8 +1022,8 @@ void ScenePlayer::DrawAirActionCover(const AirDrawQuery &query)
             const auto pbr = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, backRight);
             const auto pfl = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, frontLeft);
             const auto pfr = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, frontRight);
-            const auto pbz = glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, currentTimeInBlock);
-            const auto pfz = glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, lastTimeInBlock);
+            const auto pbz = SU_TO_FLOAT(glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, currentTimeInBlock));
+            const auto pfz = SU_TO_FLOAT(glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, lastTimeInBlock));
             VERTEX3D vertices[] = {
                 VERTEX3D { VGet(pfl, SU_LANE_Y_AIR * pfz, front), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 1.0f, 1.0f, 0.0f },
                 VERTEX3D { VGet(pbl, SU_LANE_Y_AIR * pbz, back), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 0.0f, 0.0f, 0.0f },
@@ -1055,9 +1055,9 @@ void ScenePlayer::DrawTap(const float lane, const int length, const double relpo
     for (auto i = 0; i < length * 2; i++) {
         const auto type = i ? (i == length * 2 - 1 ? 2 : 1) : 0;
         DrawRectRotaGraph3F(
-            (lane * 2 + i) * widthPerLane / 2, laneBufferY * relpos,
-            noteImageBlockX * type, (0),
-            noteImageBlockX, noteImageBlockY,
+            (lane * 2 + i) * widthPerLane / 2, SU_TO_FLOAT(laneBufferY * relpos),
+            SU_TO_INT32(noteImageBlockX * type), (0),
+            SU_TO_INT32(noteImageBlockX), SU_TO_INT32(noteImageBlockY),
             0, noteImageBlockY / 2,
             actualNoteScaleX, actualNoteScaleY, 0,
             handle, TRUE, FALSE);
@@ -1066,7 +1066,7 @@ void ScenePlayer::DrawTap(const float lane, const int length, const double relpo
 
 void ScenePlayer::DrawMeasureLine(const shared_ptr<SusDrawableNoteData>& note) const
 {
-    const auto relpos = 1.0 - note->ModifiedPosition / seenDuration;
+    const auto relpos = SU_TO_FLOAT(1.0 - note->ModifiedPosition / seenDuration);
     DrawLineAA(0, relpos * laneBufferY, laneBufferX, relpos * laneBufferY, GetColor(255, 255, 255), 6);
 }
 
@@ -1104,10 +1104,10 @@ void ScenePlayer::DrawLaneBackground() const
 
     SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
     DrawRectRotaGraph3F(
-        0, laneBufferY,
+        0, SU_TO_FLOAT(laneBufferY),
         0, 0,
         imageLaneJudgeLine->GetWidth(), imageLaneJudgeLine->GetHeight(),
-        0, double(imageLaneJudgeLine->GetHeight()) / 2.0,
+        0, imageLaneJudgeLine->GetHeight() / 2.0f,
         1, 1, 0,
         imageLaneJudgeLine->GetHandle(), TRUE, FALSE);
     processor->Draw();
@@ -1117,5 +1117,5 @@ void ScenePlayer::DrawLaneBackground() const
 void ScenePlayer::Prepare3DDrawCall() const
 {
     SetUseLighting(FALSE);
-    SetCameraPositionAndTarget_UpVecY(VGet(0, cameraY, cameraZ), VGet(0, SU_LANE_Y_GROUND, cameraTargetZ));
+    SetCameraPositionAndTarget_UpVecY(VGet(0, SU_TO_FLOAT(cameraY), SU_TO_FLOAT(cameraZ)), VGet(0, SU_LANE_Y_GROUND, SU_TO_FLOAT(cameraTargetZ)));
 }

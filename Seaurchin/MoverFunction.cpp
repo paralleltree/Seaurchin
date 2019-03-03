@@ -24,8 +24,8 @@ bool ActionMoveTo(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &d
         data.Extra2 = target->Transform.Y;
         return false;
     } else if (delta >= 0) {
-        if (!isnan(args.X)) target->Transform.X = args.Ease(data.Now, args.Duration, data.Extra1, args.X - data.Extra1);
-        if (!isnan(args.Y)) target->Transform.Y = args.Ease(data.Now, args.Duration, data.Extra2, args.Y - data.Extra2);
+        if (!isnan(args.X)) target->Transform.X = SU_TO_FLOAT(args.Ease(data.Now, args.Duration, data.Extra1, args.X - data.Extra1));
+        if (!isnan(args.Y)) target->Transform.Y = SU_TO_FLOAT(args.Ease(data.Now, args.Duration, data.Extra2, args.Y - data.Extra2));
         return false;
     } else {
         if (!isnan(args.X)) target->Transform.X = args.X;
@@ -41,8 +41,8 @@ bool ActionMoveBy(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &d
         data.Extra2 = target->Transform.Y;
         return false;
     } else if (delta >= 0) {
-        if (!isnan(args.X)) target->Transform.X = args.Ease(data.Now, args.Duration, data.Extra1, args.X);
-        if (!isnan(args.Y)) target->Transform.Y = args.Ease(data.Now, args.Duration, data.Extra2, args.Y);
+        if (!isnan(args.X)) target->Transform.X = SU_TO_FLOAT(args.Ease(data.Now, args.Duration, data.Extra1, args.X));
+        if (!isnan(args.Y)) target->Transform.Y = SU_TO_FLOAT(args.Ease(data.Now, args.Duration, data.Extra2, args.Y));
         return false;
     } else {
         if (!isnan(args.X)) target->Transform.X = data.Extra1 + args.X;
@@ -58,7 +58,7 @@ bool ActionAngleTo(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &
         data.Extra1 = target->Transform.Angle;
         return false;
     } else if (delta >= 0) {
-        target->Transform.Angle = args.Ease(data.Now, args.Duration, data.Extra1, args.X - data.Extra1);
+        target->Transform.Angle = SU_TO_FLOAT(args.Ease(data.Now, args.Duration, data.Extra1, args.X - data.Extra1));
         return false;
     } else {
         target->Transform.Angle = args.X;
@@ -73,7 +73,7 @@ bool ActionAngleBy(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &
         data.Extra1 = target->Transform.Angle;
         return false;
     } else if (delta >= 0) {
-        target->Transform.Angle = args.Ease(data.Now, args.Duration, data.Extra1, args.X);
+        target->Transform.Angle = SU_TO_FLOAT(args.Ease(data.Now, args.Duration, data.Extra1, args.X));
         return false;
     } else {
         target->Transform.Angle = data.Extra1 + args.X;
@@ -88,8 +88,8 @@ bool ActionScaleTo(SSprite* target, SpriteMoverArgument &args, SpriteMoverData &
         data.Extra2 = target->Transform.ScaleY;
         return false;
     } else if (delta >= 0) {
-        if (!isnan(args.X)) target->Transform.ScaleX = args.Ease(data.Now, args.Duration, data.Extra1, args.X - data.Extra1);
-        if (!isnan(args.Y)) target->Transform.ScaleY = args.Ease(data.Now, args.Duration, data.Extra2, args.Y - data.Extra2);
+        if (!isnan(args.X)) target->Transform.ScaleX = SU_TO_FLOAT(args.Ease(data.Now, args.Duration, data.Extra1, args.X - data.Extra1));
+        if (!isnan(args.Y)) target->Transform.ScaleY = SU_TO_FLOAT(args.Ease(data.Now, args.Duration, data.Extra2, args.Y - data.Extra2));
         return false;
     } else {
         if (!isnan(args.X)) target->Transform.ScaleX = args.X;

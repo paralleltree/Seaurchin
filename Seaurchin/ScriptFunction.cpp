@@ -64,7 +64,7 @@ void CreateImageFont(const string &fileName, const string &saveName, const int s
 {
     Sif2CreatorOption option;
     option.FontPath = fileName;
-    option.Size = size;
+    option.Size = SU_TO_FLOAT(size);
     option.ImageSize = 1024;
     option.TextSource = "";
     const auto op = Setting::GetRootDirectory() / SU_DATA_DIR / SU_FONT_DIR / (ConvertUTF8ToUnicode(saveName) + L".sif");

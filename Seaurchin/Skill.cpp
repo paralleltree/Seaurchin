@@ -182,12 +182,12 @@ void SkillIndicators::TriggerSkillIndicator(const int index) const
     }
 }
 
-int SkillIndicators::GetSkillIndicatorCount() const
+uint32_t SkillIndicators::GetSkillIndicatorCount() const
 {
     return indicatorIcons.size();
 }
 
-SImage* SkillIndicators::GetSkillIndicatorImage(const int index)
+SImage* SkillIndicators::GetSkillIndicatorImage(uint32_t index)
 {
     if (index >= indicatorIcons.size()) return nullptr;
     auto result = indicatorIcons[index];
@@ -220,8 +220,8 @@ void RegisterSkillTypes(asIScriptEngine *engine)
     engine->RegisterObjectMethod(SU_IF_SKILL_INDICATORS, "int AddIndicator(const string &in)", asMETHOD(SkillIndicators, AddSkillIndicator), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SKILL_INDICATORS, "void TriggerIndicator(int)", asMETHOD(SkillIndicators, TriggerSkillIndicator), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SKILL_INDICATORS, "void SetCallback(" SU_IF_SKILL_CALLBACK "@)", asMETHOD(SkillIndicators, SetCallback), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_SKILL_INDICATORS, "int GetIndicatorCount()", asMETHOD(SkillIndicators, GetSkillIndicatorCount), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_SKILL_INDICATORS, SU_IF_IMAGE "@ GetIndicatorImage(int)", asMETHOD(SkillIndicators, GetSkillIndicatorImage), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SKILL_INDICATORS, "uint GetIndicatorCount()", asMETHOD(SkillIndicators, GetSkillIndicatorCount), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SKILL_INDICATORS, SU_IF_IMAGE "@ GetIndicatorImage(uint)", asMETHOD(SkillIndicators, GetSkillIndicatorImage), asCALL_THISCALL);
 
     engine->RegisterInterface(SU_IF_ABILITY);
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void Initialize(dictionary@, " SU_IF_SKILL_INDICATORS "@)");

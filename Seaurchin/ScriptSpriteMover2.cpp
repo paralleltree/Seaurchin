@@ -6,7 +6,7 @@
 using namespace std;
 using namespace crc32_constexpr;
 
-static const double qNaN = numeric_limits<double>::quiet_NaN();
+static const float qNaN = numeric_limits<float>::quiet_NaN();
 
 SpriteMoverArgument::SpriteMoverArgument()
 {
@@ -100,28 +100,28 @@ void ScriptSpriteMover2::ApplyProperty(const string &prop, const string &value) 
 {
     switch (Crc32Rec(0xffffffff, prop.c_str())) {
         case "x"_crc32:
-            target->Transform.X = ToDouble(value.c_str());
+            target->Transform.X = ConvertFloat(value.c_str());
             break;
         case "y"_crc32:
-            target->Transform.Y = ToDouble(value.c_str());
+            target->Transform.Y = ConvertFloat(value.c_str());
             break;
         case "z"_crc32:
-            target->ZIndex = int(ToDouble(value.c_str()));
+            target->ZIndex = SU_TO_INT32(ToDouble(value.c_str()));
             break;
         case "origX"_crc32:
-            target->Transform.OriginX = ToDouble(value.c_str());
+            target->Transform.OriginX = ConvertFloat(value.c_str());
             break;
         case "origY"_crc32:
-            target->Transform.OriginY = ToDouble(value.c_str());
+            target->Transform.OriginY = ConvertFloat(value.c_str());
             break;
         case "scaleX"_crc32:
-            target->Transform.ScaleX = ToDouble(value.c_str());
+            target->Transform.ScaleX = ConvertFloat(value.c_str());
             break;
         case "scaleY"_crc32:
-            target->Transform.ScaleY = ToDouble(value.c_str());
+            target->Transform.ScaleY = ConvertFloat(value.c_str());
             break;
         case "angle"_crc32:
-            target->Transform.Angle = ToDouble(value.c_str());
+            target->Transform.Angle = ConvertFloat(value.c_str());
             break;
         case "alpha"_crc32:
             target->Color.A = static_cast<unsigned char>(ToDouble(value.c_str()) * 255.0);
@@ -158,15 +158,15 @@ std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const st
         switch (Crc32Rec(0xffffffff, get<0>(prop).c_str())) {
             case "x"_crc32:
             case "r"_crc32:
-                result->Argument.X = ToDouble(get<1>(prop).c_str());
+                result->Argument.X = ConvertFloat(get<1>(prop).c_str());
                 break;
             case "y"_crc32:
             case "g"_crc32:
-                result->Argument.Y = ToDouble(get<1>(prop).c_str());
+                result->Argument.Y = ConvertFloat(get<1>(prop).c_str());
                 break;
             case "z"_crc32:
             case "b"_crc32:
-                result->Argument.Z = ToDouble(get<1>(prop).c_str());
+                result->Argument.Z = ConvertFloat(get<1>(prop).c_str());
                 break;
             case "time"_crc32:
                 result->Argument.Duration = ToDouble(get<1>(prop).c_str());

@@ -1,3 +1,4 @@
+#include "Misc.h"
 #include "Controller.h"
 
 using namespace std;
@@ -225,7 +226,7 @@ void ControlState::UpdateWacomTouchDeviceFinger(WacomMTFingerCollection *fingers
                 auto data = make_shared<ControllerFingerState>();
                 data->Id = finger.FingerID;
                 data->State = WMTFingerStateDown;
-                data->SliderPosition = floor(finger.X / cap.LogicalWidth * 16);
+                data->SliderPosition = SU_TO_INT32(floor(finger.X / cap.LogicalWidth * 16));
                 currentFingers[finger.FingerID] = data;
                 break;
             }
@@ -236,12 +237,12 @@ void ControlState::UpdateWacomTouchDeviceFinger(WacomMTFingerCollection *fingers
                     auto fdata = make_shared<ControllerFingerState>();
                     fdata->Id = finger.FingerID;
                     fdata->State = WMTFingerStateDown;
-                    fdata->SliderPosition = floor(finger.X / cap.LogicalWidth * 16);
+                    fdata->SliderPosition = SU_TO_INT32(floor(finger.X / cap.LogicalWidth * 16));
                     currentFingers[finger.FingerID] = fdata;
                     break;
                 }
                 data->State = WMTFingerStateHold;
-                data->SliderPosition = floor(finger.X / cap.LogicalWidth * 16);
+                data->SliderPosition = SU_TO_INT32(floor(finger.X / cap.LogicalWidth * 16));
                 break;
             }
             case WMTFingerStateUp: {

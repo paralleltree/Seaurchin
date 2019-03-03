@@ -42,7 +42,7 @@ void Sif2Creator::InitializeFace(const string& fontpath)
     if (faceMemory) return;
     ifstream fontfile(ConvertUTF8ToUnicode(fontpath), ios::in | ios::binary);
     fontfile.seekg(0, ios_base::end);
-    faceMemorySize = fontfile.tellg();
+    faceMemorySize = SU_TO_UINT32(fontfile.tellg());
     fontfile.seekg(ios_base::beg);
     faceMemory = new uint8_t[faceMemorySize];
     fontfile.read(reinterpret_cast<char*>(faceMemory), faceMemorySize);
@@ -104,7 +104,7 @@ void Sif2Creator::PackImageSif2()
 
         std::ifstream fif;
         fif.open(path.wstring(), ios::binary | ios::in);
-        uint32_t fsize = fif.seekg(0, ios::end).tellg();
+        uint32_t fsize = SU_TO_UINT32(fif.seekg(0, ios::end).tellg());
 
         const auto file = new uint8_t[fsize];
         fif.seekg(ios::beg);
@@ -164,9 +164,9 @@ bool Sif2Creator::RenderGlyph(uint32_t cp)
     FT_Render_Glyph(gslot, FT_RENDER_MODE_NORMAL);
     ginfo.GlyphWidth = gslot->bitmap.width;
     ginfo.GlyphHeight = gslot->bitmap.rows;
-    ginfo.WholeAdvance = gslot->metrics.horiAdvance >> 6;
-    ginfo.BearX = gslot->metrics.horiBearingX >> 6;
-    ginfo.BearY = currentSize - (baseline + (gslot->metrics.horiBearingY >> 6));
+    ginfo.WholeAdvance = SU_TO_UINT16(gslot->metrics.horiAdvance >> 6);
+    ginfo.BearX = SU_TO_INT16(gslot->metrics.horiBearingX >> 6);
+    ginfo.BearY = SU_TO_INT16(currentSize - (baseline + (gslot->metrics.horiBearingY >> 6)));
     ginfo.Codepoint = cp;
     ginfo.ImageNumber = imageIndex;
     ginfo.GlyphX = 0;
@@ -185,7 +185,7 @@ bool Sif2Creator::RenderGlyph(uint32_t cp)
     ginfo.GlyphY = rect.Y;
 
     const auto buffer = new uint8_t[rect.Width * 2];
-    for (auto y = 0; y < gslot->bitmap.rows; y++) {
+    for (auto y = 0u; y < gslot->bitmap.rows; y++) {
         for (auto x = 0; x < rect.Width; x++) {
             buffer[x * 2] = 0xff;
             buffer[x * 2 + 1] = gslot->bitmap.buffer[y * rect.Width + x];

@@ -15,7 +15,7 @@ public:
 
     virtual DWORD GetSoundHandle() = 0;
     virtual void StopSound() = 0;
-    virtual void SetVolume(float vol) = 0;
+    virtual void SetVolume(double vol) = 0;
 };
 
 class SoundSample : public Sound {
@@ -30,7 +30,7 @@ public:
 
     DWORD GetSoundHandle() override;
     void StopSound() override;
-    void SetVolume(float vol) override;
+    void SetVolume(double vol) override;
 
     static SoundSample *CreateFromFile(const std::wstring &fileNameW, int maxChannels = 16);
     void SetLoop(bool looping) const;
@@ -48,7 +48,7 @@ public:
 
     DWORD GetSoundHandle() override;
     void StopSound() override;
-    void SetVolume(float vol) override;
+    void SetVolume(double vol) override;
     // 適当に考えたんですが多分Pause/Resumeは独自にやっちゃってokですね
     void Pause() const;
     void Resume() const;
@@ -69,7 +69,7 @@ public:
     ~SoundMixerStream();
 
     void Update();
-    void SetVolume(float vol) const;
+    void SetVolume(double vol) const;
     void Play(Sound *sound);
     static void Stop(Sound *sound);
 };

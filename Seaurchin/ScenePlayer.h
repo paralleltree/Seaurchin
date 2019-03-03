@@ -11,20 +11,20 @@
 
 #define SU_IF_SCENE_PLAYER "ScenePlayer"
 
-#define SU_LANE_X_MIN -400.0
-#define SU_LANE_X_MAX 400.0
-#define SU_LANE_X_MIN_EXT -1600.0
-#define SU_LANE_X_MAX_EXT 1600.0
-#define SU_LANE_Z_MIN_EXT -300.0
-#define SU_LANE_Z_MIN 0.0
-#define SU_LANE_Z_MAX 3000.0
-#define SU_LANE_Y_GROUND 0.0
-#define SU_LANE_Y_AIR 240.0
-#define SU_LANE_Y_AIRINDICATE 160.0
+#define SU_LANE_X_MIN -400.0f
+#define SU_LANE_X_MAX 400.0f
+#define SU_LANE_X_MIN_EXT -1600.0f
+#define SU_LANE_X_MAX_EXT 1600.0f
+#define SU_LANE_Z_MIN_EXT -300.0f
+#define SU_LANE_Z_MIN 0.0f
+#define SU_LANE_Z_MAX 3000.0f
+#define SU_LANE_Y_GROUND 0.0f
+#define SU_LANE_Y_AIR 240.0f
+#define SU_LANE_Y_AIRINDICATE 160.0f
 #define SU_LANE_ASPECT ((SU_LANE_Z_MAX - SU_LANE_Z_MIN) / (SU_LANE_X_MAX - SU_LANE_X_MIN))
 #define SU_LANE_ASPECT_EXT ((SU_LANE_Z_MAX - SU_LANE_Z_MIN_EXT) / (SU_LANE_X_MAX - SU_LANE_X_MIN))
-#define SU_LANE_NOTE_WIDTH 192.0
-#define SU_LANE_NOTE_HEIGHT 64.0
+#define SU_LANE_NOTE_WIDTH 192.0f
+#define SU_LANE_NOTE_HEIGHT 64.0f
 
 enum class JudgeType {
     ShortNormal = 0,
@@ -107,19 +107,19 @@ protected:
 
     // 描画関連定数
     double cameraZ = -340, cameraY = 620, cameraTargetZ = 580;  // カメラ位置 (スキンから設定可にしてるけどぶっちゃけconstで良い気がする)
-    const double laneBufferX = 1024;                            // 背景バッファ横幅
-    const double laneBufferY = laneBufferX * SU_LANE_ASPECT;    // 背景バッファ縦幅
+    const float laneBufferX = 1024.0f;                          // 背景バッファ横幅
+    const float laneBufferY = laneBufferX * SU_LANE_ASPECT;     // 背景バッファ縦幅
 #ifdef SU_ENABLE_BACKGROUND_ROLLING
     double laneBackgroundRoll = 0;                              // 背景ローリング量
     double laneBackgroundSpeed = 0;                             // 背景ローリング速度
 #endif
-    const double widthPerLane = laneBufferX / 16;               // 最小ノーツ幅
-    const double cullingLimit = SU_LANE_ASPECT_EXT / SU_LANE_ASPECT; // 判定線位置 (y座標)
-    const double noteImageBlockX = 64;                          // ショートノーツ描画単位 (幅)
-    const double noteImageBlockY = 64;                          // ショートノーツ描画単位 (高さ)
-    const double scaleNoteY = 2.0;                              // ショートノーツ高さ拡大率
-    const double actualNoteScaleX = (widthPerLane / 2) / noteImageBlockX;   // ショートノーツ実拡大率 (幅)
-    const double actualNoteScaleY = actualNoteScaleX * scaleNoteY;          // ショートノーツ実拡大率 (高さ)
+    const float widthPerLane = laneBufferX / 16;                // 最小ノーツ幅
+    const float cullingLimit = SU_LANE_ASPECT_EXT / SU_LANE_ASPECT; // 判定線位置 (y座標)
+    const float noteImageBlockX = 64.0f;                        // ショートノーツ描画単位 (幅)
+    const float noteImageBlockY = 64.0f;                        // ショートノーツ描画単位 (高さ)
+    const float scaleNoteY = 2.0f;                              // ショートノーツ高さ拡大率
+    const float actualNoteScaleX = (widthPerLane / 2) / noteImageBlockX;   // ショートノーツ実拡大率 (幅)
+    const float actualNoteScaleY = actualNoteScaleX * scaleNoteY;          // ショートノーツ実拡大率 (高さ)
 
     // リソースマップ SetPlayerResourceで初期化、Finalizeで破棄
     std::map<std::string, SResource*> resources;
