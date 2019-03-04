@@ -70,8 +70,22 @@ struct SusHispeedData {
     };
     const static double keepSpeed;
 
-    Visibility VisibilityState = Visibility::Visible;
-    double Speed = 1.0;
+    SusHispeedData()
+        : VisibilityState(Visibility::Visible)
+        , Speed(1.0)
+    {
+    }
+
+    SusHispeedData(
+        const Visibility VisibilityState,
+        const double Speed)
+        : VisibilityState(VisibilityState)
+        , Speed(Speed)
+    {
+    }
+
+    Visibility VisibilityState;
+    double Speed;
 
 };
 
