@@ -9,11 +9,11 @@ void ControlState::Initialize()
 {
     ZeroMemory(keyboardCurrent, sizeof(char) * 256);
     ZeroMemory(keyboardLast, sizeof(char) * 256);
-    ZeroMemory(keyboardTrigger, sizeof(char) * 256);
-    ZeroMemory(integratedSliderCurrent, sizeof(char) * 16);
-    ZeroMemory(integratedSliderLast, sizeof(char) * 16);
-    ZeroMemory(integratedSliderTrigger, sizeof(char) * 16);
-    ZeroMemory(integratedAir, sizeof(char) * 4);
+    ZeroMemory(keyboardTrigger, sizeof(bool) * 256);
+    ZeroMemory(integratedSliderCurrent, sizeof(bool) * 16);
+    ZeroMemory(integratedSliderLast, sizeof(bool) * 16);
+    ZeroMemory(integratedSliderTrigger, sizeof(bool) * 16);
+    ZeroMemory(integratedAir, sizeof(bool) * 4);
 
     sliderKeyboardInputCombinations[0] = { KEY_INPUT_A };
     sliderKeyboardInputCombinations[1] = { KEY_INPUT_Z };
@@ -61,31 +61,36 @@ void ControlState::Update()
     for (auto i = 0; i < 16; i++) sliderKeyboardPrevious[i] = sliderKeyboardCurrent[i];
     auto snum = 0;
     for (const auto& targets : sliderKeyboardInputCombinations) {
-        auto bit = 0;
+        // 現状スライダーの一パネルあたり32キーしか割り当てられない
         uint32_t state = 0;
+        uint32_t mask = 1;
         for (const auto &knum : targets) {
-            state |= (keyboardCurrent[knum] ? 1 : 0) << bit;
-            ++bit;
+            if(keyboardCurrent[knum]) state |= mask;
+            mask <<= 1;
+            if (!mask) break;
         }
         sliderKeyboardCurrent[snum] = state;
+
+        // トリガー判定は1個でも入力キーが増えればよしとする
+        // <=> last で 0 のビットが current で 1 になっているものがある場合 true
+        const uint32_t diff = sliderKeyboardCurrent[snum] ^ sliderKeyboardPrevious[snum];
+        sliderKeyboardTrigger[snum] = !!(diff & ~sliderKeyboardPrevious[snum]);
         ++snum;
     }
-    // トリガー判定は1個でも入力キーが増えればよしとする
-    for (auto i = 0; i < 16; i++) sliderKeyboardTrigger[i] = sliderKeyboardCurrent[i] > sliderKeyboardPrevious[i];
 
     // キーボード入力エアストリング
-    airStringKeyboard[size_t(AirControlSource::AirUp)] = 0;
-    airStringKeyboard[size_t(AirControlSource::AirDown)] = 0;
-    airStringKeyboard[size_t(AirControlSource::AirHold)] = 0;
-    airStringKeyboard[size_t(AirControlSource::AirAction)] = 0;
+    airStringKeyboard[size_t(AirControlSource::AirUp)] = false;
+    airStringKeyboard[size_t(AirControlSource::AirDown)] = false;
+    airStringKeyboard[size_t(AirControlSource::AirHold)] = false;
+    airStringKeyboard[size_t(AirControlSource::AirAction)] = false;
     for (const auto &upkey : airStringKeyboardInputCombinations[size_t(AirControlSource::AirUp)]) {
-        airStringKeyboard[size_t(AirControlSource::AirUp)] |= keyboardTrigger[upkey];
+        airStringKeyboard[size_t(AirControlSource::AirUp)] |= keyboardTrigger[upkey] ? 1 : 0;
     }
     for (const auto &downkey : airStringKeyboardInputCombinations[size_t(AirControlSource::AirDown)]) {
         airStringKeyboard[size_t(AirControlSource::AirDown)] |= keyboardTrigger[downkey];
     }
     for (const auto &upkey : airStringKeyboardInputCombinations[size_t(AirControlSource::AirHold)]) {
-        airStringKeyboard[size_t(AirControlSource::AirHold)] |= keyboardCurrent[upkey];
+        airStringKeyboard[size_t(AirControlSource::AirHold)] |= !!keyboardCurrent[upkey];
     }
     for (const auto &actkey : airStringKeyboardInputCombinations[size_t(AirControlSource::AirAction)]) {
         airStringKeyboard[size_t(AirControlSource::AirAction)] |= keyboardTrigger[actkey];
@@ -94,7 +99,7 @@ void ControlState::Update()
     // 統合化
     for (auto i = 0; i < 16; i++) integratedSliderLast[i] = integratedSliderCurrent[i];
     for (auto i = 0; i < 16; i++) integratedSliderCurrent[i] = !!sliderKeyboardCurrent[i];
-    for (auto i = 0; i < 16; i++) integratedSliderTrigger[i] = !!sliderKeyboardTrigger[i];
+    for (auto i = 0; i < 16; i++) integratedSliderTrigger[i] = sliderKeyboardTrigger[i];
     integratedAir[size_t(AirControlSource::AirUp)] = airStringKeyboard[size_t(AirControlSource::AirUp)];
     integratedAir[size_t(AirControlSource::AirDown)] = airStringKeyboard[size_t(AirControlSource::AirDown)];
     integratedAir[size_t(AirControlSource::AirHold)] = airStringKeyboard[size_t(AirControlSource::AirHold)];
@@ -129,7 +134,7 @@ bool ControlState::GetCurrentState(const ControllerSource source, const int numb
     switch (source) {
         case ControllerSource::RawKeyboard:
             if (number < 0 || number >= 256) return false;
-            return keyboardCurrent[number];
+            return !!keyboardCurrent[number];
         case ControllerSource::IntegratedSliders:
             if (number < 0 || number >= 16) return false;
             return integratedSliderCurrent[number];
@@ -147,7 +152,7 @@ bool ControlState::GetLastState(const ControllerSource source, const int number)
     switch (source) {
         case ControllerSource::RawKeyboard:
             if (number < 0 || number >= 256) return false;
-            return keyboardLast[number];
+            return !!keyboardLast[number];
         case ControllerSource::IntegratedSliders:
             if (number < 0 || number >= 16) return false;
             return integratedSliderLast[number];
