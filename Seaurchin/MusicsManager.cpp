@@ -56,6 +56,8 @@ void MusicsManager::CreateMusicCache()
     loading = true;
     flagMutex.unlock();
 
+    categories.clear();
+
     const auto mlpath = Setting::GetRootDirectory() / SU_MUSIC_DIR;
     for (const auto& fdata : make_iterator_range(directory_iterator(mlpath), {})) {
         if (!is_directory(fdata)) continue;
