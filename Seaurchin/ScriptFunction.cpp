@@ -21,7 +21,7 @@ void YieldTime(const double time)
     auto ctx = asGetActiveContext();
     auto pcw = static_cast<CoroutineWait*>(ctx->GetUserData(SU_UDTYPE_WAIT));
     if (!pcw) {
-        ScriptSceneWarnOutOf("YieldTime", "Scene Class or Coroutine", ctx);
+        ScriptSceneWarnOutOf("YieldTime", "Coroutine Scene Class or Coroutine", ctx);
         return;
     }
     pcw->Type = WaitType::Time;
@@ -34,7 +34,7 @@ void YieldFrames(const int64_t frames)
     auto ctx = asGetActiveContext();
     auto pcw = static_cast<CoroutineWait*>(ctx->GetUserData(SU_UDTYPE_WAIT));
     if (!pcw) {
-        ScriptSceneWarnOutOf("YieldFrame", "Scene Class or Coroutine", ctx);
+        ScriptSceneWarnOutOf("YieldFrame", "Coroutine Scene Class or Coroutine", ctx);
         return;
     }
     pcw->Type = WaitType::Frame;
