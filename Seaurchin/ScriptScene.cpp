@@ -255,16 +255,16 @@ void RegisterScriptScene(ExecutionManager *exm)
     engine->RegisterGlobalFunction("void KillCoroutine(const string &in)", asFUNCTION(ScriptSceneKillCoroutine), asCALL_CDECL);
     engine->RegisterGlobalFunction("void Disappear()", asFUNCTION(ScriptSceneDisappear), asCALL_CDECL);
     engine->RegisterGlobalFunction("void AddSprite(" SU_IF_SPRITE "@)", asFUNCTION(ScriptSceneAddSprite), asCALL_CDECL);
-    engine->RegisterGlobalFunction("void AddScene(" SU_IF_SCENE "@)", asFUNCTION(ScriptSceneAddScene), asCALL_CDECL);
-    engine->RegisterGlobalFunction("void AddScene(" SU_IF_COSCENE "@)", asFUNCTION(ScriptSceneAddScene), asCALL_CDECL);
 }
+
+// Scene用メソッド
 
 void ScriptSceneSetIndex(const int index)
 {
     const auto ctx = asGetActiveContext();
     const auto psc = static_cast<ScriptScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
-        ScriptSceneWarnOutOf("Scene Class", ctx);
+        ScriptSceneWarnOutOf("SetIndex", "Scene Class", ctx);
         return;
     }
     psc->SetIndex(index);
@@ -275,20 +275,18 @@ int ScriptSceneGetIndex()
     const auto ctx = asGetActiveContext();
     const auto psc = static_cast<ScriptScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
-        ScriptSceneWarnOutOf("Scene Class", ctx);
+        ScriptSceneWarnOutOf("GetIndex", "Scene Class", ctx);
         return 0;
     }
     return psc->GetIndex();
 }
-
-// Scene用メソッド
 
 bool ScriptSceneIsKeyHeld(const int keynum)
 {
     const auto ctx = asGetActiveContext();
     const auto psc = static_cast<ScriptScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
-        ScriptSceneWarnOutOf("Scene Class", ctx);
+        ScriptSceneWarnOutOf("IsKeyHeld", "Scene Class", ctx);
         return false;
     }
     return psc->GetManager()->GetControlStateUnsafe()->GetCurrentState(ControllerSource::RawKeyboard, keynum);
@@ -299,22 +297,10 @@ bool ScriptSceneIsKeyTriggered(const int keynum)
     const auto ctx = asGetActiveContext();
     const auto psc = static_cast<ScriptScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
-        ScriptSceneWarnOutOf("Scene Class", ctx);
+        ScriptSceneWarnOutOf("IsKeyTriggered", "Scene Class", ctx);
         return false;
     }
     return  psc->GetManager()->GetControlStateUnsafe()->GetTriggerState(ControllerSource::RawKeyboard, keynum);
-}
-
-void ScriptSceneAddScene(asIScriptObject *sceneObject)
-{
-    const auto ctx = asGetActiveContext();
-    const auto psc = static_cast<ScriptScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
-    if (!psc) {
-        ScriptSceneWarnOutOf("Scene Class", ctx);
-        return;
-    }
-    psc->GetManager()->CreateSceneFromScriptObject(sceneObject);
-    sceneObject->Release();
 }
 
 void ScriptSceneAddSprite(SSprite * sprite)
@@ -322,7 +308,7 @@ void ScriptSceneAddSprite(SSprite * sprite)
     const auto ctx = asGetActiveContext();
     auto psc = static_cast<ScriptCoroutineScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
-        ScriptSceneWarnOutOf("Scene Class", ctx);
+        ScriptSceneWarnOutOf("AddSprite", "Scene Class", ctx);
         return;
     }
     {
@@ -338,7 +324,7 @@ void ScriptSceneRunCoroutine(asIScriptFunction *cofunc, const string &name)
     const auto ctx = asGetActiveContext();
     auto psc = static_cast<ScriptCoroutineScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
-        ScriptSceneWarnOutOf("Scene Class", ctx);
+        ScriptSceneWarnOutOf("RunCoroutine", "Scene Class", ctx);
         return;
     }
     if (!cofunc || cofunc->GetFuncType() != asFUNC_DELEGATE) return;
@@ -361,7 +347,7 @@ void ScriptSceneKillCoroutine(const std::string &name)
     const auto ctx = asGetActiveContext();
     auto psc = static_cast<ScriptCoroutineScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
-        ScriptSceneWarnOutOf("Scene Class", ctx);
+        ScriptSceneWarnOutOf("KillCoroutine", "Scene Class", ctx);
         return;
     }
     if (name.empty()) {
@@ -418,7 +404,7 @@ void ScriptSceneDisappear()
     const auto ctx = asGetActiveContext();
     auto psc = static_cast<ScriptCoroutineScene*>(ctx->GetUserData(SU_UDTYPE_SCENE));
     if (!psc) {
-        ScriptSceneWarnOutOf("Scene Class", ctx);
+        ScriptSceneWarnOutOf("Disappear", "Scene Class", ctx);
         return;
     }
     psc->Disappear();

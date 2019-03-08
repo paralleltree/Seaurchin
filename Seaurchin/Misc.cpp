@@ -22,12 +22,12 @@ string ConvertUnicodeToUTF8(const wstring &utf16Str)
     return ret;
 }
 
-void ScriptSceneWarnOutOf(const string &type, asIScriptContext *ctx)
+void ScriptSceneWarnOutOf(const string &funcName, const string &type, asIScriptContext *ctx)
 {
     const char *secn;
     int col;
     const auto row = ctx->GetLineNumber(0, &col, &secn);
-    ctx->GetEngine()->WriteMessage(secn, row, col, asMSGTYPE_WARNING, ("You can call Yield Function only from " + type + "!").c_str());
+    ctx->GetEngine()->WriteMessage(secn, row, col, asMSGTYPE_WARNING, ("You can call \"" + funcName + "\" Function only from " + type + "!").c_str());
 }
 
 double ToDouble(const char *str)

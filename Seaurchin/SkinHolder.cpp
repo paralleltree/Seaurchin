@@ -228,12 +228,12 @@ SkinHolder* GetSkinObject()
     auto ctx = asGetActiveContext();
     const auto obj = static_cast<asIScriptObject*>(ctx->GetThisPointer());
     if (!obj) {
-        ScriptSceneWarnOutOf("Instance Method", ctx);
+        ScriptSceneWarnOutOf("GetSkin", "Instance Method", ctx);
         return nullptr;
     }
     const auto skin = obj->GetUserData(SU_UDTYPE_SKIN);
     if (!skin) {
-        ScriptSceneWarnOutOf("Skin-Related Scene", ctx);
+        ScriptSceneWarnOutOf("GetSkin", "Skin-Related Scene", ctx);
         return nullptr;
     }
     return static_cast<SkinHolder*>(skin);
