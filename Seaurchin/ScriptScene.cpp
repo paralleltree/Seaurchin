@@ -142,25 +142,12 @@ void ScriptScene::TickCoroutine(const double delta)
     auto i = coroutines.begin();
     while (i != coroutines.end()) {
         auto c = *i;
-        switch (c->Wait.Type) {
-            case WaitType::Frame:
-                c->Wait.frames -= 1;
-                if (c->Wait.frames > 0) {
-                    ++i;
-                    continue;
-                }
-                break;
-            case WaitType::Time:
-                c->Wait.time -= delta;
-                if (c->Wait.time > 0.0) {
-                    ++i;
-                    continue;
-                }
-                break;
-            default:
-                spdlog::get("main")->critical(u8"コルーチンのWaitステータスが不正です");
-                abort();
+
+        if (c->Wait.Tick(delta)) {
+            ++i;
+            continue;
         }
+
         const auto result = c->Execute();
         if (result == asEXECUTION_FINISHED) {
             delete c;
@@ -221,16 +208,8 @@ void ScriptCoroutineScene::Tick(const double delta)
     TickCoroutine(delta);
 
     //Run()
-    switch (wait.Type) {
-        case WaitType::Frame:
-            wait.frames -= 1;
-            if (wait.frames > 0) return;
-            break;
-        case WaitType::Time:
-            wait.time -= delta;
-            if (wait.time > 0.0) return;
-            break;
-    }
+    if (wait.Tick(delta)) return;
+
     const auto result = context->Execute();
     if (result != asEXECUTION_SUSPENDED)
         finished = true;

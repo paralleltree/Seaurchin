@@ -14,6 +14,21 @@ struct CoroutineWait {
         double time;
         int64_t frames;
     };
+
+    bool Tick(double delta) {
+        switch (Type) {
+        case WaitType::Frame:
+            if(frames > 0) --frames;
+            return frames > 0;
+        case WaitType::Time:
+            if(time > 0.0) time -= delta;
+            return time > 0.0;
+        default:
+            spdlog::get("main")->critical(u8"CoroutineWaitのステータスが不正です");
+            abort();
+        }
+        return false;
+    }
 };
 
 void YieldTime(double time);
