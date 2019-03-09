@@ -81,30 +81,96 @@ void SSprite::AbortMove(const bool terminate) const
     mover->Abort(terminate);
 }
 
-// ReSharper disable once CppMemberFunctionMayBeConst
 void SSprite::Apply(const string & dict)
 {
-    mover->Apply(dict);
+#ifdef SU_USE_REGEX_AT_SPRITE_APPLY
+    namespace xp = boost::xpressive;
+    const xp::sregex regexApply = (xp::bos | ",") >> *xp::_s >> (xp::s1 = +(xp::_w)) >> *xp::_s >> ":" >> *xp::_s >> (xp::s2 = !(xp::as_xpr('+') | '-') >> +xp::_d >> !(xp::as_xpr('.') >> +xp::_d)) >> *xp::_s;
+    // NOTE: この正規表現使うとパース速度はSplitPropsに対して大体倍ぐらい遅い
+
+    xp::smatch match;
+    auto it = dict.begin();
+    while (xp::regex_search(it, dict.end(), match, regexApply)) {
+        const string key = match[1];
+        const double val = ToDouble(match[2].str().c_str());
+        if (!mover->ApplyProperty(key, val)) spdlog::get("main")->warn(u8"プロパティに \"{0}\" は設定できません。", key);
+        it += match.position(0) + match.length(0);
+    }
+#else
+    auto source = dict;
+    source.erase(remove(source.begin(), source.end(), ' '), source.end()); // TODO: 無条件に空白消すのはどうかと思う
+
+    vector<tuple<string, string>> params;
+    params.reserve(8);
+    SplitProps(source, params);
+    for (const auto &param : params) {
+        const string key = get<0>(param);
+        const double val = ToDouble(get<1>(param).c_str());
+        if (!mover->ApplyProperty(key, val)) spdlog::get("main")->warn(u8"プロパティに \"{0}\" は設定できません。", key);
+    }
+#endif
 }
 
 void SSprite::Apply(const CScriptDictionary *dict)
 {
-    using namespace crc32_constexpr;
-    ostringstream aps;
-
     auto i = dict->begin();
     while (i != dict->end()) {
         const auto key = i.GetKey();
-        aps << key << ":";
         double dv = 0;
-        i.GetValue(dv);
-        aps << dv << ", ";
+        if(i.GetValue(dv)) if(!mover->ApplyProperty(key, dv)) spdlog::get("main")->warn(u8"プロパティに \"{0}\" は設定できません。", key);
         ++i;
     }
 
-    Apply(aps.str());
-
     dict->Release();
+}
+
+void SSprite::SetPosition(double x, double y)
+{
+    Transform.X = SU_TO_FLOAT(x);
+    Transform.Y = SU_TO_FLOAT(y);
+}
+
+void SSprite::SetOrigin(double x, double y)
+{
+    Transform.OriginX = SU_TO_FLOAT(x);
+    Transform.OriginY = SU_TO_FLOAT(y);
+}
+
+void SSprite::SetAngle(double rad)
+{
+    Transform.Angle = SU_TO_FLOAT(rad);
+}
+
+void SSprite::SetScale(double scale)
+{
+    Transform.ScaleX = SU_TO_FLOAT(scale);
+    Transform.ScaleY = SU_TO_FLOAT(scale);
+}
+
+void SSprite::SetScale(double scaleX, double scaleY)
+{
+    Transform.ScaleX = SU_TO_FLOAT(scaleX);
+    Transform.ScaleY = SU_TO_FLOAT(scaleY);
+}
+
+void SSprite::SetAlpha(double alpha)
+{
+    Color.A = SU_TO_UINT8(alpha * 256);
+}
+
+void SSprite::SetColor(uint8_t r, uint8_t g, uint8_t b)
+{
+    Color.R = r;
+    Color.G = g;
+    Color.B = b;
+}
+
+void SSprite::SetColor(double a, uint8_t r, uint8_t g, uint8_t b)
+{
+    Color.A = SU_TO_UINT8(a * 256);
+    Color.R = r;
+    Color.G = g;
+    Color.B = b;
 }
 
 void SSprite::Tick(const double delta)

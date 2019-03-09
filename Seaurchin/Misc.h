@@ -40,6 +40,8 @@ float ConvertFloat(const std::string &input);
 bool ConvertBoolean(const std::string &input);
 void SplitProps(const std::string &source, PropList &vec);
 
+#define SU_TO_INT8(value)   static_cast<int8_t>((value))
+#define SU_TO_UINT8(value)  static_cast<uint8_t>((value))
 #define SU_TO_INT16(value)  static_cast<int16_t>((value))
 #define SU_TO_UINT16(value) static_cast<uint16_t>((value))
 #define SU_TO_INT32(value)  static_cast<int32_t>((value))

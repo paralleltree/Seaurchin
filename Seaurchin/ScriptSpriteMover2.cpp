@@ -61,17 +61,6 @@ void ScriptSpriteMover2::Tick(const double delta)
 
 }
 
-void ScriptSpriteMover2::Apply(const string &application) const
-{
-    auto source = application;
-    source.erase(remove(source.begin(), source.end(), ' '), source.end());
-
-    vector<tuple<string, string>> params;
-    params.reserve(8);
-    SplitProps(source, params);
-    for (const auto &param : params) ApplyProperty(get<0>(param), get<1>(param));
-}
-
 void ScriptSpriteMover2::AddMove(const string &mover)
 {
     auto source = mover;
@@ -96,49 +85,50 @@ void ScriptSpriteMover2::Abort(const bool completeMove)
     moves.clear();
 }
 
-void ScriptSpriteMover2::ApplyProperty(const string &prop, const string &value) const
+bool ScriptSpriteMover2::ApplyProperty(const string &prop, double value) const
 {
     switch (Crc32Rec(0xffffffff, prop.c_str())) {
         case "x"_crc32:
-            target->Transform.X = ConvertFloat(value.c_str());
+            target->Transform.X = SU_TO_FLOAT(value);
             break;
         case "y"_crc32:
-            target->Transform.Y = ConvertFloat(value.c_str());
+            target->Transform.Y = SU_TO_FLOAT(value);
             break;
         case "z"_crc32:
-            target->ZIndex = SU_TO_INT32(ToDouble(value.c_str()));
+            target->ZIndex = SU_TO_INT32(value);
             break;
         case "origX"_crc32:
-            target->Transform.OriginX = ConvertFloat(value.c_str());
+            target->Transform.OriginX = SU_TO_FLOAT(value);
             break;
         case "origY"_crc32:
-            target->Transform.OriginY = ConvertFloat(value.c_str());
+            target->Transform.OriginY = SU_TO_FLOAT(value);
             break;
         case "scaleX"_crc32:
-            target->Transform.ScaleX = ConvertFloat(value.c_str());
+            target->Transform.ScaleX = SU_TO_FLOAT(value);
             break;
         case "scaleY"_crc32:
-            target->Transform.ScaleY = ConvertFloat(value.c_str());
+            target->Transform.ScaleY = SU_TO_FLOAT(value);
             break;
         case "angle"_crc32:
-            target->Transform.Angle = ConvertFloat(value.c_str());
+            target->Transform.Angle = SU_TO_FLOAT(value);
             break;
         case "alpha"_crc32:
-            target->Color.A = static_cast<unsigned char>(ToDouble(value.c_str()) * 255.0);
+            target->Color.A = SU_TO_UINT8(value * 255.0);
             break;
         case "r"_crc32:
-            target->Color.R = static_cast<unsigned char>(ToDouble(value.c_str()));
+            target->Color.R = SU_TO_UINT8(value);
             break;
         case "g"_crc32:
-            target->Color.G = static_cast<unsigned char>(ToDouble(value.c_str()));
+            target->Color.G = SU_TO_UINT8(value);
             break;
         case "b"_crc32:
-            target->Color.B = static_cast<unsigned char>(ToDouble(value.c_str()));
+            target->Color.B = SU_TO_UINT8(value);
             break;
         default:
             // TODO SSpriteにカスタム実装
-            break;
+            return false;
     }
+    return true;
 }
 
 std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const string &func, const PropList &props) const
