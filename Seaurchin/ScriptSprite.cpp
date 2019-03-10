@@ -93,9 +93,9 @@ void RegisterScriptSprite(ExecutionManager *exm)
 
 void SSprite::CopyParameterFrom(SSprite * original)
 {
-    Color = original->Color;
     Transform = original->Transform;
     ZIndex = original->ZIndex;
+    Color = original->Color;
     IsDead = original->IsDead;
     HasAlpha = original->HasAlpha;
 }
@@ -113,10 +113,15 @@ const SImage *SSprite::GetImage() const
 }
 
 SSprite::SSprite()
+    : reference(0)
+    , mover(new ScriptSpriteMover2(this)) // NOTE: this渡すのはちょっと危ない気もする
+    , Transform()
+    , ZIndex(0)
+    , Color(Colors::white)
+    , IsDead(false)
+    , HasAlpha(true)
+    , Image(nullptr)
 {
-    // ZIndex = 0;
-    Color = Colors::white;
-    mover = new ScriptSpriteMover2(this);
 }
 
 SSprite::~SSprite()
@@ -211,7 +216,6 @@ bool SSprite::Apply(const string &key, double value)
         Color.B = SU_TO_UINT8(value);
         break;
     default:
-        // TODO SSpriteにカスタム実装
         return false;
     }
     return true;
@@ -396,6 +400,35 @@ void SSprite::RegisterType(asIScriptEngine * engine)
 }
 
 // Shape -----------------
+
+SShape::SShape()
+    : Type(SShapeType::BoxFill)
+    , Width(32)
+    , Height(32)
+{
+}
+
+bool SShape::Apply(const std::string &key, double value)
+{
+    if (!Base::Apply(key, value)) {
+        switch (Crc32Rec(0xffffffff, key.c_str())) {
+        // TODO: SShapeTypeをApplyするのどうしよう
+        //case "Type"_crc32:
+        //    Type = SShapeType::BoxFill;
+        //    break;
+        case "width"_crc32:
+            Width = value;
+            break;
+        case "height"_crc32:
+            Height = value;
+            break;
+        default:
+            return false;
+        }
+    }
+
+    return true;
+}
 
 void SShape::DrawBy(const Transform2D & tf, const ColorTint & ct)
 {
@@ -700,6 +733,23 @@ void STextSprite::Draw(const Transform2D & parent, const ColorTint & color)
     }
 }
 
+STextSprite::STextSprite()
+    : target(nullptr)
+    , scrollBuffer(nullptr)
+    , size(0.0, 0.0, 0)
+    , horizontalAlignment(STextAlign::Left)
+    , verticalAlignment(STextAlign::Top)
+    , isScrolling(false)
+    , scrollWidth(0)
+    , scrollMargin(0)
+    , scrollSpeed(0.0)
+    , scrollPosition(0.0)
+    , isRich(false)
+    , Font(nullptr)
+    , Text("")
+{
+}
+
 STextSprite * STextSprite::Clone()
 {
     //やっぱりコピコンで良くないかこれ
@@ -847,9 +897,10 @@ void SSynthSprite::DrawBy(const Transform2D & tf, const ColorTint & ct)
 }
 
 SSynthSprite::SSynthSprite(const int w, const int h)
+    : target(nullptr)
+    , width(w)
+    , height(h)
 {
-    width = w;
-    height = h;
 }
 
 SSynthSprite::~SSynthSprite()
@@ -979,8 +1030,35 @@ bool SClippingSprite::ActionMoveRangeTo(SSprite *thisObj, SpriteMoverArgument &a
     return true;
 }
 
-SClippingSprite::SClippingSprite(const int w, const int h) : SSynthSprite(w, h), u1(0), v1(0), u2(1), v2(0)
+SClippingSprite::SClippingSprite(const int w, const int h)
+    : SSynthSprite(w, h)
+    , u1(0), v1(0)
+    , u2(1), v2(0)
 {}
+
+bool SClippingSprite::Apply(const std::string &key, double value)
+{
+    if (!Base::Apply(key, value)) {
+        switch (Crc32Rec(0xffffffff, key.c_str())) {
+        case "u1"_crc32:
+            u1 = value;
+            break;
+        case "v1"_crc32:
+            v1 = value;
+            break;
+        case "u2"_crc32:
+            u2 = value;
+            break;
+        case "v2"_crc32:
+            v2 = value;
+            break;
+        default:
+            return false;
+        }
+    }
+
+    return true;
+}
 
 mover_function::Action SClippingSprite::GetCustomAction(const string & name)
 {
@@ -1075,17 +1153,35 @@ void SAnimeSprite::DrawBy(const Transform2D &tf, const ColorTint &ct)
 }
 
 SAnimeSprite::SAnimeSprite(SAnimatedImage * img)
+    : images(img)
+    , loopCount(1)
+    , count(0)
+    , speed(1)
+    , time(img ? (img->GetCellTime() * img->GetFrameCount()) : 0)
 {
-    images = img;
-    loopCount = 1;
-    count = 0;
-    speed = 1;
-    time = img->GetCellTime() * img->GetFrameCount();
 }
 
 SAnimeSprite::~SAnimeSprite()
 {
     if (images) images->Release();
+}
+
+bool SAnimeSprite::Apply(const std::string &key, double value)
+{
+    if (!Base::Apply(key, value)) {
+        switch (Crc32Rec(0xffffffff, key.c_str())) {
+        case "loop"_crc32:
+            loopCount = SU_TO_INT32(value);
+            break;
+        case "speed"_crc32:
+            speed = value;
+            break;
+        default:
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void SAnimeSprite::Draw()
