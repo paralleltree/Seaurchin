@@ -13,7 +13,7 @@ namespace {
     inline bool ParseApplyFormatString(const string &dict, vector<pair<const string, double>> &retProps)
     {
 #define SKIP_SP() do { while (it != end && *it == sp) ++it; } while(0)
-#define CHEK_END() do { if (it == end) return false; } while(0)
+#define CHECK_END() do { if (it == end) return false; } while(0)
 
         auto it = dict.begin();
         const auto end = dict.end();
@@ -22,25 +22,25 @@ namespace {
         const auto colon = ':';
         do {
             SKIP_SP();
-            CHEK_END();
+            CHECK_END();
 
             const auto keyHead = it;
 
             if (*it == comma || *it == colon) return false;
 
             while (it != end && *it != sp && *it != comma && *it != colon) ++it;
-            CHEK_END();
+            CHECK_END();
 
             const auto keyTail = it;
 
             SKIP_SP();
-            CHEK_END();
+            CHECK_END();
 
             if (*it != colon) return false;
             ++it;
 
             SKIP_SP();
-            CHEK_END();
+            CHECK_END();
 
             if (*it == comma || *it == colon) return false;
 
