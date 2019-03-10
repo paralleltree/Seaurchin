@@ -56,6 +56,8 @@ public:
     void AbortMove(bool terminate) const;
     void Apply(const std::string &dict);
     void Apply(const CScriptDictionary *dict);
+    bool Apply(const std::string &key, double value);
+    void Apply(std::vector<std::pair<const std::string, double>> &props);
     void SetPosition(double x, double y);
     void SetOrigin(double x, double y);
     void SetAngle(double rad);

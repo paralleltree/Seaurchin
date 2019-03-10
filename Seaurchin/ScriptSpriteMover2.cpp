@@ -85,52 +85,6 @@ void ScriptSpriteMover2::Abort(const bool completeMove)
     moves.clear();
 }
 
-bool ScriptSpriteMover2::ApplyProperty(const string &prop, double value) const
-{
-    switch (Crc32Rec(0xffffffff, prop.c_str())) {
-        case "x"_crc32:
-            target->Transform.X = SU_TO_FLOAT(value);
-            break;
-        case "y"_crc32:
-            target->Transform.Y = SU_TO_FLOAT(value);
-            break;
-        case "z"_crc32:
-            target->ZIndex = SU_TO_INT32(value);
-            break;
-        case "origX"_crc32:
-            target->Transform.OriginX = SU_TO_FLOAT(value);
-            break;
-        case "origY"_crc32:
-            target->Transform.OriginY = SU_TO_FLOAT(value);
-            break;
-        case "scaleX"_crc32:
-            target->Transform.ScaleX = SU_TO_FLOAT(value);
-            break;
-        case "scaleY"_crc32:
-            target->Transform.ScaleY = SU_TO_FLOAT(value);
-            break;
-        case "angle"_crc32:
-            target->Transform.Angle = SU_TO_FLOAT(value);
-            break;
-        case "alpha"_crc32:
-            target->Color.A = SU_TO_UINT8(value * 255.0);
-            break;
-        case "r"_crc32:
-            target->Color.R = SU_TO_UINT8(value);
-            break;
-        case "g"_crc32:
-            target->Color.G = SU_TO_UINT8(value);
-            break;
-        case "b"_crc32:
-            target->Color.B = SU_TO_UINT8(value);
-            break;
-        default:
-            // TODO SSpriteにカスタム実装
-            return false;
-    }
-    return true;
-}
-
 std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const string &func, const PropList &props) const
 {
     auto result = make_unique<SpriteMoverObject>();

@@ -46,6 +46,5 @@ public:
     void AddMove(const std::string &params);
     void Abort(bool completeMove);
 
-    bool ApplyProperty(const std::string &prop, double value) const;
     std::unique_ptr<SpriteMoverObject> BuildMoverObject(const std::string &func, const PropList &props) const;
 };

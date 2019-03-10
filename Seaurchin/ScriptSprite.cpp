@@ -6,6 +6,76 @@ using namespace std;
 using namespace crc32_constexpr;
 // 一般
 
+namespace {
+    // SSprite::Applyに与える文字列形式をパースする
+    // パース失敗(不正な形式の場合)は即時終了、falseを返す
+    // パース成功でtrueを返す
+    inline bool ParseApplyFormatString(const string &dict, vector<pair<const string, double>> &retProps)
+    {
+#define SKIP_SP() do { while (it != end && *it == sp) ++it; } while(0)
+#define CHEK_END() do { if (it == end) return false; } while(0)
+
+        auto it = dict.begin();
+        const auto end = dict.end();
+        const auto sp = ' ';
+        const auto comma = ',';
+        const auto colon = ':';
+        do {
+            SKIP_SP();
+            CHEK_END();
+
+            const auto keyHead = it;
+
+            if (*it == comma || *it == colon) return false;
+
+            while (it != end && *it != sp && *it != comma && *it != colon) ++it;
+            CHEK_END();
+
+            const auto keyTail = it;
+
+            SKIP_SP();
+            CHEK_END();
+
+            if (*it != colon) return false;
+            ++it;
+
+            SKIP_SP();
+            CHEK_END();
+
+            if (*it == comma || *it == colon) return false;
+
+            double value = 0.0;
+            bool sign = false;
+            {
+                double base = 1.0;
+                unsigned char ch;
+
+                it = *it == '-' ? (sign = true, ++it) : it;
+                while (it != end && (ch = *it - '0') <= 9u) value = value * 10 + ch, ++it;
+                if (it != end && *it == '.') {
+                    ++it;
+                    while (it != end && (ch = *it - '0') <= 9u) value += (base *= 0.1) * ch, ++it;
+                }
+            }
+
+            SKIP_SP();
+
+            retProps.emplace_back(string(keyHead, keyTail), sign ? -value : value);
+
+            if (it != end && *it == comma) {
+                ++it;
+                continue;
+            } else {
+                break;
+            }
+        } while (1);
+
+        return true;
+#undef SKIP_SP
+#undef CHECK_END
+    }
+}
+
 void RegisterScriptSprite(ExecutionManager *exm)
 {
     const auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
@@ -83,32 +153,9 @@ void SSprite::AbortMove(const bool terminate) const
 
 void SSprite::Apply(const string & dict)
 {
-#ifdef SU_USE_REGEX_AT_SPRITE_APPLY
-    namespace xp = boost::xpressive;
-    const xp::sregex regexApply = (xp::bos | ",") >> *xp::_s >> (xp::s1 = +(xp::_w)) >> *xp::_s >> ":" >> *xp::_s >> (xp::s2 = !(xp::as_xpr('+') | '-') >> +xp::_d >> !(xp::as_xpr('.') >> +xp::_d)) >> *xp::_s;
-    // NOTE: この正規表現使うとパース速度はSplitPropsに対して大体倍ぐらい遅い
-
-    xp::smatch match;
-    auto it = dict.begin();
-    while (xp::regex_search(it, dict.end(), match, regexApply)) {
-        const string key = match[1];
-        const double val = ToDouble(match[2].str().c_str());
-        if (!mover->ApplyProperty(key, val)) spdlog::get("main")->warn(u8"プロパティに \"{0}\" は設定できません。", key);
-        it += match.position(0) + match.length(0);
-    }
-#else
-    auto source = dict;
-    source.erase(remove(source.begin(), source.end(), ' '), source.end()); // TODO: 無条件に空白消すのはどうかと思う
-
-    vector<tuple<string, string>> params;
-    params.reserve(8);
-    SplitProps(source, params);
-    for (const auto &param : params) {
-        const string key = get<0>(param);
-        const double val = ToDouble(get<1>(param).c_str());
-        if (!mover->ApplyProperty(key, val)) spdlog::get("main")->warn(u8"プロパティに \"{0}\" は設定できません。", key);
-    }
-#endif
+    vector<pair<const string, double>> props;
+    if(!ParseApplyFormatString(dict, props)) spdlog::get("main")->warn(u8"パースに失敗しました。 : \"{0}\"", dict);
+    Apply(props);
 }
 
 void SSprite::Apply(const CScriptDictionary *dict)
@@ -117,11 +164,66 @@ void SSprite::Apply(const CScriptDictionary *dict)
     while (i != dict->end()) {
         const auto key = i.GetKey();
         double dv = 0;
-        if(i.GetValue(dv)) if(!mover->ApplyProperty(key, dv)) spdlog::get("main")->warn(u8"プロパティに \"{0}\" は設定できません。", key);
+        if(i.GetValue(dv)) if(!Apply(key, dv)) spdlog::get("main")->warn(u8"プロパティに \"{0}\" は設定できません。", key);
         ++i;
     }
 
     dict->Release();
+}
+
+bool SSprite::Apply(const string &key, double value)
+{
+    switch (Crc32Rec(0xffffffff, key.c_str())) {
+    case "x"_crc32:
+        Transform.X = SU_TO_FLOAT(value);
+        break;
+    case "y"_crc32:
+        Transform.Y = SU_TO_FLOAT(value);
+        break;
+    case "z"_crc32:
+        ZIndex = SU_TO_INT32(value);
+        break;
+    case "origX"_crc32:
+        Transform.OriginX = SU_TO_FLOAT(value);
+        break;
+    case "origY"_crc32:
+        Transform.OriginY = SU_TO_FLOAT(value);
+        break;
+    case "scaleX"_crc32:
+        Transform.ScaleX = SU_TO_FLOAT(value);
+        break;
+    case "scaleY"_crc32:
+        Transform.ScaleY = SU_TO_FLOAT(value);
+        break;
+    case "angle"_crc32:
+        Transform.Angle = SU_TO_FLOAT(value);
+        break;
+    case "alpha"_crc32:
+        Color.A = SU_TO_UINT8(value * 255.0);
+        break;
+    case "r"_crc32:
+        Color.R = SU_TO_UINT8(value);
+        break;
+    case "g"_crc32:
+        Color.G = SU_TO_UINT8(value);
+        break;
+    case "b"_crc32:
+        Color.B = SU_TO_UINT8(value);
+        break;
+    default:
+        // TODO SSpriteにカスタム実装
+        return false;
+    }
+    return true;
+}
+
+void SSprite::Apply(vector<pair<const string, double>> &props)
+{
+    auto it = props.begin();
+    while (it != props.end()) {
+        if (!Apply(it->first, it->second)) spdlog::get("main")->warn(u8"プロパティに \"{0}\" は設定できません。", it->first);
+        ++it;
+    }
 }
 
 void SSprite::SetPosition(double x, double y)
