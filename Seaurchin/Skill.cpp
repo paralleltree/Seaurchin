@@ -78,6 +78,7 @@ void SkillManager::LoadFromToml(boost::filesystem::path file)
         result->Name = root.get<string>("Name");
         result->IconPath = ConvertUnicodeToUTF8((iconRoot / ConvertUTF8ToUnicode(root.get<string>("Icon"))).wstring());
         result->Details.clear();
+        // TODO: CurrentLevel を変更する手段を提供する
         result->CurrentLevel = 0;
         result->MaxLevel = 0;
 
@@ -114,8 +115,8 @@ void SkillManager::LoadFromToml(boost::filesystem::path file)
 
             if (result->MaxLevel < level) result->MaxLevel = level;
         }
-    } catch (exception) {
-        log->error(u8"スキル {0} の読み込みに失敗しました", ConvertUnicodeToUTF8(file.wstring()));
+    } catch (exception &ex) {
+        log->error(u8"スキル {0} の読み込みに失敗しました: {1}", ConvertUnicodeToUTF8(file.wstring()), ex.what());
         return;
     }
     skills.push_back(result);

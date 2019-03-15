@@ -58,7 +58,7 @@ void CharacterInstance::LoadAbilities()
         funcs.OnJustice = abt->GetMethodByDecl("void OnJustice(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
         funcs.OnAttack = abt->GetMethodByDecl("void OnAttack(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
         funcs.OnMiss = abt->GetMethodByDecl("void OnMiss(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
-        abilities.push_back(abo);
+        this->abilities.push_back(abo);
         abilityTypes.push_back(abt);
         abilityEvents.push_back(funcs);
 
