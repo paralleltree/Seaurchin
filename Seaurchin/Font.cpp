@@ -42,7 +42,7 @@ void Sif2Creator::InitializeFace(const string& fontpath)
     if (faceMemory) return;
     ifstream fontfile(ConvertUTF8ToUnicode(fontpath), ios::in | ios::binary);
     fontfile.seekg(0, ios_base::end);
-    faceMemorySize = fontfile.tellg();
+    faceMemorySize = SU_TO_UINT32(fontfile.tellg());
     fontfile.seekg(ios_base::beg);
     faceMemory = new uint8_t[faceMemorySize];
     fontfile.read(reinterpret_cast<char*>(faceMemory), faceMemorySize);
@@ -51,7 +51,7 @@ void Sif2Creator::InitializeFace(const string& fontpath)
     // error = FT_New_Face(freetype, up.string().c_str(), 0, &face);
     error = FT_New_Memory_Face(freetype, faceMemory, faceMemorySize, 0, &face);
     if (error) {
-        log->error(u8"ƒtƒHƒ“ƒg {0} ‚ğ“Ç‚İ‚ß‚Ü‚¹‚ñ‚Å‚µ‚½", fontpath);
+        log->error(u8"ãƒ•ã‚©ãƒ³ãƒˆ {0} ã‚’èª­ã¿è¾¼ã‚ã¾ã›ã‚“ã§ã—ãŸ", fontpath);
         delete[] faceMemory;
         faceMemory = nullptr;
         return;
@@ -104,7 +104,7 @@ void Sif2Creator::PackImageSif2()
 
         std::ifstream fif;
         fif.open(path.wstring(), ios::binary | ios::in);
-        uint32_t fsize = fif.seekg(0, ios::end).tellg();
+        uint32_t fsize = SU_TO_UINT32(fif.seekg(0, ios::end).tellg());
 
         const auto file = new uint8_t[fsize];
         fif.seekg(ios::beg);
@@ -164,16 +164,16 @@ bool Sif2Creator::RenderGlyph(uint32_t cp)
     FT_Render_Glyph(gslot, FT_RENDER_MODE_NORMAL);
     ginfo.GlyphWidth = gslot->bitmap.width;
     ginfo.GlyphHeight = gslot->bitmap.rows;
-    ginfo.WholeAdvance = gslot->metrics.horiAdvance >> 6;
-    ginfo.BearX = gslot->metrics.horiBearingX >> 6;
-    ginfo.BearY = currentSize - (baseline + (gslot->metrics.horiBearingY >> 6));
+    ginfo.WholeAdvance = SU_TO_UINT16(gslot->metrics.horiAdvance >> 6);
+    ginfo.BearX = SU_TO_INT16(gslot->metrics.horiBearingX >> 6);
+    ginfo.BearY = SU_TO_INT16(currentSize - (baseline + (gslot->metrics.horiBearingY >> 6)));
     ginfo.Codepoint = cp;
     ginfo.ImageNumber = imageIndex;
     ginfo.GlyphX = 0;
     ginfo.GlyphY = 0;
 
     if (ginfo.GlyphWidth * ginfo.GlyphWidth == 0) {
-        //‚Ü‚³‚©' '‚ªƒOƒŠƒt‚ğ‚½‚È‚¢‚Æ‚Ív‚í‚È‚©‚Á‚½(‚¢‚â“–‚½‚è‘O‚Å‚µ‚å)
+        //ã¾ã•ã‹' 'ãŒã‚°ãƒªãƒ•ã‚’æŒãŸãªã„ã¨ã¯æ€ã‚ãªã‹ã£ãŸ(ã„ã‚„å½“ãŸã‚Šå‰ã§ã—ã‚‡)
         sif2Stream.write(reinterpret_cast<const char*>(&ginfo), sizeof(Sif2Glyph));
         writtenGlyphs++;
         return true;
@@ -185,7 +185,7 @@ bool Sif2Creator::RenderGlyph(uint32_t cp)
     ginfo.GlyphY = rect.Y;
 
     const auto buffer = new uint8_t[rect.Width * 2];
-    for (auto y = 0; y < gslot->bitmap.rows; y++) {
+    for (auto y = 0u; y < gslot->bitmap.rows; y++) {
         for (auto x = 0; x < rect.Width; x++) {
             buffer[x * 2] = 0xff;
             buffer[x * 2 + 1] = gslot->bitmap.buffer[y * rect.Width + x];
@@ -220,7 +220,7 @@ void Sif2Creator::CreateSif2(const Sif2CreatorOption &option, const boost::files
 
     InitializeFace(option.FontPath);
     RequestFace(option.Size);
-    log->info(u8"ƒtƒHƒ“ƒg\"{0:s}\"“à‚É{1:d}ƒOƒŠƒt‚ ‚è‚Ü‚·", face->family_name, face->num_glyphs);
+    log->info(u8"ãƒ•ã‚©ãƒ³ãƒˆ\"{0:s}\"å†…ã«{1:d}ã‚°ãƒªãƒ•ã‚ã‚Šã¾ã™", face->family_name, face->num_glyphs);
 
     currentSize = option.Size;
     OpenSif2(outputPath);

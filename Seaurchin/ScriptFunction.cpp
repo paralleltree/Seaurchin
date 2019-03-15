@@ -21,7 +21,7 @@ void YieldTime(const double time)
     auto ctx = asGetActiveContext();
     auto pcw = static_cast<CoroutineWait*>(ctx->GetUserData(SU_UDTYPE_WAIT));
     if (!pcw) {
-        ScriptSceneWarnOutOf("Coroutine Function", ctx);
+        ScriptSceneWarnOutOf("YieldTime", "Coroutine Scene Class or Coroutine", ctx);
         return;
     }
     pcw->Type = WaitType::Time;
@@ -34,7 +34,7 @@ void YieldFrames(const int64_t frames)
     auto ctx = asGetActiveContext();
     auto pcw = static_cast<CoroutineWait*>(ctx->GetUserData(SU_UDTYPE_WAIT));
     if (!pcw) {
-        ScriptSceneWarnOutOf("Coroutine Function", ctx);
+        ScriptSceneWarnOutOf("YieldFrame", "Coroutine Scene Class or Coroutine", ctx);
         return;
     }
     pcw->Type = WaitType::Frame;
@@ -64,7 +64,7 @@ void CreateImageFont(const string &fileName, const string &saveName, const int s
 {
     Sif2CreatorOption option;
     option.FontPath = fileName;
-    option.Size = size;
+    option.Size = SU_TO_FLOAT(size);
     option.ImageSize = 1024;
     option.TextSource = "";
     const auto op = Setting::GetRootDirectory() / SU_DATA_DIR / SU_FONT_DIR / (ConvertUTF8ToUnicode(saveName) + L".sif");

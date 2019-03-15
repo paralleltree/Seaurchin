@@ -6,7 +6,7 @@
 using namespace std;
 using namespace crc32_constexpr;
 
-static const double qNaN = numeric_limits<double>::quiet_NaN();
+static const float qNaN = numeric_limits<float>::quiet_NaN();
 
 SpriteMoverArgument::SpriteMoverArgument()
 {
@@ -39,13 +39,13 @@ void ScriptSpriteMover2::Tick(const double delta)
     while (i != moves.end()) {
         auto mobj = i->get();
         if (mobj->Data.Now < 0) {
-            //—]‚Á‚½delta‚ÅŒÄ‚Ño‚·‚×‚«‚È‚Ì‚©‚à‚µ‚ê‚È‚¢‚¯‚Ç‚Ü‚ ‚¢‚¢‚©‚Á‚Ä
+            //ä½™ã£ãŸdeltaã§å‘¼ã³å‡ºã™ã¹ããªã®ã‹ã‚‚ã—ã‚Œãªã„ã‘ã©ã¾ã‚ã„ã„ã‹ã£ã¦
             mobj->Data.Now += delta;
             ++i;
             continue;
         }
         if (!mobj->Data.IsStarted) {
-            //‘½•ª‰Šú‰»ˆ—‚Í‚±‚Ìƒ^ƒCƒ~ƒ“ƒO‚Ì•û‚ª‚¢‚¢
+            //å¤šåˆ†åˆæœŸåŒ–å‡¦ç†ã¯ã“ã®ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã®æ–¹ãŒã„ã„
             mobj->Data.IsStarted = true;
             mobj->Function(target, mobj->Argument, mobj->Data, 0);
         }
@@ -59,17 +59,6 @@ void ScriptSpriteMover2::Tick(const double delta)
         }
     }
 
-}
-
-void ScriptSpriteMover2::Apply(const string &application) const
-{
-    auto source = application;
-    source.erase(remove(source.begin(), source.end(), ' '), source.end());
-
-    vector<tuple<string, string>> params;
-    params.reserve(8);
-    SplitProps(source, params);
-    for (const auto &param : params) ApplyProperty(get<0>(param), get<1>(param));
 }
 
 void ScriptSpriteMover2::AddMove(const string &mover)
@@ -96,59 +85,14 @@ void ScriptSpriteMover2::Abort(const bool completeMove)
     moves.clear();
 }
 
-void ScriptSpriteMover2::ApplyProperty(const string &prop, const string &value) const
-{
-    switch (Crc32Rec(0xffffffff, prop.c_str())) {
-        case "x"_crc32:
-            target->Transform.X = ToDouble(value.c_str());
-            break;
-        case "y"_crc32:
-            target->Transform.Y = ToDouble(value.c_str());
-            break;
-        case "z"_crc32:
-            target->ZIndex = int(ToDouble(value.c_str()));
-            break;
-        case "origX"_crc32:
-            target->Transform.OriginX = ToDouble(value.c_str());
-            break;
-        case "origY"_crc32:
-            target->Transform.OriginY = ToDouble(value.c_str());
-            break;
-        case "scaleX"_crc32:
-            target->Transform.ScaleX = ToDouble(value.c_str());
-            break;
-        case "scaleY"_crc32:
-            target->Transform.ScaleY = ToDouble(value.c_str());
-            break;
-        case "angle"_crc32:
-            target->Transform.Angle = ToDouble(value.c_str());
-            break;
-        case "alpha"_crc32:
-            target->Color.A = static_cast<unsigned char>(ToDouble(value.c_str()) * 255.0);
-            break;
-        case "r"_crc32:
-            target->Color.R = static_cast<unsigned char>(ToDouble(value.c_str()));
-            break;
-        case "g"_crc32:
-            target->Color.G = static_cast<unsigned char>(ToDouble(value.c_str()));
-            break;
-        case "b"_crc32:
-            target->Color.B = static_cast<unsigned char>(ToDouble(value.c_str()));
-            break;
-        default:
-            // TODO SSprite‚ÉƒJƒXƒ^ƒ€ŽÀ‘•
-            break;
-    }
-}
-
 std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const string &func, const PropList &props) const
 {
     auto result = make_unique<SpriteMoverObject>();
-    // MoverFunction‚ðŒˆ’è
+    // MoverFunctionã‚’æ±ºå®š
     if (mover_function::actions.find(func) != mover_function::actions.end()) {
         result->Function = mover_function::actions[func];
     } else {
-        // TODO: ƒJƒXƒ^ƒ€Mover‚É‘Î‰ž
+        // TODO: ã‚«ã‚¹ã‚¿ãƒ Moverã«å¯¾å¿œ
         const auto custom = target->GetCustomAction(func);
         if (!custom) return nullptr;
         result->Function = custom;
@@ -158,15 +102,15 @@ std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const st
         switch (Crc32Rec(0xffffffff, get<0>(prop).c_str())) {
             case "x"_crc32:
             case "r"_crc32:
-                result->Argument.X = ToDouble(get<1>(prop).c_str());
+                result->Argument.X = ConvertFloat(get<1>(prop).c_str());
                 break;
             case "y"_crc32:
             case "g"_crc32:
-                result->Argument.Y = ToDouble(get<1>(prop).c_str());
+                result->Argument.Y = ConvertFloat(get<1>(prop).c_str());
                 break;
             case "z"_crc32:
             case "b"_crc32:
-                result->Argument.Z = ToDouble(get<1>(prop).c_str());
+                result->Argument.Z = ConvertFloat(get<1>(prop).c_str());
                 break;
             case "time"_crc32:
                 result->Argument.Duration = ToDouble(get<1>(prop).c_str());

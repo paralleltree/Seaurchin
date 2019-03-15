@@ -1,8 +1,5 @@
 #pragma once
 
-#include "SusAnalyzer.h"
-#include "Setting.h"
-
 #define SU_IF_MSCURSOR "MusicCursor"
 #define SU_IF_MSCSTATE "CursorState"
 
@@ -42,24 +39,23 @@ public:
     void Reload(bool recreateCache) const;
 };
 
-//musicにsはつかないって？知るかバカ
-class MusicSelectionCursor;
 enum class MusicSelectionState {
     OutOfFunction = 0,
     Category,
     Music,
-    Variant,
     Confirmed,
 
+    Reloading,
     Error,
     Success,
 };
 
+class MusicSelectionCursor;
 class ExecutionManager;
+class SusAnalyzer;
 class MusicsManager final {
     friend class MusicSelectionCursor;
 private:
-    std::shared_ptr<Setting> sharedSetting;
     ExecutionManager *manager;
 
     bool loading = false;
@@ -73,7 +69,7 @@ public:
     ~MusicsManager();
 
     static void Initialize();
-    void Reload(bool recreateCache);
+    void Reload(bool async);
     bool IsReloading();
     boost::filesystem::path GetSelectedScorePath();
 
@@ -100,6 +96,10 @@ public:
     MusicSelectionCursor(MusicsManager *manager);
     void AddRef() { refcount++; }
     void Release() { if (--refcount == 0) delete this; }
+    int GetRefCount() const { return refcount; }
+
+    MusicSelectionState ReloadMusic(bool async);
+    MusicSelectionState ResetState();
 
     std::string GetPrimaryString(int32_t relativeIndex) const;
     std::string GetCategoryName(int32_t relativeIndex) const;

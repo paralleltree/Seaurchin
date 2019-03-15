@@ -6,37 +6,37 @@
 enum class SusNoteType : uint16_t {
     Undefined = 0,
 
-    // ƒVƒ‡[ƒg
+    // ã‚·ãƒ§ãƒ¼ãƒˆ
     Tap,            // Tap
     ExTap,          // ExTap
     Flick,          // Flick
     Air,            // Air
     HellTap,        // AIR: Hell Tap
-    AwesomeExTap,   // STAR PLUS: ‚â‚×[ExTap (https://twitter.com/chunithm/status/967959264055648256)
+    AwesomeExTap,   // STAR PLUS: ã‚„ã¹ãƒ¼ExTap (https://twitter.com/chunithm/status/967959264055648256)
 
-    // ƒƒ“ƒO
+    // ãƒ­ãƒ³ã‚°
     Hold = 7,       // Hold
     Slide,          // Slide
     AirAction,      // AirAction
 
-    // ˆÊ’u(ƒƒ“ƒO—p)
-    Start = 10,     // ŠJn
-    Control,        // •Ï‹È
-    Step,           // ’†Œp
-    End,            // I—¹
+    // ä½ç½®(ãƒ­ãƒ³ã‚°ç”¨)
+    Start = 10,     // é–‹å§‹
+    Control,        // å¤‰æ›²
+    Step,           // ä¸­ç¶™
+    End,            // çµ‚äº†
 
-    // •ûŒü(Air—pA‘g‚İ‡‚í‚¹‰Â)
-    Up = 14,        // ã
-    Down,           // ‰º
-    Left,           // ¶
-    Right,          // ‰E
+    // æ–¹å‘(Airç”¨ã€çµ„ã¿åˆã‚ã›å¯)
+    Up = 14,        // ä¸Š
+    Down,           // ä¸‹
+    Left,           // å·¦
+    Right,          // å³
 
-    // ‚»‚Ì‘¼
-    Injection = 18, // (ƒƒ“ƒO)ƒRƒ“ƒ{‘}“ü
-    Invisible,      // •s‰Â‹
-    MeasureLine,    // ¬ßü
-    Grounded,       // Air‚Ì‘«‚ªŒÂ•Ê‚É•`‰æ‚³‚ê‚é
-    StartPosition,  // ƒŒ[ƒ“‰œ‚Å‚ÌŠJnˆÊ’u(ƒIƒ“ƒQƒL—p)
+    // ãã®ä»–
+    Injection = 18, // (ãƒ­ãƒ³ã‚°)ã‚³ãƒ³ãƒœæŒ¿å…¥
+    Invisible,      // ä¸å¯è¦–
+    MeasureLine,    // å°ç¯€ç·š
+    Grounded,       // Airã®è¶³ãŒå€‹åˆ¥ã«æç”»ã•ã‚Œã‚‹
+    StartPosition,  // ãƒ¬ãƒ¼ãƒ³å¥¥ã§ã®é–‹å§‹ä½ç½®(ã‚ªãƒ³ã‚²ã‚­ç”¨)
 };
 
 struct SusRelativeNoteTime {
@@ -45,11 +45,11 @@ struct SusRelativeNoteTime {
 
     bool operator<(const SusRelativeNoteTime& b) const
     {
-        return Measure < b.Measure || Tick < b.Tick;
+        return Measure < b.Measure || (Measure == b.Measure && Tick < b.Tick);
     }
     bool operator>(const SusRelativeNoteTime& b) const
     {
-        return Measure > b.Measure || Tick > b.Tick;
+        return Measure > b.Measure || (Measure == b.Measure && Tick > b.Tick);
     }
     bool operator==(const SusRelativeNoteTime& b) const
     {
@@ -70,8 +70,22 @@ struct SusHispeedData {
     };
     const static double keepSpeed;
 
-    Visibility VisibilityState = Visibility::Visible;
-    double Speed = 1.0;
+    SusHispeedData()
+        : VisibilityState(Visibility::Visible)
+        , Speed(1.0)
+    {
+    }
+
+    SusHispeedData(
+        const Visibility VisibilityState,
+        const double Speed)
+        : VisibilityState(VisibilityState)
+        , Speed(Speed)
+    {
+    }
+
+    Visibility VisibilityState;
+    double Speed;
 
 };
 
@@ -83,8 +97,7 @@ private:
 
 public:
     SusHispeedTimeline(std::function<double(uint32_t, uint32_t)> func);
-    void AddKeysByString(const std::string &def, const std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)>&
-        resolver);
+    void AddKeysByString(const std::string &def, const std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)>& resolver);
     void AddKeyByData(uint32_t meas, uint32_t tick, double hs);
     void AddKeyByData(uint32_t meas, uint32_t tick, bool vis);
     void Finialize();
@@ -151,13 +164,13 @@ struct SusRawNoteData {
     std::bitset<32> Type;
     std::shared_ptr<SusHispeedTimeline> Timeline;
     union {
-        uint16_t DefinitionNumber;
+        uint16_t DefinitionNumber = 0;
         struct {
             uint8_t StartLane;
             uint8_t Length;
         } NotePosition;
     };
-    uint8_t Extra;
+    uint32_t Extra = 0;
     std::shared_ptr<SusNoteExtraAttribute> ExtraAttribute;
 
     bool operator==(const SusRawNoteData& b) const
@@ -176,23 +189,27 @@ struct SusRawNoteData {
 };
 
 struct SusDrawableNoteData {
+    // SusRawNoteData ã‹ã‚‰ãã®ã¾ã¾å¼•ãç¶™ãå¥´ã‚‰
     std::bitset<32> Type;
-    std::bitset<8> OnTheFlyData;
     std::shared_ptr<SusHispeedTimeline> Timeline;
     std::shared_ptr<SusNoteExtraAttribute> ExtraAttribute;
-    uint8_t StartLane = 0;
-    uint8_t Length = 0;
-    float CenterAtZero = 0;
 
-    //À•`‰æˆÊ’u
+    // ãã‚Œä»¥å¤–
+    std::bitset<8> OnTheFlyData;
+
+    uint8_t StartLane = 0;  // ãƒãƒ¼ãƒ„å·¦ç«¯ä½ç½®
+    uint8_t Length = 0;     // ãƒãƒ¼ãƒ„å¹…
+    float CenterAtZero = 0; // ãƒãƒ¼ãƒ„ä¸­å¿ƒ
+
+    //å®Ÿæç”»ä½ç½®
     double ModifiedPosition = 0;
     double StartTimeEx = 0;
     double DurationEx = 0;
-    //•`‰æ"n‚ß‚é"
+    //æç”»"å§‹ã‚ã‚‹"æ™‚åˆ»
     double StartTime = 0;
-    //•`‰æ‚ª"‘±‚­"
+    //æç”»ãŒ"ç¶šã"æ™‚åˆ»
     double Duration = 0;
-    //ƒXƒ‰ƒCƒhEAA—p§Œäƒf[ƒ^
+    //ã‚¹ãƒ©ã‚¤ãƒ‰ãƒ»AAç”¨åˆ¶å¾¡ãƒ‡ãƒ¼ã‚¿
     std::vector<std::shared_ptr<SusDrawableNoteData>> ExtraData;
 
     std::tuple<bool, double> GetStateAt(double time);
@@ -202,36 +219,46 @@ struct SusDrawableNoteData {
 using DrawableNotesList = std::vector<std::shared_ptr<SusDrawableNoteData>>;
 using NoteCurvesList = std::unordered_map<std::shared_ptr<SusDrawableNoteData>, std::vector<std::tuple<double, double>>>;
 
-// BMS”h¶ƒtƒH[ƒ}ƒbƒg‚±‚ÆSUS(SeaUrchinScore)‚Ì‰ğÍ
+// BMSæ´¾ç”Ÿãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆã“ã¨SUS(SeaUrchinScore)ã®è§£æ
 class SusAnalyzer final {
 private:
     static boost::xpressive::sregex regexSusCommand;
     static boost::xpressive::sregex regexSusData;
 
-    double defaultBeats = 4.0;
-    double defaultBpm = 120.0;
-    uint32_t defaultHispeedNumber = std::numeric_limits<uint32_t>::max();
-    uint32_t defaultExtraAttributeNumber = std::numeric_limits<uint32_t>::max();
-    uint32_t ticksPerBeat;
-    uint32_t measureCountOffset;
-    double longInjectionPerBeat;
-    std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)> timelineResolver = nullptr;
+    const float defaultBeats = 4.0;
+    const double defaultBpm = 120.0;
+    const uint32_t defaultHispeedNumber = std::numeric_limits<uint32_t>::max();
+    const uint32_t defaultExtraAttributeNumber = std::numeric_limits<uint32_t>::max();
+
     std::vector<std::function<void(std::string, std::string)>> errorCallbacks;
-    std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> notes;
-    std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> bpmChanges;
+    const std::function<std::shared_ptr<SusHispeedTimeline>(uint32_t)> timelineResolver;
+
+    uint32_t ticksPerBeat;          // 1æ‹ã‚ãŸã‚Šã®åˆ†å‰²æ•°(åˆ†è§£èƒ½)
+    uint32_t measureCountOffset;    // SUSãƒ‡ãƒ¼ã‚¿ã‹ã‚‰èª­ã¿è¾¼ã‚“ã å°ç¯€æ•°ã«åŠ ç®—ã™ã‚‹ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    uint32_t longNoteChannelOffset; // SUSãƒ‡ãƒ¼ã‚¿ã‹ã‚‰èª­ã¿è¾¼ã‚“ã ãƒ­ãƒ³ã‚°ãƒãƒ¼ãƒ„è­˜åˆ¥ç•ªå·ã«åŠ ç®—ã™ã‚‹ã‚ªãƒ•ã‚»ãƒƒãƒˆ
+    double longInjectionPerBeat;    // 1æ‹ã‚ãŸã‚Šã®ãƒ­ãƒ³ã‚°ãƒãƒ¼ãƒ„ã®ã‚«ã‚¦ãƒ³ãƒˆ(ã‚³ãƒ³ãƒœ)æ•°
+
+    std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> notes; // BPMæŒ‡å®šã€å°ç¯€ç·šã€ãƒãƒ¼ãƒ„ãƒ‡ãƒ¼ã‚¿å…¨éƒ¨å…¥ã£ã¦ã‚‹
+
     std::unordered_map<uint32_t, double> bpmDefinitions;
     std::unordered_map<uint32_t, float> beatsDefinitions;
     std::unordered_map<uint32_t, std::shared_ptr<SusHispeedTimeline>> hispeedDefinitions;
-    std::shared_ptr<SusHispeedTimeline> hispeedToApply, hispeedToMeasure;
     std::unordered_map<uint32_t, std::shared_ptr<SusNoteExtraAttribute>> extraAttributes;
+
+    std::vector<std::tuple<SusRelativeNoteTime, SusRawNoteData>> bpmChanges; // notesã‹ã‚‰BPMæŒ‡å®šã ã‘ã‚³ãƒ”ãƒ¼ã—ã¦ãã¦ä½¿ã†
+
+    std::shared_ptr<SusHispeedTimeline> hispeedToApply, hispeedToMeasure;
     std::shared_ptr<SusNoteExtraAttribute> extraAttributeToApply;
 
     void ProcessCommand(const boost::xpressive::smatch &result, bool onlyMeta, uint32_t line);
     void ProcessRequest(const std::string &cmd, uint32_t line);
     void ProcessData(const boost::xpressive::smatch &result, uint32_t line);
-    void MakeMessage(uint32_t line, const std::string &message);
-    void MakeMessage(uint32_t meas, uint32_t tick, uint32_t lane, const std::string &message);
+    void MakeMessage(const std::string &message) const;
+    void MakeMessage(uint32_t line, const std::string &message) const;
+    void MakeMessage(uint32_t meas, uint32_t tick, uint32_t lane, const std::string &message) const;
     void CalculateCurves(const std::shared_ptr<SusDrawableNoteData>& note, NoteCurvesList &curveData) const;
+    uint32_t GetMeasureCount(uint32_t relativeMeasureCount) const;
+    uint32_t GetLongNoteChannel(uint32_t relativeLongNoteChannel) const;
 
 public:
     SusMetaData SharedMetaData;

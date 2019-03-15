@@ -73,14 +73,13 @@ enum class AbilityJudgeType {
 
 class SkillManager final {
 private:
-    ExecutionManager *manager;
     std::vector<std::shared_ptr<SkillParameter>> skills;
     int selected;
 
     void LoadFromToml(boost::filesystem::path file);
 
 public:
-    explicit SkillManager(ExecutionManager *exm);
+    explicit SkillManager();
 
     void LoadAllSkills();
 
@@ -104,8 +103,8 @@ public:
     SkillIndicators();
     ~SkillIndicators();
 
-    int GetSkillIndicatorCount() const;
-    SImage* GetSkillIndicatorImage(int index);
+    uint32_t GetSkillIndicatorCount() const;
+    SImage* GetSkillIndicatorImage(uint32_t index);
     void SetCallback(asIScriptFunction *func);
     int AddSkillIndicator(const std::string &icon);
     void TriggerSkillIndicator(int index) const;

@@ -1,23 +1,23 @@
 #pragma once
 
 struct Transform2D {
-    double X = 0.0;
-    double Y = 0.0;
-    double Angle = 0.0;
-    double OriginX = 0.0;
-    double OriginY = 0.0;
-    double ScaleX = 1.0;
-    double ScaleY = 1.0;
+    float X = 0.0f;
+    float Y = 0.0f;
+    float Angle = 0.0f;
+    float OriginX = 0.0f;
+    float OriginY = 0.0f;
+    float ScaleX = 1.0f;
+    float ScaleY = 1.0f;
     Transform2D ApplyFrom(const Transform2D &parent) const
     {
         Transform2D result;
-        // Origin‚Í‰æ‘œã‚ÌˆÊ’u‚È‚Ì‚Å•ÏX‚È‚µ
+        // Originã¯ç”»åƒä¸Šã®ä½ç½®ãªã®ã§å¤‰æ›´ãªã—
         result.OriginX = OriginX;
         result.OriginY = OriginY;
-        // ³‚µ‚­‚È‚¢‚Ì‚Í•S‚à³’m‚¾‚ª‹–‚µ‚Ä‚­‚ê
+        // æ­£ã—ããªã„ã®ã¯ç™¾ã‚‚æ‰¿çŸ¥ã ãŒè¨±ã—ã¦ãã‚Œ
         result.ScaleX = parent.ScaleX * ScaleX;
         result.ScaleY = parent.ScaleY * ScaleY;
-        // ‚±‚±‚©‚ç‚Í³‚µ‚¢‚Æv‚¤
+        // ã“ã“ã‹ã‚‰ã¯æ­£ã—ã„ã¨æ€ã†
         result.Angle = parent.Angle + Angle;
         const auto rx = X * parent.ScaleX;
         const auto ry = Y * parent.ScaleY;
@@ -28,12 +28,12 @@ struct Transform2D {
 };
 
 struct Transform3D {
-    double X = 0.0;
-    double Y = 0.0;
-    double Z = 0.0;
-    double AngleX = 0.0;
-    double AngleY = 0.0;
-    double AngleZ = 0.0;
+    float X = 0.0f;
+    float Y = 0.0f;
+    float Z = 0.0f;
+    float AngleX = 0.0f;
+    float AngleY = 0.0f;
+    float AngleZ = 0.0f;
 };
 
 struct ColorTint {

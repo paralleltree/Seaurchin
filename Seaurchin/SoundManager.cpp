@@ -1,3 +1,4 @@
+#include "Misc.h"
 #include "SoundManager.h"
 
 using namespace std;
@@ -27,11 +28,11 @@ void SoundSample::StopSound()
     BASS_SampleStop(hSample);
 }
 
-void SoundSample::SetVolume(const float vol)
+void SoundSample::SetVolume(const double vol)
 {
     BASS_SAMPLE si = { 0 };
     BASS_SampleGetInfo(hSample, &si);
-    si.volume = vol;
+    si.volume = SU_TO_FLOAT(vol);
     BASS_SampleSetInfo(hSample, &si);
 }
 
@@ -77,9 +78,9 @@ void SoundStream::StopSound()
     BASS_ChannelStop(hStream);
 }
 
-void SoundStream::SetVolume(const float vol)
+void SoundStream::SetVolume(const double vol)
 {
-    BASS_ChannelSetAttribute(hStream, BASS_ATTRIB_VOL, clamp(vol, 0.0f, 1.0f));
+    BASS_ChannelSetAttribute(hStream, BASS_ATTRIB_VOL, SU_TO_FLOAT(clamp(vol, 0.0f, 1.0f)));
 }
 
 void SoundStream::Pause() const
@@ -153,24 +154,24 @@ void SoundMixerStream::Play(Sound * sound)
 void SoundMixerStream::Stop(Sound *sound)
 {
     sound->StopSound();
-    //ƒ`ƒƒƒ“ƒlƒ‹íœ‚ÍUpdate‚É”C‚¹‚é
+    //ãƒãƒ£ãƒ³ãƒãƒ«å‰Šé™¤ã¯Updateã«ä»»ã›ã‚‹
 }
 
-void SoundMixerStream::SetVolume(const float vol) const
+void SoundMixerStream::SetVolume(const double vol) const
 {
-    BASS_ChannelSetAttribute(hMixerStream, BASS_ATTRIB_VOL, vol);
+    BASS_ChannelSetAttribute(hMixerStream, BASS_ATTRIB_VOL, SU_TO_FLOAT(vol));
 }
 
 // SoundManager -----------------------------
 SoundManager::SoundManager()
 {
     auto log = spdlog::get("main");
-    //‚æ‚ë‚µ‚­‚È‚¢
+    //ã‚ˆã‚ã—ããªã„
     if (!BASS_Init(-1, 44100, 0, GetMainWindowHandle(), nullptr)) {
-        log->critical(u8"BASS Library‚Ì‰Šú‰»‚É¸”s‚µ‚Ü‚µ‚½");
+        log->critical(u8"BASS Libraryã®åˆæœŸåŒ–ã«å¤±æ•—ã—ã¾ã—ãŸ");
         abort();
     }
-    spdlog::get("main")->info(u8"BASS Library‰Šú‰»I—¹");
+    spdlog::get("main")->info(u8"BASS LibraryåˆæœŸåŒ–çµ‚äº†");
 }
 
 SoundManager::~SoundManager()

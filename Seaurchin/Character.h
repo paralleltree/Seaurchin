@@ -39,6 +39,7 @@ private:
 public:
     void AddRef() { reference++; }
     void Release() { if (--reference == 0) delete this; }
+    int GetRefCount() const { return reference; }
     explicit CharacterImageSet(std::shared_ptr<CharacterParameter> param);
     ~CharacterImageSet();
 
@@ -54,7 +55,6 @@ class ExecutionManager;
 
 class CharacterManager final {
 private:
-    ExecutionManager * manager;
     std::vector<std::shared_ptr<CharacterParameter>> characters;
 
     int selected;
@@ -62,7 +62,7 @@ private:
     void LoadFromToml(const boost::filesystem::path& file);
 
 public:
-    explicit CharacterManager(ExecutionManager *exm);
+    explicit CharacterManager();
 
     void LoadAllCharacters();
 

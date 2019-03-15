@@ -87,7 +87,8 @@ void CharacterInstance::LoadAbilities()
         context->SetArgAddress(0, args);
         context->SetArgAddress(1, indicators.get());
         context->Execute();
-        log->info(u8"アビリティー " + ConvertUnicodeToUTF8(scrpath.c_str()));
+        context->Unprepare();
+        log->info(u8"繧｢繝薙Μ繝�繧｣繝ｼ " + ConvertUnicodeToUTF8(scrpath.c_str()));
     }
 }
 
@@ -101,7 +102,7 @@ asIScriptObject* CharacterInstance::LoadAbilityObject(const boost::filesystem::p
     using namespace boost::filesystem;
     auto log = spdlog::get("main");
     auto abroot = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_ABILITY_DIR;
-    //お茶を濁せ
+    //縺願幻繧呈ｿ√○
     const auto modulename = ConvertUnicodeToUTF8(filepath.c_str());
     auto mod = scriptInterface->GetExistModule(modulename);
     if (!mod) {
@@ -118,7 +119,7 @@ asIScriptObject* CharacterInstance::LoadAbilityObject(const boost::filesystem::p
         mod = scriptInterface->GetLastModule();
     }
 
-    //エントリポイント検索
+    //繧ｨ繝ｳ繝医Μ繝昴う繝ｳ繝域､懃ｴ｢
     const int cnt = mod->GetObjectTypeCount();
     asITypeInfo *type = nullptr;
     for (auto i = 0; i < cnt; i++) {
@@ -130,12 +131,11 @@ asIScriptObject* CharacterInstance::LoadAbilityObject(const boost::filesystem::p
         break;
     }
     if (!type) {
-        log->critical(u8"アビリティーにEntryPointがありません");
+        log->critical(u8"繧｢繝薙Μ繝�繧｣繝ｼ縺ｫEntryPoint縺後≠繧翫∪縺帙ｓ");
         return nullptr;
     }
 
     const auto obj = scriptInterface->InstantiateObject(type);
-    obj->AddRef();
     type->Release();
     return obj;
 }
@@ -146,6 +146,7 @@ void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunctio
     context->SetObject(obj);
     context->SetArgAddress(0, targetResult.get());
     context->Execute();
+    context->Unprepare();
 }
 
 void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunction *func, AbilityNoteType type) const
@@ -155,6 +156,7 @@ void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunctio
     context->SetArgAddress(0, targetResult.get());
     context->SetArgDWord(1, asDWORD(type));
     context->Execute();
+    context->Unprepare();
 }
 
 void CharacterInstance::CallJudgeCallback(const AbilityJudgeType judge, const AbilityNoteType type, const string& extra) const
@@ -167,6 +169,7 @@ void CharacterInstance::CallJudgeCallback(const AbilityJudgeType judge, const Ab
     judgeCallback->Context->SetArgDWord(1, asDWORD(type));
     judgeCallback->Context->SetArgObject(2, static_cast<void*>(&message));
     judgeCallback->Context->Execute();
+    judgeCallback->Context->Unprepare();
 }
 
 void CharacterInstance::OnStart()
@@ -231,7 +234,11 @@ void CharacterInstance::SetCallback(asIScriptFunction *func)
 {
     if (!func || func->GetFuncType() != asFUNC_DELEGATE) return;
     delete judgeCallback;
+
+    func->AddRef();
     judgeCallback = new CallbackObject(func);
+
+    func->Release();
 }
 
 CharacterParameter* CharacterInstance::GetCharacterParameter() const

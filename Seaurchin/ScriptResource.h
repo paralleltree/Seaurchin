@@ -13,15 +13,7 @@
 #define SU_IF_ANIMEIMAGE "AnimatedImage"
 #define SU_IF_SETTING_ITEM "SettingItem"
 
-//interface ©“®‰ğ•ú‘ÎÛ
-class SResouceAutoRelease {
-public:
-    virtual ~SResouceAutoRelease() = default;
-private:
-    virtual bool Dispose() = 0;
-};
-
-//ƒŠƒ\[ƒXŠî’êƒNƒ‰ƒX
+//ãƒªã‚½ãƒ¼ã‚¹åŸºåº•ã‚¯ãƒ©ã‚¹
 class SResource {
 protected:
     int reference = 0;
@@ -33,9 +25,10 @@ public:
     void Release();
 
     int GetHandle() const { return handle; }
+    int GetRefCount() const { return reference; }
 };
 
-//‰æ‘œ
+//ç”»åƒ
 class SImage : public SResource {
 protected:
     int width = 0;
@@ -54,7 +47,7 @@ public:
     static SImage* CreateLoadedImageFromMemory(void *buffer, size_t size);
 };
 
-//•`‰æƒ^ƒQ
+//æç”»ã‚¿ã‚²
 class SRenderTarget : public SImage {
 public:
     SRenderTarget(int w, int h);
@@ -62,7 +55,7 @@ public:
     static SRenderTarget* CreateBlankTarget(int w, int h);
 };
 
-//9patch•`‰æ—p
+//9patchæç”»ç”¨
 class SNinePatchImage : public SImage {
 protected:
     int leftSideWidth = 8;
@@ -77,7 +70,7 @@ public:
     std::tuple<int, int, int, int> GetArea() { return std::make_tuple(leftSideWidth, topSideHeight, bodyWidth, bodyHeight); }
 };
 
-//ƒAƒjƒ[ƒVƒ‡ƒ“—p
+//ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³ç”¨
 class SAnimatedImage : public SImage {
 protected:
     int cellWidth = 0;
@@ -98,7 +91,7 @@ public:
     static SAnimatedImage *CreateLoadedImageFromMemory(void *buffer, size_t size, int xc, int yc, int w, int h, int count, double time);
 };
 
-//ƒtƒHƒ“ƒg
+//ãƒ•ã‚©ãƒ³ãƒˆ
 class SFont : public SResource {
 protected:
     int size = 0;
@@ -129,7 +122,7 @@ public:
 
     SoundSample *GetSample() const { return sample; }
     void SetLoop(bool looping) const;
-    void SetVolume(float vol) const;
+    void SetVolume(double vol) const;
 
     static SSound* CreateSound(SoundManager *smanager);
     static SSound* CreateSoundFromFile(SoundManager *smanager, const std::string &file, int simul);

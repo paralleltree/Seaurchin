@@ -51,9 +51,10 @@ void ScenePlayer::LoadResources()
     soundSlideStep = dynamic_cast<SSound*>(resources["SoundSlideStep"]);
     soundHoldStep = dynamic_cast<SSound*>(resources["SoundHoldStep"]);
     soundMetronome = dynamic_cast<SSound*>(resources["Metronome"]);
-    fontCombo = dynamic_cast<SFont*>(resources["FontCombo"]);
 
-    auto setting = manager->GetSettingInstanceSafe();
+    SFont * const fontCombo = dynamic_cast<SFont*>(resources["FontCombo"]);
+
+    const auto setting = manager->GetSettingInstanceSafe();
     if (soundHoldLoop) soundHoldLoop->SetLoop(true);
     if (soundSlideLoop) soundSlideLoop->SetLoop(true);
     if (soundAirLoop) soundAirLoop->SetLoop(true);
@@ -84,21 +85,26 @@ void ScenePlayer::LoadResources()
     slideLineColor = GetColor(scv[0].as<int>(), scv[1].as<int>(), scv[2].as<int>());
     airActionJudgeColor = GetColor(aajcv[0].as<int>(), aajcv[1].as<int>(), aajcv[2].as<int>());
 
-    // 2^x§ŒÀ‚ª‚ ‚é‚Ì‚Å‚±‚±‚ÅŒvZ
-    const int exty = laneBufferX * SU_LANE_ASPECT_EXT;
-    auto bufferY = 2.0;
-    while (exty > bufferY) bufferY *= 2;
-    const float bufferV = exty / bufferY;
+    // 2^xåˆ¶é™ãŒã‚ã‚‹ã®ã§ã“ã“ã§è¨ˆç®—
+    const auto exty = laneBufferX * SU_LANE_ASPECT_EXT;
+    auto bufferY = 2.0f;
+    while (exty > bufferY) bufferY *= 2.0f;
+    const float bufferV = SU_TO_FLOAT(exty / bufferY);
     for (auto i = 2; i < 4; i++) groundVertices[i].v = bufferV;
-    hGroundBuffer = MakeScreen(laneBufferX, bufferY, TRUE);
+    hGroundBuffer = MakeScreen(SU_TO_INT32(laneBufferX), SU_TO_INT32(bufferY), TRUE);
 
-    fontCombo->AddRef();
-    textCombo = STextSprite::Factory(fontCombo, "0000");
+    if(fontCombo) fontCombo->AddRef();
+    textCombo = STextSprite::Factory(fontCombo, "");
     textCombo->SetAlignment(STextAlign::Center, STextAlign::Center);
-    const auto size = 320.0 / fontCombo->GetSize();
+    if (fontCombo == nullptr) {
+        textScale = 0.0;
+    } else {
+        const auto fontSize = fontCombo->GetSize();
+        textScale = 320.0 / ((fontSize <= 0.0)? 1.0 : fontSize);
+    }
     ostringstream app;
     app << setprecision(5);
-    app << "x:512, y:3200, " << "scaleX:" << size << ", scaleY:" << size;
+    app << "x:512, y:3200, " << "scaleX:" << textScale << ", scaleY:" << textScale;
     textCombo->Apply(app.str());
 }
 
@@ -111,7 +117,10 @@ void ScenePlayer::TickGraphics(const double delta)
 {
     if (status.Combo > previousStatus.Combo) RefreshComboText();
     UpdateSlideEffect();
+
+#ifdef SU_ENABLE_BACKGROUND_ROLLING
     laneBackgroundRoll += laneBackgroundSpeed * delta;
+#endif
 }
 
 void ScenePlayer::Draw()
@@ -123,7 +132,9 @@ void ScenePlayer::Draw()
     if (movieBackground) DrawExtendGraph(0, 0, SU_RES_WIDTH, SU_RES_HEIGHT, movieBackground, FALSE);
 
     BEGIN_DRAW_TRANSACTION(hGroundBuffer);
-    // ”wŒi•”
+    ClearDrawScreen();
+
+    // èƒŒæ™¯éƒ¨
     DrawLaneBackground();
     DrawLaneDivisionLines();
     for (auto& note : seenData) {
@@ -131,22 +142,20 @@ void ScenePlayer::Draw()
         if (type[size_t(SusNoteType::MeasureLine)]) DrawMeasureLine(note);
     }
 
-    // ‰º‘¤‚Ìƒƒ“ƒOƒm[ƒc—Ş
+    // ä¸‹å´ã®ãƒ­ãƒ³ã‚°ãƒãƒ¼ãƒ„é¡
     for (auto& note : seenData) {
         auto &type = note->Type;
         if (type[size_t(SusNoteType::Hold)]) DrawHoldNotes(note);
         if (type[size_t(SusNoteType::Slide)]) DrawSlideNotes(note);
     }
 
-    // ã‘¤‚ÌƒVƒ‡[ƒgƒm[ƒc—Ş
+    // ä¸Šå´ã®ã‚·ãƒ§ãƒ¼ãƒˆãƒãƒ¼ãƒ„é¡
     for (auto& note : seenData) {
-        auto &type = note->Type;
-        if (type[size_t(SusNoteType::Tap)]) DrawShortNotes(note);
-        if (type[size_t(SusNoteType::ExTap)]) DrawShortNotes(note);
-        if (type[size_t(SusNoteType::AwesomeExTap)]) DrawShortNotes(note);
-        if (type[size_t(SusNoteType::Flick)]) DrawShortNotes(note);
-        if (type[size_t(SusNoteType::HellTap)]) DrawShortNotes(note);
-        if (type[size_t(SusNoteType::Air)] && type[size_t(SusNoteType::Grounded)]) DrawShortNotes(note);
+        auto type = note->Type.to_ulong();
+#define GET_BIT(num) (1UL << (int(num)))
+        const auto mask = GET_BIT(SusNoteType::Tap) | GET_BIT(SusNoteType::ExTap) | GET_BIT(SusNoteType::AwesomeExTap) | GET_BIT(SusNoteType::Flick) | GET_BIT(SusNoteType::HellTap) | GET_BIT(SusNoteType::Grounded);
+#undef GET_BIT
+        if (type & mask) DrawShortNotes(note);
     }
 
     FINISH_DRAW_TRANSACTION;
@@ -154,7 +163,7 @@ void ScenePlayer::Draw()
     DrawPolygonIndexed3D(groundVertices, 4, rectVertexIndices, 2, hGroundBuffer, TRUE);
     for (auto& i : sprites) i->Draw();
 
-    //3DŒnƒm[ƒc
+    //3Dç³»ãƒãƒ¼ãƒ„
     Prepare3DDrawCall();
     DrawAerialNotes(seenData);
 
@@ -239,25 +248,24 @@ void ScenePlayer::DrawAerialNotes(const vector<shared_ptr<SusDrawableNoteData>>&
 
 void ScenePlayer::RefreshComboText() const
 {
-    const auto size = 320.0 / fontCombo->GetSize();
     ostringstream app;
     textCombo->AbortMove(true);
 
     app << setprecision(5);
-    app << "scaleX:" << size * 1.05 << ", scaleY:" << size * 1.05;
+    app << "scaleX:" << textScale * 1.05 << ", scaleY:" << textScale * 1.05;
     textCombo->Apply(app.str());
     app.str("");
     app << setprecision(5);
-    app << "scale_to(" << "x:" << size << ", y:" << size << ", time: 0.2, ease:out_quad)";
+    app << "scale_to(" << "x:" << textScale << ", y:" << textScale << ", time: 0.2, ease:out_quad)";
     textCombo->AddMove(app.str());
 }
 
-// position ‚Í 0 ~ 16
+// position ã¯ 0 ~ 16
 void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target, const JudgeType type)
 {
     Prepare3DDrawCall();
-    const auto position = target->StartLane + target->Length / 2.0;
-    const auto x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, position / 16.0);
+    const auto position = target->StartLane + target->Length / 2.0f;
+    const auto x = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, position / 16.0f);
     switch (type) {
         case JudgeType::ShortNormal: {
             const auto spawnAt = ConvWorldPosToScreenPos(VGet(x, SU_LANE_Y_GROUND, SU_LANE_Z_MIN));
@@ -266,7 +274,12 @@ void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target
             sp->Apply("origX:128, origY:224");
             sp->Transform.X = spawnAt.x;
             sp->Transform.Y = spawnAt.y;
-            AddSprite(sp);
+            {
+                sp->AddRef();
+                AddSprite(sp);
+            }
+
+            sp->Release();
             break;
         }
         case JudgeType::ShortEx: {
@@ -276,8 +289,13 @@ void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target
             sp->Apply("origX:128, origY:256");
             sp->Transform.X = spawnAt.x;
             sp->Transform.Y = spawnAt.y;
-            sp->Transform.ScaleX = target->Length / 6.0;
-            AddSprite(sp);
+            sp->Transform.ScaleX = target->Length / 6.0f;
+            {
+                sp->AddRef();
+                AddSprite(sp);
+            }
+
+            sp->Release();
             break;
         }
         case JudgeType::SlideTap: {
@@ -287,7 +305,12 @@ void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target
             sp->Apply("origX:128, origY:224");
             sp->Transform.X = spawnAt.x;
             sp->Transform.Y = spawnAt.y;
-            AddSprite(sp);
+            {
+                sp->AddRef();
+                AddSprite(sp);
+            }
+
+            sp->Release();
             break;
         }
         case JudgeType::Action: {
@@ -297,7 +320,12 @@ void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target
             sp->Apply("origX:128, origY:128");
             sp->Transform.X = spawnAt.x;
             sp->Transform.Y = spawnAt.y;
-            AddSprite(sp);
+            {
+                sp->AddRef();
+                AddSprite(sp);
+            }
+
+            sp->Release();
             break;
         }
     }
@@ -305,23 +333,26 @@ void ScenePlayer::SpawnJudgeEffect(const shared_ptr<SusDrawableNoteData>& target
 
 void ScenePlayer::SpawnSlideLoopEffect(const shared_ptr<SusDrawableNoteData>& target)
 {
+    SpawnJudgeEffect(target, JudgeType::SlideTap);
+
     animeSlideLoop->AddRef();
-    imageTap->AddRef();
     auto loopefx = SAnimeSprite::Factory(animeSlideLoop);
     loopefx->Apply("origX:128, origY:224");
-    SpawnJudgeEffect(target, JudgeType::SlideTap);
     loopefx->SetLoopCount(-1);
     slideEffects[target] = loopefx;
-    AddSprite(loopefx);
+    {
+        loopefx->AddRef();
+        AddSprite(loopefx);
+    }
 }
 
 void ScenePlayer::RemoveSlideEffect()
 {
     auto it = slideEffects.begin();
     while (it != slideEffects.end()) {
-        auto note = (*it).first;
         auto effect = (*it).second;
         effect->Dismiss();
+        effect->Release();
         it = slideEffects.erase(it);
     }
 }
@@ -335,6 +366,7 @@ void ScenePlayer::UpdateSlideEffect()
         auto effect = (*it).second;
         if (currentTime >= note->StartTime + note->Duration) {
             effect->Dismiss();
+            effect->Release();
             it = slideEffects.erase(it);
             continue;
         }
@@ -383,28 +415,30 @@ void ScenePlayer::DrawShortNotes(const shared_ptr<SusDrawableNoteData>& note) co
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
     const auto relpos = 1.0 - note->ModifiedPosition / seenDuration;
     const auto length = note->Length;
-    const auto slane = note->StartLane;
+#ifdef SU_ENABLE_NOTE_HORIZONTAL_MOVING
     const auto zlane = note->CenterAtZero - length / 2.0f;
-    const auto rlane = glm::mix(zlane, float(slane), relpos);
+    const auto slane = glm::mix(zlane, float(note->StartLane), relpos);
+#else
+    const auto slane = float(note->StartLane);
+#endif
     SImage *handleToDraw = nullptr;
 
-    if (note->Type.test(size_t(SusNoteType::Tap))) {
+    const auto &type = note->Type;
+    if (type[size_t(SusNoteType::Tap)]) {
         handleToDraw = imageTap;
-    } else if (note->Type.test(size_t(SusNoteType::ExTap))) {
+    } else if (type[size_t(SusNoteType::ExTap)] || type[size_t(SusNoteType::AwesomeExTap)]) {
         handleToDraw = imageExTap;
-    } else if (note->Type.test(size_t(SusNoteType::AwesomeExTap))) {
-        handleToDraw = imageExTap;
-    } else if (note->Type.test(size_t(SusNoteType::Flick))) {
+    } else if (type[size_t(SusNoteType::Flick)]) {
         handleToDraw = imageFlick;
-    } else if (note->Type.test(size_t(SusNoteType::HellTap))) {
+    } else if (type[size_t(SusNoteType::HellTap)]) {
         handleToDraw = imageHellTap;
-    } else if (note->Type.test(size_t(SusNoteType::Air))) {
+    } else if (type[size_t(SusNoteType::Air)] && type[size_t(SusNoteType::Grounded)]) {
         handleToDraw = imageAir;
     }
 
-    //64*3 x 64 ‚ğ•`‰æ‚·‚é‚©‚ç1/2‚Å‚â‚é•K—v‚ª‚ ‚é
+    //64*3 x 64 ã‚’æç”»ã™ã‚‹ã‹ã‚‰1/2ã§ã‚„ã‚‹å¿…è¦ãŒã‚ã‚‹
 
-    if (handleToDraw) DrawTap(rlane, length, relpos, handleToDraw->GetHandle());
+    if (handleToDraw) DrawTap(slane, length, relpos, handleToDraw->GetHandle());
 }
 
 void ScenePlayer::DrawAirNotes(const AirDrawQuery &query) const
@@ -423,8 +457,8 @@ void ScenePlayer::DrawAirNotes(const AirDrawQuery &query) const
     } else {
         refroll = NormalizedFmod(-note->ModifiedPosition * airRollSpeed, 0.5);
     }
-    const auto roll = note->Type.test(size_t(SusNoteType::Up)) ? refroll : 0.5 - refroll;
-    const auto xadjust = note->Type.test(size_t(SusNoteType::Left)) ? -80.0 : (note->Type.test(size_t(SusNoteType::Right)) ? 80.0 : 0);
+    const auto roll = SU_TO_FLOAT(note->Type.test(size_t(SusNoteType::Up)) ? refroll : 0.5 - refroll);
+    const auto xadjust = note->Type.test(size_t(SusNoteType::Left)) ? -80.0f : (note->Type.test(size_t(SusNoteType::Right)) ? 80.0f : 0.0f);
     const auto handle = note->Type.test(size_t(SusNoteType::Up)) ? imageAirUp->GetHandle() : imageAirDown->GetHandle();
 
     VERTEX3D vertices[] = {
@@ -470,20 +504,20 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
     const auto endpoint = note->ExtraData.back();
     const auto relpos = 1.0 - note->ModifiedPosition / seenDuration;
     const auto reltailpos = 1.0 - endpoint->ModifiedPosition / seenDuration;
-    const auto begin = !!note->OnTheFlyData[size_t(NoteAttribute::Finished)]; // Hold‘S‘Ì‚Ì”»’è‚ªs‚í‚ên‚ß‚Ä‚¢‚ê‚Îtrue‚É‚µ‚½‚¢A‚±‚ê‚¾‚Æ”»’è‚Æ‚µ‚Ä‚Í­‚µ’x‚¢‚©‚à‚µ‚ê‚È‚¢‚ª‚Ü‚ŸÀ—pã–â‘è‚È‚¢‚Ì‚Å‚Í
-    const auto activated = !!note->OnTheFlyData[size_t(NoteAttribute::Activated)]; // Hold‚ª‰Ÿ‚³‚ê‚Ä‚¢‚ê‚Îtrue‚É‚µ‚½‚¢A‚½‚Ô‚ñˆê’v‚µ‚½˜_—‚É‚È‚é‚Í‚¸
-    const auto completed = !!note->OnTheFlyData[size_t(NoteAttribute::Completed)]; // Hold‘S‘Ì‚Ì”»’è‚ª‚·‚×‚ÄI‚í‚Á‚Ä‚¢‚ê‚Îtrue‚É‚µ‚½‚¢
+    const auto begin = !!note->OnTheFlyData[size_t(NoteAttribute::Finished)]; // Holdå…¨ä½“ã®åˆ¤å®šãŒè¡Œã‚ã‚Œå§‹ã‚ã¦ã„ã‚Œã°trueã«ã—ãŸã„ã€ã“ã‚Œã ã¨åˆ¤å®šã¨ã—ã¦ã¯å°‘ã—é…ã„ã‹ã‚‚ã—ã‚Œãªã„ãŒã¾ãå®Ÿç”¨ä¸Šå•é¡Œãªã„ã®ã§ã¯
+    const auto activated = !!note->OnTheFlyData[size_t(NoteAttribute::Activated)]; // HoldãŒæŠ¼ã•ã‚Œã¦ã„ã‚Œã°trueã«ã—ãŸã„ã€ãŸã¶ã‚“ä¸€è‡´ã—ãŸè«–ç†ã«ãªã‚‹ã¯ãš
+    const auto completed = !!note->OnTheFlyData[size_t(NoteAttribute::Completed)]; // Holdå…¨ä½“ã®åˆ¤å®šãŒã™ã¹ã¦çµ‚ã‚ã£ã¦ã„ã‚Œã°trueã«ã—ãŸã„
 
-    // ’†g‚¾‚¯æ‚É•`‰æ
-    // •ªŠ„‚µ‚È‚¢‚Å•`‰æ‚·‚×‚«‹éŒ`—ÌˆæŒvZ‚µ‚Ä‚µ‚Ü‚¦‚Î‚¢‚¢‚ñ‚¶‚á‚È‚¢‚Å‚µ‚å‚¤‚©
+    // ä¸­èº«ã ã‘å…ˆã«æç”»
+    // åˆ†å‰²ã—ãªã„ã§æç”»ã™ã¹ãçŸ©å½¢é ˜åŸŸè¨ˆç®—ã—ã¦ã—ã¾ãˆã°ã„ã„ã‚“ã˜ã‚ƒãªã„ã§ã—ã‚‡ã†ã‹
     auto head = relpos;
     auto tail = reltailpos;
     if (!(head < 0 && tail < 0) && !(head >= cullingLimit && tail >= cullingLimit)) {
-        if (!begin) { // ”»’è‘O
+        if (!begin) { // åˆ¤å®šå‰
             SetDrawBlendMode(DX_BLENDMODE_ADD, 239);
-        } else if (activated) { // ”»’è’† : Hold
+        } else if (activated) { // åˆ¤å®šä¸­ : Holdæ™‚
             SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
-        } else { // ”»’è’† : ”ñHold
+        } else { // åˆ¤å®šä¸­ : éHoldæ™‚
             SetDrawBlendMode(DX_BLENDMODE_ADD, 175);
         }
 
@@ -495,29 +529,29 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
         const auto wholelen = fabs(reltailpos - relpos);
         const auto len = fabs(tail - head);
 
-        const auto y1 = laneBufferY * head;
-        const auto y2 = laneBufferY * tail;
-        const auto SrcY = (relpos - head) / wholelen * imageHoldStrut->GetHeight();
-        const auto Height = len / wholelen * imageHoldStrut->GetHeight();
+        const auto y1 = SU_TO_FLOAT(laneBufferY * head);
+        const auto y2 = SU_TO_FLOAT(laneBufferY * tail);
+        const auto SrcY = SU_TO_INT32((relpos - head) / wholelen * imageHoldStrut->GetHeight());
+        const auto Height = SU_TO_INT32(len / wholelen * imageHoldStrut->GetHeight());
 
         DrawRectModiGraphF(
             slane * widthPerLane, y1,
             (slane + length) * widthPerLane, y1,
             (slane + length) * widthPerLane, y2,
             slane * widthPerLane, y2,
-            0, SrcY, noteImageBlockX, Height,
+            0, SrcY, SU_TO_INT32(noteImageBlockX), Height,
             imageHoldStrut->GetHandle(), TRUE
         );
     }
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ƒm[ƒc‚ªAttackˆÈã‚Ì”»’è*/)) {
+    if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ãƒãƒ¼ãƒ„ãŒAttackä»¥ä¸Šã®åˆ¤å®š*/)) {
         DrawTap(slane, length, relpos, imageHold->GetHandle());
     }
 
     for (auto &ex : note->ExtraData) {
         if (ex->Type.test(size_t(SusNoteType::Injection))) continue;
-        if (ex->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ƒm[ƒc‚ªAttackˆÈã‚Ì”»’è*/) continue;
+        if (ex->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ãƒãƒ¼ãƒ„ãŒAttackä»¥ä¸Šã®åˆ¤å®š*/) continue;
 
         const auto relendpos = 1.0 - ex->ModifiedPosition / seenDuration;
         if (ex->Type.test(size_t(SusNoteType::Start))) {
@@ -531,43 +565,43 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
 void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 {
     auto lastStep = note;
-    auto offsetTimeInBlock = 0.0; /* ‚»‚ÌslideElement‚ÌA•s‰Â‹’†Œp“_‚Ì‚Â‚È‚ª‚è“™‚ğl—¶‚µ‚½‚Ìæ“ªˆÊ’uA“I‚È */
+    auto offsetTimeInBlock = 0.0; /* ãã®slideElementã®ã€ä¸å¯è¦–ä¸­ç¶™ç‚¹ã®ã¤ãªãŒã‚Šç­‰ã‚’è€ƒæ…®ã—ãŸæ™‚ã®å…ˆé ­ä½ç½®ã€çš„ãª */
     const auto strutBottom = 1.0;
-    const auto begin = !!note->OnTheFlyData[size_t(NoteAttribute::Finished)]; // Hold‘S‘Ì‚Ì”»’è‚ªs‚í‚ên‚ß‚Ä‚¢‚ê‚Îtrue‚É‚µ‚½‚¢A‚±‚ê‚¾‚Æ”»’è‚Æ‚µ‚Ä‚Í­‚µ’x‚¢‚©‚à‚µ‚ê‚È‚¢‚ª‚Ü‚ŸÀ—pã–â‘è‚È‚¢‚Ì‚Å‚Í
-    const auto activated = !!note->OnTheFlyData[size_t(NoteAttribute::Activated)]; // Hold‚ª‰Ÿ‚³‚ê‚Ä‚¢‚ê‚Îtrue‚É‚µ‚½‚¢A‚½‚Ô‚ñˆê’v‚µ‚½˜_—‚É‚È‚é‚Í‚¸
-    const auto completed = !!note->OnTheFlyData[size_t(NoteAttribute::Completed)]; // Hold‘S‘Ì‚Ì”»’è‚ª‚·‚×‚ÄI‚í‚Á‚Ä‚¢‚ê‚Îtrue‚É‚µ‚½‚¢
+    const auto begin = !!note->OnTheFlyData[size_t(NoteAttribute::Finished)]; // Holdå…¨ä½“ã®åˆ¤å®šãŒè¡Œã‚ã‚Œå§‹ã‚ã¦ã„ã‚Œã°trueã«ã—ãŸã„ã€ã“ã‚Œã ã¨åˆ¤å®šã¨ã—ã¦ã¯å°‘ã—é…ã„ã‹ã‚‚ã—ã‚Œãªã„ãŒã¾ãå®Ÿç”¨ä¸Šå•é¡Œãªã„ã®ã§ã¯
+    const auto activated = !!note->OnTheFlyData[size_t(NoteAttribute::Activated)]; // HoldãŒæŠ¼ã•ã‚Œã¦ã„ã‚Œã°trueã«ã—ãŸã„ã€ãŸã¶ã‚“ä¸€è‡´ã—ãŸè«–ç†ã«ãªã‚‹ã¯ãš
+    const auto completed = !!note->OnTheFlyData[size_t(NoteAttribute::Completed)]; // Holdå…¨ä½“ã®åˆ¤å®šãŒã™ã¹ã¦çµ‚ã‚ã£ã¦ã„ã‚Œã°trueã«ã—ãŸã„
     slideVertices.clear();
     slideIndices.clear();
 
-    /* Šî–{•ûj */
-    /* ]—ˆ : [n“_,’†Œp“_,•s‰Â‹’†Œp“_]‚©‚çŸ‚Ì[’†Œp“_,•s‰Â‹’†Œp“_,I“_]‚É‚©‚¯‚Ä(u,v)‚ÌŒvZ‚ğs‚Á‚Ä‚¢‚é */
-    /* ‰ü—Ç : [n“_,’†Œp“_]‚©‚çŸ‚Ì[’†Œp“_,I“_]‚É‚©‚¯‚ÄAh•s‰Â‹’†Œp“_‚ğ’´‚¦‚Äh(u,v)‚ÌŒvZ‚ğs‚¤ */
-    /*        •ªŠ„“_(?)‚Ì”z’u‚Í‚·‚Å‚É³‚µ‚­ŒvZ‚³‚ê‚Ä‚¢‚é‚Ì‚Åè‚ğ‰Á‚¦‚È‚¢ */
-    /*        ]—ˆ‚Ì(u,v)ŒvZ‚ğs‚Á‚Ä‚¢‚½—Ìˆæ‚ÅA 0 <= v <= 1 ‚Å‚ ‚Á‚½‚Æ‚±‚ë‚ğ a <= v <= b ‚É•ÏX‚µ */
-    /*        •s‰Â‹’†Œp“_‚ğ‚Ü‚½‚¢‚¾—Ìˆæ‘S‘Ì‚ÌŠÔ‚©‚ça,b‚ğ“K“–‚É’è‚ß‚é */
+    /* åŸºæœ¬æ–¹é‡ */
+    /* å¾“æ¥ : [å§‹ç‚¹,ä¸­ç¶™ç‚¹,ä¸å¯è¦–ä¸­ç¶™ç‚¹]ã‹ã‚‰æ¬¡ã®[ä¸­ç¶™ç‚¹,ä¸å¯è¦–ä¸­ç¶™ç‚¹,çµ‚ç‚¹]ã«ã‹ã‘ã¦(u,v)ã®è¨ˆç®—ã‚’è¡Œã£ã¦ã„ã‚‹ */
+    /* æ”¹è‰¯ : [å§‹ç‚¹,ä¸­ç¶™ç‚¹]ã‹ã‚‰æ¬¡ã®[ä¸­ç¶™ç‚¹,çµ‚ç‚¹]ã«ã‹ã‘ã¦ã€â€ä¸å¯è¦–ä¸­ç¶™ç‚¹ã‚’è¶…ãˆã¦â€(u,v)ã®è¨ˆç®—ã‚’è¡Œã† */
+    /*        åˆ†å‰²ç‚¹(?)ã®é…ç½®ã¯ã™ã§ã«æ­£ã—ãè¨ˆç®—ã•ã‚Œã¦ã„ã‚‹ã®ã§æ‰‹ã‚’åŠ ãˆãªã„ */
+    /*        å¾“æ¥ã®(u,v)è¨ˆç®—ã‚’è¡Œã£ã¦ã„ãŸé ˜åŸŸã§ã€ 0 <= v <= 1 ã§ã‚ã£ãŸã¨ã“ã‚ã‚’ a <= v <= b ã«å¤‰æ›´ã— */
+    /*        ä¸å¯è¦–ä¸­ç¶™ç‚¹ã‚’ã¾ãŸã„ã é ˜åŸŸå…¨ä½“ã®æ™‚é–“ã‹ã‚‰a,bã‚’é©å½“ã«å®šã‚ã‚‹ */
 
-    /* d—v */
-    /* ‚·‚×‚Ä‚Ì•Ï”A‰‰Z‚ÌˆÓ–¡‚ğ—‰ğ‚µ‚½‚í‚¯‚Å‚Í‚È‚¢‚Ì‚ÅA•Ï”qAƒnƒCƒXƒsİ’è“™‚Å€‚Ê‰Â”\«‚ª‘½•ª‚É‚ ‚é */
+    /* é‡è¦ */
+    /* ã™ã¹ã¦ã®å¤‰æ•°ã€æ¼”ç®—ã®æ„å‘³ã‚’ç†è§£ã—ãŸã‚ã‘ã§ã¯ãªã„ã®ã§ã€å¤‰æ‹å­ã€ãƒã‚¤ã‚¹ãƒ”è¨­å®šç­‰ã§æ­»ã¬å¯èƒ½æ€§ãŒå¤šåˆ†ã«ã‚ã‚‹ */
 
-    /* ŠeSlideElement‚É‘Î‰‚·‚é’Ç‰Áî•ñ‚ğŒvZ‚µ‚ÄŠi”[‚·‚é */
-    /* ‹N“_, I“_ ‚Ì2—v‘fƒxƒNƒ^[‚ÌƒxƒNƒ^[ */
-    /* ‹N“_ : ‚»‚ÌSlideElementˆÈ‘O‚ÉŒ»‚ê‚½n“_or’†Œp“_‚Ìæ“ª */
-    /* I“_ : ‚»‚ÌSlideElementˆÈ~‚ÉŒ»‚ê‚éI“_or’†Œp“_‚ÌI’[ */
+    /* å„SlideElementã«å¯¾å¿œã™ã‚‹è¿½åŠ æƒ…å ±ã‚’è¨ˆç®—ã—ã¦æ ¼ç´ã™ã‚‹ */
+    /* èµ·ç‚¹æ™‚åˆ», çµ‚ç‚¹æ™‚åˆ» ã®2è¦ç´ ãƒ™ã‚¯ã‚¿ãƒ¼ã®ãƒ™ã‚¯ã‚¿ãƒ¼ */
+    /* èµ·ç‚¹æ™‚åˆ» : ãã®SlideElementä»¥å‰ã«ç¾ã‚ŒãŸå§‹ç‚¹orä¸­ç¶™ç‚¹ã®å…ˆé ­æ™‚åˆ» */
+    /* çµ‚ç‚¹æ™‚åˆ» : ãã®SlideElementä»¥é™ã«ç¾ã‚Œã‚‹çµ‚ç‚¹orä¸­ç¶™ç‚¹ã®çµ‚ç«¯æ™‚åˆ» */
     std::vector<std::vector<double>> exData(note->ExtraData.size() + 1);
     {
         unsigned int i = 0;
         std::vector<double> tmp(2);
         auto lastStartTime = note->StartTime;
 
-        /* æ“ª—v‘f(note)‚ÍSusNoteType::Start‚É‚È‚é‚Í‚¸(–{“–‚©?) */
+        /* å…ˆé ­è¦ç´ (note)ã¯SusNoteType::Startã«ãªã‚‹ã¯ãš(æœ¬å½“ã‹?) */
         tmp[0] = note->StartTime;
         tmp[1] = 0;
         exData[i] = tmp;
         ++i;
 
-        /* ’¼‘O‚ÌSlideElement‚ÌŠJn‚ğ‹¤—L‚·‚é */
-        /* ’†Œp“_‚Ìê‡‚ÍŠJn‚ğ‹¤—L‚µ‚½hŒãh‚ÉA‹¤—L‚·‚éŠJn‚ğXV‚·‚é */
-        /* ’†Œp“_AI“_‚Ìê‡‚ÍI—¹‚ªŒˆ’è‚·‚é‚Ì‚Å•Û‘¶‚µ‚Ä‚¨‚­(‚»‚êˆÈŠO‚È‚çI’[‚Í‚Æ‚è‚ ‚¦‚¸0‚É‚µ‚Ä‚¨‚­) */
+        /* ç›´å‰ã®SlideElementã®é–‹å§‹æ™‚åˆ»ã‚’å…±æœ‰ã™ã‚‹ */
+        /* ä¸­ç¶™ç‚¹ã®å ´åˆã¯é–‹å§‹æ™‚åˆ»ã‚’å…±æœ‰ã—ãŸâ€å¾Œâ€ã«ã€å…±æœ‰ã™ã‚‹é–‹å§‹æ™‚åˆ»ã‚’æ›´æ–°ã™ã‚‹ */
+        /* ä¸­ç¶™ç‚¹ã€çµ‚ç‚¹ã®å ´åˆã¯çµ‚äº†æ™‚åˆ»ãŒæ±ºå®šã™ã‚‹ã®ã§ä¿å­˜ã—ã¦ãŠã(ãã‚Œä»¥å¤–ãªã‚‰çµ‚ç«¯æ™‚åˆ»ã¯ã¨ã‚Šã‚ãˆãš0ã«ã—ã¦ãŠã) */
         for (auto &slideElement : note->ExtraData) {
             tmp[0] = lastStartTime;
             tmp[1] = 0;
@@ -577,7 +611,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                 tmp[1] = slideElement->StartTime;
             }
             if (slideElement->Type.test(size_t(SusNoteType::End))) {
-                /* ‚±‚êSlideI’[‚ÌŒã‚Éƒf[ƒ^—ˆ‚È‚¢‘O’ñ‚É‚È‚Á‚Ä‚é‚¯‚Ç(‘åä•v‚©?) */
+                /* ã“ã‚ŒSlideçµ‚ç«¯ã®å¾Œã«ãƒ‡ãƒ¼ã‚¿æ¥ãªã„å‰æã«ãªã£ã¦ã‚‹ã‘ã©(å¤§ä¸ˆå¤«ã‹?) */
                 tmp[1] = slideElement->StartTime;
             }
 
@@ -586,22 +620,22 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
         }
 
         for (i = exData.size() - 1; i > 0; --i) {
-            /* ©•ª©g‚Ì’¼‘O‚Ì‰½‚©‚ªŠJn‚ğ‹¤—L‚µ‚Ä‚¢‚é */
+            /* è‡ªåˆ†è‡ªèº«ã®ç›´å‰ã®ä½•ã‹ãŒé–‹å§‹æ™‚åˆ»ã‚’å…±æœ‰ã—ã¦ã„ã‚‹ */
             if (exData[i - 1][0] == exData[i][0]) {
-                /* I—¹‚à‹¤—L‚µ‚½‚¢ */
+                /* çµ‚äº†æ™‚åˆ»ã‚‚å…±æœ‰ã—ãŸã„ */
                 exData[i - 1][1] = exData[i][1];
             } else {
-                /* I—¹‚ÍŠù‚ÉexData[i - 1][1]‚É“ü‚Á‚Ä‚¢‚é‚Í‚¸(–{“–‚©?) */
+                /* çµ‚äº†æ™‚åˆ»ã¯æ—¢ã«exData[i - 1][1]ã«å…¥ã£ã¦ã„ã‚‹ã¯ãš(æœ¬å½“ã‹?) */
             }
         }
     }
 
-    // x’Œ
+    // æ”¯æŸ±
     auto drawcount = 0;
     uint16_t base = 0;
     unsigned int i = 0;
     for (auto &slideElement : note->ExtraData) {
-        ++i; /* exData[0] ‚Ínote‚»‚Ì‚à‚Ì‚Ìî•ñ‚¾‚©‚ç‚±‚ÌƒCƒ“ƒNƒŠƒƒ“ƒg‚Í•K{ */
+        ++i; /* exData[0] ã¯noteãã®ã‚‚ã®ã®æƒ…å ±ã ã‹ã‚‰ã“ã®ã‚¤ãƒ³ã‚¯ãƒªãƒ¡ãƒ³ãƒˆã¯å¿…é ˆ */
         if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
         auto &segmentPositions = curveData[slideElement];
@@ -628,13 +662,13 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 
                 if (begin && activated) {
                     if (csRelY >= 1 && lsRelY >= 1) {
-                        // ƒZƒOƒƒ“ƒg‚Ì‘S‘Ì‚ª”»’èƒ‰ƒCƒ“‚ğ’´‚¦‚Ä‚¢‚é‚Æ‚«
-                        // •\¦‚Í‚µ‚½‚­‚È‚¢‚¯‚Ç“à•””’l‚Í•’Ê‚Éˆ—‚µ‚½‚Æˆê’v‚³‚¹‚½‚¢
-                        //    => •`‰ææÀ•W‚ğˆê’v‚³‚¹‚Ä‚¨’ƒ‚ğ‘÷‚·
+                        // ã‚»ã‚°ãƒ¡ãƒ³ãƒˆã®å…¨ä½“ãŒåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚’è¶…ãˆã¦ã„ã‚‹ã¨ã
+                        // è¡¨ç¤ºã¯ã—ãŸããªã„ã‘ã©å†…éƒ¨æ•°å€¤ã¯æ™®é€šã«å‡¦ç†ã—ãŸæ™‚ã¨ä¸€è‡´ã•ã›ãŸã„
+                        //    => æç”»å…ˆåº§æ¨™ã‚’ä¸€è‡´ã•ã›ã¦ãŠèŒ¶ã‚’æ¿ã™
                         lsRelY = csRelY;
                     } else if (csRelY >= 1) {
-                        // ƒZƒOƒƒ“ƒg‚Ìn“_‚ª”»’èƒ‰ƒCƒ“‚æ‚èè‘OAI“_‚ª”»’èƒ‰ƒCƒ“‚ğ’´‚¦‚Ä‚¢‚é‚Æ‚«
-                        // n“_‚Í‚»‚Ì‚Ü‚ÜAI“_‚Í”»’èƒ‰ƒCƒ“‚Éˆê’v‚³‚¹AŸ‚Ìn“_‚Í”»’èƒ‰ƒCƒ“‚©‚ç
+                        // ã‚»ã‚°ãƒ¡ãƒ³ãƒˆã®å§‹ç‚¹ãŒåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚ˆã‚Šæ‰‹å‰ã€çµ‚ç‚¹ãŒåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚’è¶…ãˆã¦ã„ã‚‹ã¨ã
+                        // å§‹ç‚¹ã¯ãã®ã¾ã¾ã€çµ‚ç‚¹ã¯åˆ¤å®šãƒ©ã‚¤ãƒ³ã«ä¸€è‡´ã•ã›ã€æ¬¡ã®å§‹ç‚¹ã¯åˆ¤å®šãƒ©ã‚¤ãƒ³ã‹ã‚‰
                         csRelY = 1;
 
                         const auto sep = (1.0 - csRelY) * seenDuration;
@@ -644,8 +678,8 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 
                         currentTimeDiff = ctib2 - currentTimeInBlock2;
                     } else if (lsRelY >= 1) {
-                        // ƒZƒOƒƒ“ƒg‚ÌI“_‚Í”»’èƒ‰ƒCƒ“‚æ‚èè‘OAn“_‚ª”»’èƒ‰ƒCƒ“‚ğ’´‚¦‚Ä‚¢‚é‚Æ‚«(ƒnƒCƒXƒsw’è‚ğs‚Á‚½ê‡‚É‹N‚±‚è‚¤‚é‚Í‚¸)
-                        // ‚Ç‚¤‚µ‚½‚¢‚ñ‚¾‚ë‚¤
+                        // ã‚»ã‚°ãƒ¡ãƒ³ãƒˆã®çµ‚ç‚¹ã¯åˆ¤å®šãƒ©ã‚¤ãƒ³ã‚ˆã‚Šæ‰‹å‰ã€å§‹ç‚¹ãŒåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚’è¶…ãˆã¦ã„ã‚‹ã¨ã(ãƒã‚¤ã‚¹ãƒ”æŒ‡å®šã‚’è¡Œã£ãŸå ´åˆã«èµ·ã“ã‚Šã†ã‚‹ã¯ãš)
+                        // ã©ã†ã—ãŸã„ã‚“ã ã‚ã†
                         const auto ratio = (1.0 - csRelY) / (lsRelY - csRelY);
                         lastTimeInBlock2 = currentTimeInBlock2 + (lastTimeInBlock2 - currentTimeInBlock2) * ratio;
                         lsRelY = 1;
@@ -655,7 +689,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 
                 slideVertices.push_back(
                     {
-                        VGet(get<1>(lastSegmentPosition) * laneBufferX - lastSegmentLength / 2 * widthPerLane, laneBufferY * lsRelY, 0),
+                        VGet(SU_TO_FLOAT(get<1>(lastSegmentPosition) * laneBufferX - lastSegmentLength / 2 * widthPerLane), SU_TO_FLOAT(laneBufferY * lsRelY), 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
                         0.0f, float((offsetTimeInBlock + lastTimeInBlock2 + lastTimeDiff) * strutBottom)
@@ -663,7 +697,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                 );
                 slideVertices.push_back(
                     {
-                        VGet(get<1>(lastSegmentPosition) * laneBufferX + lastSegmentLength / 2 * widthPerLane, laneBufferY * lsRelY, 0),
+                        VGet(SU_TO_FLOAT(get<1>(lastSegmentPosition) * laneBufferX + lastSegmentLength / 2 * widthPerLane), SU_TO_FLOAT(laneBufferY * lsRelY), 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
                         1.0f, float((offsetTimeInBlock + lastTimeInBlock2 + lastTimeDiff) * strutBottom)
@@ -671,7 +705,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                 );
                 slideVertices.push_back(
                     {
-                        VGet(get<1>(segmentPosition) * laneBufferX - currentSegmentLength / 2 * widthPerLane, laneBufferY * csRelY, 0),
+                        VGet(SU_TO_FLOAT(get<1>(segmentPosition) * laneBufferX - currentSegmentLength / 2 * widthPerLane), SU_TO_FLOAT(laneBufferY * csRelY), 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
                         0.0f, float((offsetTimeInBlock + currentTimeInBlock2 + currentTimeDiff) * strutBottom)
@@ -679,7 +713,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                 );
                 slideVertices.push_back(
                     {
-                        VGet(get<1>(segmentPosition) * laneBufferX + currentSegmentLength / 2 * widthPerLane, laneBufferY * csRelY, 0),
+                        VGet(SU_TO_FLOAT(get<1>(segmentPosition) * laneBufferX + currentSegmentLength / 2 * widthPerLane), SU_TO_FLOAT(laneBufferY * csRelY), 0),
                         1.0f,
                         GetColorU8(255, 255, 255, 255),
                         1.0f, float((offsetTimeInBlock + currentTimeInBlock2 + currentTimeDiff) * strutBottom)
@@ -705,24 +739,24 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
         lastStep = slideElement;
     }
 
-    if (!begin) { // ”»’è‘O
+    if (!begin) { // åˆ¤å®šå‰
         SetDrawBlendMode(DX_BLENDMODE_ADD, 239);
-    } else if (activated) { // ”»’è’† : Slide
+    } else if (activated) { // åˆ¤å®šä¸­ : Slideæ™‚
         SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
-    } else { // ”»’è’† : ”ñSlide
+    } else { // åˆ¤å®šä¸­ : éSlideæ™‚
         SetDrawBlendMode(DX_BLENDMODE_ADD, 175);
     }
 
     SetUseBackCulling(FALSE);
     DrawPolygonIndexed2D(slideVertices.data(), slideVertices.size(), slideIndices.data(), drawcount, imageSlideStrut->GetHandle(), TRUE);
 
-    // ’†Sü
+    // ä¸­å¿ƒç·š
     if (showSlideLine) {
-        if (!begin) { // ”»’è‘O
+        if (!begin) { // åˆ¤å®šå‰
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, 239);
-        } else if (activated) { // ”»’è’† : Hold
+        } else if (activated) { // åˆ¤å®šä¸­ : Holdæ™‚
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-        } else { // ”»’è’† : ”ñHold
+        } else { // åˆ¤å®šä¸­ : éHoldæ™‚
             SetDrawBlendMode(DX_BLENDMODE_ALPHA, 175);
         }
 
@@ -745,35 +779,35 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                     && (currentSegmentRelativeY < cullingLimit || lastSegmentRelativeY < cullingLimit)) {
                     if (begin && activated) {
                         if (currentSegmentRelativeY >= 1 && lastSegmentRelativeY >= 1) {
-                            // ƒZƒOƒƒ“ƒg‚Ì‘S‘Ì‚ª”»’èƒ‰ƒCƒ“‚ğ’´‚¦‚Ä‚¢‚é‚Æ‚«
-                            // •\¦‚Í‚µ‚½‚­‚È‚¢‚¯‚Ç“à•””’l‚Í•’Ê‚Éˆ—‚µ‚½‚Æˆê’v‚³‚¹‚½‚¢
-                            //    => •`‰ææÀ•W‚ğˆê’v‚³‚¹‚Ä‚¨’ƒ‚ğ‘÷‚·
+                            // ã‚»ã‚°ãƒ¡ãƒ³ãƒˆã®å…¨ä½“ãŒåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚’è¶…ãˆã¦ã„ã‚‹ã¨ã
+                            // è¡¨ç¤ºã¯ã—ãŸããªã„ã‘ã©å†…éƒ¨æ•°å€¤ã¯æ™®é€šã«å‡¦ç†ã—ãŸæ™‚ã¨ä¸€è‡´ã•ã›ãŸã„
+                            //    => æç”»å…ˆåº§æ¨™ã‚’ä¸€è‡´ã•ã›ã¦ãŠèŒ¶ã‚’æ¿ã™
                             lastSegmentRelativeX = currentSegmentRelativeX;
                             lastSegmentRelativeY = currentSegmentRelativeY;
                         } else if (currentSegmentRelativeY >= 1) {
-                            // ƒZƒOƒƒ“ƒg‚Ìn“_‚ª”»’èƒ‰ƒCƒ“‚æ‚èè‘OAI“_‚ª”»’èƒ‰ƒCƒ“‚ğ’´‚¦‚Ä‚¢‚é‚Æ‚«
-                            // n“_‚Í‚»‚Ì‚Ü‚ÜAI“_‚Í”»’èƒ‰ƒCƒ“‚Éˆê’v‚³‚¹AŸ‚Ìn“_‚Í”»’èƒ‰ƒCƒ“‚©‚ç
+                            // ã‚»ã‚°ãƒ¡ãƒ³ãƒˆã®å§‹ç‚¹ãŒåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚ˆã‚Šæ‰‹å‰ã€çµ‚ç‚¹ãŒåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚’è¶…ãˆã¦ã„ã‚‹ã¨ã
+                            // å§‹ç‚¹ã¯ãã®ã¾ã¾ã€çµ‚ç‚¹ã¯åˆ¤å®šãƒ©ã‚¤ãƒ³ã«ä¸€è‡´ã•ã›ã€æ¬¡ã®å§‹ç‚¹ã¯åˆ¤å®šãƒ©ã‚¤ãƒ³ã‹ã‚‰
                             currentSegmentRelativeX = lastSegmentRelativeX - (lastSegmentRelativeX - currentSegmentRelativeX) / (lastSegmentRelativeY - currentSegmentRelativeY) * (lastSegmentRelativeY - 1.0);
                             currentSegmentRelativeY = 1;
 
                         } else if (lastSegmentRelativeY >= 1) {
-                            // ƒZƒOƒƒ“ƒg‚ÌI“_‚Í”»’èƒ‰ƒCƒ“‚æ‚èè‘OAn“_‚ª”»’èƒ‰ƒCƒ“‚ğ’´‚¦‚Ä‚¢‚é‚Æ‚«(ƒnƒCƒXƒsw’è‚ğs‚Á‚½ê‡‚É‹N‚±‚è‚¤‚é‚Í‚¸)
-                            // ‚Ç‚¤‚µ‚½‚¢‚ñ‚¾‚ë‚¤
+                            // ã‚»ã‚°ãƒ¡ãƒ³ãƒˆã®çµ‚ç‚¹ã¯åˆ¤å®šãƒ©ã‚¤ãƒ³ã‚ˆã‚Šæ‰‹å‰ã€å§‹ç‚¹ãŒåˆ¤å®šãƒ©ã‚¤ãƒ³ã‚’è¶…ãˆã¦ã„ã‚‹ã¨ã(ãƒã‚¤ã‚¹ãƒ”æŒ‡å®šã‚’è¡Œã£ãŸå ´åˆã«èµ·ã“ã‚Šã†ã‚‹ã¯ãš)
+                            // ã©ã†ã—ãŸã„ã‚“ã ã‚ã†
                             lastSegmentRelativeX = currentSegmentRelativeX - (currentSegmentRelativeX - lastSegmentRelativeX) / (currentSegmentRelativeY - lastSegmentRelativeY) * (currentSegmentRelativeY - 1.0);
                             lastSegmentRelativeY = 1;
                         }
                     }
 
                     DrawTriangleAA(
-                        lastSegmentRelativeX * laneBufferX - slideLineThickness, laneBufferY * lastSegmentRelativeY,
-                        lastSegmentRelativeX * laneBufferX + slideLineThickness, laneBufferY * lastSegmentRelativeY,
-                        currentSegmentRelativeX * laneBufferX - slideLineThickness, laneBufferY * currentSegmentRelativeY,
+                        SU_TO_FLOAT(lastSegmentRelativeX * laneBufferX - slideLineThickness), SU_TO_FLOAT(laneBufferY * lastSegmentRelativeY),
+                        SU_TO_FLOAT(lastSegmentRelativeX * laneBufferX + slideLineThickness), SU_TO_FLOAT(laneBufferY * lastSegmentRelativeY),
+                        SU_TO_FLOAT(currentSegmentRelativeX * laneBufferX - slideLineThickness), SU_TO_FLOAT(laneBufferY * currentSegmentRelativeY),
                         slideLineColor, 16
                     );
                     DrawTriangleAA(
-                        lastSegmentRelativeX * laneBufferX + slideLineThickness, laneBufferY * lastSegmentRelativeY,
-                        currentSegmentRelativeX * laneBufferX - slideLineThickness, laneBufferY * currentSegmentRelativeY,
-                        currentSegmentRelativeX * laneBufferX + slideLineThickness, laneBufferY * currentSegmentRelativeY,
+                        SU_TO_FLOAT(lastSegmentRelativeX * laneBufferX + slideLineThickness), SU_TO_FLOAT(laneBufferY * lastSegmentRelativeY),
+                        SU_TO_FLOAT(currentSegmentRelativeX * laneBufferX - slideLineThickness), SU_TO_FLOAT(laneBufferY * currentSegmentRelativeY),
+                        SU_TO_FLOAT(currentSegmentRelativeX * laneBufferX + slideLineThickness), SU_TO_FLOAT(laneBufferY * currentSegmentRelativeY),
                         slideLineColor, 16
                     );
                 }
@@ -787,14 +821,14 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 
     // Tap
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ƒm[ƒc‚ªAttackˆÈã‚Ì”»’è*/)) {
+    if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ãƒãƒ¼ãƒ„ãŒAttackä»¥ä¸Šã®åˆ¤å®š*/)) {
         DrawTap(note->StartLane, note->Length, 1.0 - note->ModifiedPosition / seenDuration, imageSlide->GetHandle());
     }
     for (auto &slideElement : note->ExtraData) {
         if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Invisible))) continue;
-        if (slideElement->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ƒm[ƒc‚ªAttackˆÈã‚Ì”»’è*/) continue;
+        if (slideElement->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ãƒãƒ¼ãƒ„ãŒAttackä»¥ä¸Šã®åˆ¤å®š*/) continue;
 
         const auto currentStepRelativeY = 1.0 - slideElement->ModifiedPosition / seenDuration;
         if (currentStepRelativeY >= 0 && currentStepRelativeY < cullingLimit) {
@@ -824,14 +858,14 @@ void ScenePlayer::DrawAirActionStart(const AirDrawQuery &query) const
             0.9375f, 1.0f, 1.0f, 0.0f
         },
         {
-            VGet(center - 10, SU_LANE_Y_AIR * lastStep->ExtraAttribute->HeightScale, aasz),
+            VGet(center - 10, SU_TO_FLOAT(SU_LANE_Y_AIR * lastStep->ExtraAttribute->HeightScale), aasz),
             VGet(0, 0, -1),
             GetColorU8(255, 255, 255, 255),
             GetColorU8(0, 0, 0, 0),
             0.9375f, 0.0f, 0.0f, 0.0f
         },
         {
-            VGet(center + 10, SU_LANE_Y_AIR * lastStep->ExtraAttribute->HeightScale, aasz),
+            VGet(center + 10, SU_TO_FLOAT(SU_LANE_Y_AIR * lastStep->ExtraAttribute->HeightScale), aasz),
             VGet(0, 0, -1),
             GetColorU8(255, 255, 255, 255),
             GetColorU8(0, 0, 0, 0),
@@ -862,7 +896,7 @@ void ScenePlayer::DrawAirActionStepBox(const AirDrawQuery &query) const
         const auto right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atRight) - 5;
         const auto z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentStepRelativeY);
         const auto color = GetColorU8(255, 255, 255, 255);
-        const auto yBase = SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale;
+        const auto yBase = SU_TO_FLOAT(SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale);
         VERTEX3D vertices[] = {
             { VGet(left, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 1.0f, 0.0f, 0.0f },
         { VGet(left, yBase, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 0.0f, 0.0f, 0.0f },
@@ -890,35 +924,35 @@ void ScenePlayer::DrawAirActionStepBox(const AirDrawQuery &query) const
         { VGet(right, yBase, z - 20), VGet(0, 0, -1), color, GetColorU8(0, 0, 0, 0), 0.5f, 0.5f, 0.0f, 0.0f },
         };
         uint16_t indices[] = {
-            // –{“–‚Íã2‚Â‚¢‚ç‚È‚¢‚¯‚ÇindexŒvZ‚ª–Ê“|‚È‚Ì‚Å•ú’u
-            //‰º‚Ì‚â‚Â
+            // æœ¬å½“ã¯ä¸Š2ã¤ã„ã‚‰ãªã„ã‘ã©indexè¨ˆç®—ãŒé¢å€’ãªã®ã§æ”¾ç½®
+            //ä¸‹ã®ã‚„ã¤
             0, 1, 11,
             0, 11, 10,
-            //–{‘Ì
-            //ã
+            //æœ¬ä½“
+            //ä¸Š
             3, 7, 17,
             3, 17, 13,
-            //¶
+            //å·¦
             6, 7, 3,
             6, 3, 2,
-            //‰E
+            //å³
             12, 13, 17,
             12, 17, 16,
-            //è‘O
+            //æ‰‹å‰
             20, 3, 13,
             20, 13, 21,
 
-            //‚Ö‚Î‚è‚Â‚¢‚Ä‚é‚Ì
-            //è‘O
+            //ã¸ã°ã‚Šã¤ã„ã¦ã‚‹ã®
+            //æ‰‹å‰
             4, 5, 15,
             4, 15, 14,
-            //Œã‚ë
+            //å¾Œã‚
             8, 9, 19,
             8, 19, 18,
-            //¶
+            //å·¦
             8, 9, 5,
             8, 5, 4,
-            //‰E
+            //å³
             14, 15, 19,
             14, 19, 18,
         };
@@ -940,7 +974,7 @@ void ScenePlayer::DrawAirActionStep(const AirDrawQuery &query) const
         const auto left = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atLeft) + 5;
         const auto right = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, atRight) - 5;
         const auto z = glm::mix(SU_LANE_Z_MAX, SU_LANE_Z_MIN, currentStepRelativeY);
-        const auto yBase = SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale;
+        const auto yBase = SU_TO_FLOAT(SU_LANE_Y_AIR * slideElement->ExtraAttribute->HeightScale);
         VERTEX3D vertices[] = {
             VERTEX3D { VGet(left, SU_LANE_Y_GROUND, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 1.0f, 0.0f, 0.0f },
             VERTEX3D { VGet(left, yBase, z), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.625f, 0.0f, 0.0f, 0.0f },
@@ -988,8 +1022,8 @@ void ScenePlayer::DrawAirActionCover(const AirDrawQuery &query)
             const auto pbr = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, backRight);
             const auto pfl = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, frontLeft);
             const auto pfr = glm::mix(SU_LANE_X_MIN, SU_LANE_X_MAX, frontRight);
-            const auto pbz = glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, currentTimeInBlock);
-            const auto pfz = glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, lastTimeInBlock);
+            const auto pbz = SU_TO_FLOAT(glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, currentTimeInBlock));
+            const auto pfz = SU_TO_FLOAT(glm::mix(lastStep->ExtraAttribute->HeightScale, slideElement->ExtraAttribute->HeightScale, lastTimeInBlock));
             VERTEX3D vertices[] = {
                 VERTEX3D { VGet(pfl, SU_LANE_Y_AIR * pfz, front), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 1.0f, 1.0f, 0.0f },
                 VERTEX3D { VGet(pbl, SU_LANE_Y_AIR * pbz, back), VGet(0, 0, -1), GetColorU8(255, 255, 255, 255), GetColorU8(0, 0, 0, 0), 0.875f, 0.0f, 0.0f, 0.0f },
@@ -1021,9 +1055,9 @@ void ScenePlayer::DrawTap(const float lane, const int length, const double relpo
     for (auto i = 0; i < length * 2; i++) {
         const auto type = i ? (i == length * 2 - 1 ? 2 : 1) : 0;
         DrawRectRotaGraph3F(
-            (lane * 2 + i) * widthPerLane / 2, laneBufferY * relpos,
-            noteImageBlockX * type, (0),
-            noteImageBlockX, noteImageBlockY,
+            (lane * 2 + i) * widthPerLane / 2, SU_TO_FLOAT(laneBufferY * relpos),
+            SU_TO_INT32(noteImageBlockX * type), (0),
+            SU_TO_INT32(noteImageBlockX), SU_TO_INT32(noteImageBlockY),
             0, noteImageBlockY / 2,
             actualNoteScaleX, actualNoteScaleY, 0,
             handle, TRUE, FALSE);
@@ -1032,7 +1066,7 @@ void ScenePlayer::DrawTap(const float lane, const int length, const double relpo
 
 void ScenePlayer::DrawMeasureLine(const shared_ptr<SusDrawableNoteData>& note) const
 {
-    const auto relpos = 1.0 - note->ModifiedPosition / seenDuration;
+    const auto relpos = SU_TO_FLOAT(1.0 - note->ModifiedPosition / seenDuration);
     DrawLineAA(0, relpos * laneBufferY, laneBufferX, relpos * laneBufferY, GetColor(255, 255, 255), 6);
 }
 
@@ -1050,8 +1084,8 @@ void ScenePlayer::DrawLaneDivisionLines() const
 
 void ScenePlayer::DrawLaneBackground() const
 {
-    ClearDrawScreen();
     // bg
+#ifdef SU_ENABLE_BACKGROUND_ROLLING
     const int exty = laneBufferX * SU_LANE_ASPECT_EXT;
     const auto bgiw = imageLaneGround->GetWidth();
     const auto scale = laneBufferX / bgiw;
@@ -1063,13 +1097,17 @@ void ScenePlayer::DrawLaneBackground() const
         DrawRotaGraph2F(0, cy, 0, 0, scale, 0, imageLaneGround->GetHandle(), TRUE, FALSE);
         cy += imageLaneGround->GetHeight() * scale;
     }
+#else
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+    DrawGraph(0, 0, imageLaneGround->GetHandle(), TRUE);
+#endif
 
     SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
     DrawRectRotaGraph3F(
-        0, laneBufferY,
+        0, SU_TO_FLOAT(laneBufferY),
         0, 0,
         imageLaneJudgeLine->GetWidth(), imageLaneJudgeLine->GetHeight(),
-        0, double(imageLaneJudgeLine->GetHeight()) / 2.0,
+        0, imageLaneJudgeLine->GetHeight() / 2.0f,
         1, 1, 0,
         imageLaneJudgeLine->GetHandle(), TRUE, FALSE);
     processor->Draw();
@@ -1079,5 +1117,5 @@ void ScenePlayer::DrawLaneBackground() const
 void ScenePlayer::Prepare3DDrawCall() const
 {
     SetUseLighting(FALSE);
-    SetCameraPositionAndTarget_UpVecY(VGet(0, cameraY, cameraZ), VGet(0, SU_LANE_Y_GROUND, cameraTargetZ));
+    SetCameraPositionAndTarget_UpVecY(VGet(0, SU_TO_FLOAT(cameraY), SU_TO_FLOAT(cameraZ)), VGet(0, SU_LANE_Y_GROUND, SU_TO_FLOAT(cameraTargetZ)));
 }
