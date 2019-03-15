@@ -14,19 +14,19 @@ public:
     Coroutine(const std::string &name, const asIScriptFunction* cofunc, asIScriptEngine* engine);
     ~Coroutine();
 
-    asIScriptContext* GetContext() { return Context; }
-    void SetSceneInstance(Scene* scene) { Context->SetUserData(scene, SU_UDTYPE_SCENE); }
-    int Execute() { return Context->Execute(); }
+    asIScriptContext* GetContext() const { return context; }
+    void SetSceneInstance(Scene* scene) { context->SetUserData(scene, SU_UDTYPE_SCENE); }
+    int Execute() { return context->Execute(); }
 
 public:
     std::string Name;
     CoroutineWait Wait;
 
 private:
-    asIScriptContext *Context;
-    void *Object;
-    asITypeInfo *Type;
-    asIScriptFunction *Function;
+    asIScriptContext *context;
+    void *object;
+    asITypeInfo *type;
+    asIScriptFunction *function;
 };
 
 class ScriptScene : public Scene {
@@ -50,8 +50,8 @@ public:
     ScriptScene(asIScriptObject *scene);
     virtual ~ScriptScene();
 
-    asIScriptObject* GetSceneObject() { return sceneObject; }
-    asITypeInfo* GetSceneType() { return sceneType; }
+    asIScriptObject* GetSceneObject() const { return sceneObject; }
+    asITypeInfo* GetSceneType() const { return sceneType; }
     asIScriptFunction* GetMainMethod() override;
 
     void Initialize() override;

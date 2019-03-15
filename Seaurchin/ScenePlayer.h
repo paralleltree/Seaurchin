@@ -85,7 +85,7 @@ class ScenePlayer : public SSprite {
     friend class PlayableProcessor;
 
 protected:
-    int hGroundBuffer;
+    int hGroundBuffer{};
     ExecutionManager *manager;
     SoundManager * const soundManager; // soundManager のアドレスが不変、 soundManager の実体が持つ値は変わりうる
     boost::lockfree::queue<JudgeSoundType> judgeSoundQueue;
@@ -95,7 +95,7 @@ protected:
     std::multiset<SSprite*, SSprite::Comparator> sprites;
     std::vector<SSprite*> spritesPending;
 
-    SoundStream *bgmStream;
+    SoundStream *bgmStream{};
     ScoreProcessor * const processor; // processor のアドレスが不変、 processor の実体が持つ値は変わりうる
 
     // 状態管理変数
@@ -125,24 +125,24 @@ protected:
     std::map<std::string, SResource*> resources;
 
     // 実リソース LoadResourcesでresourcesを用いて初期化する 実体はresourcesで管理するのでAddRefもReleaseもしない
-    SSound *soundTap, *soundExTap, *soundFlick, *soundAir, *soundAirDown, *soundAirAction, *soundAirLoop;
-    SSound *soundHoldLoop, *soundSlideLoop, *soundHoldStep, *soundSlideStep;
-    SSound *soundMetronome;
-    SImage *imageLaneGround, *imageLaneJudgeLine;
-    SImage *imageTap, *imageExTap, *imageFlick, *imageHellTap;
-    SImage *imageAir, *imageAirUp, *imageAirDown;
-    SImage *imageHold, *imageHoldStep, *imageHoldStrut;
-    SImage *imageSlide, *imageSlideStep, *imageSlideStrut;
-    SImage *imageAirAction;
-    SAnimatedImage *animeTap, *animeExTap, *animeSlideTap, *animeSlideLoop, *animeAirAction;
-    STextSprite *textCombo; // コンボ数フォント こいつだけLoadResourcesで自力で生成、Finalizeで自力で破棄する
-    double textScale;       // コンボ数フォント拡大率 textComboに設定したフォントサイズで計算し保持する
+    SSound *soundTap{}, *soundExTap{}, *soundFlick{}, *soundAir{}, *soundAirDown{}, *soundAirAction{}, *soundAirLoop{};
+    SSound *soundHoldLoop{}, *soundSlideLoop{}, *soundHoldStep{}, *soundSlideStep{};
+    SSound *soundMetronome{};
+    SImage *imageLaneGround{}, *imageLaneJudgeLine{};
+    SImage *imageTap{}, *imageExTap{}, *imageFlick{}, *imageHellTap{};
+    SImage *imageAir{}, *imageAirUp{}, *imageAirDown{};
+    SImage *imageHold{}, *imageHoldStep{}, *imageHoldStrut{};
+    SImage *imageSlide{}, *imageSlideStep{}, *imageSlideStrut{};
+    SImage *imageAirAction{};
+    SAnimatedImage *animeTap{}, *animeExTap{}, *animeSlideTap{}, *animeSlideLoop{}, *animeAirAction{};
+    STextSprite *textCombo{}; // コンボ数フォント こいつだけLoadResourcesで自力で生成、Finalizeで自力で破棄する
+    double textScale{};       // コンボ数フォント拡大率 textComboに設定したフォントサイズで計算し保持する
 
     // LoadResourcesで初期化 (設定ファイルから取得)
     unsigned int slideLineColor = GetColor(0, 200, 255);        // Slide中心線色
     unsigned int airActionJudgeColor = GetColor(128, 255, 160); // Air入力線色
-    bool showSlideLine, showAirActionJudge;                     // Slide中心線/Air入力線が有効でtrue
-    double slideLineThickness;                                  // Slide中心線太さ
+    bool showSlideLine{}, showAirActionJudge{};                     // Slide中心線/Air入力線が有効でtrue
+    double slideLineThickness{};                                  // Slide中心線太さ
 
     // 背景映像関係
     int movieBackground = 0;            // ハンドル
@@ -151,12 +151,12 @@ protected:
     std::wstring movieFileName = L"";   // ファイル名
 
     // Slide描画関係
-    int segmentsPerSecond;                  // Slide分解能
+    int segmentsPerSecond{};                  // Slide分解能
     std::vector<VERTEX2D> slideVertices;    // Slide描画用頂点座標配列 関数内ローカル変数で頻繁に生成,破棄されるのを嫌って宣言
     std::vector<uint16_t> slideIndices;     // Slide描画用頂点番号指定配列 同上
 
     const std::shared_ptr<Result> currentResult;
-    DrawableResult previousStatus, status;
+    DrawableResult previousStatus{}, status{};
 
     std::shared_ptr<CharacterInstance> currentCharacterInstance;
 

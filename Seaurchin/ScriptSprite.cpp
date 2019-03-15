@@ -44,10 +44,10 @@ namespace {
 
             if (*it == comma || *it == colon) return false;
 
-            double value = 0.0;
-            bool sign = false;
+            auto value = 0.0;
+            auto sign = false;
             {
-                double base = 1.0;
+                auto base = 1.0;
                 unsigned char ch;
 
                 it = *it == '-' ? (sign = true, ++it) : it;
@@ -64,11 +64,10 @@ namespace {
 
             if (it != end && *it == comma) {
                 ++it;
-                continue;
             } else {
                 break;
             }
-        } while (1);
+        } while (true);
 
         return true;
 #undef SKIP_SP
@@ -115,7 +114,6 @@ const SImage *SSprite::GetImage() const
 SSprite::SSprite()
     : reference(0)
     , mover(new ScriptSpriteMover2(this)) // NOTE: this渡すのはちょっと危ない気もする
-    , Transform()
     , ZIndex(0)
     , Color(Colors::white)
     , IsDead(false)
@@ -176,7 +174,7 @@ void SSprite::Apply(const CScriptDictionary *dict)
     dict->Release();
 }
 
-bool SSprite::Apply(const string &key, double value)
+bool SSprite::Apply(const string &key, const double value)
 {
     switch (Crc32Rec(0xffffffff, key.c_str())) {
     case "x"_crc32:
@@ -230,48 +228,48 @@ void SSprite::Apply(vector<pair<const string, double>> &props)
     }
 }
 
-void SSprite::SetPosition(double x, double y)
+void SSprite::SetPosition(const double x, const double y)
 {
     Transform.X = SU_TO_FLOAT(x);
     Transform.Y = SU_TO_FLOAT(y);
 }
 
-void SSprite::SetOrigin(double x, double y)
+void SSprite::SetOrigin(const double x, const double y)
 {
     Transform.OriginX = SU_TO_FLOAT(x);
     Transform.OriginY = SU_TO_FLOAT(y);
 }
 
-void SSprite::SetAngle(double rad)
+void SSprite::SetAngle(const double rad)
 {
     Transform.Angle = SU_TO_FLOAT(rad);
 }
 
-void SSprite::SetScale(double scale)
+void SSprite::SetScale(const double scale)
 {
     Transform.ScaleX = SU_TO_FLOAT(scale);
     Transform.ScaleY = SU_TO_FLOAT(scale);
 }
 
-void SSprite::SetScale(double scaleX, double scaleY)
+void SSprite::SetScale(const double scaleX, const double scaleY)
 {
     Transform.ScaleX = SU_TO_FLOAT(scaleX);
     Transform.ScaleY = SU_TO_FLOAT(scaleY);
 }
 
-void SSprite::SetAlpha(double alpha)
+void SSprite::SetAlpha(const double alpha)
 {
     Color.A = SU_TO_UINT8(alpha * 256);
 }
 
-void SSprite::SetColor(uint8_t r, uint8_t g, uint8_t b)
+void SSprite::SetColor(const uint8_t r, const uint8_t g, const uint8_t b)
 {
     Color.R = r;
     Color.G = g;
     Color.B = b;
 }
 
-void SSprite::SetColor(double a, uint8_t r, uint8_t g, uint8_t b)
+void SSprite::SetColor(const double a, const uint8_t r, const uint8_t g, const uint8_t b)
 {
     Color.A = SU_TO_UINT8(a * 256);
     Color.R = r;
@@ -408,7 +406,7 @@ SShape::SShape()
 {
 }
 
-bool SShape::Apply(const std::string &key, double value)
+bool SShape::Apply(const std::string &key, const double value)
 {
     if (!Base::Apply(key, value)) {
         switch (Crc32Rec(0xffffffff, key.c_str())) {
@@ -1036,7 +1034,7 @@ SClippingSprite::SClippingSprite(const int w, const int h)
     , u2(1), v2(0)
 {}
 
-bool SClippingSprite::Apply(const std::string &key, double value)
+bool SClippingSprite::Apply(const std::string &key, const double value)
 {
     if (!Base::Apply(key, value)) {
         switch (Crc32Rec(0xffffffff, key.c_str())) {
@@ -1166,7 +1164,7 @@ SAnimeSprite::~SAnimeSprite()
     if (images) images->Release();
 }
 
-bool SAnimeSprite::Apply(const std::string &key, double value)
+bool SAnimeSprite::Apply(const std::string &key, const double value)
 {
     if (!Base::Apply(key, value)) {
         switch (Crc32Rec(0xffffffff, key.c_str())) {

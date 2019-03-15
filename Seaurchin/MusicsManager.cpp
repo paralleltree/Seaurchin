@@ -19,12 +19,12 @@ MusicsManager::MusicsManager(ExecutionManager *exm)
 }
 
 MusicsManager::~MusicsManager()
-{}
+= default;
 
 void MusicsManager::Initialize()
 {}
 
-void MusicsManager::Reload(bool async)
+void MusicsManager::Reload(const bool async)
 {
     if (IsReloading()) return;
 
@@ -115,14 +115,14 @@ MusicSelectionCursor *MusicsManager::CreateMusicSelectionCursor()
 
 // CategoryInfo ---------------------------
 
-CategoryInfo::CategoryInfo(const path cpath)
+CategoryInfo::CategoryInfo(const path& cpath)
 {
     categoryPath = cpath;
     name = ConvertUnicodeToUTF8(categoryPath.filename().wstring());
 }
 
 CategoryInfo::~CategoryInfo()
-{}
+= default;
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
 void CategoryInfo::Reload(bool recreateCache) const
@@ -167,7 +167,7 @@ MusicSelectionCursor::MusicSelectionCursor(MusicsManager *manager)
     , state(MusicSelectionState::Category)
 {}
 
-MusicSelectionState MusicSelectionCursor::ReloadMusic(bool async)
+MusicSelectionState MusicSelectionCursor::ReloadMusic(const bool async)
 {
     if (manager->IsReloading()) return MusicSelectionState::Reloading;
 

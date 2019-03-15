@@ -104,7 +104,7 @@ void Sif2Creator::PackImageSif2()
 
         std::ifstream fif;
         fif.open(path.wstring(), ios::binary | ios::in);
-        uint32_t fsize = SU_TO_UINT32(fif.seekg(0, ios::end).tellg());
+        auto fsize = SU_TO_UINT32(fif.seekg(0, ios::end).tellg());
 
         const auto file = new uint8_t[fsize];
         fif.seekg(ios::beg);
@@ -125,7 +125,7 @@ void Sif2Creator::CloseSif2()
     sif2Stream.close();
 }
 
-void Sif2Creator::NewBitmap(uint16_t width, uint16_t height)
+void Sif2Creator::NewBitmap(const uint16_t width, const uint16_t height)
 {
     bitmapWidth = width;
     bitmapHeight = height;
@@ -153,14 +153,14 @@ void Sif2Creator::SaveBitmapCache(boost::filesystem::path cachepath) const
     delete[] rows;
 }
 
-bool Sif2Creator::RenderGlyph(uint32_t cp)
+bool Sif2Creator::RenderGlyph(const uint32_t cp)
 {
     Sif2Glyph ginfo;
     const auto gidx = FT_Get_Char_Index(face, cp);
     const int baseline = -face->size->metrics.descender >> 6;
 
     FT_Load_Glyph(face, gidx, FT_LOAD_DEFAULT);
-    auto gslot = face->glyph;
+    const auto gslot = face->glyph;
     FT_Render_Glyph(gslot, FT_RENDER_MODE_NORMAL);
     ginfo.GlyphWidth = gslot->bitmap.width;
     ginfo.GlyphHeight = gslot->bitmap.rows;

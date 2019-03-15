@@ -6,6 +6,7 @@
 using namespace std;
 using namespace boost::filesystem;
 
+// ReSharper disable once CppParameterNeverUsed
 bool SkinHolder::IncludeScript(std::wstring include, std::wstring from, CWScriptBuilder *builder)
 {
     return false;
@@ -16,8 +17,7 @@ SkinHolder::SkinHolder(const wstring &name, const shared_ptr<AngelScript> &scrip
     , soundInterface(sound)
     , skinName(name)
     , skinRoot(Setting::GetRootDirectory() / SU_DATA_DIR / SU_SKIN_DIR / skinName)
-{
-}
+{}
 
 SkinHolder::~SkinHolder()
 = default;
@@ -59,10 +59,12 @@ void SkinHolder::Initialize()
 
 void SkinHolder::Terminate()
 {
+    // ReSharper disable CppDeclaratorNeverUsed
     for (const auto &it : images) BOOST_ASSERT(it.second->GetRefCount() == 1);
     for (const auto &it : sounds) BOOST_ASSERT(it.second->GetRefCount() == 1);
     for (const auto &it : fonts) BOOST_ASSERT(it.second->GetRefCount() == 1);
     for (const auto &it : animatedImages) BOOST_ASSERT(it.second->GetRefCount() == 1);
+    // ReSharper restore CppDeclaratorNeverUsed
 
     for (const auto &it : images) it.second->Release();
     for (const auto &it : sounds) it.second->Release();
@@ -70,7 +72,7 @@ void SkinHolder::Terminate()
     for (const auto &it : animatedImages) it.second->Release();
 }
 
-asIScriptObject* SkinHolder::ExecuteSkinScript(const wstring &file, bool forceReload)
+asIScriptObject* SkinHolder::ExecuteSkinScript(const wstring &file, const bool forceReload)
 {
     auto log = spdlog::get("main");
     //お茶を濁せ
@@ -143,7 +145,7 @@ void SkinHolder::LoadSkinSound(const std::string & key, const std::string & file
     sounds[key] = SSound::CreateSoundFromFile(soundInterface.get(), ConvertUnicodeToUTF8((skinRoot / SU_SOUND_DIR / ConvertUTF8ToUnicode(filename)).wstring()), 1);
 }
 
-void SkinHolder::LoadSkinSoundFromMem(const string &key, void *buffer, const size_t size)
+void SkinHolder::LoadSkinSoundFromMem(const string &key, const void *buffer, const size_t size)
 {
     //if (sounds[key]) sounds[key]->Release();
     //images[key] = SSound::CreateLoadedSoundFromMemory(buffer, size, 1);
@@ -155,7 +157,7 @@ void SkinHolder::LoadSkinAnime(const std::string & key, const std::string & file
     animatedImages[key] = SAnimatedImage::CreateLoadedImageFromFile(ConvertUnicodeToUTF8((skinRoot / SU_IMAGE_DIR / ConvertUTF8ToUnicode(filename)).wstring()), x, y, w, h, c, time);
 }
 
-void SkinHolder::LoadSkinAnimeFromMem(const string &key, void *buffer, const size_t size, int x, int y, int w, int h, int c, double time)
+void SkinHolder::LoadSkinAnimeFromMem(const string &key, void *buffer, const size_t size, const int x, const int y, const int w, const int h, const int c, const double time)
 {
     if (animatedImages[key]) animatedImages[key]->Release();
     images[key] = SAnimatedImage::CreateLoadedImageFromMemory(buffer, size, x, y, w, h, c, time);

@@ -77,10 +77,10 @@ struct SusHispeedData {
     }
 
     SusHispeedData(
-        const Visibility VisibilityState,
-        const double Speed)
-        : VisibilityState(VisibilityState)
-        , Speed(Speed)
+        const Visibility visibilityState,
+        const double speed)
+        : VisibilityState(visibilityState)
+        , Speed(speed)
     {
     }
 

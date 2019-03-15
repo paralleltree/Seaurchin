@@ -9,7 +9,7 @@ PlayableProcessor::PlayableProcessor(ScenePlayer *splayer)
     player = splayer;
     currentState = player->manager->GetControlStateSafe();
     SetJudgeWidths(0.033, 0.066, 0.084);
-    SetJudgeAdjusts(0, 1, 0, 1);
+    PlayableProcessor::SetJudgeAdjusts(0, 1, 0, 1);
 }
 
 PlayableProcessor::PlayableProcessor(ScenePlayer *splayer, const bool autoAir) : PlayableProcessor(splayer)

@@ -32,7 +32,7 @@ private:
 public:
     std::vector<std::shared_ptr<MusicMetaInfo>> Musics;
 
-    explicit CategoryInfo(boost::filesystem::path cpath);
+    explicit CategoryInfo(const boost::filesystem::path& cpath);
     ~CategoryInfo();
 
     std::string GetName() const { return name; }

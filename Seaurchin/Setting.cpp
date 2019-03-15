@@ -826,7 +826,7 @@ void IntegerListVectorSettingItem::Build(const toml::Value &table)
     SettingItem::Build(table);
     const auto d = table.find("Default");
     if (d && d->type() == toml::Value::Type::ARRAY_TYPE) {
-        const toml::Array arr = d->as<toml::Array>();
+        const auto arr = d->as<toml::Array>();
         for (auto i = 0u; i < arr.size(); ++i) {
             if (arr[i].is<std::vector<int64_t>>()) {
                 defaultValues.push_back(arr[i].as<std::vector<int64_t>>());
@@ -906,7 +906,7 @@ void FloatListVectorSettingItem::Build(const toml::Value &table)
     SettingItem::Build(table);
     const auto d = table.find("Default");
     if (d && d->type() == toml::Value::Type::ARRAY_TYPE) {
-        const toml::Array arr = d->as<toml::Array>();
+        const auto arr = d->as<toml::Array>();
         for (auto i = 0u; i < arr.size(); ++i) {
             if (arr[i].is<std::vector<double>>()) {
                 defaultValues.push_back(arr[i].as<std::vector<double>>());
@@ -986,7 +986,7 @@ void BooleanListVectorSettingItem::Build(const toml::Value &table)
     SettingItem::Build(table);
     const auto d = table.find("Default");
     if (d && d->type() == toml::Value::Type::ARRAY_TYPE) {
-        const toml::Array arr = d->as<toml::Array>();
+        const auto arr = d->as<toml::Array>();
         for (auto i = 0u; i < arr.size(); ++i) {
             if (arr[i].is<std::vector<bool>>()) {
                 defaultValues.push_back(arr[i].as<std::vector<bool>>());

@@ -9,9 +9,10 @@ using namespace std;
 using namespace boost::filesystem;
 
 
-static int CALLBACK FontEnumerationProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, DWORD FontType, LPARAM lParam);
+static int CALLBACK FontEnumerationProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, DWORD type, LPARAM lParam);
 
-static int CALLBACK FontEnumerationProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, DWORD FontType, LPARAM lParam)
+// ReSharper disable once CppParameterNeverUsed
+static int CALLBACK FontEnumerationProc(ENUMLOGFONTEX *lpelfe, NEWTEXTMETRICEX *lpntme, DWORD type, LPARAM lParam)
 {
     return 0;
 }
@@ -25,7 +26,7 @@ void YieldTime(const double time)
         return;
     }
     pcw->Type = WaitType::Time;
-    pcw->time = time;
+    pcw->Time = time;
     ctx->Suspend();
 }
 
@@ -38,7 +39,7 @@ void YieldFrames(const int64_t frames)
         return;
     }
     pcw->Type = WaitType::Frame;
-    pcw->frames = frames;
+    pcw->Frames = frames;
     ctx->Suspend();
 }
 

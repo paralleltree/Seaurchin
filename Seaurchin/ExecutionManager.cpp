@@ -32,11 +32,17 @@ ExecutionManager::ExecutionManager(const shared_ptr<Setting>& setting)
     , musics(new MusicsManager(this)) // this渡すの怖いけどMusicsManagerのコンストラクタ内で逆参照してないから多分セーフ
     , characters(new CharacterManager())
     , skills(new SkillManager())
-    , random(new mt19937(random_device()()))
     , extensions(new ExtensionManager())
+    , random(new mt19937(random_device()()))
     , sharedControlState(new ControlState)
-{
-}
+    , lastResult()
+    , hImc(nullptr)
+    , hCommunicationPipe(nullptr)
+    , immConversion(0)
+    , immSentence(0)
+    , mixerBgm(nullptr)
+    , mixerSe(nullptr)
+{}
 
 void ExecutionManager::Initialize()
 {

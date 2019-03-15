@@ -52,7 +52,7 @@ void ScenePlayer::LoadResources()
     soundHoldStep = dynamic_cast<SSound*>(resources["SoundHoldStep"]);
     soundMetronome = dynamic_cast<SSound*>(resources["Metronome"]);
 
-    SFont * const fontCombo = dynamic_cast<SFont*>(resources["FontCombo"]);
+    const auto fontCombo = dynamic_cast<SFont*>(resources["FontCombo"]);
 
     const auto setting = manager->GetSettingInstanceSafe();
     if (soundHoldLoop) soundHoldLoop->SetLoop(true);
@@ -89,7 +89,7 @@ void ScenePlayer::LoadResources()
     const auto exty = laneBufferX * SU_LANE_ASPECT_EXT;
     auto bufferY = 2.0f;
     while (exty > bufferY) bufferY *= 2.0f;
-    const float bufferV = SU_TO_FLOAT(exty / bufferY);
+    const auto bufferV = SU_TO_FLOAT(exty / bufferY);
     for (auto i = 2; i < 4; i++) groundVertices[i].v = bufferV;
     hGroundBuffer = MakeScreen(SU_TO_INT32(laneBufferX), SU_TO_INT32(bufferY), TRUE);
 
@@ -151,7 +151,7 @@ void ScenePlayer::Draw()
 
     // 上側のショートノーツ類
     for (auto& note : seenData) {
-        auto type = note->Type.to_ulong();
+        const auto type = note->Type.to_ulong();
 #define GET_BIT(num) (1UL << (int(num)))
         const auto mask = GET_BIT(SusNoteType::Tap) | GET_BIT(SusNoteType::ExTap) | GET_BIT(SusNoteType::AwesomeExTap) | GET_BIT(SusNoteType::Flick) | GET_BIT(SusNoteType::HellTap) | GET_BIT(SusNoteType::Grounded);
 #undef GET_BIT
@@ -506,7 +506,6 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
     const auto reltailpos = 1.0 - endpoint->ModifiedPosition / seenDuration;
     const auto begin = !!note->OnTheFlyData[size_t(NoteAttribute::Finished)]; // Hold全体の判定が行われ始めていればtrueにしたい、これだと判定としては少し遅いかもしれないがまぁ実用上問題ないのでは
     const auto activated = !!note->OnTheFlyData[size_t(NoteAttribute::Activated)]; // Holdが押されていればtrueにしたい、たぶん一致した論理になるはず
-    const auto completed = !!note->OnTheFlyData[size_t(NoteAttribute::Completed)]; // Hold全体の判定がすべて終わっていればtrueにしたい
 
     // 中身だけ先に描画
     // 分割しないで描画すべき矩形領域計算してしまえばいいんじゃないでしょうか
@@ -531,15 +530,15 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
 
         const auto y1 = SU_TO_FLOAT(laneBufferY * head);
         const auto y2 = SU_TO_FLOAT(laneBufferY * tail);
-        const auto SrcY = SU_TO_INT32((relpos - head) / wholelen * imageHoldStrut->GetHeight());
-        const auto Height = SU_TO_INT32(len / wholelen * imageHoldStrut->GetHeight());
+        const auto srcY = SU_TO_INT32((relpos - head) / wholelen * imageHoldStrut->GetHeight());
+        const auto height = SU_TO_INT32(len / wholelen * imageHoldStrut->GetHeight());
 
         DrawRectModiGraphF(
             slane * widthPerLane, y1,
             (slane + length) * widthPerLane, y1,
             (slane + length) * widthPerLane, y2,
             slane * widthPerLane, y2,
-            0, SrcY, SU_TO_INT32(noteImageBlockX), Height,
+            0, srcY, SU_TO_INT32(noteImageBlockX), height,
             imageHoldStrut->GetHandle(), TRUE
         );
     }
@@ -569,7 +568,6 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
     const auto strutBottom = 1.0;
     const auto begin = !!note->OnTheFlyData[size_t(NoteAttribute::Finished)]; // Hold全体の判定が行われ始めていればtrueにしたい、これだと判定としては少し遅いかもしれないがまぁ実用上問題ないのでは
     const auto activated = !!note->OnTheFlyData[size_t(NoteAttribute::Activated)]; // Holdが押されていればtrueにしたい、たぶん一致した論理になるはず
-    const auto completed = !!note->OnTheFlyData[size_t(NoteAttribute::Completed)]; // Hold全体の判定がすべて終わっていればtrueにしたい
     slideVertices.clear();
     slideIndices.clear();
 
@@ -644,7 +642,6 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
         auto lastSegmentLength = double(lastStep->Length);
         auto lastSegmentRelativeY = 1.0 - lastStep->ModifiedPosition / seenDuration;
         auto lsRelY = lastSegmentRelativeY;
-        auto lastTimeInBlock = get<0>(lastSegmentPosition) / (slideElement->StartTime - lastStep->StartTime);
         auto lastTimeInBlock2 = get<0>(lastSegmentPosition) / (exData[i][1] - exData[i][0]);
 
         for (const auto &segmentPosition : segmentPositions) {
@@ -658,7 +655,7 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
             if ((currentSegmentRelativeY >= 0 || lastSegmentRelativeY >= 0)
                 && (currentSegmentRelativeY < cullingLimit || lastSegmentRelativeY < cullingLimit)) {
                 auto currentTimeDiff = 0.0;
-                auto lastTimeDiff = 0.0;
+                const auto lastTimeDiff = 0.0;
 
                 if (begin && activated) {
                     if (csRelY >= 1 && lsRelY >= 1) {
@@ -673,8 +670,8 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 
                         const auto sep = (1.0 - csRelY) * seenDuration;
                         const auto ctib = (sep - lastStep->ModifiedPosition) / (slideElement->ModifiedPosition - lastStep->ModifiedPosition);
-                        const auto g0sp = ctib * (slideElement->StartTime - lastStep->StartTime);
-                        const auto ctib2 = g0sp / (exData[i][1] - exData[i][0]);
+                        const auto g0Sp = ctib * (slideElement->StartTime - lastStep->StartTime);
+                        const auto ctib2 = g0Sp / (exData[i][1] - exData[i][0]);
 
                         currentTimeDiff = ctib2 - currentTimeInBlock2;
                     } else if (lsRelY >= 1) {
@@ -728,7 +725,6 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
             lastSegmentLength = currentSegmentLength;
             lastSegmentRelativeY = currentSegmentRelativeY;
             lsRelY = csRelY;
-            lastTimeInBlock = currentTimeInBlock;
             lastTimeInBlock2 = currentTimeInBlock2;
         }
         if (slideElement->Type.test(size_t(SusNoteType::Step))) {

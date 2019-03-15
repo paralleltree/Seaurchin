@@ -355,29 +355,29 @@ Coroutine::Coroutine(const std::string &name, const asIScriptFunction* cofunc, a
     BOOST_ASSERT(cofunc);
     BOOST_ASSERT(cofunc->GetFuncType() == asFUNC_DELEGATE);
 
-    Function = cofunc->GetDelegateFunction();
-    Function->AddRef();
+    function = cofunc->GetDelegateFunction();
+    function->AddRef();
 
-    Object = cofunc->GetDelegateObject();
-    static_cast<asIScriptObject*>(Object)->AddRef();
+    object = cofunc->GetDelegateObject();
+    static_cast<asIScriptObject*>(object)->AddRef();
 
-    Type = cofunc->GetDelegateObjectType();
-    Type->AddRef();
+    type = cofunc->GetDelegateObjectType();
+    type->AddRef();
 
-    Context = engine->CreateContext();
-    Context->SetUserData(&Wait, SU_UDTYPE_WAIT);
-    Context->Prepare(Function);
-    Context->SetObject(Object);
+    context = engine->CreateContext();
+    context->SetUserData(&Wait, SU_UDTYPE_WAIT);
+    context->Prepare(function);
+    context->SetObject(object);
 
     cofunc->Release();
 }
 
 Coroutine::~Coroutine()
 {
-    auto e = Context->GetEngine();
-    Context->Unprepare();
-    Context->Release();
-    Function->Release();
-    e->ReleaseScriptObject(Object, Type);
-    Type->Release();
+    auto e = context->GetEngine();
+    context->Unprepare();
+    context->Release();
+    function->Release();
+    e->ReleaseScriptObject(object, type);
+    type->Release();
 }

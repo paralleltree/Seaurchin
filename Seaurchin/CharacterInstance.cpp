@@ -42,8 +42,8 @@ void CharacterInstance::LoadAbilities()
     auto log = spdlog::get("main");
     const auto abroot = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_ABILITY_DIR;
 
-    const auto &Abilities = skillSource->GetDetail(skillSource->CurrentLevel).Abilities;
-    for (const auto &def : Abilities) {
+    const auto &abilities = skillSource->GetDetail(skillSource->CurrentLevel).Abilities;
+    for (const auto &def : abilities) {
         vector<string> params;
         auto scrpath = abroot / ConvertUTF8ToUnicode(def.Name + ".as");
 

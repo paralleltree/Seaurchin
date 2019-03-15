@@ -109,7 +109,7 @@ void SkillManager::LoadFromToml(boost::filesystem::path file)
                 sdt.Abilities.push_back(ai);
             }
 
-            int level = detail.at("Level").as<int>();
+            auto level = detail.at("Level").as<int>();
             result->Details.emplace(level, sdt);
 
             if (result->MaxLevel < level) result->MaxLevel = level;
@@ -187,7 +187,7 @@ uint32_t SkillIndicators::GetSkillIndicatorCount() const
     return indicatorIcons.size();
 }
 
-SImage* SkillIndicators::GetSkillIndicatorImage(uint32_t index)
+SImage* SkillIndicators::GetSkillIndicatorImage(const uint32_t index)
 {
     if (index >= indicatorIcons.size()) return nullptr;
     auto result = indicatorIcons[index];

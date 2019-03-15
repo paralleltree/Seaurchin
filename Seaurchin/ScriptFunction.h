@@ -11,23 +11,22 @@ enum class WaitType {
 struct CoroutineWait {
     WaitType Type;
     union {
-        double time;
-        int64_t frames;
+        double Time;
+        int64_t Frames;
     };
 
-    bool Tick(double delta) {
+    bool Tick(const double delta) {
         switch (Type) {
         case WaitType::Frame:
-            if(frames > 0) --frames;
-            return frames > 0;
+            if(Frames > 0) --Frames;
+            return Frames > 0;
         case WaitType::Time:
-            if(time > 0.0) time -= delta;
-            return time > 0.0;
+            if(Time > 0.0) Time -= delta;
+            return Time > 0.0;
         default:
             spdlog::get("main")->critical(u8"CoroutineWaitのステータスが不正です");
             abort();
         }
-        return false;
     }
 };
 

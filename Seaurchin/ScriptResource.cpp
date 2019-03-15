@@ -231,7 +231,7 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
     const bx::sregex cmdhex = bx::bos >> "${#" >> (bx::s1 = bx::repeat<2, 2>(bx::xdigit)) >> (bx::s2 = bx::repeat<2, 2>(bx::xdigit)) >> (bx::s3 = bx::repeat<2, 2>(bx::xdigit)) >> "}";
     uint32_t cx = 0, cy = 0;
     uint32_t mx = 0;
-    bool visible = true;
+    auto visible = true;
     auto line = 1;
 
     auto cr = defcol.R, cg = defcol.G, cb = defcol.B;
