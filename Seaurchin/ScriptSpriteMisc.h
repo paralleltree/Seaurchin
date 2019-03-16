@@ -11,13 +11,13 @@ struct Transform2D {
     Transform2D ApplyFrom(const Transform2D &parent) const
     {
         Transform2D result;
-        // Origin‚Í‰æ‘œã‚ÌˆÊ’u‚È‚Ì‚Å•ÏX‚È‚µ
+        // Originã¯ç”»åƒä¸Šã®ä½ç½®ãªã®ã§å¤‰æ›´ãªã—
         result.OriginX = OriginX;
         result.OriginY = OriginY;
-        // ³‚µ‚­‚È‚¢‚Ì‚Í•S‚à³’m‚¾‚ª‹–‚µ‚Ä‚­‚ê
+        // æ­£ã—ããªã„ã®ã¯ç™¾ã‚‚æ‰¿çŸ¥ã ãŒè¨±ã—ã¦ãã‚Œ
         result.ScaleX = parent.ScaleX * ScaleX;
         result.ScaleY = parent.ScaleY * ScaleY;
-        // ‚±‚±‚©‚ç‚Í³‚µ‚¢‚Æv‚¤
+        // ã“ã“ã‹ã‚‰ã¯æ­£ã—ã„ã¨æ€ã†
         result.Angle = parent.Angle + Angle;
         const auto rx = X * parent.ScaleX;
         const auto ry = Y * parent.ScaleY;
@@ -55,7 +55,7 @@ struct ColorTint {
         };
         return result;
     }
-} ;
+};
 
 class Colors final {
 public:

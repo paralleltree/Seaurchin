@@ -24,15 +24,15 @@ void ExtensionManager::LoadExtensions()
         if (!ends_with(filename, L".dll")) continue;
         LoadDll(filename);
     }
-    
-    spdlog::get("main")->info(u8"エクステンション総数: {0}", dllInstances.size());
+
+    spdlog::get("main")->info(u8"繧ｨ繧ｯ繧ｹ繝�繝ｳ繧ｷ繝ｧ繝ｳ邱乗焚: {0}", dllInstances.size());
 }
 
 void ExtensionManager::LoadDll(wstring path)
 {
     const auto h = LoadLibraryW(path.c_str());
     if (!h) return;
-    
+
     dllInstances.push_back(h);
 }
 

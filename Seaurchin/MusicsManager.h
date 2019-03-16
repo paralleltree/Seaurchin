@@ -42,7 +42,7 @@ public:
     void Reload(bool recreateCache) const;
 };
 
-//music‚És‚Í‚Â‚©‚È‚¢‚Á‚ÄH’m‚é‚©ƒoƒJ
+//musicã«sã¯ã¤ã‹ãªã„ã£ã¦ï¼ŸçŸ¥ã‚‹ã‹ãƒã‚«
 class MusicSelectionCursor;
 enum class MusicSelectionState {
     OutOfFunction = 0,
@@ -59,7 +59,6 @@ class ExecutionManager;
 class MusicsManager final {
     friend class MusicSelectionCursor;
 private:
-    std::shared_ptr<Setting> sharedSetting;
     ExecutionManager *manager;
 
     bool loading = false;
@@ -92,7 +91,7 @@ private:
     uint16_t variantIndex;
     MusicSelectionState state;
 
-	std::shared_ptr<CategoryInfo> GetCategoryAt(int32_t relative) const;
+    std::shared_ptr<CategoryInfo> GetCategoryAt(int32_t relative) const;
     std::shared_ptr<MusicMetaInfo> GetMusicAt(int32_t relative) const;
     std::shared_ptr<MusicScoreInfo> GetScoreVariantAt(int32_t relative) const;
 
@@ -100,6 +99,7 @@ public:
     MusicSelectionCursor(MusicsManager *manager);
     void AddRef() { refcount++; }
     void Release() { if (--refcount == 0) delete this; }
+    int GetRefCount() const { return refcount; }
 
     std::string GetPrimaryString(int32_t relativeIndex) const;
     std::string GetCategoryName(int32_t relativeIndex) const;
@@ -122,9 +122,9 @@ public:
     MusicSelectionState PreviousVariant();
     MusicSelectionState GetState() const;
 
-	int32_t GetCategorySize() const;
-	int32_t GetMusicSize(int32_t relativeIndex) const;
-	int32_t GetVariantSize(int32_t relativeIndex) const;
+    int32_t GetCategorySize() const;
+    int32_t GetMusicSize(int32_t relativeIndex) const;
+    int32_t GetVariantSize(int32_t relativeIndex) const;
 
     static void RegisterScriptInterface(asIScriptEngine *engine);
 };

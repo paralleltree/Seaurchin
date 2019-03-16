@@ -3,17 +3,14 @@
 #include "ScriptResource.h"
 #include "SoundManager.h"
 
-enum class WaitType
-{
+enum class WaitType {
     Frame,
     Time,
 };
 
-struct CoroutineWait
-{
+struct CoroutineWait {
     WaitType Type;
-    union
-    {
+    union {
         double time;
         int64_t frames;
     };

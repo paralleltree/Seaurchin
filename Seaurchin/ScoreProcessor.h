@@ -19,6 +19,7 @@ public:
     virtual ~ScoreProcessor() = default;
     static std::vector<std::shared_ptr<SusDrawableNoteData>> DefaultDataValue;
 
+    virtual void SetJudgeAdjusts(double jas, double jms, double jaa, double jma) = 0;
     virtual void Reset() = 0;
     virtual void Update(std::vector<std::shared_ptr<SusDrawableNoteData>> &notes) = 0;
     virtual void MovePosition(double relative) = 0;
@@ -62,7 +63,7 @@ public:
 
     void SetAutoAir(bool flag);
     void SetJudgeWidths(double jc, double j, double a);
-    void SetJudgeAdjusts(double jas, double jms, double jaa, double jma);
+    void SetJudgeAdjusts(double jas, double jms, double jaa, double jma) override;
     void Reset() override;
     bool ShouldJudge(std::shared_ptr<SusDrawableNoteData> note) override;
     void Update(std::vector<std::shared_ptr<SusDrawableNoteData>> &notes) override;
@@ -83,6 +84,7 @@ protected:
 public:
     AutoPlayerProcessor(ScenePlayer *player);
 
+    void SetJudgeAdjusts(double jas, double jms, double jaa, double jma) override;
     void Reset() override;
     bool ShouldJudge(std::shared_ptr<SusDrawableNoteData> note) override;
     void Update(std::vector<std::shared_ptr<SusDrawableNoteData>> &notes) override;

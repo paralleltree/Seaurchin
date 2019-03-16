@@ -54,6 +54,8 @@ SImage * SImage::CreateBlankImage()
 {
     auto result = new SImage(0);
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -63,6 +65,8 @@ SImage * SImage::CreateLoadedImageFromFile(const string &file, const bool async)
     auto result = new SImage(LoadGraph(reinterpret_cast<const char*>(ConvertUTF8ToUnicode(file).c_str())));
     if (async) SetUseASyncLoadFlag(FALSE);
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -70,12 +74,15 @@ SImage * SImage::CreateLoadedImageFromMemory(void * buffer, const size_t size)
 {
     auto result = new SImage(CreateGraphFromMem(buffer, size));
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
 // SRenderTarget -----------------------------
 
-SRenderTarget::SRenderTarget(const int w, const int h) : SImage(0)
+SRenderTarget::SRenderTarget(const int w, const int h)
+    : SImage(0)
 {
     width = w;
     height = h;
@@ -86,11 +93,14 @@ SRenderTarget * SRenderTarget::CreateBlankTarget(const int w, const int h)
 {
     auto result = new SRenderTarget(w, h);
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
 // SNinePatchImage ----------------------------
-SNinePatchImage::SNinePatchImage(const int ih) : SImage(ih)
+SNinePatchImage::SNinePatchImage(const int ih)
+    : SImage(ih)
 {}
 
 SNinePatchImage::~SNinePatchImage()
@@ -110,7 +120,8 @@ void SNinePatchImage::SetArea(const int leftw, const int toph, const int bodyw, 
 
 // SAnimatedImage --------------------------------
 
-SAnimatedImage::SAnimatedImage(const int w, const int h, const int count, const double time) : SImage(0)
+SAnimatedImage::SAnimatedImage(const int w, const int h, const int count, const double time)
+    : SImage(0)
 {
     cellWidth = width = w;
     cellHeight = height = h;
@@ -126,19 +137,25 @@ SAnimatedImage::~SAnimatedImage()
 SAnimatedImage * SAnimatedImage::CreateLoadedImageFromFile(const std::string & file, const int xc, const int yc, const int w, const int h, const int count, const double time)
 {
     auto result = new SAnimatedImage(w, h, count, time);
+    result->AddRef();
+
     result->images.resize(count);
     LoadDivGraph(reinterpret_cast<const char*>(ConvertUTF8ToUnicode(file).c_str()), count, xc, yc, w, h, result->images.data());
-    result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
 SAnimatedImage * SAnimatedImage::CreateLoadedImageFromMemory(void * buffer, const size_t size, const int xc, const int yc, const int w, const int h, const int count, const double time)
 {
-	auto result = new SAnimatedImage(w, h, count, time);
-	result->images.resize(count);
-	CreateDivGraphFromMem(buffer, size, count, xc, yc, w, h, result->images.data());
-	result->AddRef();
-	return result;
+    auto result = new SAnimatedImage(w, h, count, time);
+    result->AddRef();
+
+    result->images.resize(count);
+    CreateDivGraphFromMem(buffer, size, count, xc, yc, w, h, result->images.data());
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
+    return result;
 }
 
 
@@ -214,7 +231,7 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
     const bx::sregex cmdhex = bx::bos >> "${#" >> (bx::s1 = bx::repeat<2, 2>(bx::xdigit)) >> (bx::s2 = bx::repeat<2, 2>(bx::xdigit)) >> (bx::s3 = bx::repeat<2, 2>(bx::xdigit)) >> "}";
     double cx = 0, cy = 0;
     double mx = 0;
-	bool visible = true;
+    bool visible = true;
     auto line = 1;
 
     auto cr = defcol.R, cg = defcol.G, cb = defcol.B;
@@ -239,7 +256,7 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
                     cg = defcol.G;
                     cb = defcol.B;
                     cw = 1;
-					visible = true;
+                    visible = true;
                     break;
                 case "red"_crc32:
                     cr = 255;
@@ -276,10 +293,10 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
                 case "normal"_crc32:
                     cw = 1;
                     break;
-				case "hide"_crc32:
-					visible = false;
-					break;
-				default: break;
+                case "hide"_crc32:
+                    visible = false;
+                    break;
+                default: break;
             }
             ccp += match[0].length();
             continue;
@@ -306,7 +323,7 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
             gi = uint8_t(*ccp) & 0x7F;
             ++ccp;
         }
-		if (!visible) continue;
+        if (!visible) continue;
         if (gi == 0x0A) {
             line++;
             mx = max(mx, cx);
@@ -343,12 +360,15 @@ SFont * SFont::CreateBlankFont()
 {
     auto result = new SFont();
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
 SFont * SFont::CreateLoadedFontFromFile(const string & file)
 {
     auto result = new SFont();
+    result->AddRef();
     ifstream font(ConvertUTF8ToUnicode(file), ios::in | ios::binary);
 
     Sif2Header header;
@@ -368,7 +388,8 @@ SFont * SFont::CreateLoadedFontFromFile(const string & file)
         result->Images.push_back(SImage::CreateLoadedImageFromMemory(pngdata, size));
         delete[] pngdata;
     }
-    result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -391,19 +412,29 @@ void SSoundMixer::Update() const
 
 void SSoundMixer::Play(SSound *sound) const
 {
+    if (!sound) return;
+
     mixer->Play(sound->sample);
+
+    sound->Release();
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
 void SSoundMixer::Stop(SSound *sound) const
 {
+    if (!sound) return;
+
     SoundMixerStream::Stop(sound->sample);
+
+    sound->Release();
 }
 
 SSoundMixer * SSoundMixer::CreateMixer(SoundManager * manager)
 {
     auto result = new SSoundMixer(SoundManager::CreateMixerStream());
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -433,6 +464,8 @@ SSound * SSound::CreateSound(SoundManager *smanager)
 {
     auto result = new SSound(nullptr);
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -441,14 +474,16 @@ SSound * SSound::CreateSoundFromFile(SoundManager *smanager, const std::string &
     const auto hs = SoundSample::CreateFromFile(ConvertUTF8ToUnicode(file), simul);
     auto result = new SSound(hs);
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
 // SSettingItem --------------------------------------------
 
-SSettingItem::SSettingItem(const shared_ptr<setting2::SettingItem> s) : setting(s)
+SSettingItem::SSettingItem(const shared_ptr<setting2::SettingItem> s)
+    : setting(s)
 {
-
 }
 
 SSettingItem::~SSettingItem()

@@ -85,38 +85,46 @@ class ScenePlayer : public SSprite {
     friend class PlayableProcessor;
 
 protected:
-    int reference = 0;
     int hGroundBuffer;
     ExecutionManager *manager;
-    SoundManager *soundManager;
+    SoundManager * const soundManager; // soundManager のアドレスが不変、 soundManager の実体が持つ値は変わりうる
     boost::lockfree::queue<JudgeSoundType> judgeSoundQueue;
     std::thread judgeSoundThread;
     std::mutex asyncMutex;
-    std::unique_ptr<SusAnalyzer> analyzer;
-    std::map<std::string, SResource*> resources;
+    const std::unique_ptr<SusAnalyzer> analyzer;
     std::multiset<SSprite*, SSprite::Comparator> sprites;
     std::vector<SSprite*> spritesPending;
 
     SoundStream *bgmStream;
-    ScoreProcessor *processor;
-    bool isLoadCompleted = false;
-    bool isReady = false;
-    bool isTerminating = false;
-    bool usePrioritySort = false;
-    bool hasEnded = false;
+    ScoreProcessor * const processor; // processor のアドレスが不変、 processor の実体が持つ値は変わりうる
 
-    double cameraZ = -340, cameraY = 620, cameraTargetZ = 580;
-    double laneBufferX = 1024;
-    double laneBufferY = laneBufferX * SU_LANE_ASPECT;
-    double laneBackgroundRoll = 0, laneBackgroundSpeed = 0;
-    double widthPerLane = laneBufferX / 16;
-    double cullingLimit = SU_LANE_ASPECT_EXT / SU_LANE_ASPECT;
-    double noteImageBlockX = 64;
-    double noteImageBlockY = 64;
-    double scaleNoteY = 2.0;
-    double actualNoteScaleX = (widthPerLane / 2) / noteImageBlockX;
-    double actualNoteScaleY = actualNoteScaleX * scaleNoteY;
+    // 状態管理変数
+    bool isLoadCompleted = false;   // LoadWorkerで書き換え 譜面読み込みが完了していればtrue
+    bool isReady = false;           // GetReadyで書き換え 譜面読み込み完了後、動画再生位置設定とキャラクタースキル発動完了でtrue
+    bool isTerminating = false;     // Finalizeで書き換え インスタンス破棄時にtrue これをもって音声スレッドを破棄
+    bool usePrioritySort = false;   // LoadWorkerで書き換え 優先度付きノーツ描画が有効ならtrue
+    bool hasEnded = false;          // ProcessSoundで書き換え すべてのノーツの判定が終わっていればtrue
 
+    // 描画関連定数
+    double cameraZ = -340, cameraY = 620, cameraTargetZ = 580;  // カメラ位置 (スキンから設定可にしてるけどぶっちゃけconstで良い気がする)
+    const double laneBufferX = 1024;                            // 背景バッファ横幅
+    const double laneBufferY = laneBufferX * SU_LANE_ASPECT;    // 背景バッファ縦幅
+#ifdef SU_ENABLE_BACKGROUND_ROLLING
+    double laneBackgroundRoll = 0;                              // 背景ローリング量
+    double laneBackgroundSpeed = 0;                             // 背景ローリング速度
+#endif
+    const double widthPerLane = laneBufferX / 16;               // 最小ノーツ幅
+    const double cullingLimit = SU_LANE_ASPECT_EXT / SU_LANE_ASPECT; // 判定線位置 (y座標)
+    const double noteImageBlockX = 64;                          // ショートノーツ描画単位 (幅)
+    const double noteImageBlockY = 64;                          // ショートノーツ描画単位 (高さ)
+    const double scaleNoteY = 2.0;                              // ショートノーツ高さ拡大率
+    const double actualNoteScaleX = (widthPerLane / 2) / noteImageBlockX;   // ショートノーツ実拡大率 (幅)
+    const double actualNoteScaleY = actualNoteScaleX * scaleNoteY;          // ショートノーツ実拡大率 (高さ)
+
+    // リソースマップ SetPlayerResourceで初期化、Finalizeで破棄
+    std::map<std::string, SResource*> resources;
+
+    // 実リソース LoadResourcesでresourcesを用いて初期化する 実体はresourcesで管理するのでAddRefもReleaseもしない
     SSound *soundTap, *soundExTap, *soundFlick, *soundAir, *soundAirDown, *soundAirAction, *soundAirLoop;
     SSound *soundHoldLoop, *soundSlideLoop, *soundHoldStep, *soundSlideStep;
     SSound *soundMetronome;
@@ -126,22 +134,28 @@ protected:
     SImage *imageHold, *imageHoldStep, *imageHoldStrut;
     SImage *imageSlide, *imageSlideStep, *imageSlideStrut;
     SImage *imageAirAction;
-    SFont *fontCombo;
     SAnimatedImage *animeTap, *animeExTap, *animeSlideTap, *animeSlideLoop, *animeAirAction;
-    STextSprite *textCombo;
-    int movieBackground = 0;
-    double movieCurrentPosition = 0.0;
-    bool moviePlaying = false;
-    std::wstring movieFileName = L"";
-    unsigned int slideLineColor = GetColor(0, 200, 255);
-    unsigned int airActionJudgeColor = GetColor(128, 255, 160);
-    bool showSlideLine, showAirActionJudge;
-	double slideLineThickness;
-    int segmentsPerSecond;
-    std::vector<VERTEX2D> slideVertices;
-    std::vector<uint16_t> slideIndices;
+    STextSprite *textCombo; // コンボ数フォント こいつだけLoadResourcesで自力で生成、Finalizeで自力で破棄する
+    double textScale;       // コンボ数フォント拡大率 textComboに設定したフォントサイズで計算し保持する
 
-    std::shared_ptr<Result> currentResult;
+    // LoadResourcesで初期化 (設定ファイルから取得)
+    unsigned int slideLineColor = GetColor(0, 200, 255);        // Slide中心線色
+    unsigned int airActionJudgeColor = GetColor(128, 255, 160); // Air入力線色
+    bool showSlideLine, showAirActionJudge;                     // Slide中心線/Air入力線が有効でtrue
+    double slideLineThickness;                                  // Slide中心線太さ
+
+    // 背景映像関係
+    int movieBackground = 0;            // ハンドル
+    double movieCurrentPosition = 0.0;  // 再生位置
+    bool moviePlaying = false;          // 一時停止中はtrue
+    std::wstring movieFileName = L"";   // ファイル名
+
+    // Slide描画関係
+    int segmentsPerSecond;                  // Slide分解能
+    std::vector<VERTEX2D> slideVertices;    // Slide描画用頂点座標配列 関数内ローカル変数で頻繁に生成,破棄されるのを嫌って宣言
+    std::vector<uint16_t> slideIndices;     // Slide描画用頂点番号指定配列 同上
+
+    const std::shared_ptr<Result> currentResult;
     DrawableResult previousStatus, status;
 
     std::shared_ptr<CharacterInstance> currentCharacterInstance;
@@ -153,13 +167,13 @@ protected:
     double currentTime = 0;
     double currentSoundTime = 0;
     double seenDuration = 0.8;
-    double hispeedMultiplier = 6;
-    double preloadingTime = 0.5;
+    const double hispeedMultiplier; // = 6.0
+    const double preloadingTime = 0.5;
     double backingTime = 0.0;
     double nextMetronomeTime = 0.0;
     double scoreDuration = 0.0;
-    double soundBufferingLatency = 0.030;
-    double airRollSpeed = 1.5;
+    const double soundBufferingLatency; // = 0.030
+    const double airRollSpeed; // = 1.5
     PlayingState state = PlayingState::ScoreNotLoaded;
     PlayingState lastState;
     bool airActionShown = false;
@@ -167,7 +181,7 @@ protected:
 
     void TickGraphics(double delta);
     void AddSprite(SSprite *sprite);
-    void SetProcessorOptions(PlayableProcessor *processor) const;
+    void SetProcessorOptions(ScoreProcessor *processor) const;
     void LoadResources();
     void LoadWorker();
     void RemoveSlideEffect();

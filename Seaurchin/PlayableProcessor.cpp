@@ -1,4 +1,4 @@
-﻿#include "ScoreProcessor.h"
+#include "ScoreProcessor.h"
 #include "ExecutionManager.h"
 #include "ScenePlayer.h"
 
@@ -351,8 +351,7 @@ bool PlayableProcessor::CheckHoldJudgement(const shared_ptr<SusDrawableNoteData>
     }
     if (held) {
         note->OnTheFlyData.set(size_t(NoteAttribute::Activated));
-    }
-    else {
+    } else {
         note->OnTheFlyData.reset(size_t(NoteAttribute::Activated));
     }
 
@@ -464,8 +463,7 @@ bool PlayableProcessor::CheckSlideJudgement(const shared_ptr<SusDrawableNoteData
 
         if (held) {
             note->OnTheFlyData.set(size_t(NoteAttribute::Activated));
-        }
-        else {
+        } else {
             note->OnTheFlyData.reset(size_t(NoteAttribute::Activated));
         }
 
@@ -474,8 +472,7 @@ bool PlayableProcessor::CheckSlideJudgement(const shared_ptr<SusDrawableNoteData
 
     if (held) {
         note->OnTheFlyData.set(size_t(NoteAttribute::Activated));
-    }
-    else {
+    } else {
         note->OnTheFlyData.reset(size_t(NoteAttribute::Activated));
     }
 
@@ -527,8 +524,7 @@ bool PlayableProcessor::CheckAirActionJudgement(const shared_ptr<SusDrawableNote
     // なし
     if (held) {
         note->OnTheFlyData.set(size_t(NoteAttribute::Activated));
-    }
-    else {
+    } else {
         note->OnTheFlyData.reset(size_t(NoteAttribute::Activated));
     }
 
@@ -614,8 +610,8 @@ void PlayableProcessor::IncrementComboHell(const std::shared_ptr<SusDrawableNote
             // とりあえず通過した
             /* ここでJC扱いにするとややこしいので何もしない */
             note->OnTheFlyData.set(size_t(NoteAttribute::HellChecking));
-//          player->currentResult->PerformJusticeCritical();
-//          player->currentCharacterInstance->OnJusticeCritical(AbilityNoteType::HellTap, extra);
+            //          player->currentResult->PerformJusticeCritical();
+            //          player->currentCharacterInstance->OnJusticeCritical(AbilityNoteType::HellTap, extra);
             break;
         case 1:
             // 判定失敗

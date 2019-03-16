@@ -2,8 +2,7 @@
 
 
 class ExecutionManager;
-class Scene
-{
+class Scene {
 protected:
     int index;
     ExecutionManager *manager;
@@ -22,4 +21,5 @@ public:
     virtual void OnEvent(const std::string &message);
     virtual void Draw();
     virtual bool IsDead();
+    virtual void Disappear();
 };

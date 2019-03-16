@@ -39,13 +39,13 @@ void ScriptSpriteMover2::Tick(const double delta)
     while (i != moves.end()) {
         auto mobj = i->get();
         if (mobj->Data.Now < 0) {
-            //—]‚Á‚½delta‚ÅŒÄ‚Ño‚·‚×‚«‚È‚Ì‚©‚à‚µ‚ê‚È‚¢‚¯‚Ç‚Ü‚ ‚¢‚¢‚©‚Á‚Ä
+            //ä½™ã£ãŸdeltaã§å‘¼ã³å‡ºã™ã¹ããªã®ã‹ã‚‚ã—ã‚Œãªã„ã‘ã©ã¾ã‚ã„ã„ã‹ã£ã¦
             mobj->Data.Now += delta;
             ++i;
             continue;
         }
         if (!mobj->Data.IsStarted) {
-            //‘½•ª‰Šú‰»ˆ—‚Í‚±‚Ìƒ^ƒCƒ~ƒ“ƒO‚Ì•û‚ª‚¢‚¢
+            //å¤šåˆ†åˆæœŸåŒ–å‡¦ç†ã¯ã“ã®ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã®æ–¹ãŒã„ã„
             mobj->Data.IsStarted = true;
             mobj->Function(target, mobj->Argument, mobj->Data, 0);
         }
@@ -136,7 +136,7 @@ void ScriptSpriteMover2::ApplyProperty(const string &prop, const string &value) 
             target->Color.B = static_cast<unsigned char>(ToDouble(value.c_str()));
             break;
         default:
-            // TODO SSprite‚ÉƒJƒXƒ^ƒ€À‘•
+            // TODO SSpriteã«ã‚«ã‚¹ã‚¿ãƒ å®Ÿè£…
             break;
     }
 }
@@ -144,11 +144,11 @@ void ScriptSpriteMover2::ApplyProperty(const string &prop, const string &value) 
 std::unique_ptr<SpriteMoverObject> ScriptSpriteMover2::BuildMoverObject(const string &func, const PropList &props) const
 {
     auto result = make_unique<SpriteMoverObject>();
-    // MoverFunction‚ğŒˆ’è
+    // MoverFunctionã‚’æ±ºå®š
     if (mover_function::actions.find(func) != mover_function::actions.end()) {
         result->Function = mover_function::actions[func];
     } else {
-        // TODO: ƒJƒXƒ^ƒ€Mover‚É‘Î‰
+        // TODO: ã‚«ã‚¹ã‚¿ãƒ Moverã«å¯¾å¿œ
         const auto custom = target->GetCustomAction(func);
         if (!custom) return nullptr;
         result->Function = custom;

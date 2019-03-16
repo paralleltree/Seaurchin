@@ -6,9 +6,8 @@
 
 using namespace std;
 
-SkillManager::SkillManager(ExecutionManager *exm)
+SkillManager::SkillManager()
 {
-    manager = exm;
     selected = -1;
 }
 
@@ -25,7 +24,7 @@ void SkillManager::LoadAllSkills()
         if (!ends_with(filename, ".toml")) continue;
         LoadFromToml(fdata.path());
     }
-    spdlog::get("main")->info(u8"ÉXÉLÉãëçêî: {0:d}", skills.size());
+    spdlog::get("main")->info(u8"„Çπ„Ç≠„É´Á∑èÊï∞: {0:d}", skills.size());
     selected = skills.size() ? 0 : -1;
 }
 
@@ -53,8 +52,9 @@ shared_ptr<SkillParameter> SkillManager::GetSkillParameterSafe(const int relativ
     return skills[ri % skills.size()];
 }
 
-int32_t SkillManager::GetSize() const {
-	return int32_t(skills.size());
+int32_t SkillManager::GetSize() const
+{
+    return int32_t(skills.size());
 }
 
 void SkillManager::LoadFromToml(boost::filesystem::path file)
@@ -68,7 +68,7 @@ void SkillManager::LoadFromToml(boost::filesystem::path file)
     auto pr = toml::parse(ifs);
     ifs.close();
     if (!pr.valid()) {
-        log->error(u8"ÉXÉLÉã {0} ÇÕïsê≥Ç»ÉtÉ@ÉCÉãÇ≈Ç∑", ConvertUnicodeToUTF8(file.wstring()));
+        log->error(u8"„Çπ„Ç≠„É´ {0} „ÅØ‰∏çÊ≠£„Å™„Éï„Ç°„Ç§„É´„Åß„Åô", ConvertUnicodeToUTF8(file.wstring()));
         log->error(pr.errorReason);
         return;
     }
@@ -77,54 +77,53 @@ void SkillManager::LoadFromToml(boost::filesystem::path file)
     try {
         result->Name = root.get<string>("Name");
         result->IconPath = ConvertUnicodeToUTF8((iconRoot / ConvertUTF8ToUnicode(root.get<string>("Icon"))).wstring());
-		result->Details.clear();
-		result->CurrentLevel = 0;
-		result->MaxLevel = 0;
+        result->Details.clear();
+        result->CurrentLevel = 0;
+        result->MaxLevel = 0;
 
-		auto details = root.get<vector<toml::Table>>("Detail");
-		for (const auto &detail : details) {
-			SkillDetail sdt;
-			sdt.Description = detail.at("Description").as<string>();
+        auto details = root.get<vector<toml::Table>>("Detail");
+        for (const auto &detail : details) {
+            SkillDetail sdt;
+            sdt.Description = detail.at("Description").as<string>();
 
-			auto abilities = detail.at("Abilities").as<vector<toml::Table>>();
-			for (const auto &ability : abilities) {
-				AbilityParameter ai;
-				ai.Name = ability.at("Type").as<string>();
-				auto args = ability.at("Arguments").as<toml::Table>();
-				for (const auto &p : args) {
-					switch (p.second.type()) {
-					case toml::Value::INT_TYPE:
-						ai.Arguments[p.first] = p.second.as<int>();
-						break;
-					case toml::Value::DOUBLE_TYPE:
-						ai.Arguments[p.first] = p.second.as<double>();
-						break;
-					case toml::Value::STRING_TYPE:
-						ai.Arguments[p.first] = p.second.as<string>();
-						break;
-					default:
-						break;
-					}
-				}
-				sdt.Abilities.push_back(ai);
-			}
+            auto abilities = detail.at("Abilities").as<vector<toml::Table>>();
+            for (const auto &ability : abilities) {
+                AbilityParameter ai;
+                ai.Name = ability.at("Type").as<string>();
+                auto args = ability.at("Arguments").as<toml::Table>();
+                for (const auto &p : args) {
+                    switch (p.second.type()) {
+                        case toml::Value::INT_TYPE:
+                            ai.Arguments[p.first] = p.second.as<int>();
+                            break;
+                        case toml::Value::DOUBLE_TYPE:
+                            ai.Arguments[p.first] = p.second.as<double>();
+                            break;
+                        case toml::Value::STRING_TYPE:
+                            ai.Arguments[p.first] = p.second.as<string>();
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                sdt.Abilities.push_back(ai);
+            }
 
-			int level = detail.at("Level").as<int>();
-			result->Details.emplace(level, sdt);
+            int level = detail.at("Level").as<int>();
+            result->Details.emplace(level, sdt);
 
-			if (result->MaxLevel < level) result->MaxLevel = level;
-		}
+            if (result->MaxLevel < level) result->MaxLevel = level;
+        }
     } catch (exception) {
-        log->error(u8"ÉXÉLÉã {0} ÇÃì«Ç›çûÇ›Ç…é∏îsÇµÇ‹ÇµÇΩ", ConvertUnicodeToUTF8(file.wstring()));
+        log->error(u8"„Çπ„Ç≠„É´ {0} „ÅÆË™≠„ÅøËæº„Åø„Å´Â§±Êïó„Åó„Åæ„Åó„Åü", ConvertUnicodeToUTF8(file.wstring()));
         return;
     }
     skills.push_back(result);
 }
 
 
-SkillIndicators::SkillIndicators(): callbackFunction(nullptr), callbackObject(nullptr), callbackContext(nullptr), callbackObjectType(nullptr)
-{
-}
+SkillIndicators::SkillIndicators() : callbackFunction(nullptr), callbackObject(nullptr), callbackContext(nullptr), callbackObjectType(nullptr)
+{}
 
 SkillIndicators::~SkillIndicators()
 {
@@ -134,6 +133,7 @@ SkillIndicators::~SkillIndicators()
         callbackContext->Release();
         callbackFunction->Release();
         engine->ReleaseScriptObject(callbackObject, callbackObjectType);
+        callbackObjectType->Release();
     }
 }
 
@@ -146,6 +146,7 @@ void SkillIndicators::SetCallback(asIScriptFunction *func)
         callbackContext->Release();
         callbackFunction->Release();
         engine->ReleaseScriptObject(callbackObject, callbackObjectType);
+        callbackObjectType->Release();
     }
 
     const auto ctx = asGetActiveContext();
@@ -154,7 +155,11 @@ void SkillIndicators::SetCallback(asIScriptFunction *func)
     callbackFunction = func->GetDelegateFunction();
     callbackFunction->AddRef();
     callbackObject = static_cast<asIScriptObject*>(func->GetDelegateObject());
+    callbackObject->AddRef();
     callbackObjectType = func->GetDelegateObjectType();
+    callbackObjectType->AddRef();
+
+    func->Release();
 }
 
 int SkillIndicators::AddSkillIndicator(const string &icon)
@@ -173,7 +178,7 @@ void SkillIndicators::TriggerSkillIndicator(const int index) const
         callbackContext->SetObject(callbackObject);
         callbackContext->SetArgDWord(0, index);
         callbackContext->Execute();
-        // CallbackContext->Unprepare();
+        callbackContext->Unprepare();
     }
 }
 
@@ -186,6 +191,7 @@ SImage* SkillIndicators::GetSkillIndicatorImage(const int index)
 {
     if (index >= indicatorIcons.size()) return nullptr;
     auto result = indicatorIcons[index];
+
     result->AddRef();
     return result;
 }
@@ -226,16 +232,16 @@ void RegisterSkillTypes(asIScriptEngine *engine)
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnAttack(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
     engine->RegisterInterfaceMethod(SU_IF_ABILITY, "void OnMiss(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
 
-	engine->RegisterObjectType(SU_IF_SKILL, 0, asOBJ_REF | asOBJ_NOCOUNT);
-	engine->RegisterObjectProperty(SU_IF_SKILL, "string Name", asOFFSET(SkillParameter, Name));
-	engine->RegisterObjectProperty(SU_IF_SKILL, "string IconPath", asOFFSET(SkillParameter, IconPath));
-	engine->RegisterObjectProperty(SU_IF_SKILL, "int CurrentLevel", asOFFSET(SkillParameter, CurrentLevel));
-	engine->RegisterObjectMethod(SU_IF_SKILL, "string GetDescription(int)", asMETHOD(SkillParameter, GetDescription), asCALL_THISCALL);
-	engine->RegisterObjectMethod(SU_IF_SKILL, "int GetMaxLevel()", asMETHOD(SkillParameter, GetMaxLevel), asCALL_THISCALL);
+    engine->RegisterObjectType(SU_IF_SKILL, 0, asOBJ_REF | asOBJ_NOCOUNT);
+    engine->RegisterObjectProperty(SU_IF_SKILL, "string Name", asOFFSET(SkillParameter, Name));
+    engine->RegisterObjectProperty(SU_IF_SKILL, "string IconPath", asOFFSET(SkillParameter, IconPath));
+    engine->RegisterObjectProperty(SU_IF_SKILL, "int CurrentLevel", asOFFSET(SkillParameter, CurrentLevel));
+    engine->RegisterObjectMethod(SU_IF_SKILL, "string GetDescription(int)", asMETHOD(SkillParameter, GetDescription), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SKILL, "int GetMaxLevel()", asMETHOD(SkillParameter, GetMaxLevel), asCALL_THISCALL);
 
     engine->RegisterObjectType(SU_IF_SKILL_MANAGER, 0, asOBJ_REF | asOBJ_NOCOUNT);
     engine->RegisterObjectMethod(SU_IF_SKILL_MANAGER, "void Next()", asMETHOD(SkillManager, Next), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SKILL_MANAGER, "void Previous()", asMETHOD(SkillManager, Previous), asCALL_THISCALL);
-	engine->RegisterObjectMethod(SU_IF_SKILL_MANAGER, SU_IF_SKILL "@ GetSkill(int)", asMETHOD(SkillManager, GetSkillParameter), asCALL_THISCALL);
-	engine->RegisterObjectMethod(SU_IF_SKILL_MANAGER, "int GetSize()", asMETHOD(SkillManager, GetSize), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SKILL_MANAGER, SU_IF_SKILL "@ GetSkill(int)", asMETHOD(SkillManager, GetSkillParameter), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SKILL_MANAGER, "int GetSize()", asMETHOD(SkillManager, GetSize), asCALL_THISCALL);
 }

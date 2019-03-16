@@ -13,7 +13,6 @@ using namespace xpressive;
 MusicsManager::MusicsManager(ExecutionManager *exm)
 {
     manager = exm;
-    sharedSetting = manager->GetSettingInstanceSafe();
     analyzer = make_unique<SusAnalyzer>(192);
 }
 
@@ -66,7 +65,7 @@ void MusicsManager::CreateMusicCache()
             if (!is_directory(mdir)) continue;
             for (const auto& file : make_iterator_range(directory_iterator(mdir), {})) {
                 if (is_directory(file)) continue;
-                if (file.path().extension() != ".sus") continue;     //‚±‚ê‘å•¶Žš‚Ç‚¤‚·‚ñ‚Ì
+                if (file.path().extension() != ".sus") continue;     //ã“ã‚Œå¤§æ–‡å­—ã©ã†ã™ã‚“ã®
                 analyzer->Reset();
                 analyzer->LoadFromFile(file.path().wstring(), true);
                 auto music = find_if(category->Musics.begin(), category->Musics.end(), [&](const std::shared_ptr<MusicMetaInfo> info) {
@@ -103,6 +102,8 @@ MusicSelectionCursor *MusicsManager::CreateMusicSelectionCursor()
 {
     auto result = new MusicSelectionCursor(this);
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -127,19 +128,19 @@ void CategoryInfo::Reload(bool recreateCache) const
 
 std::shared_ptr<CategoryInfo> MusicSelectionCursor::GetCategoryAt(const int32_t relative) const
 {
-	const auto categorySize = GetCategorySize();
-	if (categorySize <= 0) return nullptr;
-	auto actual = relative + categoryIndex;
-	while (actual < 0) actual += categorySize;
-	return manager->categories[actual % categorySize];
+    const auto categorySize = GetCategorySize();
+    if (categorySize <= 0) return nullptr;
+    auto actual = relative + categoryIndex;
+    while (actual < 0) actual += categorySize;
+    return manager->categories[actual % categorySize];
 }
 
 std::shared_ptr<MusicMetaInfo> MusicSelectionCursor::GetMusicAt(const int32_t relative) const
 {
-	const auto musicSize = GetMusicSize(0);
+    const auto musicSize = GetMusicSize(0);
     if (musicSize <= 0) return nullptr;
     auto actual = relative + musicIndex;
-	while (actual < 0) actual += musicSize;
+    while (actual < 0) actual += musicSize;
     return GetCategoryAt(0)->Musics[actual % musicSize];
 }
 
@@ -147,19 +148,18 @@ std::shared_ptr<MusicScoreInfo> MusicSelectionCursor::GetScoreVariantAt(const in
 {
     const auto music = GetMusicAt(relative);
     if (!music) return nullptr;
-	const auto variant = min(int32_t(variantIndex), GetVariantSize(relative) - 1);
-	if (variant < 0) return nullptr;
+    const auto variant = min(int32_t(variantIndex), GetVariantSize(relative) - 1);
+    if (variant < 0) return nullptr;
     return music->Scores[variant];
 }
 
 MusicSelectionCursor::MusicSelectionCursor(MusicsManager *manager)
-	: manager(manager)
-	, categoryIndex(0)
-	, musicIndex(-1)
-	, variantIndex(-1)
-	, state(MusicSelectionState::Category)
-{
-}
+    : manager(manager)
+    , categoryIndex(0)
+    , musicIndex(-1)
+    , variantIndex(-1)
+    , state(MusicSelectionState::Category)
+{}
 
 std::string MusicSelectionCursor::GetPrimaryString(const int32_t relativeIndex) const
 {
@@ -175,7 +175,7 @@ std::string MusicSelectionCursor::GetPrimaryString(const int32_t relativeIndex) 
 
 string MusicSelectionCursor::GetCategoryName(const int32_t relativeIndex) const
 {
-	const auto category = GetCategoryAt(relativeIndex);
+    const auto category = GetCategoryAt(relativeIndex);
     return category ? category->GetName() : "Unavailable";
 }
 
@@ -247,7 +247,7 @@ MusicSelectionState MusicSelectionCursor::Enter()
             variantIndex = 0;
             return state;
         case MusicSelectionState::Music:
-            //‘I‹ÈI—¹
+            //é¸æ›²çµ‚äº†
             manager->manager->SetData<int>("Selected:Category", categoryIndex);
             manager->manager->SetData<int>("Selected:Music", musicIndex);
             manager->manager->SetData<int>("Selected:Variant", variantIndex);
@@ -282,24 +282,24 @@ MusicSelectionState MusicSelectionCursor::Start()
 MusicSelectionState MusicSelectionCursor::Next()
 {
     switch (state) {
-		case MusicSelectionState::Category: {
-			const auto categorySize = GetCategorySize();
-			if (categorySize <= 0) return MusicSelectionState::Error;
-			categoryIndex = (categoryIndex + 1) % categorySize;
-			break;
+        case MusicSelectionState::Category: {
+            const auto categorySize = GetCategorySize();
+            if (categorySize <= 0) return MusicSelectionState::Error;
+            categoryIndex = (categoryIndex + 1) % categorySize;
+            break;
 
-		}
-		case MusicSelectionState::Music: {
-			const auto musicSize = GetMusicSize(0);
-			if (musicSize <= 0) return MusicSelectionState::Error;
-			musicIndex = (musicIndex + 1) % musicSize;
-			const auto nextVariant = min(int32_t(variantIndex), GetVariantSize(0) - 1);
-			if (nextVariant < 0) return MusicSelectionState::Error;
-			variantIndex = uint16_t(nextVariant);
-			break;
-		}
-		default: break;
-	}
+        }
+        case MusicSelectionState::Music: {
+            const auto musicSize = GetMusicSize(0);
+            if (musicSize <= 0) return MusicSelectionState::Error;
+            musicIndex = (musicIndex + 1) % musicSize;
+            const auto nextVariant = min(int32_t(variantIndex), GetVariantSize(0) - 1);
+            if (nextVariant < 0) return MusicSelectionState::Error;
+            variantIndex = uint16_t(nextVariant);
+            break;
+        }
+        default: break;
+    }
     return MusicSelectionState::Success;
 }
 
@@ -307,20 +307,20 @@ MusicSelectionState MusicSelectionCursor::Previous()
 {
     switch (state) {
         case MusicSelectionState::Category: {
-			const auto categorySize = GetCategorySize();
-			if (categorySize <= 0) return MusicSelectionState::Error;
-			categoryIndex = (categoryIndex + categorySize - 1) % categorySize;
-			break;
+            const auto categorySize = GetCategorySize();
+            if (categorySize <= 0) return MusicSelectionState::Error;
+            categoryIndex = (categoryIndex + categorySize - 1) % categorySize;
+            break;
 
-		}
+        }
         case MusicSelectionState::Music: {
-			const auto musicSize = GetMusicSize(0);
-			if (musicSize <= 0) return MusicSelectionState::Error;
-			musicIndex = (musicIndex + musicSize - 1) % musicSize;
-			const auto nextVariant = min(int32_t(variantIndex), GetVariantSize(0) - 1);
-			if (nextVariant < 0) return MusicSelectionState::Error;
-			variantIndex = uint16_t(nextVariant);
-			break;
+            const auto musicSize = GetMusicSize(0);
+            if (musicSize <= 0) return MusicSelectionState::Error;
+            musicIndex = (musicIndex + musicSize - 1) % musicSize;
+            const auto nextVariant = min(int32_t(variantIndex), GetVariantSize(0) - 1);
+            if (nextVariant < 0) return MusicSelectionState::Error;
+            variantIndex = uint16_t(nextVariant);
+            break;
         }
         default: break;
     }
@@ -339,7 +339,7 @@ MusicSelectionState MusicSelectionCursor::NextVariant()
             break;
         }
         default: break;
-            
+
     }
     return MusicSelectionState::Success;
 }
@@ -350,9 +350,9 @@ MusicSelectionState MusicSelectionCursor::PreviousVariant()
         case MusicSelectionState::Category:
             return MusicSelectionState::Error;
         case MusicSelectionState::Music: {
-			const auto variantSize = GetVariantSize(0);
-			if (variantSize <= 0) return MusicSelectionState::Error;
-			variantIndex = (variantIndex + variantSize - 1) % variantSize;
+            const auto variantSize = GetVariantSize(0);
+            if (variantSize <= 0) return MusicSelectionState::Error;
+            variantIndex = (variantIndex + variantSize - 1) % variantSize;
         }
         default:
             return MusicSelectionState::Success;
@@ -364,18 +364,21 @@ MusicSelectionState MusicSelectionCursor::GetState() const
     return state;
 }
 
-int32_t MusicSelectionCursor::GetCategorySize() const {
-	return int32_t(manager->categories.size());
+int32_t MusicSelectionCursor::GetCategorySize() const
+{
+    return int32_t(manager->categories.size());
 }
 
-int32_t MusicSelectionCursor::GetMusicSize(int32_t relativeIndex) const {
-	const auto category = GetCategoryAt(relativeIndex);
-	return (category) ? int32_t(category->Musics.size()) : 0;
+int32_t MusicSelectionCursor::GetMusicSize(int32_t relativeIndex) const
+{
+    const auto category = GetCategoryAt(relativeIndex);
+    return (category) ? int32_t(category->Musics.size()) : 0;
 }
 
-int32_t MusicSelectionCursor::GetVariantSize(int32_t relativeIndex) const {
-	const auto music = GetMusicAt(relativeIndex);
-	return (music) ? int32_t(music->Scores.size()) : 0;
+int32_t MusicSelectionCursor::GetVariantSize(int32_t relativeIndex) const
+{
+    const auto music = GetMusicAt(relativeIndex);
+    return (music) ? int32_t(music->Scores.size()) : 0;
 }
 
 void MusicSelectionCursor::RegisterScriptInterface(asIScriptEngine *engine)
@@ -408,8 +411,8 @@ void MusicSelectionCursor::RegisterScriptInterface(asIScriptEngine *engine)
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, SU_IF_MSCSTATE " PreviousVariant()", asMETHOD(MusicSelectionCursor, PreviousVariant), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, SU_IF_MSCSTATE " Enter()", asMETHOD(MusicSelectionCursor, Enter), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_MSCURSOR, SU_IF_MSCSTATE " Exit()", asMETHOD(MusicSelectionCursor, Exit), asCALL_THISCALL);
-	engine->RegisterObjectMethod(SU_IF_MSCURSOR, SU_IF_MSCSTATE " GetState()", asMETHOD(MusicSelectionCursor, GetState), asCALL_THISCALL);
-	engine->RegisterObjectMethod(SU_IF_MSCURSOR, "int GetCategorySize()", asMETHOD(MusicSelectionCursor, GetCategorySize), asCALL_THISCALL);
-	engine->RegisterObjectMethod(SU_IF_MSCURSOR, "int GetMusicSize(int)", asMETHOD(MusicSelectionCursor, GetMusicSize), asCALL_THISCALL);
-	engine->RegisterObjectMethod(SU_IF_MSCURSOR, "int GetVariantSize(int)", asMETHOD(MusicSelectionCursor, GetVariantSize), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_MSCURSOR, SU_IF_MSCSTATE " GetState()", asMETHOD(MusicSelectionCursor, GetState), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_MSCURSOR, "int GetCategorySize()", asMETHOD(MusicSelectionCursor, GetCategorySize), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_MSCURSOR, "int GetMusicSize(int)", asMETHOD(MusicSelectionCursor, GetMusicSize), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_MSCURSOR, "int GetVariantSize(int)", asMETHOD(MusicSelectionCursor, GetVariantSize), asCALL_THISCALL);
 }

@@ -4,7 +4,7 @@
 
 using namespace std;
 using namespace crc32_constexpr;
-// ˆê”Ê
+// ä¸€èˆ¬
 
 void RegisterScriptSprite(ExecutionManager *exm)
 {
@@ -51,7 +51,6 @@ SSprite::SSprite()
 
 SSprite::~SSprite()
 {
-    // WriteDebugConsole("Destructing ScriptSprite\n");
     if (Image) Image->Release();
     Image = nullptr;
     delete mover;
@@ -88,13 +87,13 @@ void SSprite::Apply(const string & dict)
     mover->Apply(dict);
 }
 
-void SSprite::Apply(const CScriptDictionary &dict)
+void SSprite::Apply(const CScriptDictionary *dict)
 {
     using namespace crc32_constexpr;
     ostringstream aps;
 
-    auto i = dict.begin();
-    while (i != dict.end()) {
+    auto i = dict->begin();
+    while (i != dict->end()) {
         const auto key = i.GetKey();
         aps << key << ":";
         double dv = 0;
@@ -104,6 +103,8 @@ void SSprite::Apply(const CScriptDictionary &dict)
     }
 
     Apply(aps.str());
+
+    dict->Release();
 }
 
 void SSprite::Tick(const double delta)
@@ -138,14 +139,18 @@ void SSprite::DrawBy(const Transform2D &tf, const ColorTint &ct)
 
 SSprite * SSprite::Clone()
 {
-    //ƒRƒsƒRƒ“‚Å—Ç‚­‚È‚¢‚©‚±‚ê
+    //ã‚³ãƒ”ã‚³ãƒ³ã§è‰¯ããªã„ã‹ã“ã‚Œ
     auto clone = new SSprite();
     clone->AddRef();
+
     clone->CopyParameterFrom(this);
-    if (Image) {
-        Image->AddRef();
+
+    {
+        if(Image) Image->AddRef();
         clone->SetImage(Image);
     }
+
+    BOOST_ASSERT(clone->GetRefCount() == 1);
     return clone;
 }
 
@@ -153,14 +158,23 @@ SSprite *SSprite::Factory()
 {
     auto result = new SSprite();
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
 SSprite * SSprite::Factory(SImage * img)
 {
     auto result = new SSprite();
-    result->SetImage(img);
     result->AddRef();
+
+    {
+        if(img) img->AddRef();
+        result->SetImage(img);
+    }
+
+    if(img) img->Release();
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -319,12 +333,16 @@ void SShape::Draw(const Transform2D &parent, const ColorTint &color)
 
 SShape * SShape::Clone()
 {
-    //‚â‚Á‚Ï‚èƒRƒsƒRƒ“‚Å—Ç‚­‚È‚¢‚©‚±‚ê
+    //ã‚„ã£ã±ã‚Šã‚³ãƒ”ã‚³ãƒ³ã§è‰¯ããªã„ã‹ã“ã‚Œ
     auto clone = new SShape();
+    clone->AddRef();
+
     clone->CopyParameterFrom(this);
+
     clone->Width = Width;
     clone->Height = Height;
-    clone->AddRef();
+
+    BOOST_ASSERT(clone->GetRefCount() == 1);
     return clone;
 }
 
@@ -332,6 +350,8 @@ SShape * SShape::Factory()
 {
     auto result = new SShape();
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -467,11 +487,13 @@ void STextSprite::SetRich(const bool enabled)
     Refresh();
 }
 
-double STextSprite::GetWidth() {
+double STextSprite::GetWidth()
+{
     return get<0>(size);
 }
 
-double STextSprite::GetHeight() {
+double STextSprite::GetHeight()
+{
     return get<1>(size);
 }
 
@@ -512,17 +534,21 @@ void STextSprite::Draw(const Transform2D & parent, const ColorTint & color)
 
 STextSprite * STextSprite::Clone()
 {
-    //‚â‚Á‚Ï‚èƒRƒsƒRƒ“‚Å—Ç‚­‚È‚¢‚©‚±‚ê
+    //ã‚„ã£ã±ã‚Šã‚³ãƒ”ã‚³ãƒ³ã§è‰¯ããªã„ã‹ã“ã‚Œ
     auto clone = new STextSprite();
-    clone->CopyParameterFrom(this);
     clone->AddRef();
+
+    clone->CopyParameterFrom(this);
+
+    if (target) {
+        clone->SetText(Text);
+    }
     if (Font) {
         Font->AddRef();
         clone->SetFont(Font);
     }
-    if (target) {
-        clone->SetText(Text);
-    }
+
+    BOOST_ASSERT(clone->GetRefCount() == 1);
     return clone;
 }
 
@@ -530,15 +556,24 @@ STextSprite *STextSprite::Factory()
 {
     auto result = new STextSprite();
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
 STextSprite *STextSprite::Factory(SFont *img, const string &str)
 {
     auto result = new STextSprite();
-    result->SetFont(img);
-    result->SetText(str);
     result->AddRef();
+
+    result->SetText(str);
+    {
+        if(img) img->AddRef();
+        result->SetFont(img);
+    }
+
+    if (img) img->Release();
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -562,7 +597,7 @@ void STextSprite::RegisterType(asIScriptEngine *engine)
 
 STextInput::STextInput()
 {
-    //TODO: ƒfƒtƒHƒ‹ƒg’l‚Ìˆø”‰»
+    //TODO: ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆå€¤ã®å¼•æ•°åŒ–
     inputHandle = MakeKeyInput(1024, TRUE, FALSE, FALSE, FALSE, FALSE);
 }
 
@@ -664,9 +699,11 @@ void SSynthSprite::Clear()
 void SSynthSprite::Transfer(SSprite *sprite)
 {
     if (!sprite) return;
+
     BEGIN_DRAW_TRANSACTION(target->GetHandle());
     sprite->Draw();
     FINISH_DRAW_TRANSACTION;
+
     sprite->Release();
 }
 
@@ -674,11 +711,13 @@ void SSynthSprite::Transfer(SSprite *sprite)
 void SSynthSprite::Transfer(SImage * image, const double x, const double y)
 {
     if (!image) return;
+
     BEGIN_DRAW_TRANSACTION(target->GetHandle());
     SetDrawBright(255, 255, 255);
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
     DrawGraphF(x, y, image->GetHandle(), HasAlpha ? TRUE : FALSE);
     FINISH_DRAW_TRANSACTION;
+
     image->Release();
 }
 
@@ -697,19 +736,27 @@ void SSynthSprite::Draw(const Transform2D & parent, const ColorTint & color)
 SSynthSprite* SSynthSprite::Clone()
 {
     auto clone = new SSynthSprite(width, height);
-    clone->CopyParameterFrom(this);
     clone->AddRef();
+
+    clone->CopyParameterFrom(this);
+
     if (target) {
+        this->AddRef();
         clone->Transfer(this);
     }
+
+    BOOST_ASSERT(clone->GetRefCount() == 1);
     return clone;
 }
 
 SSynthSprite *SSynthSprite::Factory(const int w, const int h)
 {
     auto result = new SSynthSprite(w, h);
-    result->Clear();
     result->AddRef();
+
+    result->Clear();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -800,23 +847,32 @@ void SClippingSprite::Draw(const Transform2D & parent, const ColorTint & color)
 SClippingSprite *SClippingSprite::Clone()
 {
     auto clone = new SClippingSprite(width, height);
-    clone->CopyParameterFrom(this);
     clone->AddRef();
+
+    clone->CopyParameterFrom(this);
+
     if (target) {
+        this->AddRef();
         clone->Transfer(this);
     }
+
     clone->u1 = u1;
     clone->v1 = v1;
     clone->u2 = u2;
     clone->v2 = v2;
+
+    BOOST_ASSERT(clone->GetRefCount() == 1);
     return clone;
 }
 
 SClippingSprite *SClippingSprite::Factory(const int w, const int h)
 {
     auto result = new SClippingSprite(w, h);
-    result->Clear();
     result->AddRef();
+
+    result->Clear();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -853,7 +909,6 @@ void SAnimeSprite::DrawBy(const Transform2D &tf, const ColorTint &ct)
 SAnimeSprite::SAnimeSprite(SAnimatedImage * img)
 {
     images = img;
-    images->AddRef();
     loopCount = 1;
     count = 0;
     speed = 1;
@@ -881,17 +936,22 @@ void SAnimeSprite::Tick(const double delta)
 {
     time -= delta * speed;
     if (time > 0) return;
-    if(loopCount > 0 && ++count == loopCount) Dismiss();
+    if (loopCount > 0 && ++count == loopCount) Dismiss();
     time = images->GetCellTime() * images->GetFrameCount();
 }
 
 SAnimeSprite *SAnimeSprite::Clone()
 {
+    if (images) images->AddRef();
     auto clone = new SAnimeSprite(images);
-    clone->CopyParameterFrom(this);
     clone->AddRef();
+
+    clone->CopyParameterFrom(this);
+
     clone->loopCount = loopCount;
     clone->speed = speed;
+
+    BOOST_ASSERT(clone->GetRefCount() == 1);
     return clone;
 }
 
@@ -907,8 +967,12 @@ void SAnimeSprite::SetLoopCount(const int lc)
 
 SAnimeSprite * SAnimeSprite::Factory(SAnimatedImage *image)
 {
+    if (image) image->AddRef();
     auto result = new SAnimeSprite(image);
     result->AddRef();
+
+    if (image) image->Release();
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -965,10 +1029,12 @@ void SContainer::Draw(const Transform2D & parent, const ColorTint &color)
 SContainer *SContainer::Clone()
 {
     auto clone = new SContainer();
-    clone->CopyParameterFrom(this);
     clone->AddRef();
+
+    clone->CopyParameterFrom(this);
     for (const auto &s : children) if (s) clone->AddChild(s->Clone());
 
+    BOOST_ASSERT(clone->GetRefCount() == 1);
     return clone;
 }
 
@@ -976,6 +1042,8 @@ SContainer* SContainer::Factory()
 {
     auto result = new SContainer();
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 

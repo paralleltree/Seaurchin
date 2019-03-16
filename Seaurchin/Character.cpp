@@ -6,9 +6,8 @@
 
 using namespace std;
 
-CharacterManager::CharacterManager(ExecutionManager *exm)
+CharacterManager::CharacterManager()
 {
-    manager = exm;
     selected = -1;
 }
 
@@ -27,7 +26,7 @@ void CharacterManager::LoadAllCharacters()
         if (!ends_with(filename, ".toml")) continue;
         LoadFromToml(fdata.path());
     }
-    log->info(u8"ƒLƒƒƒ‰ƒNƒ^[‘”: {0:d}", characters.size());
+    log->info(u8"ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ç·æ•°: {0:d}", characters.size());
     selected = 0;
 }
 
@@ -65,7 +64,7 @@ CharacterImageSet* CharacterManager::CreateCharacterImages(const int relative)
 
 int32_t CharacterManager::GetSize() const
 {
-	return int32_t(characters.size());
+    return int32_t(characters.size());
 }
 
 
@@ -80,7 +79,7 @@ void CharacterManager::LoadFromToml(const boost::filesystem::path& file)
     auto pr = toml::parse(ifs);
     ifs.close();
     if (!pr.valid()) {
-        log->error(u8"ƒLƒƒƒ‰ƒNƒ^[ {0} ‚Í•s³‚Èƒtƒ@ƒCƒ‹‚Å‚·", ConvertUnicodeToUTF8(file.wstring()));
+        log->error(u8"ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ {0} ã¯ä¸æ­£ãªãƒ•ã‚¡ã‚¤ãƒ«ã§ã™", ConvertUnicodeToUTF8(file.wstring()));
         log->error(pr.errorReason);
         return;
     }
@@ -125,7 +124,7 @@ void CharacterManager::LoadFromToml(const boost::filesystem::path& file)
             result->Metric.FaceRange[3] = 128;
         }
     } catch (exception ex) {
-        log->error(u8"ƒLƒƒƒ‰ƒNƒ^[ {0} ‚Ì“Ç‚Ýž‚Ý‚ÉŽ¸”s‚µ‚Ü‚µ‚½", ConvertUnicodeToUTF8(file.wstring()));
+        log->error(u8"ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ {0} ã®èª­ã¿è¾¼ã¿ã«å¤±æ•—ã—ã¾ã—ãŸ", ConvertUnicodeToUTF8(file.wstring()));
         return;
     }
     characters.push_back(result);
@@ -231,11 +230,11 @@ void RegisterCharacterTypes(asIScriptEngine *engine)
     engine->RegisterObjectProperty(SU_IF_CHARACTER_PARAM, "string Name", asOFFSET(CharacterParameter, Name));
     engine->RegisterObjectProperty(SU_IF_CHARACTER_PARAM, "string ImagePath", asOFFSET(CharacterParameter, ImagePath));
     engine->RegisterObjectProperty(SU_IF_CHARACTER_PARAM, SU_IF_CHARACTER_METRIC " Metric", asOFFSET(CharacterParameter, Metric));
-    
+
     engine->RegisterObjectType(SU_IF_CHARACTER_MANAGER, 0, asOBJ_REF | asOBJ_NOCOUNT);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "void Next()", asMETHOD(CharacterManager, Next), asCALL_THISCALL);
-	engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "void Previous()", asMETHOD(CharacterManager, Previous), asCALL_THISCALL);
-	engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "int GetSize()", asMETHOD(CharacterManager, GetSize), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "void Previous()", asMETHOD(CharacterManager, Previous), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, "int GetSize()", asMETHOD(CharacterManager, GetSize), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, SU_IF_CHARACTER_PARAM "@ GetCharacter(int)", asMETHOD(CharacterManager, GetCharacterParameter), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_CHARACTER_MANAGER, SU_IF_CHARACTER_IMAGES "@ CreateCharacterImages(int)", asMETHOD(CharacterManager, CreateCharacterImages), asCALL_THISCALL);
 }
