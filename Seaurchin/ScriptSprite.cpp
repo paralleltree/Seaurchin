@@ -1,4 +1,4 @@
-#include "ScriptSprite.h"
+﻿#include "ScriptSprite.h"
 #include "ExecutionManager.h"
 #include "Misc.h"
 

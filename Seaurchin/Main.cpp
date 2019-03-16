@@ -1,4 +1,4 @@
-#include "Main.h"
+﻿#include "Main.h"
 #include "resource.h"
 #include "Debug.h"
 #include "Setting.h"

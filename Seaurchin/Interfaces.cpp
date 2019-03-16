@@ -1,4 +1,4 @@
-#include "Interfaces.h"
+﻿#include "Interfaces.h"
 
 #include "ExecutionManager.h"
 #include "ScriptFunction.h"

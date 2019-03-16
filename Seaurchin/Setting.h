@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #define SU_SETTING_GENERAL "General"
 #define SU_SETTING_SKIN "Skin"

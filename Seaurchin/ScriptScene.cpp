@@ -1,4 +1,4 @@
-#include "ScriptScene.h"
+﻿#include "ScriptScene.h"
 
 #include "Config.h"
 #include "ExecutionManager.h"

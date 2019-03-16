@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptResource.h"
 #include "SoundManager.h"
@@ -15,17 +15,18 @@ struct CoroutineWait {
         int64_t Frames;
     };
 
-    bool Tick(const double delta) {
+    bool Tick(const double delta)
+    {
         switch (Type) {
-        case WaitType::Frame:
-            if(Frames > 0) --Frames;
-            return Frames > 0;
-        case WaitType::Time:
-            if(Time > 0.0) Time -= delta;
-            return Time > 0.0;
-        default:
-            spdlog::get("main")->critical(u8"CoroutineWaitのステータスが不正です");
-            abort();
+            case WaitType::Frame:
+                if (Frames > 0) --Frames;
+                return Frames > 0;
+            case WaitType::Time:
+                if (Time > 0.0) Time -= delta;
+                return Time > 0.0;
+            default:
+                spdlog::get("main")->critical(u8"CoroutineWaitのステータスが不正です");
+                abort();
         }
     }
 };

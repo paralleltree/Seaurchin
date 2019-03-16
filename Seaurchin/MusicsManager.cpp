@@ -1,4 +1,4 @@
-#include "MusicsManager.h"
+﻿#include "MusicsManager.h"
 #include "ExecutionManager.h"
 #include "Config.h"
 #include "Misc.h"

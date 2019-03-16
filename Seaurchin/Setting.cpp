@@ -1,4 +1,4 @@
-#include "Setting.h"
+﻿#include "Setting.h"
 #include "Misc.h"
 
 using namespace std;

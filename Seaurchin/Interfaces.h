@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #define SU_IF_KEY "Key"
 #define SU_IF_SEVERITY "Severity"

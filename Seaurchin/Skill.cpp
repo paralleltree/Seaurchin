@@ -1,4 +1,4 @@
-#include "Skill.h"
+﻿#include "Skill.h"
 #include "Setting.h"
 #include "Misc.h"
 #include "ExecutionManager.h"

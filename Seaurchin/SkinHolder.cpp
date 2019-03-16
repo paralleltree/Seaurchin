@@ -1,4 +1,4 @@
-#include "SkinHolder.h"
+﻿#include "SkinHolder.h"
 #include "Setting.h"
 #include "ExecutionManager.h"
 #include "Config.h"

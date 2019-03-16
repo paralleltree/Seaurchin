@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #define ROOT_FILE(dir, fn) ((dir) + "/" + (fn))
 

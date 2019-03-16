@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #define SU_IF_DRESULT "DrawableResult"
 #define SU_IF_RESULT "Result"

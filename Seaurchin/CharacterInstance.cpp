@@ -1,4 +1,4 @@
-#include "CharacterInstance.h"
+﻿#include "CharacterInstance.h"
 #include "Misc.h"
 #include "Setting.h"
 #include "Config.h"

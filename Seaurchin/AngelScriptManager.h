@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 typedef std::function<bool(std::wstring, std::wstring, CWScriptBuilder*)> IncludeCallback;
 

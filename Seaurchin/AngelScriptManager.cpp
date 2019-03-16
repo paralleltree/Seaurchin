@@ -1,4 +1,4 @@
-#include "AngelScriptManager.h"
+﻿#include "AngelScriptManager.h"
 
 using namespace std;
 static int ScriptIncludeCallback(const wchar_t *include, const wchar_t *from, CWScriptBuilder *builder, void *userParam);

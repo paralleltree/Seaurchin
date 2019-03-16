@@ -1,4 +1,4 @@
-#include "Font.h"
+﻿#include "Font.h"
 #include "Config.h"
 #include "Misc.h"
 #include "Setting.h"

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AngelScriptManager.h"
 #include "Character.h"

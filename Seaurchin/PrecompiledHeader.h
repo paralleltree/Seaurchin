@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #if defined(_MSC_VER) && _MSC_VER <= 1900
 #define BOOST_LOCKFREE_FORCE_BOOST_ATOMIC

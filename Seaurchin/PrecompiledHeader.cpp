@@ -1,2 +1,2 @@
-//強制include
+﻿//強制include
 //#include "PrecompiledHeader.h"
