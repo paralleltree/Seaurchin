@@ -9,7 +9,7 @@ PlayableProcessor::PlayableProcessor(ScenePlayer *splayer)
     player = splayer;
     currentState = player->manager->GetControlStateSafe();
     SetJudgeWidths(0.033, 0.066, 0.084);
-    SetJudgeAdjusts(0, 1, 0, 1);
+    PlayableProcessor::SetJudgeAdjusts(0, 1, 0, 1);
 }
 
 PlayableProcessor::PlayableProcessor(ScenePlayer *splayer, const bool autoAir) : PlayableProcessor(splayer)
@@ -171,10 +171,10 @@ void PlayableProcessor::Draw()
     for (auto i = 0; i < 16; i++)
         if (currentState->GetCurrentState(ControllerSource::IntegratedSliders, i))
             DrawRectRotaGraph3F(
-                player->widthPerLane * i, player->laneBufferY,
+                SU_TO_FLOAT(player->widthPerLane * i), SU_TO_FLOAT(player->laneBufferY),
                 0, 0,
                 imageHoldLight->GetWidth(), imageHoldLight->GetHeight(),
-                0, imageHoldLight->GetHeight(),
+                0, SU_TO_FLOAT(imageHoldLight->GetHeight()),
                 1, 2, 0,
                 imageHoldLight->GetHandle(), TRUE, FALSE);
 }
@@ -435,8 +435,8 @@ bool PlayableProcessor::CheckSlideJudgement(const shared_ptr<SusDrawableNoteData
         }
         const auto center = glm::mix(get<1>(start), get<1>(next), (timeInBlock - get<0>(start)) / (get<0>(next) - get<0>(start))) * 16;
         const auto width = glm::mix(lastStep->Length, refNote->Length, timeInBlock / (refNote->StartTime - lastStep->StartTime));
-        left = floor(center - width / 2.0);
-        right = ceil(center + width / 2.0);
+        left = SU_TO_INT32(floor(center - width / 2.0));
+        right = SU_TO_INT32(ceil(center + width / 2.0));
         ostringstream ss;
         // ss << "Curve: " << left << ", " << right << endl;
         // WriteDebugConsole(ss.str().c_str());

@@ -1,3 +1,4 @@
+#include "Misc.h"
 #include "SoundManager.h"
 
 using namespace std;
@@ -27,11 +28,11 @@ void SoundSample::StopSound()
     BASS_SampleStop(hSample);
 }
 
-void SoundSample::SetVolume(const float vol)
+void SoundSample::SetVolume(const double vol)
 {
     BASS_SAMPLE si = { 0 };
     BASS_SampleGetInfo(hSample, &si);
-    si.volume = vol;
+    si.volume = SU_TO_FLOAT(vol);
     BASS_SampleSetInfo(hSample, &si);
 }
 
@@ -77,9 +78,9 @@ void SoundStream::StopSound()
     BASS_ChannelStop(hStream);
 }
 
-void SoundStream::SetVolume(const float vol)
+void SoundStream::SetVolume(const double vol)
 {
-    BASS_ChannelSetAttribute(hStream, BASS_ATTRIB_VOL, clamp(vol, 0.0f, 1.0f));
+    BASS_ChannelSetAttribute(hStream, BASS_ATTRIB_VOL, SU_TO_FLOAT(clamp(vol, 0.0f, 1.0f)));
 }
 
 void SoundStream::Pause() const
@@ -156,9 +157,9 @@ void SoundMixerStream::Stop(Sound *sound)
     //チャンネル削除はUpdateに任せる
 }
 
-void SoundMixerStream::SetVolume(const float vol) const
+void SoundMixerStream::SetVolume(const double vol) const
 {
-    BASS_ChannelSetAttribute(hMixerStream, BASS_ATTRIB_VOL, vol);
+    BASS_ChannelSetAttribute(hMixerStream, BASS_ATTRIB_VOL, SU_TO_FLOAT(vol));
 }
 
 // SoundManager -----------------------------

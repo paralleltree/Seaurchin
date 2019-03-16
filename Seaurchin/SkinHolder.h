@@ -31,13 +31,13 @@ public:
     void Terminate();
     asIScriptObject* ExecuteSkinScript(const std::wstring &file, bool forceReload = false);
     void LoadSkinImage(const std::string &key, const std::string &filename);
-    void LoadSkinImageFromMem(const std::string &key, void *buffer, const size_t size);
+    void LoadSkinImageFromMem(const std::string &key, void *buffer, size_t size);
     void LoadSkinFont(const std::string &key, const std::string &filename);
-    void LoadSkinFontFromMem(const std::string &key, void *buffer, const size_t size);
+    void LoadSkinFontFromMem(const std::string &key, void *buffer, size_t size);
     void LoadSkinSound(const std::string &key, const std::string &filename);
-    void LoadSkinSoundFromMem(const std::string &key, void *buffer, const size_t size);
+    void LoadSkinSoundFromMem(const std::string& key, const void* buffer, size_t size);
     void LoadSkinAnime(const std::string &key, const std::string &filename, int x, int y, int w, int h, int c, double time);
-    void LoadSkinAnimeFromMem(const std::string &key, void *buffer, const size_t size, int x, int y, int w, int h, int c, double time);
+    void LoadSkinAnimeFromMem(const std::string &key, void *buffer, size_t size, int x, int y, int w, int h, int c, double time);
     SImage* GetSkinImage(const std::string &key);
     SFont* GetSkinFont(const std::string &key);
     SSound* GetSkinSound(const std::string &key);

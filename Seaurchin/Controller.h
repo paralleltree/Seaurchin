@@ -26,17 +26,18 @@ class ControlState final {
 private:
     char keyboardCurrent[256];
     char keyboardLast[256];
-    char keyboardTrigger[256];
-    char integratedSliderCurrent[16];
-    char integratedSliderLast[16];
-    char integratedSliderTrigger[16];
-    char integratedAir[4];
+    bool keyboardTrigger[256];
+
+    bool integratedSliderCurrent[16];
+    bool integratedSliderLast[16];
+    bool integratedSliderTrigger[16];
+    bool integratedAir[4];
     std::vector<int> sliderKeyboardInputCombinations[16];
     uint32_t sliderKeyboardPrevious[16];
     uint32_t sliderKeyboardCurrent[16];
-    uint32_t sliderKeyboardTrigger[16];
+    bool sliderKeyboardTrigger[16];
     std::vector<int> airStringKeyboardInputCombinations[4];
-    uint32_t airStringKeyboard[4];
+    bool airStringKeyboard[4];
 
     bool isWacomDeviceAvailable = false;
     int *wacomDeviceIds = nullptr;

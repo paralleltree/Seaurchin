@@ -70,8 +70,22 @@ struct SusHispeedData {
     };
     const static double keepSpeed;
 
-    Visibility VisibilityState = Visibility::Visible;
-    double Speed = 1.0;
+    SusHispeedData()
+        : VisibilityState(Visibility::Visible)
+        , Speed(1.0)
+    {
+    }
+
+    SusHispeedData(
+        const Visibility visibilityState,
+        const double speed)
+        : VisibilityState(visibilityState)
+        , Speed(speed)
+    {
+    }
+
+    Visibility VisibilityState;
+    double Speed;
 
 };
 
@@ -211,7 +225,7 @@ private:
     static boost::xpressive::sregex regexSusCommand;
     static boost::xpressive::sregex regexSusData;
 
-    const double defaultBeats = 4.0;
+    const float defaultBeats = 4.0;
     const double defaultBpm = 120.0;
     const uint32_t defaultHispeedNumber = std::numeric_limits<uint32_t>::max();
     const uint32_t defaultExtraAttributeNumber = std::numeric_limits<uint32_t>::max();

@@ -1,5 +1,9 @@
 #pragma once
 
+#if defined(_MSC_VER) && _MSC_VER <= 1900
+#define BOOST_LOCKFREE_FORCE_BOOST_ATOMIC
+#endif
+
 #define _CRT_SECURE_NO_WARNINGS
 #define _USE_MATH_DEFINES
 #define _ENABLE_ATOMIC_ALIGNMENT_FIX

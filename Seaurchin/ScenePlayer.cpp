@@ -42,32 +42,33 @@ void RegisterPlayerScene(ExecutionManager * manager)
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "double GetLastNoteTime()", asMETHOD(ScenePlayer, GetLastNoteTime), asCALL_THISCALL);
 }
 
-namespace {
-    ScoreProcessor* CreateScoreProcessor(ExecutionManager *pMng, ScenePlayer *src)
-    {
-        if(pMng == nullptr) return nullptr;
+namespace
+{
+ScoreProcessor* CreateScoreProcessor(ExecutionManager *pMng, ScenePlayer *src)
+{
+    if (pMng == nullptr) return nullptr;
 
-        switch (pMng->GetData<int>("AutoPlay", 1)) {
+    switch (pMng->GetData<int>("AutoPlay", 1)) {
         case 0: return new PlayableProcessor(src);
         case 1: return new AutoPlayerProcessor(src);
         case 2: return new PlayableProcessor(src, true);
-        }
-
-        return nullptr;
+        default: return nullptr;
     }
+
+}
 }
 
 ScenePlayer::ScenePlayer(ExecutionManager *exm)
     : manager(exm)
+    , soundManager(manager->GetSoundManagerUnsafe())
     , judgeSoundQueue(32)
     , analyzer(make_unique<SusAnalyzer>(192))
-    , isLoadCompleted(false)
+    , processor(CreateScoreProcessor(exm, this))
+    , isLoadCompleted(false) // 若干危険ですけどね……
     , currentResult(new Result())
-    , processor(CreateScoreProcessor(exm, this)) // 若干危険ですけどね……
     , hispeedMultiplier(exm->GetSettingInstanceSafe()->ReadValue<double>("Play", "Hispeed", 6))
-    , airRollSpeed(manager->GetSettingInstanceSafe()->ReadValue<double>("Play", "AirRollMultiplier", 1.5))
     , soundBufferingLatency(manager->GetSettingInstanceSafe()->ReadValue<int>("Sound", "BufferLatency", 30) / 1000.0)
-    , soundManager(manager->GetSoundManagerUnsafe())
+    , airRollSpeed(manager->GetSettingInstanceSafe()->ReadValue<double>("Play", "AirRollMultiplier", 1.5))
 {
     judgeSoundThread = thread([this]() {
         ProcessSoundQueue();
@@ -580,7 +581,7 @@ void ScenePlayer::StoreResult() const
 
 double ScenePlayer::GetFirstNoteTime() const
 {
-    double time = DBL_MAX;
+    auto time = DBL_MAX;
     for (const auto &note : data) {
         if (note->Type.to_ulong() & SU_NOTE_SHORT_MASK) {
             if (note->StartTime < time) time = note->StartTime;
@@ -597,7 +598,7 @@ double ScenePlayer::GetFirstNoteTime() const
 
 double ScenePlayer::GetLastNoteTime() const
 {
-    double time = 0.0;
+    auto time = 0.0;
     for (const auto &note : data) {
         if (note->Type.to_ulong() & SU_NOTE_SHORT_MASK) {
             if (note->StartTime > time) time = note->StartTime;

@@ -2,11 +2,6 @@
 
 using namespace std;
 
-void ExecutionManager::ReloadMusic() const
-{
-    musics->Reload(true);
-}
-
 void ExecutionManager::Fire(const string & message)
 {
     for (auto &scene : scenes) scene->OnEvent(message);

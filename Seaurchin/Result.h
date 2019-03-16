@@ -47,7 +47,7 @@ public:
     void PerformJustice();
     void PerformAttack();
     void PerformMiss();
-    void BoostGaugeByValue(int value);
+    void BoostGaugeByValue(double value);
     void BoostGaugeJusticeCritical(double ratio);
     void BoostGaugeJustice(double ratio);
     void BoostGaugeAttack(double ratio);

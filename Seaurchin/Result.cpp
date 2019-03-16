@@ -1,3 +1,4 @@
+#include "Misc.h"
 #include "Result.h"
 
 void Result::SetAllNotes(const uint32_t hnotes)
@@ -55,7 +56,7 @@ void Result::PerformMiss()
     currentCombo = 0;
 }
 
-void Result::BoostGaugeByValue(const int value)
+void Result::BoostGaugeByValue(double value)
 {
     gaugeValue += value;
     gaugeBoostBySkill += value;
@@ -94,7 +95,7 @@ void Result::GetCurrentResult(DrawableResult *result) const
     result->Miss = miss;
     result->Combo = currentCombo;
     result->MaxCombo = maxCombo;
-    result->Score = round(currentScore);
+    result->Score = SU_TO_INT32(round(currentScore));
 
     result->Notes = notes;
     result->PastNotes = justiceCritical + justice + attack + miss;
@@ -136,7 +137,7 @@ void RegisterResultTypes(asIScriptEngine *engine)
     engine->RegisterObjectMethod(SU_IF_RESULT, "void PerformJustice()", asMETHOD(Result, PerformJustice), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_RESULT, "void PerformAttack()", asMETHOD(Result, PerformAttack), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_RESULT, "void PerformMiss()", asMETHOD(Result, PerformMiss), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_RESULT, "void BoostGaugeByValue(int)", asMETHOD(Result, BoostGaugeByValue), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_RESULT, "void BoostGaugeByValue(double)", asMETHOD(Result, BoostGaugeByValue), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_RESULT, "void BoostGaugeJusticeCritical(double)", asMETHOD(Result, BoostGaugeJusticeCritical), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_RESULT, "void BoostGaugeJustice(double)", asMETHOD(Result, BoostGaugeJustice), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_RESULT, "void BoostGaugeAttack(double)", asMETHOD(Result, BoostGaugeAttack), asCALL_THISCALL);

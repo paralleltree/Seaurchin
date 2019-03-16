@@ -1,13 +1,13 @@
 #pragma once
 
 struct Transform2D {
-    double X = 0.0;
-    double Y = 0.0;
-    double Angle = 0.0;
-    double OriginX = 0.0;
-    double OriginY = 0.0;
-    double ScaleX = 1.0;
-    double ScaleY = 1.0;
+    float X = 0.0f;
+    float Y = 0.0f;
+    float Angle = 0.0f;
+    float OriginX = 0.0f;
+    float OriginY = 0.0f;
+    float ScaleX = 1.0f;
+    float ScaleY = 1.0f;
     Transform2D ApplyFrom(const Transform2D &parent) const
     {
         Transform2D result;
@@ -28,12 +28,12 @@ struct Transform2D {
 };
 
 struct Transform3D {
-    double X = 0.0;
-    double Y = 0.0;
-    double Z = 0.0;
-    double AngleX = 0.0;
-    double AngleY = 0.0;
-    double AngleZ = 0.0;
+    float X = 0.0f;
+    float Y = 0.0f;
+    float Z = 0.0f;
+    float AngleX = 0.0f;
+    float AngleY = 0.0f;
+    float AngleZ = 0.0f;
 };
 
 struct ColorTint {

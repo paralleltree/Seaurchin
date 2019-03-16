@@ -16,6 +16,8 @@ public:
     void SetManager(ExecutionManager *info) { manager = info; }
     ExecutionManager* GetManager() const { return manager; }
 
+    virtual asIScriptFunction* GetMainMethod() { return nullptr; };
+
     virtual void Initialize();
     virtual void Tick(double delta);
     virtual void OnEvent(const std::string &message);
