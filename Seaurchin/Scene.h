@@ -24,4 +24,5 @@ public:
     virtual void Draw();
     virtual bool IsDead();
     virtual void Disappear();
+    virtual void Dispose();
 };

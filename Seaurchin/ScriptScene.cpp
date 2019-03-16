@@ -131,6 +131,19 @@ void ScriptScene::Disappear()
     finished = true;
 }
 
+void ScriptScene::Dispose()
+{
+    for (auto it = callbacks.begin(); it != callbacks.end(); ++it)         {
+        (*it)->Dispose();
+    }
+    callbacks.clear();
+}
+
+void ScriptScene::RegistDisposalCallback(CallbackObject *callback)
+{
+    callbacks.push_back(callback);
+}
+
 void ScriptScene::TickCoroutine(const double delta)
 {
     for (auto& coroutine : coroutinesPending) {

@@ -29,6 +29,8 @@ private:
     asIScriptFunction *function;
 };
 
+struct CallbackObject;
+
 class ScriptScene : public Scene {
     typedef Scene Base;
 protected:
@@ -40,6 +42,7 @@ protected:
     std::vector<SSprite*> spritesPending;
     std::list<Coroutine*> coroutines;
     std::list<Coroutine*> coroutinesPending;
+    std::vector<CallbackObject*> callbacks;
     bool finished = false;
 
     void TickCoroutine(double delta);
@@ -64,6 +67,9 @@ public:
     void Draw() override;
     bool IsDead() override;
     void Disappear() override;
+    void Dispose() override;
+
+    void RegistDisposalCallback(CallbackObject *callback);
 };
 
 class ScriptCoroutineScene : public ScriptScene {

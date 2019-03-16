@@ -30,3 +30,6 @@ bool Scene::IsDead()
 
 void Scene::Disappear()
 {}
+
+void Scene::Dispose()
+{}
