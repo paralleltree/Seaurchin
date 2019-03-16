@@ -172,8 +172,8 @@ SFont::~SFont()
 
 tuple<double, double, int> SFont::RenderRaw(SRenderTarget *rt, const string &utf8Str)
 {
-    double cx = 0, cy = 0;
-    double mx = 0;
+    uint32_t cx = 0, cy = 0;
+    uint32_t mx = 0;
     auto line = 1;
     if (rt) {
         BEGIN_DRAW_TRANSACTION(rt->GetHandle());
@@ -229,13 +229,13 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
 
     const bx::sregex cmd = bx::bos >> "${" >> (bx::s1 = -+bx::_w) >> "}";
     const bx::sregex cmdhex = bx::bos >> "${#" >> (bx::s1 = bx::repeat<2, 2>(bx::xdigit)) >> (bx::s2 = bx::repeat<2, 2>(bx::xdigit)) >> (bx::s3 = bx::repeat<2, 2>(bx::xdigit)) >> "}";
-    double cx = 0, cy = 0;
-    double mx = 0;
-    bool visible = true;
+    uint32_t cx = 0, cy = 0;
+    uint32_t mx = 0;
+    auto visible = true;
     auto line = 1;
 
     auto cr = defcol.R, cg = defcol.G, cb = defcol.B;
-    double cw = 1;
+    float cw = 1;
 
     if (rt) {
         BEGIN_DRAW_TRANSACTION(rt->GetHandle());
@@ -288,10 +288,10 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
                     cb = defcol.B;
                     break;
                 case "bold"_crc32:
-                    cw = 1.2;
+                    cw = 1.2f;
                     break;
                 case "normal"_crc32:
-                    cw = 1;
+                    cw = 1.0f;
                     break;
                 case "hide"_crc32:
                     visible = false;
@@ -336,7 +336,7 @@ tuple<double, double, int> SFont::RenderRich(SRenderTarget *rt, const string &ut
         if (rt) {
             SetDrawBright(cr, cg, cb);
             DrawRectRotaGraph3F(
-                cx + sg->BearX - (cw - 1.0) * 0.5 * sg->GlyphWidth, cy + sg->BearY,
+                SU_TO_FLOAT(cx + sg->BearX) - (cw - 1.0f) * 0.5f * sg->GlyphWidth, SU_TO_FLOAT(cy + sg->BearY),
                 sg->GlyphX, sg->GlyphY,
                 sg->GlyphWidth, sg->GlyphHeight,
                 0, 0,
@@ -373,9 +373,9 @@ SFont * SFont::CreateLoadedFontFromFile(const string & file)
 
     Sif2Header header;
     font.read(reinterpret_cast<char*>(&header), sizeof(Sif2Header));
-    result->size = header.FontSize;
+    result->size = SU_TO_INT32(header.FontSize);
 
-    for (auto i = 0; i < header.Glyphs; i++) {
+    for (auto i = 0u; i < header.Glyphs; i++) {
         const auto info = new Sif2Glyph();
         font.read(reinterpret_cast<char*>(info), sizeof(Sif2Glyph));
         result->glyphs[info->Codepoint] = info;
@@ -455,7 +455,7 @@ void SSound::SetLoop(const bool looping) const
     sample->SetLoop(looping);
 }
 
-void SSound::SetVolume(const float vol) const
+void SSound::SetVolume(const double vol) const
 {
     sample->SetVolume(vol);
 }
@@ -540,7 +540,7 @@ void RegisterScriptResource(ExecutionManager *exm)
     engine->RegisterObjectBehaviour(SU_IF_SOUND, asBEHAVE_ADDREF, "void f()", asMETHOD(SSound, AddRef), asCALL_THISCALL);
     engine->RegisterObjectBehaviour(SU_IF_SOUND, asBEHAVE_RELEASE, "void f()", asMETHOD(SSound, Release), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SOUND, "void SetLoop(bool)", asMETHOD(SSound, SetLoop), asCALL_THISCALL);
-    engine->RegisterObjectMethod(SU_IF_SOUND, "void SetVolume(float)", asMETHOD(SSound, SetVolume), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SOUND, "void SetVolume(double)", asMETHOD(SSound, SetVolume), asCALL_THISCALL);
 
     engine->RegisterObjectType(SU_IF_SOUNDMIXER, 0, asOBJ_REF);
     engine->RegisterObjectBehaviour(SU_IF_SOUNDMIXER, asBEHAVE_ADDREF, "void f()", asMETHOD(SSoundMixer, AddRef), asCALL_THISCALL);

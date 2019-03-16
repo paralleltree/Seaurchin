@@ -64,7 +64,7 @@
       <AdditionalIncludeDirectories>..\library\fmt;..\library\dxlib\include;..\library\angelscript\angelscript\include;..\library\angelscript\angelscript\add_on;..\library\boost;..\library\angelscript\add_on;..\library\freetype\include;..\library\libpng;..\library\bass24_mix\c;..\library\bass24_fx\c;..\library\bass24\c;..\library\wacom\addons\ofxWacomFeelMultiTouch\libs;..\library\zlib;..\library\spdlog\include;..\library\libvorbis\include;..\library\libogg\include;..\library\tinytoml\include;..\library\glm;..\library\libjpeg\Release;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>PrecompiledHeader.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>PrecompiledHeader.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalOptions>-Zm640 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm640 /utf-8 %(AdditionalOptions)</AdditionalOptions>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <DisableSpecificWarnings>4464;5045;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
@@ -92,7 +92,7 @@
       <AdditionalIncludeDirectories>..\library\fmt;..\library\dxlib\include;..\library\angelscript\angelscript\include;..\library\angelscript\angelscript\add_on;..\library\boost;..\library\angelscript\add_on;..\library\freetype\include;..\library\libpng;..\library\bass24_mix\c;..\library\bass24_fx\c;..\library\bass24\c;..\library\wacom\addons\ofxWacomFeelMultiTouch\libs;..\library\zlib;..\library\spdlog\include;..\library\libvorbis\include;..\library\libogg\include;..\library\tinytoml\include;..\library\glm;..\library\libjpeg\Release;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>PrecompiledHeader.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>PrecompiledHeader.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalOptions>-Zm640 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm640 /utf-8 %(AdditionalOptions)</AdditionalOptions>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <DisableSpecificWarnings>4464;5045;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <WarningVersion>

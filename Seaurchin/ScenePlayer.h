@@ -11,20 +11,20 @@
 
 #define SU_IF_SCENE_PLAYER "ScenePlayer"
 
-#define SU_LANE_X_MIN -400.0
-#define SU_LANE_X_MAX 400.0
-#define SU_LANE_X_MIN_EXT -1600.0
-#define SU_LANE_X_MAX_EXT 1600.0
-#define SU_LANE_Z_MIN_EXT -300.0
-#define SU_LANE_Z_MIN 0.0
-#define SU_LANE_Z_MAX 3000.0
-#define SU_LANE_Y_GROUND 0.0
-#define SU_LANE_Y_AIR 240.0
-#define SU_LANE_Y_AIRINDICATE 160.0
+#define SU_LANE_X_MIN -400.0f
+#define SU_LANE_X_MAX 400.0f
+#define SU_LANE_X_MIN_EXT -1600.0f
+#define SU_LANE_X_MAX_EXT 1600.0f
+#define SU_LANE_Z_MIN_EXT -300.0f
+#define SU_LANE_Z_MIN 0.0f
+#define SU_LANE_Z_MAX 3000.0f
+#define SU_LANE_Y_GROUND 0.0f
+#define SU_LANE_Y_AIR 240.0f
+#define SU_LANE_Y_AIRINDICATE 160.0f
 #define SU_LANE_ASPECT ((SU_LANE_Z_MAX - SU_LANE_Z_MIN) / (SU_LANE_X_MAX - SU_LANE_X_MIN))
 #define SU_LANE_ASPECT_EXT ((SU_LANE_Z_MAX - SU_LANE_Z_MIN_EXT) / (SU_LANE_X_MAX - SU_LANE_X_MIN))
-#define SU_LANE_NOTE_WIDTH 192.0
-#define SU_LANE_NOTE_HEIGHT 64.0
+#define SU_LANE_NOTE_WIDTH 192.0f
+#define SU_LANE_NOTE_HEIGHT 64.0f
 
 enum class JudgeType {
     ShortNormal = 0,
@@ -85,7 +85,7 @@ class ScenePlayer : public SSprite {
     friend class PlayableProcessor;
 
 protected:
-    int hGroundBuffer;
+    int hGroundBuffer{};
     ExecutionManager *manager;
     SoundManager * const soundManager; // soundManager のアドレスが不変、 soundManager の実体が持つ値は変わりうる
     boost::lockfree::queue<JudgeSoundType> judgeSoundQueue;
@@ -95,7 +95,7 @@ protected:
     std::multiset<SSprite*, SSprite::Comparator> sprites;
     std::vector<SSprite*> spritesPending;
 
-    SoundStream *bgmStream;
+    SoundStream *bgmStream{};
     ScoreProcessor * const processor; // processor のアドレスが不変、 processor の実体が持つ値は変わりうる
 
     // 状態管理変数
@@ -107,42 +107,42 @@ protected:
 
     // 描画関連定数
     double cameraZ = -340, cameraY = 620, cameraTargetZ = 580;  // カメラ位置 (スキンから設定可にしてるけどぶっちゃけconstで良い気がする)
-    const double laneBufferX = 1024;                            // 背景バッファ横幅
-    const double laneBufferY = laneBufferX * SU_LANE_ASPECT;    // 背景バッファ縦幅
+    const float laneBufferX = 1024.0f;                          // 背景バッファ横幅
+    const float laneBufferY = laneBufferX * SU_LANE_ASPECT;     // 背景バッファ縦幅
 #ifdef SU_ENABLE_BACKGROUND_ROLLING
     double laneBackgroundRoll = 0;                              // 背景ローリング量
     double laneBackgroundSpeed = 0;                             // 背景ローリング速度
 #endif
-    const double widthPerLane = laneBufferX / 16;               // 最小ノーツ幅
-    const double cullingLimit = SU_LANE_ASPECT_EXT / SU_LANE_ASPECT; // 判定線位置 (y座標)
-    const double noteImageBlockX = 64;                          // ショートノーツ描画単位 (幅)
-    const double noteImageBlockY = 64;                          // ショートノーツ描画単位 (高さ)
-    const double scaleNoteY = 2.0;                              // ショートノーツ高さ拡大率
-    const double actualNoteScaleX = (widthPerLane / 2) / noteImageBlockX;   // ショートノーツ実拡大率 (幅)
-    const double actualNoteScaleY = actualNoteScaleX * scaleNoteY;          // ショートノーツ実拡大率 (高さ)
+    const float widthPerLane = laneBufferX / 16;                // 最小ノーツ幅
+    const float cullingLimit = SU_LANE_ASPECT_EXT / SU_LANE_ASPECT; // 判定線位置 (y座標)
+    const float noteImageBlockX = 64.0f;                        // ショートノーツ描画単位 (幅)
+    const float noteImageBlockY = 64.0f;                        // ショートノーツ描画単位 (高さ)
+    const float scaleNoteY = 2.0f;                              // ショートノーツ高さ拡大率
+    const float actualNoteScaleX = (widthPerLane / 2) / noteImageBlockX;   // ショートノーツ実拡大率 (幅)
+    const float actualNoteScaleY = actualNoteScaleX * scaleNoteY;          // ショートノーツ実拡大率 (高さ)
 
     // リソースマップ SetPlayerResourceで初期化、Finalizeで破棄
     std::map<std::string, SResource*> resources;
 
     // 実リソース LoadResourcesでresourcesを用いて初期化する 実体はresourcesで管理するのでAddRefもReleaseもしない
-    SSound *soundTap, *soundExTap, *soundFlick, *soundAir, *soundAirDown, *soundAirAction, *soundAirLoop;
-    SSound *soundHoldLoop, *soundSlideLoop, *soundHoldStep, *soundSlideStep;
-    SSound *soundMetronome;
-    SImage *imageLaneGround, *imageLaneJudgeLine;
-    SImage *imageTap, *imageExTap, *imageFlick, *imageHellTap;
-    SImage *imageAir, *imageAirUp, *imageAirDown;
-    SImage *imageHold, *imageHoldStep, *imageHoldStrut;
-    SImage *imageSlide, *imageSlideStep, *imageSlideStrut;
-    SImage *imageAirAction;
-    SAnimatedImage *animeTap, *animeExTap, *animeSlideTap, *animeSlideLoop, *animeAirAction;
-    STextSprite *textCombo; // コンボ数フォント こいつだけLoadResourcesで自力で生成、Finalizeで自力で破棄する
-    double textScale;       // コンボ数フォント拡大率 textComboに設定したフォントサイズで計算し保持する
+    SSound *soundTap{}, *soundExTap{}, *soundFlick{}, *soundAir{}, *soundAirDown{}, *soundAirAction{}, *soundAirLoop{};
+    SSound *soundHoldLoop{}, *soundSlideLoop{}, *soundHoldStep{}, *soundSlideStep{};
+    SSound *soundMetronome{};
+    SImage *imageLaneGround{}, *imageLaneJudgeLine{};
+    SImage *imageTap{}, *imageExTap{}, *imageFlick{}, *imageHellTap{};
+    SImage *imageAir{}, *imageAirUp{}, *imageAirDown{};
+    SImage *imageHold{}, *imageHoldStep{}, *imageHoldStrut{};
+    SImage *imageSlide{}, *imageSlideStep{}, *imageSlideStrut{};
+    SImage *imageAirAction{};
+    SAnimatedImage *animeTap{}, *animeExTap{}, *animeSlideTap{}, *animeSlideLoop{}, *animeAirAction{};
+    STextSprite *textCombo{}; // コンボ数フォント こいつだけLoadResourcesで自力で生成、Finalizeで自力で破棄する
+    double textScale{};       // コンボ数フォント拡大率 textComboに設定したフォントサイズで計算し保持する
 
     // LoadResourcesで初期化 (設定ファイルから取得)
     unsigned int slideLineColor = GetColor(0, 200, 255);        // Slide中心線色
     unsigned int airActionJudgeColor = GetColor(128, 255, 160); // Air入力線色
-    bool showSlideLine, showAirActionJudge;                     // Slide中心線/Air入力線が有効でtrue
-    double slideLineThickness;                                  // Slide中心線太さ
+    bool showSlideLine{}, showAirActionJudge{};                     // Slide中心線/Air入力線が有効でtrue
+    double slideLineThickness{};                                  // Slide中心線太さ
 
     // 背景映像関係
     int movieBackground = 0;            // ハンドル
@@ -151,12 +151,12 @@ protected:
     std::wstring movieFileName = L"";   // ファイル名
 
     // Slide描画関係
-    int segmentsPerSecond;                  // Slide分解能
+    int segmentsPerSecond{};                  // Slide分解能
     std::vector<VERTEX2D> slideVertices;    // Slide描画用頂点座標配列 関数内ローカル変数で頻繁に生成,破棄されるのを嫌って宣言
     std::vector<uint16_t> slideIndices;     // Slide描画用頂点番号指定配列 同上
 
     const std::shared_ptr<Result> currentResult;
-    DrawableResult previousStatus, status;
+    DrawableResult previousStatus{}, status{};
 
     std::shared_ptr<CharacterInstance> currentCharacterInstance;
 

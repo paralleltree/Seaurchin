@@ -62,7 +62,7 @@ asIScriptObject *AngelScript::InstantiateObject(asITypeInfo * type) const
     const auto factory = type->GetFactoryByIndex(0);
     sharedContext->Prepare(factory);
     sharedContext->Execute();
-    auto ptr = *static_cast<asIScriptObject**>(sharedContext->GetAddressOfReturnValue());
+    const auto ptr = *static_cast<asIScriptObject**>(sharedContext->GetAddressOfReturnValue());
     ptr->AddRef();
     sharedContext->Unprepare();
 

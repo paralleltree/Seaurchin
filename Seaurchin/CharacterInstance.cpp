@@ -42,8 +42,8 @@ void CharacterInstance::LoadAbilities()
     auto log = spdlog::get("main");
     const auto abroot = Setting::GetRootDirectory() / SU_SKILL_DIR / SU_ABILITY_DIR;
 
-    const auto &Abilities = skillSource->GetDetail(skillSource->CurrentLevel).Abilities;
-    for (const auto &def : Abilities) {
+    const auto &abilities = skillSource->GetDetail(skillSource->CurrentLevel).Abilities;
+    for (const auto &def : abilities) {
         vector<string> params;
         auto scrpath = abroot / ConvertUTF8ToUnicode(def.Name + ".as");
 
@@ -58,7 +58,7 @@ void CharacterInstance::LoadAbilities()
         funcs.OnJustice = abt->GetMethodByDecl("void OnJustice(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
         funcs.OnAttack = abt->GetMethodByDecl("void OnAttack(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
         funcs.OnMiss = abt->GetMethodByDecl("void OnMiss(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
-        abilities.push_back(abo);
+        this->abilities.push_back(abo);
         abilityTypes.push_back(abt);
         abilityEvents.push_back(funcs);
 
