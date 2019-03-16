@@ -236,6 +236,10 @@ void ScenePlayer::CalculateNotes(double time, double duration, double preced)
         }
         return false;
     });
+    
+    sort(seenData.begin(), seenData.end(), [](const shared_ptr<SusDrawableNoteData> a, const shared_ptr<SusDrawableNoteData> b) {
+        return a->StartTime > b->StartTime;
+    });
     if (usePrioritySort) sort(seenData.begin(), seenData.end(), [](const shared_ptr<SusDrawableNoteData> a, const shared_ptr<SusDrawableNoteData> b) {
         return a->ExtraAttribute->Priority < b->ExtraAttribute->Priority;
     });
