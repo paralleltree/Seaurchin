@@ -20,7 +20,7 @@
 #define SU_IF_CONTAINER "Container"
 
 struct Mover;
-//Šî’ê‚ªImageSprite‚Å‚à‚¢‚¢‹C‚ª‚µ‚Ä‚é‚ñ‚¾‚æ‚Ë³’¼
+//åŸºåº•ãŒImageSpriteã§ã‚‚ã„ã„æ°—ãŒã—ã¦ã‚‹ã‚“ã ã‚ˆã­æ­£ç›´
 class SSprite {
 private:
     virtual void DrawBy(const Transform2D &tf, const ColorTint &ct);
@@ -32,13 +32,13 @@ protected:
     void CopyParameterFrom(SSprite *original);
 
 public:
-    //’l(CopyParameterFrom‚ÅˆêŠ‡)
+    //å€¤(CopyParameterFromã§ä¸€æ‹¬)
     Transform2D Transform;
     int32_t ZIndex = 0;
     ColorTint Color = Colors::white;
     bool IsDead = false;
     bool HasAlpha = true;
-    //ŽQÆ(Žè“®ƒRƒs[)
+    //å‚ç…§(æ‰‹å‹•ã‚³ãƒ”ãƒ¼)
     SImage *Image = nullptr;
     void SetImage(SImage *img);
     const SImage* GetImage() const;
@@ -47,6 +47,7 @@ public:
     virtual ~SSprite();
     void AddRef();
     void Release();
+    int GetRefCount() const { return reference; }
 
     virtual void Dismiss() { IsDead = true; }
     void Revive() { IsDead = false; }
@@ -54,7 +55,7 @@ public:
     void AddMove(const std::string &move) const;
     void AbortMove(bool terminate) const;
     void Apply(const std::string &dict);
-    void Apply(const CScriptDictionary &dict);
+    void Apply(const CScriptDictionary *dict);
     virtual void Tick(double delta);
     virtual void Draw();
     virtual void Draw(const Transform2D &parent, const ColorTint &color);
@@ -79,7 +80,7 @@ enum class SShapeType {
     OvalFill,
 };
 
-//”CˆÓ‚Ì‘½ŠpŒ`‚È‚Ç‚ð•\Ž¦‚Å‚«‚é
+//ä»»æ„ã®å¤šè§’å½¢ãªã©ã‚’è¡¨ç¤ºã§ãã‚‹
 class SShape : public SSprite {
 private:
     void DrawBy(const Transform2D &tf, const ColorTint &ct) override;
@@ -105,7 +106,7 @@ enum class STextAlign {
     Right = 2
 };
 
-//•¶Žš—ñ‚ðƒXƒvƒ‰ƒCƒg‚Æ‚µ‚Äˆµ‚¢‚Ü‚·
+//æ–‡å­—åˆ—ã‚’ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã¨ã—ã¦æ‰±ã„ã¾ã™
 class STextSprite : public SSprite {
 protected:
     SRenderTarget * target = nullptr;
@@ -146,8 +147,8 @@ public:
     static void RegisterType(asIScriptEngine *engine);
 };
 
-//•¶Žš“ü—Í‚ðˆµ‚¤ƒXƒvƒ‰ƒCƒg‚Å‚·
-//‘¼‚Æˆá‚Á‚ÄDXƒ‰ƒCƒuƒ‰ƒŠ‚ÌƒŠƒ\[ƒX‚ðƒiƒ}‚ÅŽæ“¾‚·‚é‚Ì‚Å‚ ‚ñ‚Ü‚èƒ{ƒRƒ{ƒRŽg‚í‚È‚¢‚Å‚­‚¾‚³‚¢B
+//æ–‡å­—å…¥åŠ›ã‚’æ‰±ã†ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã§ã™
+//ä»–ã¨é•ã£ã¦DXãƒ©ã‚¤ãƒ–ãƒ©ãƒªã®ãƒªã‚½ãƒ¼ã‚¹ã‚’ãƒŠãƒžã§å–å¾—ã™ã‚‹ã®ã§ã‚ã‚“ã¾ã‚Šãƒœã‚³ãƒœã‚³ä½¿ã‚ãªã„ã§ãã ã•ã„ã€‚
 class STextInput : public SSprite {
 protected:
     int inputHandle = 0;
@@ -172,7 +173,7 @@ public:
     static void RegisterType(asIScriptEngine *engine);
 };
 
-//‰æ‘œ‚ð”CˆÓ‚ÌƒXƒvƒ‰ƒCƒg‚©‚ç‡¬‚µ‚ÄƒEƒFƒC‚Å‚«‚Ü‚·
+//ç”»åƒã‚’ä»»æ„ã®ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‹ã‚‰åˆæˆã—ã¦ã‚¦ã‚§ã‚¤ã§ãã¾ã™
 class SSynthSprite : public SSprite {
 protected:
     SRenderTarget * target = nullptr;
@@ -197,7 +198,7 @@ public:
     static void RegisterType(asIScriptEngine *engine);
 };
 
-//‰æ‘œ‚ð”CˆÓ‚ÌƒXƒvƒ‰ƒCƒg‚©‚ç‡¬‚µ‚ÄƒEƒFƒC‚Å‚«‚Ü‚·
+//ç”»åƒã‚’ä»»æ„ã®ã‚¹ãƒ—ãƒ©ã‚¤ãƒˆã‹ã‚‰åˆæˆã—ã¦ã‚¦ã‚§ã‚¤ã§ãã¾ã™
 class SClippingSprite : public SSynthSprite {
 protected:
     double u1;
@@ -287,7 +288,7 @@ void RegisterSpriteBasic(asIScriptEngine *engine, const char *name)
     //engine->RegisterObjectMethod(name, SU_IF_IMAGE "@ get_Image()", asMETHOD(T, get_Image), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void Dismiss()", asMETHOD(T, Dismiss), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void Apply(const string &in)", asMETHODPR(T, Apply, (const std::string&), void), asCALL_THISCALL);
-    engine->RegisterObjectMethod(name, "void Apply(const dictionary@)", asMETHODPR(T, Apply, (const CScriptDictionary&), void), asCALL_THISCALL);
+    engine->RegisterObjectMethod(name, "void Apply(const dictionary@)", asMETHODPR(T, Apply, (const CScriptDictionary*), void), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void AddMove(const string &in)", asMETHOD(T, AddMove), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, "void AbortMove(bool = true)", asMETHOD(T, AbortMove), asCALL_THISCALL);
     engine->RegisterObjectMethod(name, (std::string(name) + "@ Clone()").c_str(), asMETHOD(T, Clone), asCALL_THISCALL);

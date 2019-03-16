@@ -1,4 +1,4 @@
-﻿#include "ScoreProcessor.h"
+#include "ScoreProcessor.h"
 #include "ExecutionManager.h"
 #include "ScenePlayer.h"
 

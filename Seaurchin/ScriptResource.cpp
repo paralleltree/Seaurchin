@@ -54,6 +54,8 @@ SImage * SImage::CreateBlankImage()
 {
     auto result = new SImage(0);
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -63,6 +65,8 @@ SImage * SImage::CreateLoadedImageFromFile(const string &file, const bool async)
     auto result = new SImage(LoadGraph(reinterpret_cast<const char*>(ConvertUTF8ToUnicode(file).c_str())));
     if (async) SetUseASyncLoadFlag(FALSE);
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -70,12 +74,15 @@ SImage * SImage::CreateLoadedImageFromMemory(void * buffer, const size_t size)
 {
     auto result = new SImage(CreateGraphFromMem(buffer, size));
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
 // SRenderTarget -----------------------------
 
-SRenderTarget::SRenderTarget(const int w, const int h) : SImage(0)
+SRenderTarget::SRenderTarget(const int w, const int h)
+    : SImage(0)
 {
     width = w;
     height = h;
@@ -86,11 +93,14 @@ SRenderTarget * SRenderTarget::CreateBlankTarget(const int w, const int h)
 {
     auto result = new SRenderTarget(w, h);
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
 // SNinePatchImage ----------------------------
-SNinePatchImage::SNinePatchImage(const int ih) : SImage(ih)
+SNinePatchImage::SNinePatchImage(const int ih)
+    : SImage(ih)
 {}
 
 SNinePatchImage::~SNinePatchImage()
@@ -110,7 +120,8 @@ void SNinePatchImage::SetArea(const int leftw, const int toph, const int bodyw, 
 
 // SAnimatedImage --------------------------------
 
-SAnimatedImage::SAnimatedImage(const int w, const int h, const int count, const double time) : SImage(0)
+SAnimatedImage::SAnimatedImage(const int w, const int h, const int count, const double time)
+    : SImage(0)
 {
     cellWidth = width = w;
     cellHeight = height = h;
@@ -126,18 +137,24 @@ SAnimatedImage::~SAnimatedImage()
 SAnimatedImage * SAnimatedImage::CreateLoadedImageFromFile(const std::string & file, const int xc, const int yc, const int w, const int h, const int count, const double time)
 {
     auto result = new SAnimatedImage(w, h, count, time);
+    result->AddRef();
+
     result->images.resize(count);
     LoadDivGraph(reinterpret_cast<const char*>(ConvertUTF8ToUnicode(file).c_str()), count, xc, yc, w, h, result->images.data());
-    result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
 SAnimatedImage * SAnimatedImage::CreateLoadedImageFromMemory(void * buffer, const size_t size, const int xc, const int yc, const int w, const int h, const int count, const double time)
 {
     auto result = new SAnimatedImage(w, h, count, time);
+    result->AddRef();
+
     result->images.resize(count);
     CreateDivGraphFromMem(buffer, size, count, xc, yc, w, h, result->images.data());
-    result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -343,12 +360,15 @@ SFont * SFont::CreateBlankFont()
 {
     auto result = new SFont();
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
 SFont * SFont::CreateLoadedFontFromFile(const string & file)
 {
     auto result = new SFont();
+    result->AddRef();
     ifstream font(ConvertUTF8ToUnicode(file), ios::in | ios::binary);
 
     Sif2Header header;
@@ -368,7 +388,8 @@ SFont * SFont::CreateLoadedFontFromFile(const string & file)
         result->Images.push_back(SImage::CreateLoadedImageFromMemory(pngdata, size));
         delete[] pngdata;
     }
-    result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -391,19 +412,29 @@ void SSoundMixer::Update() const
 
 void SSoundMixer::Play(SSound *sound) const
 {
+    if (!sound) return;
+
     mixer->Play(sound->sample);
+
+    sound->Release();
 }
 
 // ReSharper disable once CppMemberFunctionMayBeStatic
 void SSoundMixer::Stop(SSound *sound) const
 {
+    if (!sound) return;
+
     SoundMixerStream::Stop(sound->sample);
+
+    sound->Release();
 }
 
 SSoundMixer * SSoundMixer::CreateMixer(SoundManager * manager)
 {
     auto result = new SSoundMixer(SoundManager::CreateMixerStream());
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -433,6 +464,8 @@ SSound * SSound::CreateSound(SoundManager *smanager)
 {
     auto result = new SSound(nullptr);
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -441,14 +474,16 @@ SSound * SSound::CreateSoundFromFile(SoundManager *smanager, const std::string &
     const auto hs = SoundSample::CreateFromFile(ConvertUTF8ToUnicode(file), simul);
     auto result = new SSound(hs);
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
 // SSettingItem --------------------------------------------
 
-SSettingItem::SSettingItem(const shared_ptr<setting2::SettingItem> s) : setting(s)
+SSettingItem::SSettingItem(const shared_ptr<setting2::SettingItem> s)
+    : setting(s)
 {
-
 }
 
 SSettingItem::~SSettingItem()

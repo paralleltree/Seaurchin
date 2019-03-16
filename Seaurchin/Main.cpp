@@ -55,13 +55,13 @@ void PreInitialize(HINSTANCE hInstance)
 void Initialize()
 {
     if (DxLib_Init() == -1) abort();
-    logger->LogInfo(u8"DxLib‰Šú‰»OK");
+    logger->LogInfo(u8"DxLibåˆæœŸåŒ–OK");
 
-    //WndProc·‚µ‘Ö‚¦
+    //WndProcå·®ã—æ›¿ãˆ
     hDxlibWnd = GetMainWindowHandle();
     dxlibWndProc = WNDPROC(GetWindowLong(hDxlibWnd, GWL_WNDPROC));
     SetWindowLong(hDxlibWnd, GWL_WNDPROC, LONG(CustomWindowProc));
-    //D3Dİ’è
+    //D3Dè¨­å®š
     SetUseZBuffer3D(TRUE);
     SetWriteZBuffer3D(TRUE);
     SetDrawScreen(DX_SCREEN_BACK);
@@ -95,9 +95,9 @@ void Run()
 void Terminate()
 {
     manager->Shutdown();
-    manager = nullptr;
+    manager.reset(nullptr);
     setting->Save();
-    setting = nullptr;
+    setting.reset();
     DxLib_End();
     logger->Terminate();
 }

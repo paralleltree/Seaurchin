@@ -153,7 +153,7 @@ void SoundMixerStream::Play(Sound * sound)
 void SoundMixerStream::Stop(Sound *sound)
 {
     sound->StopSound();
-    //ƒ`ƒƒƒ“ƒlƒ‹íœ‚ÍUpdate‚É”C‚¹‚é
+    //ãƒãƒ£ãƒ³ãƒãƒ«å‰Šé™¤ã¯Updateã«ä»»ã›ã‚‹
 }
 
 void SoundMixerStream::SetVolume(const float vol) const
@@ -165,12 +165,12 @@ void SoundMixerStream::SetVolume(const float vol) const
 SoundManager::SoundManager()
 {
     auto log = spdlog::get("main");
-    //‚æ‚ë‚µ‚­‚È‚¢
+    //ã‚ˆã‚ã—ããªã„
     if (!BASS_Init(-1, 44100, 0, GetMainWindowHandle(), nullptr)) {
-        log->critical(u8"BASS Library‚Ì‰Šú‰»‚É¸”s‚µ‚Ü‚µ‚½");
+        log->critical(u8"BASS Libraryã®åˆæœŸåŒ–ã«å¤±æ•—ã—ã¾ã—ãŸ");
         abort();
     }
-    spdlog::get("main")->info(u8"BASS Library‰Šú‰»I—¹");
+    spdlog::get("main")->info(u8"BASS LibraryåˆæœŸåŒ–çµ‚äº†");
 }
 
 SoundManager::~SoundManager()

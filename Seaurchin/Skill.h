@@ -73,14 +73,13 @@ enum class AbilityJudgeType {
 
 class SkillManager final {
 private:
-    ExecutionManager *manager;
     std::vector<std::shared_ptr<SkillParameter>> skills;
     int selected;
 
     void LoadFromToml(boost::filesystem::path file);
 
 public:
-    explicit SkillManager(ExecutionManager *exm);
+    explicit SkillManager();
 
     void LoadAllSkills();
 

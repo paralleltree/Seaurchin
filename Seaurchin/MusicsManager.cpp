@@ -13,7 +13,6 @@ using namespace xpressive;
 MusicsManager::MusicsManager(ExecutionManager *exm)
 {
     manager = exm;
-    sharedSetting = manager->GetSettingInstanceSafe();
     analyzer = make_unique<SusAnalyzer>(192);
 }
 
@@ -66,7 +65,7 @@ void MusicsManager::CreateMusicCache()
             if (!is_directory(mdir)) continue;
             for (const auto& file : make_iterator_range(directory_iterator(mdir), {})) {
                 if (is_directory(file)) continue;
-                if (file.path().extension() != ".sus") continue;     //‚±‚ê‘å•¶Žš‚Ç‚¤‚·‚ñ‚Ì
+                if (file.path().extension() != ".sus") continue;     //ã“ã‚Œå¤§æ–‡å­—ã©ã†ã™ã‚“ã®
                 analyzer->Reset();
                 analyzer->LoadFromFile(file.path().wstring(), true);
                 auto music = find_if(category->Musics.begin(), category->Musics.end(), [&](const std::shared_ptr<MusicMetaInfo> info) {
@@ -103,6 +102,8 @@ MusicSelectionCursor *MusicsManager::CreateMusicSelectionCursor()
 {
     auto result = new MusicSelectionCursor(this);
     result->AddRef();
+
+    BOOST_ASSERT(result->GetRefCount() == 1);
     return result;
 }
 
@@ -246,7 +247,7 @@ MusicSelectionState MusicSelectionCursor::Enter()
             variantIndex = 0;
             return state;
         case MusicSelectionState::Music:
-            //‘I‹ÈI—¹
+            //é¸æ›²çµ‚äº†
             manager->manager->SetData<int>("Selected:Category", categoryIndex);
             manager->manager->SetData<int>("Selected:Music", musicIndex);
             manager->manager->SetData<int>("Selected:Variant", variantIndex);

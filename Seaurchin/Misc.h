@@ -3,7 +3,7 @@
 #define BEGIN_DRAW_TRANSACTION(h) SetDrawScreen(h)
 #define FINISH_DRAW_TRANSACTION SetDrawScreen(DX_SCREEN_BACK);
 
-// AngelScriptに登録した値型用の汎用処理アレ
+// AngelScript縺ｫ逋ｻ骭ｲ縺励◆蛟､蝙狗畑縺ｮ豎守畑蜃ｦ逅�繧｢繝ｬ
 
 template <typename T>
 void AngelScriptValueConstruct(void *address)

@@ -1,7 +1,7 @@
 #include "Scene.h"
 /*
 Scene
-ƒV[ƒ“‚¾‚æ
+ã‚·ãƒ¼ãƒ³ã ã‚ˆ
 
 */
 
@@ -27,3 +27,6 @@ bool Scene::IsDead()
 {
     return false;
 }
+
+void Scene::Disappear()
+{}

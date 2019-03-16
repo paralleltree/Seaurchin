@@ -4,7 +4,7 @@ typedef std::function<bool(std::wstring, std::wstring, CWScriptBuilder*)> Includ
 
 class AngelScript {
 private:
-    asIScriptEngine *engine;
+    asIScriptEngine * const engine;
     asIScriptContext *sharedContext;
     CWScriptBuilder builder;
     IncludeCallback includeFunc;
@@ -18,42 +18,42 @@ public:
     asIScriptEngine* GetEngine() const { return engine; }
     asIScriptContext* GetContext() const { return sharedContext; }
 
-    //V‚µ‚­Module‚·‚é
+    //æ–°ã—ãModuleã™ã‚‹
     void StartBuildModule(const std::string &name, IncludeCallback callback);
 
     asIScriptModule* GetExistModule(std::string name) const { return engine->GetModule(name.c_str()); }
 
-    //ƒtƒ@ƒCƒ‹“Ç‚İ‚İ
+    //ãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿
     void LoadFile(const std::wstring &filename);
 
-    //ŠO‚©‚çg‚í‚È‚¢‚Å
+    //å¤–ã‹ã‚‰ä½¿ã‚ãªã„ã§
     bool IncludeFile(const std::wstring &include, const std::wstring &from);
 
-    //ƒrƒ‹ƒh‚·‚é
+    //ãƒ“ãƒ«ãƒ‰ã™ã‚‹
     bool FinishBuildModule();
 
-    //Finish‚µ‚½Module‚ğæ“¾
+    //Finishã—ãŸModuleã‚’å–å¾—
     asIScriptModule* GetLastModule() { return builder.GetModule(); }
 
-    //“Á’èƒNƒ‰ƒX‚Éƒƒ^ƒf[ƒ^‚ª•t—^‚³‚ê‚Ä‚é‚©
+    //ç‰¹å®šã‚¯ãƒ©ã‚¹ã«ãƒ¡ã‚¿ãƒ‡ãƒ¼ã‚¿ãŒä»˜ä¸ã•ã‚Œã¦ã‚‹ã‹
     bool CheckMetaData(asITypeInfo *type, const std::string &meta);
 
-    //“Á’èƒOƒŠÖ‚É(ry
+    //ç‰¹å®šã‚°ãƒ­é–¢ã«(ry
     bool CheckMetaData(asIScriptFunction *type, const std::string &meta);
 
 
-    //À‘•‚ğƒ`ƒFƒbƒN
+    //å®Ÿè£…ã‚’ãƒã‚§ãƒƒã‚¯
     bool CheckImplementation(asITypeInfo *type, std::string name) const
     {
         return type->Implements(engine->GetTypeInfoByName(name.c_str()));
     }
 
-    //asITypeInfo‚©‚çƒCƒ“ƒXƒ^ƒ“ƒXì¬ ƒŠƒtƒ@ƒŒƒ“ƒX–³‚µ‚È‚Ì‚Å‚³‚Á‚³‚ÆAddRef‚µ‚ë
+    //asITypeInfoã‹ã‚‰ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ä½œæˆ ãƒªãƒ•ã‚¡ãƒ¬ãƒ³ã‚¹ç„¡ã—ãªã®ã§ã•ã£ã•ã¨AddRefã—ã‚
     asIScriptObject* InstantiateObject(asITypeInfo *type) const;
 };
 
-// ƒR[ƒ‹ƒoƒbƒN‚ğŠÇ—‚·‚é
-// ƒfƒXƒgƒ‰ƒNƒ^‚ÅŠJ•ú‚·‚é‚©‚çS”z‚¢‚ç‚È‚¢c‚Í‚¸
+// ã‚³ãƒ¼ãƒ«ãƒãƒƒã‚¯ã‚’ç®¡ç†ã™ã‚‹
+// ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã§é–‹æ”¾ã™ã‚‹ã‹ã‚‰å¿ƒé…ã„ã‚‰ãªã„â€¦ã¯ãš
 struct CallbackObject {
     asIScriptObject *Object;
     asIScriptFunction *Function;

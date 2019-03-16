@@ -23,6 +23,8 @@ ScenePlayer *ExecutionManager::CreatePlayer()
 {
     auto player = new ScenePlayer(this);
     player->AddRef();
+
+    BOOST_ASSERT(player->GetRefCount() == 1);
     return player;
 }
 
