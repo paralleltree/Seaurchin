@@ -574,7 +574,6 @@ void ScenePlayer::SetJudgeCallback(asIScriptFunction *func) const
 
     func->AddRef();
     currentCharacterInstance->SetCallback(func);
-
     func->Release();
 }
 

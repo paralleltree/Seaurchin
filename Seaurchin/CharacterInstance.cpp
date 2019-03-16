@@ -239,7 +239,6 @@ void CharacterInstance::SetCallback(asIScriptFunction *func)
 
     func->AddRef();
     judgeCallback = new CallbackObject(func);
-
     func->Release();
 }
 
