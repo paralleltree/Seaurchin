@@ -93,14 +93,14 @@ void ScenePlayer::LoadResources()
     for (auto i = 2; i < 4; i++) groundVertices[i].v = bufferV;
     hGroundBuffer = MakeScreen(SU_TO_INT32(laneBufferX), SU_TO_INT32(bufferY), TRUE);
 
-    if(fontCombo) fontCombo->AddRef();
+    if (fontCombo) fontCombo->AddRef();
     textCombo = STextSprite::Factory(fontCombo, "");
     textCombo->SetAlignment(STextAlign::Center, STextAlign::Center);
     if (fontCombo == nullptr) {
         textScale = 0.0;
     } else {
         const auto fontSize = fontCombo->GetSize();
-        textScale = 320.0 / ((fontSize <= 0.0)? 1.0 : fontSize);
+        textScale = 320.0 / ((fontSize <= 0.0) ? 1.0 : fontSize);
     }
     ostringstream app;
     app << setprecision(5);
@@ -544,11 +544,10 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
     }
 
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ノーツがAttack以上の判定*/)) {
-        DrawTap(slane, length, relpos, imageHold->GetHandle());
-    }
 
-    for (auto &ex : note->ExtraData) {
+    for (int i = note->ExtraData.size() - 1; i >= 0; --i) {
+        const auto &ex = note->ExtraData[i];
+
         if (ex->Type.test(size_t(SusNoteType::Injection))) continue;
         if (ex->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ノーツがAttack以上の判定*/) continue;
 
@@ -558,6 +557,9 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
         } else {
             DrawTap(slane, length, relendpos, imageHoldStep->GetHandle());
         }
+    }
+    if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ノーツがAttack以上の判定*/)) {
+        DrawTap(slane, length, relpos, imageHold->GetHandle());
     }
 }
 
@@ -817,10 +819,8 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 
     // Tap
     SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ノーツがAttack以上の判定*/)) {
-        DrawTap(note->StartLane, note->Length, 1.0 - note->ModifiedPosition / seenDuration, imageSlide->GetHandle());
-    }
-    for (auto &slideElement : note->ExtraData) {
+    for (int si = note->ExtraData.size() - 1; si >= 0; --si) {
+        const auto &slideElement = note->ExtraData[si];
         if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
         if (slideElement->Type.test(size_t(SusNoteType::Invisible))) continue;
@@ -834,6 +834,9 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
                 DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlideStep->GetHandle());
             }
         }
+    }
+    if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ノーツがAttack以上の判定*/)) {
+        DrawTap(note->StartLane, note->Length, 1.0 - note->ModifiedPosition / seenDuration, imageSlide->GetHandle());
     }
 }
 
