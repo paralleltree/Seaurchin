@@ -24,6 +24,7 @@
     - [Twitter @Amenoshita429](https://twitter.com/amenoshita_429)
     - [GitHub](https://github.com/amenoshita-429)
     - **Amenoshitaスキンの開発**
+    - **スキンメモリリークの解消(0.50.0)**
     - **不可視中継点問題の解決(0.44.0)**
     - **スキン機能の拡充、検証、実用**
     - **様々な(クリティカルな)バグ報告**

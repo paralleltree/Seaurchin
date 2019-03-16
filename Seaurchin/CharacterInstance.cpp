@@ -54,10 +54,10 @@ void CharacterInstance::LoadAbilities()
         AbilityFunctions funcs;
         funcs.OnStart = abt->GetMethodByDecl("void OnStart(" SU_IF_RESULT "@)");
         funcs.OnFinish = abt->GetMethodByDecl("void OnFinish(" SU_IF_RESULT "@)");
-        funcs.OnJusticeCritical = abt->GetMethodByDecl("void OnJusticeCritical(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
-        funcs.OnJustice = abt->GetMethodByDecl("void OnJustice(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
-        funcs.OnAttack = abt->GetMethodByDecl("void OnAttack(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
-        funcs.OnMiss = abt->GetMethodByDecl("void OnMiss(" SU_IF_RESULT "@, " SU_IF_NOTETYPE ")");
+        funcs.OnJusticeCritical = abt->GetMethodByDecl("void OnJusticeCritical(" SU_IF_RESULT "@, " SU_IF_JUDGE_DATA ")");
+        funcs.OnJustice = abt->GetMethodByDecl("void OnJustice(" SU_IF_RESULT "@, " SU_IF_JUDGE_DATA ")");
+        funcs.OnAttack = abt->GetMethodByDecl("void OnAttack(" SU_IF_RESULT "@, " SU_IF_JUDGE_DATA ")");
+        funcs.OnMiss = abt->GetMethodByDecl("void OnMiss(" SU_IF_RESULT "@, " SU_IF_JUDGE_DATA ")");
         this->abilities.push_back(abo);
         abilityTypes.push_back(abt);
         abilityEvents.push_back(funcs);
@@ -149,24 +149,26 @@ void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunctio
     context->Unprepare();
 }
 
-void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunction *func, AbilityNoteType type) const
+void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunction *func, const JudgeInformation &info) const
 {
+    auto infoClone = info;
     context->Prepare(func);
     context->SetObject(obj);
     context->SetArgAddress(0, targetResult.get());
-    context->SetArgDWord(1, asDWORD(type));
+    context->SetArgObject(1, static_cast<void*>(&infoClone));
     context->Execute();
     context->Unprepare();
 }
 
-void CharacterInstance::CallJudgeCallback(const AbilityJudgeType judge, const AbilityNoteType type, const string& extra) const
+void CharacterInstance::CallJudgeCallback(const AbilityJudgeType judge, const JudgeInformation &info, const string& extra) const
 {
     if (!judgeCallback) return;
     auto message = extra;
+    auto infoClone = info;
     judgeCallback->Context->Prepare(judgeCallback->Function);
     judgeCallback->Context->SetObject(judgeCallback->Object);
     judgeCallback->Context->SetArgDWord(0, asDWORD(judge));
-    judgeCallback->Context->SetArgDWord(1, asDWORD(type));
+    judgeCallback->Context->SetArgObject(1, static_cast<void*>(&infoClone));
     judgeCallback->Context->SetArgObject(2, static_cast<void*>(&message));
     judgeCallback->Context->Execute();
     judgeCallback->Context->Unprepare();
@@ -190,44 +192,44 @@ void CharacterInstance::OnFinish()
     }
 }
 
-void CharacterInstance::OnJusticeCritical(const AbilityNoteType type, const std::string& extra)
+void CharacterInstance::OnJusticeCritical(const JudgeInformation &info, const string& extra)
 {
     for (auto i = 0u; i < abilities.size(); ++i) {
         const auto func = abilityEvents[i].OnJusticeCritical;
         const auto obj = abilities[i];
-        CallEventFunction(obj, func, type);
+        CallEventFunction(obj, func, info);
     }
-    CallJudgeCallback(AbilityJudgeType::JusticeCritical, type, extra);
+    CallJudgeCallback(AbilityJudgeType::JusticeCritical, info, extra);
 }
 
-void CharacterInstance::OnJustice(const AbilityNoteType type, const std::string& extra)
+void CharacterInstance::OnJustice(const JudgeInformation &info, const string& extra)
 {
     for (auto i = 0u; i < abilities.size(); ++i) {
         const auto func = abilityEvents[i].OnJustice;
         const auto obj = abilities[i];
-        CallEventFunction(obj, func, type);
+        CallEventFunction(obj, func, info);
     }
-    CallJudgeCallback(AbilityJudgeType::Justice, type, extra);
+    CallJudgeCallback(AbilityJudgeType::Justice, info, extra);
 }
 
-void CharacterInstance::OnAttack(const AbilityNoteType type, const std::string& extra)
+void CharacterInstance::OnAttack(const JudgeInformation &info, const string& extra)
 {
     for (auto i = 0u; i < abilities.size(); ++i) {
         const auto func = abilityEvents[i].OnAttack;
         const auto obj = abilities[i];
-        CallEventFunction(obj, func, type);
+        CallEventFunction(obj, func, info);
     }
-    CallJudgeCallback(AbilityJudgeType::Attack, type, extra);
+    CallJudgeCallback(AbilityJudgeType::Attack, info, extra);
 }
 
-void CharacterInstance::OnMiss(const AbilityNoteType type, const std::string& extra)
+void CharacterInstance::OnMiss(const JudgeInformation &info, const string& extra)
 {
     for (auto i = 0u; i < abilities.size(); ++i) {
         const auto func = abilityEvents[i].OnMiss;
         const auto obj = abilities[i];
-        CallEventFunction(obj, func, type);
+        CallEventFunction(obj, func, info);
     }
-    CallJudgeCallback(AbilityJudgeType::Miss, type, extra);
+    CallJudgeCallback(AbilityJudgeType::Miss, info, extra);
 }
 
 void CharacterInstance::SetCallback(asIScriptFunction *func)
@@ -237,7 +239,6 @@ void CharacterInstance::SetCallback(asIScriptFunction *func)
 
     func->AddRef();
     judgeCallback = new CallbackObject(func);
-
     func->Release();
 }
 
@@ -268,7 +269,7 @@ void RegisterCharacterSkillTypes(asIScriptEngine *engine)
     RegisterSkillTypes(engine);
     RegisterCharacterTypes(engine);
 
-    engine->RegisterFuncdef("void " SU_IF_JUDGE_CALLBACK "(" SU_IF_JUDGETYPE ", " SU_IF_NOTETYPE ", const string &in)");
+    engine->RegisterFuncdef("void " SU_IF_JUDGE_CALLBACK "(" SU_IF_JUDGETYPE ", " SU_IF_JUDGE_DATA ", const string &in)");
     engine->RegisterObjectType(SU_IF_CHARACTER_INSTANCE, 0, asOBJ_REF);
     engine->RegisterObjectBehaviour(SU_IF_CHARACTER_INSTANCE, asBEHAVE_ADDREF, "void f()", asMETHOD(CharacterInstance, AddRef), asCALL_THISCALL);
     engine->RegisterObjectBehaviour(SU_IF_CHARACTER_INSTANCE, asBEHAVE_RELEASE, "void f()", asMETHOD(CharacterInstance, Release), asCALL_THISCALL);
