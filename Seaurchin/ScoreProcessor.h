@@ -4,6 +4,7 @@
 #include "Controller.h"
 #include "ScriptResource.h"
 #include "Skill.h"
+#include "CharacterInstance.h"
 
 enum class NoteAttribute {
     Invisible = 0,
@@ -51,11 +52,11 @@ protected:
     bool CheckAirActionJudgement(const std::shared_ptr<SusDrawableNoteData>& note) const;
     bool CheckHoldJudgement(const std::shared_ptr<SusDrawableNoteData>& note) const;
     bool CheckSlideJudgement(const std::shared_ptr<SusDrawableNoteData>& note) const;
-    void IncrementCombo(const std::shared_ptr<SusDrawableNoteData>& note, double reltime, AbilityNoteType type, const std::string& extra) const;
+    void IncrementCombo(const std::shared_ptr<SusDrawableNoteData>& note, double reltime, const JudgeInformation &info, const std::string& extra) const;
     void IncrementComboEx(const std::shared_ptr<SusDrawableNoteData>& note, const std::string& extra) const;
     void IncrementComboHell(const std::shared_ptr<SusDrawableNoteData>& note, int state, const std::string& extra) const;
-    void IncrementComboAir(const std::shared_ptr<SusDrawableNoteData>& note, double reltime, AbilityNoteType type, const std::string& extra) const;
-    void ResetCombo(const std::shared_ptr<SusDrawableNoteData>& note, AbilityNoteType type) const;
+    void IncrementComboAir(const std::shared_ptr<SusDrawableNoteData>& note, double reltime, const JudgeInformation &info, const std::string& extra) const;
+    void ResetCombo(const std::shared_ptr<SusDrawableNoteData>& note, const JudgeInformation &info) const;
 
 public:
     PlayableProcessor(ScenePlayer *player);
@@ -79,7 +80,7 @@ protected:
     bool wasInHold = false, wasInSlide = false, wasInAA = false;
 
     void ProcessScore(const std::shared_ptr<SusDrawableNoteData>& notes);
-    void IncrementCombo(AbilityNoteType type, const std::string& extra) const;
+    void IncrementCombo(const JudgeInformation &info, const std::string& extra) const;
 
 public:
     AutoPlayerProcessor(ScenePlayer *player);

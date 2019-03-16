@@ -9,6 +9,7 @@
 #define SU_IF_SKILL_CALLBACK "SkillCallback"
 #define SU_IF_NOTETYPE "NoteType"
 #define SU_IF_JUDGETYPE "JudgeType"
+#define SU_IF_JUDGE_DATA "JudgeData"
 
 class ExecutionManager;
 

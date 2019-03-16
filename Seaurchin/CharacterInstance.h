@@ -21,6 +21,12 @@ struct AbilityFunctions {
     asIScriptFunction *OnMiss = nullptr;
 };
 
+struct JudgeInformation {
+    AbilityNoteType Note;
+    double Left;
+    double Right;
+};
+
 class CharacterInstance final {
 private:
     int reference = 0;
@@ -44,8 +50,8 @@ private:
     asIScriptObject* LoadAbilityObject(const boost::filesystem::path& filepath);
 
     void CallEventFunction(asIScriptObject *obj, asIScriptFunction* func) const;
-    void CallEventFunction(asIScriptObject *obj, asIScriptFunction* func, AbilityNoteType type) const;
-    void CallJudgeCallback(AbilityJudgeType judge, AbilityNoteType type, const std::string& extra) const;
+    void CallEventFunction(asIScriptObject *obj, asIScriptFunction* func, const JudgeInformation &info) const;
+    void CallJudgeCallback(AbilityJudgeType judge, const JudgeInformation &info, const std::string& extra) const;
 
 public:
     void AddRef() { reference++; }
@@ -58,10 +64,10 @@ public:
 
     void OnStart();
     void OnFinish();
-    void OnJusticeCritical(AbilityNoteType type, const std::string& extra);
-    void OnJustice(AbilityNoteType type, const std::string& extra);
-    void OnAttack(AbilityNoteType type, const std::string& extra);
-    void OnMiss(AbilityNoteType type, const std::string& extra);
+    void OnJusticeCritical(const JudgeInformation &info, const std::string& extra);
+    void OnJustice(const JudgeInformation &info, const std::string& extra);
+    void OnAttack(const JudgeInformation &info, const std::string& extra);
+    void OnMiss(const JudgeInformation &info, const std::string& extra);
     void SetCallback(asIScriptFunction *func);
 
     CharacterParameter* GetCharacterParameter() const;
