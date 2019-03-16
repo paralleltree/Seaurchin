@@ -32,11 +32,17 @@ ExecutionManager::ExecutionManager(const shared_ptr<Setting>& setting)
     , musics(new MusicsManager(this)) // this渡すの怖いけどMusicsManagerのコンストラクタ内で逆参照してないから多分セーフ
     , characters(new CharacterManager())
     , skills(new SkillManager())
-    , random(new mt19937(random_device()()))
     , extensions(new ExtensionManager())
+    , random(new mt19937(random_device()()))
     , sharedControlState(new ControlState)
-{
-}
+    , lastResult()
+    , hImc(nullptr)
+    , hCommunicationPipe(nullptr)
+    , immConversion(0)
+    , immSentence(0)
+    , mixerBgm(nullptr)
+    , mixerSe(nullptr)
+{}
 
 void ExecutionManager::Initialize()
 {
@@ -152,7 +158,6 @@ void ExecutionManager::RegisterGlobalManagementFunction()
     engine->RegisterGlobalFunction("bool Execute(const string &in)", asMETHODPR(ExecutionManager, ExecuteSkin, (const string&), bool), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("bool ExecuteScene(" SU_IF_SCENE "@)", asMETHODPR(ExecutionManager, ExecuteScene, (asIScriptObject*), bool), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction("bool ExecuteScene(" SU_IF_COSCENE "@)", asMETHODPR(ExecutionManager, ExecuteScene, (asIScriptObject*), bool), asCALL_THISCALL_ASGLOBAL, this);
-    engine->RegisterGlobalFunction("void ReloadMusic()", asMETHOD(ExecutionManager, ReloadMusic), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterGlobalFunction(SU_IF_SOUNDMIXER "@ GetDefaultMixer(const string &in)", asMETHOD(ExecutionManager, GetDefaultMixer), asCALL_THISCALL_ASGLOBAL, this);
     engine->RegisterObjectBehaviour(SU_IF_MSCURSOR, asBEHAVE_FACTORY, SU_IF_MSCURSOR "@ f()", asMETHOD(MusicsManager, CreateMusicSelectionCursor), asCALL_THISCALL_ASGLOBAL, musics.get());
     engine->RegisterObjectBehaviour(SU_IF_SCENE_PLAYER, asBEHAVE_FACTORY, SU_IF_SCENE_PLAYER "@ f()", asMETHOD(ExecutionManager, CreatePlayer), asCALL_THISCALL_ASGLOBAL, this);
@@ -298,6 +303,7 @@ void ExecutionManager::Tick(const double delta)
     while (i != scenes.end()) {
         (*i)->Tick(delta);
         if ((*i)->IsDead()) {
+            (*i)->Dispose();
             i = scenes.erase(i);
         } else {
             ++i;

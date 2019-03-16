@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Config.h"
 #include "Scene.h"
 #include "ScriptSprite.h"
 #include "ScriptFunction.h"
@@ -8,14 +9,27 @@
 #define SU_IF_COSCENE "CoroutineScene"
 #define SU_IF_COROUTINE "Coroutine"
 
-typedef struct {
+class Coroutine {
+public:
+    Coroutine(const std::string &name, const asIScriptFunction* cofunc, asIScriptEngine* engine);
+    ~Coroutine();
+
+    asIScriptContext* GetContext() const { return context; }
+    void SetSceneInstance(Scene* scene) { context->SetUserData(scene, SU_UDTYPE_SCENE); }
+    int Execute() { return context->Execute(); }
+
+public:
     std::string Name;
-    void *Object;
-    asIScriptContext *Context;
-    asITypeInfo *Type;
-    asIScriptFunction *Function;
     CoroutineWait Wait;
-} Coroutine;
+
+private:
+    asIScriptContext *context;
+    void *object;
+    asITypeInfo *type;
+    asIScriptFunction *function;
+};
+
+struct CallbackObject;
 
 class ScriptScene : public Scene {
     typedef Scene Base;
@@ -28,6 +42,7 @@ protected:
     std::vector<SSprite*> spritesPending;
     std::list<Coroutine*> coroutines;
     std::list<Coroutine*> coroutinesPending;
+    std::vector<CallbackObject*> callbacks;
     bool finished = false;
 
     void TickCoroutine(double delta);
@@ -38,31 +53,37 @@ public:
     ScriptScene(asIScriptObject *scene);
     virtual ~ScriptScene();
 
+    asIScriptObject* GetSceneObject() const { return sceneObject; }
+    asITypeInfo* GetSceneType() const { return sceneType; }
+    asIScriptFunction* GetMainMethod() override;
+
     void Initialize() override;
 
     void AddSprite(SSprite *sprite);
     void AddCoroutine(Coroutine *co);
+    void KillCoroutine(const std::string &name);
     void Tick(double delta) override;
     void OnEvent(const std::string &message) override;
     void Draw() override;
     bool IsDead() override;
     void Disappear() override;
+    void Dispose() override;
 
-    friend void ScriptSceneKillCoroutine(const std::string &name);
+    void RegistDisposalCallback(CallbackObject *callback);
 };
 
 class ScriptCoroutineScene : public ScriptScene {
     typedef ScriptScene Base;
 protected:
-    asIScriptContext *runningContext;
     CoroutineWait wait;
 
 public:
     ScriptCoroutineScene(asIScriptObject *scene);
     virtual ~ScriptCoroutineScene();
 
+    asIScriptFunction* GetMainMethod() override;
+
     void Tick(double delta) override;
-    void Initialize() override;
 };
 
 class ExecutionManager;
@@ -72,7 +93,6 @@ int ScriptSceneGetIndex();
 void ScriptSceneSetIndex(int index);
 bool ScriptSceneIsKeyHeld(int keynum);
 bool ScriptSceneIsKeyTriggered(int keynum);
-void ScriptSceneAddScene(asIScriptObject *sceneObject);
 void ScriptSceneAddSprite(SSprite *sprite);
 void ScriptSceneRunCoroutine(asIScriptFunction *cofunc, const std::string &name);
 void ScriptSceneKillCoroutine(const std::string &name);

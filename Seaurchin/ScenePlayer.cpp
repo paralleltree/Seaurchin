@@ -13,6 +13,12 @@ void RegisterPlayerScene(ExecutionManager * manager)
 {
     auto engine = manager->GetScriptInterfaceUnsafe()->GetEngine();
 
+    engine->RegisterObjectType(SU_IF_SCENE_PLAYER_METRICS, sizeof(ScenePlayerMetrics), asOBJ_VALUE | asOBJ_POD | asGetTypeTraits<ScenePlayerMetrics>());
+    engine->RegisterObjectProperty(SU_IF_SCENE_PLAYER_METRICS, "double JudgeLineLeftX", asOFFSET(ScenePlayerMetrics, JudgeLineLeftX));
+    engine->RegisterObjectProperty(SU_IF_SCENE_PLAYER_METRICS, "double JudgeLineLeftY", asOFFSET(ScenePlayerMetrics, JudgeLineLeftY));
+    engine->RegisterObjectProperty(SU_IF_SCENE_PLAYER_METRICS, "double JudgeLineRightX", asOFFSET(ScenePlayerMetrics, JudgeLineRightX));
+    engine->RegisterObjectProperty(SU_IF_SCENE_PLAYER_METRICS, "double JudgeLineRightY", asOFFSET(ScenePlayerMetrics, JudgeLineRightY));
+
     engine->RegisterObjectType(SU_IF_SCENE_PLAYER, 0, asOBJ_REF);
     engine->RegisterObjectBehaviour(SU_IF_SCENE_PLAYER, asBEHAVE_ADDREF, "void f()", asMETHOD(ScenePlayer, AddRef), asCALL_THISCALL);
     engine->RegisterObjectBehaviour(SU_IF_SCENE_PLAYER, asBEHAVE_RELEASE, "void f()", asMETHOD(ScenePlayer, Release), asCALL_THISCALL);
@@ -21,6 +27,7 @@ void RegisterPlayerScene(ExecutionManager * manager)
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, SU_IF_SPRITE "@ opImplCast()", asFUNCTION((CastReferenceType<ScenePlayer, SSprite>)), asCALL_CDECL_OBJLAST);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void Initialize()", asMETHOD(ScenePlayer, Initialize), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void AdjustCamera(double, double, double)", asMETHOD(ScenePlayer, AdjustCamera), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void GetMetrics(" SU_IF_SCENE_PLAYER_METRICS " &out)", asMETHOD(ScenePlayer, GetMetrics), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void SetResource(const string &in, " SU_IF_IMAGE "@)", asMETHOD(ScenePlayer, SetPlayerResource), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void SetResource(const string &in, " SU_IF_FONT "@)", asMETHOD(ScenePlayer, SetPlayerResource), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void SetResource(const string &in, " SU_IF_SOUND "@)", asMETHOD(ScenePlayer, SetPlayerResource), asCALL_THISCALL);
@@ -42,32 +49,33 @@ void RegisterPlayerScene(ExecutionManager * manager)
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "double GetLastNoteTime()", asMETHOD(ScenePlayer, GetLastNoteTime), asCALL_THISCALL);
 }
 
-namespace {
-    ScoreProcessor* CreateScoreProcessor(ExecutionManager *pMng, ScenePlayer *src)
-    {
-        if(pMng == nullptr) return nullptr;
+namespace
+{
+ScoreProcessor* CreateScoreProcessor(ExecutionManager *pMng, ScenePlayer *src)
+{
+    if (pMng == nullptr) return nullptr;
 
-        switch (pMng->GetData<int>("AutoPlay", 1)) {
+    switch (pMng->GetData<int>("AutoPlay", 1)) {
         case 0: return new PlayableProcessor(src);
         case 1: return new AutoPlayerProcessor(src);
         case 2: return new PlayableProcessor(src, true);
-        }
-
-        return nullptr;
+        default: return nullptr;
     }
+
+}
 }
 
 ScenePlayer::ScenePlayer(ExecutionManager *exm)
     : manager(exm)
+    , soundManager(manager->GetSoundManagerUnsafe())
     , judgeSoundQueue(32)
     , analyzer(make_unique<SusAnalyzer>(192))
-    , isLoadCompleted(false)
+    , processor(CreateScoreProcessor(exm, this))
+    , isLoadCompleted(false) // 若干危険ですけどね……
     , currentResult(new Result())
-    , processor(CreateScoreProcessor(exm, this)) // 若干危険ですけどね……
     , hispeedMultiplier(exm->GetSettingInstanceSafe()->ReadValue<double>("Play", "Hispeed", 6))
-    , airRollSpeed(manager->GetSettingInstanceSafe()->ReadValue<double>("Play", "AirRollMultiplier", 1.5))
     , soundBufferingLatency(manager->GetSettingInstanceSafe()->ReadValue<int>("Sound", "BufferLatency", 30) / 1000.0)
-    , soundManager(manager->GetSoundManagerUnsafe())
+    , airRollSpeed(manager->GetSettingInstanceSafe()->ReadValue<double>("Play", "AirRollMultiplier", 1.5))
 {
     judgeSoundThread = thread([this]() {
         ProcessSoundQueue();
@@ -234,6 +242,10 @@ void ScenePlayer::CalculateNotes(double time, double duration, double preced)
             return get<0>(st);
         }
         return false;
+    });
+
+    sort(seenData.begin(), seenData.end(), [](const shared_ptr<SusDrawableNoteData> a, const shared_ptr<SusDrawableNoteData> b) {
+        return a->StartTime > b->StartTime;
     });
     if (usePrioritySort) sort(seenData.begin(), seenData.end(), [](const shared_ptr<SusDrawableNoteData> a, const shared_ptr<SusDrawableNoteData> b) {
         return a->ExtraAttribute->Priority < b->ExtraAttribute->Priority;
@@ -560,9 +572,19 @@ void ScenePlayer::SetJudgeCallback(asIScriptFunction *func) const
 {
     if (!currentCharacterInstance) return;
 
-    func->AddRef();
-    currentCharacterInstance->SetCallback(func);
+    asIScriptContext *ctx = asGetActiveContext();
+    if (!ctx) return;
 
+    void *p = ctx->GetUserData(SU_UDTYPE_SCENE);
+    ScriptScene* sceneObj = static_cast<ScriptScene*>(p);
+
+    if (!sceneObj) {
+        ScriptSceneWarnOutOf("SetJudgeCallback", "Scene Class", ctx);
+        return;
+    }
+
+    func->AddRef();
+    currentCharacterInstance->SetCallback(func, sceneObj);
     func->Release();
 }
 
@@ -573,6 +595,16 @@ void ScenePlayer::AdjustCamera(const double cy, const double cz, const double ct
     cameraTargetZ += ctz;
 }
 
+void ScenePlayer::GetMetrics(ScenePlayerMetrics *metrics)
+{
+    const auto left = ConvWorldPosToScreenPosD({ SU_LANE_X_MIN, SU_LANE_Y_GROUND, SU_LANE_Z_MIN });
+    const auto right = ConvWorldPosToScreenPosD({ SU_LANE_X_MAX, SU_LANE_Y_GROUND, SU_LANE_Z_MIN });
+    metrics->JudgeLineLeftX = left.x;
+    metrics->JudgeLineLeftY = left.y;
+    metrics->JudgeLineRightX = right.x;
+    metrics->JudgeLineRightY = right.y;
+}
+
 void ScenePlayer::StoreResult() const
 {
     currentResult->GetCurrentResult(&manager->lastResult);
@@ -580,7 +612,7 @@ void ScenePlayer::StoreResult() const
 
 double ScenePlayer::GetFirstNoteTime() const
 {
-    double time = DBL_MAX;
+    auto time = DBL_MAX;
     for (const auto &note : data) {
         if (note->Type.to_ulong() & SU_NOTE_SHORT_MASK) {
             if (note->StartTime < time) time = note->StartTime;
@@ -597,7 +629,7 @@ double ScenePlayer::GetFirstNoteTime() const
 
 double ScenePlayer::GetLastNoteTime() const
 {
-    double time = 0.0;
+    auto time = 0.0;
     for (const auto &note : data) {
         if (note->Type.to_ulong() & SU_NOTE_SHORT_MASK) {
             if (note->StartTime > time) time = note->StartTime;

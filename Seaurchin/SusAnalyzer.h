@@ -70,8 +70,20 @@ struct SusHispeedData {
     };
     const static double keepSpeed;
 
-    Visibility VisibilityState = Visibility::Visible;
-    double Speed = 1.0;
+    SusHispeedData()
+        : VisibilityState(Visibility::Visible)
+        , Speed(1.0)
+    {}
+
+    SusHispeedData(
+        const Visibility visibilityState,
+        const double speed)
+        : VisibilityState(visibilityState)
+        , Speed(speed)
+    {}
+
+    Visibility VisibilityState;
+    double Speed;
 
 };
 
@@ -183,8 +195,8 @@ struct SusDrawableNoteData {
     // それ以外
     std::bitset<8> OnTheFlyData;
 
-    uint8_t StartLane = 0;  // ノーツ左端位置
-    uint8_t Length = 0;     // ノーツ幅
+    float StartLane = 0;  // ノーツ左端位置
+    float Length = 0;     // ノーツ幅
     float CenterAtZero = 0; // ノーツ中心
 
     //実描画位置
@@ -211,7 +223,7 @@ private:
     static boost::xpressive::sregex regexSusCommand;
     static boost::xpressive::sregex regexSusData;
 
-    const double defaultBeats = 4.0;
+    const float defaultBeats = 4.0;
     const double defaultBpm = 120.0;
     const uint32_t defaultHispeedNumber = std::numeric_limits<uint32_t>::max();
     const uint32_t defaultExtraAttributeNumber = std::numeric_limits<uint32_t>::max();
@@ -257,9 +269,10 @@ public:
     void SetMessageCallBack(const std::function<void(std::string, std::string)>& func);
     void LoadFromFile(const std::wstring &fileName, bool analyzeOnlyMetaData = false);
     void RenderScoreData(DrawableNotesList &data, NoteCurvesList &curveData);
-    float GetBeatsAt(uint32_t measure);
-    double GetBpmAt(uint32_t measure, uint32_t tick);
-    double GetAbsoluteTime(uint32_t meas, uint32_t tick);
-    std::tuple<uint32_t, uint32_t> GetRelativeTime(double time);
-    uint32_t GetRelativeTicks(uint32_t measure, uint32_t tick);
+    float GetBeatsAt(uint32_t measure) const;
+    double GetBpmAt(uint32_t measure, uint32_t tick) const;
+    double GetAbsoluteTime(uint32_t meas, uint32_t tick) const;
+    std::tuple<uint32_t, uint32_t> GetRelativeTime(double time) const;
+    uint32_t GetRelativeTicks(uint32_t measure, uint32_t tick) const;
+    std::tuple<uint32_t, uint32_t> NormalizeRelativeTime(uint32_t meas, uint32_t tick) const;
 };

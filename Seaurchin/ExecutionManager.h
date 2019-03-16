@@ -69,7 +69,6 @@ public:
     bool ExecuteSkin(const std::string &file);
     bool ExecuteScene(asIScriptObject *sceneObject);
     void ExecuteSystemMenu();
-    void ReloadMusic() const;
     void Fire(const std::string &message);
     void WriteLog(const std::string &message) const;
     ScenePlayer *CreatePlayer();

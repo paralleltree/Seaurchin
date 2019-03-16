@@ -122,7 +122,7 @@ public:
 
     SoundSample *GetSample() const { return sample; }
     void SetLoop(bool looping) const;
-    void SetVolume(float vol) const;
+    void SetVolume(double vol) const;
 
     static SSound* CreateSound(SoundManager *smanager);
     static SSound* CreateSoundFromFile(SoundManager *smanager, const std::string &file, int simul);

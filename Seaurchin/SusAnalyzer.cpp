@@ -17,12 +17,6 @@ auto toUpper = [](const char c) {
     return (c >= 'a' && c <= 'z') ? char(c - 0x20) : c;
 };
 
-static auto isUpperHexadecimalChar = [](const char c) {
-    if (c >= '8' && c <= '9') return true;
-    if (c >= 'A' && c <= 'F') return true;
-    return false;
-};
-
 static auto convertRawString = [](const string &input) -> string {
     // TIL: ASCII文字範囲ではUTF-8と本来のASCIIを間違うことはない
     if (ba::starts_with(input, "\"")) {
@@ -72,12 +66,12 @@ static auto convertRawString = [](const string &input) -> string {
 };
 
 SusAnalyzer::SusAnalyzer(const uint32_t tpb)
-    : ticksPerBeat(tpb)
-    , longInjectionPerBeat(2)
+    : timelineResolver([=](const uint32_t number) { return hispeedDefinitions[number]; })
+    , ticksPerBeat(tpb)
     , measureCountOffset(0)
-    , timelineResolver([=](const uint32_t number) { return hispeedDefinitions[number]; })
-{
-}
+    , longNoteChannelOffset(0)
+    , longInjectionPerBeat(2)
+{}
 
 SusAnalyzer::~SusAnalyzer()
 {
@@ -188,7 +182,7 @@ void SusAnalyzer::LoadFromFile(const wstring &fileName, const bool analyzeOnlyMe
         copy_if(notes.begin(), notes.end(), back_inserter(bpmChanges), [](tuple<SusRelativeNoteTime, SusRawNoteData> n) {
             return get<1>(n).Type.test(size_t(SusNoteType::Undefined));
         });
-        if (bpmChanges.size() == 0) {
+        if (bpmChanges.empty()) {
             SusRawNoteData noteData;
             SusRelativeNoteTime time = { 0, 0 };
             noteData.Type.set(size_t(SusNoteType::Undefined));
@@ -248,7 +242,7 @@ void SusAnalyzer::ProcessCommand(const xp::smatch &result, const bool onlyMeta, 
         case "DIFFICULTY"_crc32: {
             if (xp::regex_match(result[2], allNumeric)) {
                 //通常記法
-                auto difficultyType = ConvertInteger(result[2]);
+                const auto difficultyType = ConvertInteger(result[2]);
                 if (difficultyType < 0 || 3 < difficultyType) {
                     MakeMessage(line, u8"不明な難易度指定です。");
                     break;
@@ -695,9 +689,9 @@ void SusAnalyzer::MakeMessage(const uint32_t meas, const uint32_t tick, const ui
     MakeMessage(ss.str());
 }
 
-float SusAnalyzer::GetBeatsAt(const uint32_t measure)
+float SusAnalyzer::GetBeatsAt(const uint32_t measure) const
 {
-    float result = defaultBeats;
+    auto result = defaultBeats;
     auto last = 0u;
     for (auto &t : beatsDefinitions) {
         if (t.first >= last && t.first <= measure) {
@@ -708,55 +702,71 @@ float SusAnalyzer::GetBeatsAt(const uint32_t measure)
     return result;
 }
 
-double SusAnalyzer::GetBpmAt(const uint32_t measure, const uint32_t tick)
+double SusAnalyzer::GetBpmAt(const uint32_t measure, const uint32_t tick) const
 {
+    uint32_t nm, nt;
+    tie(nm, nt) = NormalizeRelativeTime(measure, tick);
     auto result = defaultBpm;
     auto lastMeasure = 0u;
     auto lastTick = 0u;
-    for (auto &t : bpmChanges) {
-        const auto tMeasure = get<0>(t).Measure;
-        const auto tTick = get<0>(t).Tick;
-        if (tMeasure > measure || tMeasure < lastMeasure) continue;
-        if (tMeasure == measure && lastTick >= tTick) continue;
+    for (const auto &t : bpmChanges) {
+        const auto bcTime = get<0>(t);
+        if (bcTime.Measure > nm || bcTime.Measure < lastMeasure) continue;
+        if (bcTime.Measure == lastMeasure && lastTick > bcTime.Tick) continue;
 
-        result = bpmDefinitions[get<1>(t).DefinitionNumber];
-
-        lastMeasure = tMeasure;
-        lastTick = tTick;
+        const auto &bpmDef = bpmDefinitions.find(get<1>(t).DefinitionNumber);
+        if (bpmDef != bpmDefinitions.end()) {
+            result = bpmDef->second;
+        }
+        lastMeasure = bcTime.Measure;
+        lastTick = bcTime.Tick;
     }
     return result;
 }
 
-double SusAnalyzer::GetAbsoluteTime(uint32_t meas, uint32_t tick)
+tuple<uint32_t, uint32_t> SusAnalyzer::NormalizeRelativeTime(const uint32_t meas, const uint32_t tick) const
+{
+    auto nm = meas;
+    auto nt = tick;
+    while (nt >= GetBeatsAt(nm) * ticksPerBeat) nt -= GetBeatsAt(nm++) * ticksPerBeat;
+    return make_tuple(nm, nt);
+}
+
+
+double SusAnalyzer::GetAbsoluteTime(const uint32_t meas, const uint32_t tick) const
 {
     auto time = 0.0;
     auto lastBpm = defaultBpm;
     //超過したtick指定にも対応したほうが使いやすいよね
-    while (tick >= GetBeatsAt(meas) * ticksPerBeat) tick -= GetBeatsAt(meas++) * ticksPerBeat;
+    uint32_t nm, nt;
+    tie(nm, nt) = NormalizeRelativeTime(meas, tick);
 
-    for (auto i = 0u; i < meas + 1; i++) {
+    for (auto i = 0u; i < nm + 1; i++) {
         const auto beats = GetBeatsAt(i);
         auto lastChangeTick = 0u;
         for (auto& bc : bpmChanges) {
             if (get<0>(bc).Measure != i) continue;
             const auto timing = get<0>(bc);
-            if (i == meas && timing.Tick >= tick) break;
+            if (i == nm && timing.Tick >= nt) break;
             const auto dur = (60.0 / lastBpm) * (double(timing.Tick - lastChangeTick) / ticksPerBeat);
             time += dur;
             lastChangeTick = timing.Tick;
-            lastBpm = bpmDefinitions[get<1>(bc).DefinitionNumber];
+            const auto bpmDefinition = bpmDefinitions.find(get<1>(bc).DefinitionNumber);
+            if (bpmDefinition != bpmDefinitions.end()) {
+                lastBpm = bpmDefinition->second;
+            }
         }
-        if (i == meas) {
-            time += (60.0 / lastBpm) * (double(tick - lastChangeTick) / ticksPerBeat);
+        if (i == nm) {
+            time += (60.0 / lastBpm) * (double(nt - lastChangeTick) / ticksPerBeat);
         } else {
             time += (60.0 / lastBpm) * (double(ticksPerBeat * beats - lastChangeTick) / ticksPerBeat);
         }
     }
 
     return time;
-};
+}
 
-tuple<uint32_t, uint32_t> SusAnalyzer::GetRelativeTime(const double time)
+tuple<uint32_t, uint32_t> SusAnalyzer::GetRelativeTime(const double time) const
 {
     auto restTime = time;
     uint32_t meas = 0;
@@ -770,24 +780,28 @@ tuple<uint32_t, uint32_t> SusAnalyzer::GetRelativeTime(const double time)
             const auto timing = get<0>(bc);
             if (timing.Measure != meas) continue;
             const auto dur = secPerBeat * (double(timing.Tick - lastChangeTick) / ticksPerBeat);
-            if (dur >= restTime) return make_tuple(meas, lastChangeTick + restTime / secPerBeat * ticksPerBeat);
+            if (dur >= restTime) return make_tuple(meas, lastChangeTick + static_cast<uint32_t>(restTime / secPerBeat * ticksPerBeat));
             restTime -= dur;
             lastChangeTick = timing.Tick;
-            secPerBeat = 60.0 / bpmDefinitions[get<1>(bc).DefinitionNumber];
+            const auto bpmDef = bpmDefinitions.find(get<1>(bc).DefinitionNumber);
+
+            if (bpmDef != bpmDefinitions.end()) {
+                secPerBeat = 60.0 / bpmDef->second;
+            }
         }
         const double restTicks = ticksPerBeat * beats - lastChangeTick;
         const auto restDuration = restTicks / ticksPerBeat * secPerBeat;
-        if (restDuration >= restTime) return make_tuple(meas, lastChangeTick + restTime / secPerBeat * ticksPerBeat);
+        if (restDuration >= restTime) return make_tuple(meas, lastChangeTick + static_cast<uint32_t>(restTime / secPerBeat * ticksPerBeat));
         restTime -= restDuration;
         meas++;
     }
 }
 
-uint32_t SusAnalyzer::GetRelativeTicks(const uint32_t measure, const uint32_t tick)
+uint32_t SusAnalyzer::GetRelativeTicks(const uint32_t measure, const uint32_t tick) const
 {
-    uint32_t result = 0;
+    float result = 0;
     for (auto i = 0u; i < measure; i++) result += GetBeatsAt(i) * ticksPerBeat;
-    return result + tick;
+    return SU_TO_UINT32(result) + tick;
 }
 
 void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curveData)
@@ -799,7 +813,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
     data.clear();
     for (const auto& note : notes) {
         const auto time = get<0>(note);
-        const auto info = get<1>(note);
+        const auto &info = get<1>(note);
         if (info.Type[size_t(SusNoteType::Step)]) continue;
         if (info.Type[size_t(SusNoteType::Control)]) continue;
         if (info.Type[size_t(SusNoteType::Invisible)]) continue;
@@ -820,12 +834,12 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
         noteData->StartTimeEx = get<1>(noteData->Timeline->GetRawDrawStateAt(noteData->StartTime));
         noteData->StartLane = info.NotePosition.StartLane;
         noteData->Length = info.NotePosition.Length;
-        noteData->CenterAtZero = noteData->StartLane + noteData->Length / 2.0;
+        noteData->CenterAtZero = noteData->StartLane + noteData->Length / 2.0f;
 
         const auto bits = info.Type.to_ulong();
         if (bits & SU_NOTE_LONG_MASK) {
             auto genCurve = true;
-            auto ltype = SusNoteType::Undefined;
+            SusNoteType ltype;
             switch ((bits >> 7) & 7) {
                 case 1:
                     ltype = SusNoteType::Hold;
@@ -846,7 +860,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
             auto lastStep = note;
             for (const auto &it : notes) {
                 const auto curPos = get<0>(it);
-                const auto curNo = get<1>(it);
+                const auto &curNo = get<1>(it);
 
                 if (curNo.Type.test(size_t(SusNoteType::Start))) continue;
                 if (!curNo.Type.test(size_t(ltype)) || curNo.Extra != info.Extra) continue;
@@ -877,13 +891,13 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                         nextNote->StartLane = curNo.NotePosition.StartLane;
                         nextNote->Length = curNo.NotePosition.Length;
                         // 暫定
-                        nextNote->CenterAtZero = nextNote->StartLane + nextNote->Length / 2.0;
+                        nextNote->CenterAtZero = nextNote->StartLane + nextNote->Length / 2.0f;
 
                         if (curNo.Type.test(size_t(SusNoteType::Step)) || curNo.Type.test(size_t(SusNoteType::End))) {
                             const auto lsrt = get<0>(lastStep);
                             const auto injc = double(GetRelativeTicks(curPos.Measure, curPos.Tick) - GetRelativeTicks(lsrt.Measure, lsrt.Tick)) / ticksPerBeat * longInjectionPerBeat;
                             for (auto i = 1; i < injc; i++) {
-                                const auto insertAt = lsrt.Tick + (ticksPerBeat / longInjectionPerBeat * i);
+                                const auto insertAt = SU_TO_INT32(lsrt.Tick + (ticksPerBeat / longInjectionPerBeat * i));
                                 auto injection = make_shared<SusDrawableNoteData>();
                                 injection->Type.set(size_t(SusNoteType::Injection));
                                 injection->StartTime = GetAbsoluteTime(lsrt.Measure, insertAt);
@@ -900,6 +914,9 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                         noteData->ExtraData.push_back(nextNote);
                         break;
                     }
+                    default:
+                        // 特に何もしない
+                        break;
                 }
                 if (completed) break;
             }
@@ -909,7 +926,49 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
             }
 
             SharedMetaData.ScoreDuration = max(SharedMetaData.ScoreDuration, noteData->StartTime + noteData->Duration);
-            if (genCurve) CalculateCurves(noteData, curveData);
+            if (genCurve) {
+                CalculateCurves(noteData, curveData);
+                // Injection の幅を決定する
+                for (const auto &extra : noteData->ExtraData) {
+                    if (!extra->Type[size_t(SusNoteType::Injection)]) continue;
+
+                    auto last = noteData;
+                    for (auto &slideElement : noteData->ExtraData) {
+                        if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
+                        if (slideElement->Type.test(size_t(SusNoteType::Injection))) continue;
+                        if (extra->StartTime >= slideElement->StartTime) {
+                            last = slideElement;
+                            continue;
+                        }
+                        const auto width = glm::mix(
+                            last->Length, slideElement->Length,
+                            (extra->StartTime - last->StartTime) / (slideElement->StartTime - last->StartTime)
+                        );
+                        auto &segmentPositions = curveData[slideElement];
+
+                        auto lastSegmentPosition = segmentPositions[0];
+                        auto lastTimeInBlock = get<0>(lastSegmentPosition) / (slideElement->StartTime - last->StartTime);
+                        for (auto &segmentPosition : segmentPositions) {
+                            if (lastSegmentPosition == segmentPosition) continue;
+                            const auto currentTimeInBlock = get<0>(segmentPosition) / (slideElement->StartTime - last->StartTime);
+                            const auto cst = glm::mix(last->StartTime, slideElement->StartTime, currentTimeInBlock);
+                            if (extra->StartTime >= cst) {
+                                lastSegmentPosition = segmentPosition;
+                                lastTimeInBlock = currentTimeInBlock;
+                                continue;
+                            }
+                            const auto lst = glm::mix(last->StartTime, slideElement->StartTime, lastTimeInBlock);
+                            const auto t = (extra->StartTime - lst) / (cst - lst);
+                            const auto x = glm::mix(get<1>(lastSegmentPosition), get<1>(segmentPosition), t);
+                            const auto center = x * 16.0;
+                            extra->StartLane = center - width / 2.0;
+                            extra->Length = width;
+                            break;
+                        }
+                        break;
+                    }
+                }
+            }
         } else if (bits & SU_NOTE_SHORT_MASK) {
             // RollHispeed組み込み
             if (noteData->ExtraAttribute->RollHispeedNumber >= 0) {
@@ -927,7 +986,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                 auto require = true;
                 for (const auto &target : notes) {
                     const auto gtime = get<0>(target);
-                    const auto ginfo = get<1>(target);
+                    const auto &ginfo = get<1>(target);
 
                     // 判定時刻が異なるノーツは処理対象からはじく
                     if (time != gtime) continue;
@@ -1006,7 +1065,7 @@ void SusAnalyzer::CalculateCurves(const shared_ptr<SusDrawableNoteData>& note, N
         if (slideElement->Type.test(size_t(SusNoteType::Control))) continue;
 
         // EndかStepかInvisible
-        const int segmentPoints = SharedMetaData.SegmentsPerSecond * (slideElement->StartTime - lastStep->StartTime) + 2;
+        const auto segmentPoints = SU_TO_INT32(SharedMetaData.SegmentsPerSecond * (slideElement->StartTime - lastStep->StartTime) + 2);
         vector<tuple<double, double>> segmentPositions;
         for (auto j = 0; j < segmentPoints; j++) {
             const auto relativeTimeInBlock = j / double(segmentPoints - 1);
@@ -1028,11 +1087,13 @@ void SusAnalyzer::CalculateCurves(const shared_ptr<SusDrawableNoteData>& note, N
     }
 }
 
-uint32_t SusAnalyzer::GetMeasureCount(uint32_t relativeMeasureCount) const {
+uint32_t SusAnalyzer::GetMeasureCount(const uint32_t relativeMeasureCount) const
+{
     return measureCountOffset + relativeMeasureCount;
 }
 
-uint32_t SusAnalyzer::GetLongNoteChannel(uint32_t relativeLongNoteChannel) const {
+uint32_t SusAnalyzer::GetLongNoteChannel(const uint32_t relativeLongNoteChannel) const
+{
     return longNoteChannelOffset + relativeLongNoteChannel;
 }
 
@@ -1077,7 +1138,7 @@ void SusHispeedTimeline::AddKeysByString(const string &def, const function<share
             continue;
         }
 
-        const SusRelativeNoteTime time = { ConvertInteger(timing[0]), ConvertInteger(timing[1]) };
+        const SusRelativeNoteTime time = { ConvertUnsignedInteger(timing[0]), ConvertUnsignedInteger(timing[1]) };
         SusHispeedData data = { SusHispeedData::Visibility::Keep, SusHispeedData::keepSpeed };
         for (auto i = 1u; i < params.size(); i++) {
             if (params[i] == "v" || params[i] == "visible") {
