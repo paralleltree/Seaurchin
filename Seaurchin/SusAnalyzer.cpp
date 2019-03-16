@@ -705,13 +705,13 @@ float SusAnalyzer::GetBeatsAt(const uint32_t measure)
 double SusAnalyzer::GetBpmAt(const uint32_t measure, const uint32_t tick)
 {
     auto result = defaultBpm;
-    auto lastMeasure = 0u;
-    auto lastTick = 0u;
+    auto lastMeasure = -1;
+    auto lastTick = -1;
     for (auto &t : bpmChanges) {
         const auto tMeasure = get<0>(t).Measure;
         const auto tTick = get<0>(t).Tick;
-        if (tMeasure > measure || tMeasure < lastMeasure) continue;
-        if (tMeasure == measure && lastTick >= tTick) continue;
+        if (tMeasure > measure || int32_t(tMeasure) < lastMeasure) continue;
+        if (tMeasure == measure && lastTick >= int32_t(tTick)) continue;
 
         result = bpmDefinitions[get<1>(t).DefinitionNumber];
 
