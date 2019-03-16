@@ -59,7 +59,9 @@ struct CallbackObject {
     asIScriptFunction *Function;
     asITypeInfo *Type;
     asIScriptContext *Context;
+    bool Exists;
 
     explicit CallbackObject(asIScriptFunction *callback);
     ~CallbackObject();
+    void Dispose();
 };

@@ -572,8 +572,19 @@ void ScenePlayer::SetJudgeCallback(asIScriptFunction *func) const
 {
     if (!currentCharacterInstance) return;
 
+    asIScriptContext *ctx = asGetActiveContext();
+    if (!ctx) return;
+
+    void *p = ctx->GetUserData(SU_UDTYPE_SCENE);
+    ScriptScene* sceneObj = static_cast<ScriptScene*>(p);
+
+    if (!sceneObj) {
+        ScriptSceneWarnOutOf("SetJudgeCallback", "Scene Class", ctx);
+        return;
+    }
+
     func->AddRef();
-    currentCharacterInstance->SetCallback(func);
+    currentCharacterInstance->SetCallback(func, sceneObj);
     func->Release();
 }
 

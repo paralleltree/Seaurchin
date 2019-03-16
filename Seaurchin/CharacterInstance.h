@@ -27,6 +27,8 @@ struct JudgeInformation {
     double Right;
 };
 
+class ScriptScene;
+
 class CharacterInstance final {
 private:
     int reference = 0;
@@ -68,7 +70,7 @@ public:
     void OnJustice(const JudgeInformation &info, const std::string& extra);
     void OnAttack(const JudgeInformation &info, const std::string& extra);
     void OnMiss(const JudgeInformation &info, const std::string& extra);
-    void SetCallback(asIScriptFunction *func);
+    void SetCallback(asIScriptFunction *func, ScriptScene *sceneObj);
 
     CharacterParameter* GetCharacterParameter() const;
     CharacterImageSet* GetCharacterImages() const;
