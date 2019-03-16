@@ -38,6 +38,10 @@ class Play : CoroutineScene {
     @imgGBBack = skin.GetImage("GaugeBarBack");
     @imgGBFill = skin.GetImage("GaugeBarFill");
     @imgGBFront = skin.GetImage("GaugeBarFront");
+    @imgJC = skin.GetImage("JusticeCritical");
+    @imgJ = skin.GetImage("Justice");
+    @imgA = skin.GetImage("Attack");
+    @imgM = skin.GetImage("Miss");
   }
 
   void SetPlayerResource() {
@@ -279,23 +283,37 @@ class Play : CoroutineScene {
 
   // 判定発生ごとに呼ばれるコールバック
   // judgeにはJC/J/A/Mの情報が入ります
+  Image@ imgJC, imgJ, imgA, imgM;
   void OnJudge(JudgeType judge, JudgeData data, const string &in ex) {
-    dictionary pos = { { "x", judgeLineBegin + judgeLineWidth / 16 * (data.Left + (data.Right - data.Left) / 2) }, { "y" , judgeLineY - 170 }, { "z", 10 } };
-	string mes = "";
-	switch(judge) {
-	  case JudgeType::JusticeCritical: mes = "Justice\r\nCritical"; break;
-	  case JudgeType::Justice: mes = "Justice"; break;
-	  case JudgeType::Attack: mes = "Attack"; break;
-	  case JudgeType::Miss: mes = "Miss"; break;
-	}
-	TextSprite@ tx = TextSprite(font32, mes);
-	tx.Apply(pos);
-	tx.SetAlignment(TextAlign::Center, TextAlign::Bottom);
-	tx.AddMove("move_by(y:-150, time:0.8, ease:out_sine)");
-	tx.AddMove("alpha_to(x:0, y:1, time:0.3)");
-	tx.AddMove("alpha_to(x:1, y:0, wait:1.0, time:0.3)");
-	tx.AddMove("death(wait:1.3)");
-	AddSprite(tx);
+  	Sprite@ sp;
+  	switch (judge) {
+  	  case JudgeType::JusticeCritical:
+  	    @sp = Sprite(imgJC);
+  	    break;
+  	  case JudgeType::Justice:
+  	    @sp = Sprite(imgJ);
+  	    break;
+  	  case JudgeType::Attack:
+  	    @sp = Sprite(imgA);
+  	    break;
+  	  case JudgeType::Miss:
+  	    @sp = Sprite(imgM);
+  	    break;
+  	}
+  	sp.Apply(dictionary = {
+      { "x", judgeLineBegin + judgeLineWidth / 16 * (data.Left + (data.Right - data.Left) / 2) },
+      { "y" , judgeLineY - 170 },
+      { "z", 10 },
+      { "origX", 96 },
+      { "origY", 32 },
+      { "scaleX", 0.5 },
+      { "scaleY", 0.5 },
+      { "alpha", 0 }
+    });
+  	sp.AddMove("move_by(y:-150, time:0.5, ease:out_sine)");
+  	sp.AddMove("alpha(x:0.0, y:1.0, time:0.5)");
+  	sp.AddMove("death(wait:0.6)");
+  	AddSprite(sp);
   }
 }
 

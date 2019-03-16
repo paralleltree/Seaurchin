@@ -36,6 +36,10 @@ void InitializeSkin(Skin@ skin) {
   skin.LoadImage("JudgeJ", "Judge-J.png");
   skin.LoadImage("JudgeA", "Judge-A.png");
   skin.LoadImage("JudgeM", "Judge-M.png");
+  skin.LoadImage("JusticeCritical", "JusticeCritical.png");
+  skin.LoadImage("Justice", "Justice.png");
+  skin.LoadImage("Attack", "Attack.png");
+  skin.LoadImage("Miss", "Miss.png");
   
   skin.LoadImage("MusicSelectFrame", "MusicSelect-Frame.png");
   skin.LoadImage("LevelFrame", "LevelIndicator.png");
