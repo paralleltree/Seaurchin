@@ -12,6 +12,7 @@
 #define SU_IF_JUDGE_DATA "JudgeData"
 
 class ExecutionManager;
+struct CallbackObject;
 
 class AbilityParameter final {
 public:
@@ -95,10 +96,7 @@ public:
 class SkillIndicators final {
 private:
     std::vector<SImage*> indicatorIcons;
-    asIScriptFunction *callbackFunction;
-    asIScriptObject *callbackObject;
-    asIScriptContext *callbackContext;
-    asITypeInfo *callbackObjectType;
+    CallbackObject* callback;
 
 public:
     SkillIndicators();
