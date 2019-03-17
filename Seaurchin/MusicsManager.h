@@ -115,7 +115,6 @@ public:
 
     MusicSelectionState Enter();
     MusicSelectionState Exit();
-    static MusicSelectionState Start();
     MusicSelectionState Next();
     MusicSelectionState Previous();
     MusicSelectionState NextVariant();
