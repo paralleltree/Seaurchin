@@ -1,4 +1,4 @@
-#include "ScriptFunction.h"
+﻿#include "ScriptFunction.h"
 
 #include "Setting.h"
 #include "Config.h"

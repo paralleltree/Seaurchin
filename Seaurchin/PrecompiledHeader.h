@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #if defined(_MSC_VER) && _MSC_VER <= 1900
 #define BOOST_LOCKFREE_FORCE_BOOST_ATOMIC
@@ -74,8 +74,6 @@
 #include <scriptstdstring\scriptstdstring.h>
 #include <scriptdictionary\scriptdictionary.h>
 #include "wscriptbuilder.h"
-
-#include <WacomMultiTouch.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

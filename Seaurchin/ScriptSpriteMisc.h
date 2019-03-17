@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 struct Transform2D {
     float X = 0.0f;

@@ -61,10 +61,10 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_SILENCE_FPOS_SEEKPOS_DEPRECATION_WARNING;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\library\fmt;..\library\dxlib\include;..\library\angelscript\angelscript\include;..\library\angelscript\angelscript\add_on;..\library\boost;..\library\angelscript\add_on;..\library\freetype\include;..\library\libpng;..\library\bass24_mix\c;..\library\bass24_fx\c;..\library\bass24\c;..\library\wacom\addons\ofxWacomFeelMultiTouch\libs;..\library\zlib;..\library\spdlog\include;..\library\libvorbis\include;..\library\libogg\include;..\library\tinytoml\include;..\library\glm;..\library\libjpeg\Release;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\library\fmt;..\library\dxlib\include;..\library\angelscript\angelscript\include;..\library\angelscript\angelscript\add_on;..\library\boost;..\library\angelscript\add_on;..\library\freetype\include;..\library\libpng;..\library\bass24_mix\c;..\library\bass24_fx\c;..\library\bass24\c;..\library\zlib;..\library\spdlog\include;..\library\libvorbis\include;..\library\libogg\include;..\library\tinytoml\include;..\library\glm;..\library\libjpeg\Release;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>PrecompiledHeader.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>PrecompiledHeader.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalOptions>-Zm640 /utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm640 %(AdditionalOptions)</AdditionalOptions>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <DisableSpecificWarnings>4464;5045;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
@@ -89,10 +89,10 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_SCL_SECURE_NO_WARNINGS;_SILENCE_FPOS_SEEKPOS_DEPRECATION_WARNING;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>..\library\fmt;..\library\dxlib\include;..\library\angelscript\angelscript\include;..\library\angelscript\angelscript\add_on;..\library\boost;..\library\angelscript\add_on;..\library\freetype\include;..\library\libpng;..\library\bass24_mix\c;..\library\bass24_fx\c;..\library\bass24\c;..\library\wacom\addons\ofxWacomFeelMultiTouch\libs;..\library\zlib;..\library\spdlog\include;..\library\libvorbis\include;..\library\libogg\include;..\library\tinytoml\include;..\library\glm;..\library\libjpeg\Release;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\library\fmt;..\library\dxlib\include;..\library\angelscript\angelscript\include;..\library\angelscript\angelscript\add_on;..\library\boost;..\library\angelscript\add_on;..\library\freetype\include;..\library\libpng;..\library\bass24_mix\c;..\library\bass24_fx\c;..\library\bass24\c;..\library\zlib;..\library\spdlog\include;..\library\libvorbis\include;..\library\libogg\include;..\library\tinytoml\include;..\library\glm;..\library\libjpeg\Release;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>PrecompiledHeader.h</PrecompiledHeaderFile>
       <ForcedIncludeFiles>PrecompiledHeader.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalOptions>-Zm640 /utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>-Zm640 %(AdditionalOptions)</AdditionalOptions>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <DisableSpecificWarnings>4464;5045;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <WarningVersion>
@@ -122,7 +122,6 @@
     <ClCompile Include="..\library\angelscript\add_on\scriptmath\scriptmathcomplex.cpp" />
     <ClCompile Include="..\library\angelscript\add_on\scriptstdstring\scriptstdstring.cpp" />
     <ClCompile Include="..\library\angelscript\add_on\scriptstdstring\scriptstdstring_utils.cpp" />
-    <ClCompile Include="..\library\wacom\addons\ofxWacomFeelMultiTouch\libs\WacomMultiTouch.cpp" />
     <ClCompile Include="AngelScriptManager.cpp" />
     <ClCompile Include="Character.cpp" />
     <ClCompile Include="CharacterInstance.cpp" />

@@ -1,4 +1,4 @@
-#include "ScenePlayer.h"
+﻿#include "ScenePlayer.h"
 #include "ScriptSprite.h"
 #include "ExecutionManager.h"
 #include "Setting.h"

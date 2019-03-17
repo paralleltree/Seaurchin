@@ -1,4 +1,4 @@
-#include "ExecutionManager.h"
+﻿#include "ExecutionManager.h"
 
 #include "Config.h"
 #include "Setting.h"
@@ -303,6 +303,7 @@ void ExecutionManager::Tick(const double delta)
     while (i != scenes.end()) {
         (*i)->Tick(delta);
         if ((*i)->IsDead()) {
+            (*i)->Dispose();
             i = scenes.erase(i);
         } else {
             ++i;

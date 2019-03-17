@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Easing.h"
 #include "Misc.h"
 #include "MoverFunction.h"

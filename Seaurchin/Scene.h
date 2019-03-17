@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 
 class ExecutionManager;
@@ -24,4 +24,5 @@ public:
     virtual void Draw();
     virtual bool IsDead();
     virtual void Disappear();
+    virtual void Dispose();
 };

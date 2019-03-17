@@ -1,4 +1,4 @@
-#include "ScriptSpriteMover2.h"
+﻿#include "ScriptSpriteMover2.h"
 #include "ScriptSprite.h"
 #include "Misc.h"
 #include "MoverFunction.h"

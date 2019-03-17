@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #define BEGIN_DRAW_TRANSACTION(h) SetDrawScreen(h)
 #define FINISH_DRAW_TRANSACTION SetDrawScreen(DX_SCREEN_BACK);

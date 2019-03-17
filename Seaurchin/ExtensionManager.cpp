@@ -1,4 +1,4 @@
-#include "ExtensionManager.h"
+﻿#include "ExtensionManager.h"
 #include "SeaurchinExtension.h"
 #include "Config.h"
 #include "Setting.h"

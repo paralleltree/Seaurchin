@@ -1,4 +1,4 @@
-#include "SceneDebug.h"
+﻿#include "SceneDebug.h"
 
 void SceneDebug::Tick(const double delta)
 {

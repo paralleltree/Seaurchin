@@ -1,4 +1,4 @@
-#ifndef SCRIPTBUILDER_H
+﻿#ifndef SCRIPTBUILDER_H
 #define SCRIPTBUILDER_H
 
 //---------------------------

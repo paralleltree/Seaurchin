@@ -1,4 +1,4 @@
-#include "Misc.h"
+﻿#include "Misc.h"
 #include "SoundManager.h"
 
 using namespace std;

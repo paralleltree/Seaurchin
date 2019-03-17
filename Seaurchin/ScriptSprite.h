@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "ScriptSpriteMisc.h"
 #include "MoverFunction.h"

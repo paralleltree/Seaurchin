@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "AngelScriptManager.h"
 #include "Character.h"
@@ -26,6 +26,8 @@ struct JudgeInformation {
     double Left;
     double Right;
 };
+
+class ScriptScene;
 
 class CharacterInstance final {
 private:
@@ -68,7 +70,7 @@ public:
     void OnJustice(const JudgeInformation &info, const std::string& extra);
     void OnAttack(const JudgeInformation &info, const std::string& extra);
     void OnMiss(const JudgeInformation &info, const std::string& extra);
-    void SetCallback(asIScriptFunction *func);
+    void SetCallback(asIScriptFunction *func, ScriptScene *sceneObj);
 
     CharacterParameter* GetCharacterParameter() const;
     CharacterImageSet* GetCharacterImages() const;

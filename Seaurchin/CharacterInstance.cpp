@@ -1,7 +1,8 @@
-#include "CharacterInstance.h"
+﻿#include "CharacterInstance.h"
 #include "Misc.h"
 #include "Setting.h"
 #include "Config.h"
+#include "ScriptScene.h"
 
 using namespace std;
 
@@ -162,9 +163,11 @@ void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunctio
 
 void CharacterInstance::CallJudgeCallback(const AbilityJudgeType judge, const JudgeInformation &info, const string& extra) const
 {
-    if (!judgeCallback) return;
+    if (!judgeCallback || !judgeCallback->Exists) return;
+
     auto message = extra;
     auto infoClone = info;
+
     judgeCallback->Context->Prepare(judgeCallback->Function);
     judgeCallback->Context->SetObject(judgeCallback->Object);
     judgeCallback->Context->SetArgDWord(0, asDWORD(judge));
@@ -232,13 +235,16 @@ void CharacterInstance::OnMiss(const JudgeInformation &info, const string& extra
     CallJudgeCallback(AbilityJudgeType::Miss, info, extra);
 }
 
-void CharacterInstance::SetCallback(asIScriptFunction *func)
+void CharacterInstance::SetCallback(asIScriptFunction *func, ScriptScene *sceneObj)
 {
     if (!func || func->GetFuncType() != asFUNC_DELEGATE) return;
     delete judgeCallback;
 
     func->AddRef();
     judgeCallback = new CallbackObject(func);
+    judgeCallback->Context->SetUserData(sceneObj, SU_UDTYPE_SCENE);
+    sceneObj->RegistDisposalCallback(judgeCallback);
+
     func->Release();
 }
 

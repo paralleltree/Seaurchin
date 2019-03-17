@@ -1,4 +1,4 @@
-#include "MusicsManager.h"
+﻿#include "MusicsManager.h"
 #include "ExecutionManager.h"
 #include "Config.h"
 #include "Misc.h"
@@ -291,6 +291,8 @@ MusicSelectionState MusicSelectionCursor::Enter()
 
 MusicSelectionState MusicSelectionCursor::Exit()
 {
+    if (manager->IsReloading()) return MusicSelectionState::Reloading;
+
     switch (state) {
         case MusicSelectionState::Category:
             state = MusicSelectionState::OutOfFunction;
@@ -301,11 +303,6 @@ MusicSelectionState MusicSelectionCursor::Exit()
         default:
             return MusicSelectionState::OutOfFunction;
     }
-    return MusicSelectionState::Success;
-}
-
-MusicSelectionState MusicSelectionCursor::Start()
-{
     return MusicSelectionState::Success;
 }
 

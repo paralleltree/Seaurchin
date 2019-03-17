@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 typedef std::function<bool(std::wstring, std::wstring, CWScriptBuilder*)> IncludeCallback;
 
@@ -59,7 +59,9 @@ struct CallbackObject {
     asIScriptFunction *Function;
     asITypeInfo *Type;
     asIScriptContext *Context;
+    bool Exists;
 
     explicit CallbackObject(asIScriptFunction *callback);
     ~CallbackObject();
+    void Dispose();
 };

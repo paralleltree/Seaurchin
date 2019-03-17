@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 // https://gist.github.com/oktal/5573082
 namespace crc32_constexpr

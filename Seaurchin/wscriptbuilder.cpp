@@ -1,4 +1,4 @@
-#include "wscriptbuilder.h"
+﻿#include "wscriptbuilder.h"
 #include "Misc.h"
 
 using namespace std;

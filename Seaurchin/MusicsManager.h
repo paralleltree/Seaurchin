@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #define SU_IF_MSCURSOR "MusicCursor"
 #define SU_IF_MSCSTATE "CursorState"
@@ -115,7 +115,6 @@ public:
 
     MusicSelectionState Enter();
     MusicSelectionState Exit();
-    static MusicSelectionState Start();
     MusicSelectionState Next();
     MusicSelectionState Previous();
     MusicSelectionState NextVariant();

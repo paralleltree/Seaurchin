@@ -1,10 +1,10 @@
-#pragma once
+﻿#pragma once
 
 #define ROOT_FILE(dir, fn) ((dir) + "/" + (fn))
 
 
 #define SU_APP_NAME "Seaurchin"
-#define SU_APP_VERSION "0.60.0"
+#define SU_APP_VERSION "0.61.0"
 
 #define SU_SETTING_FILE L"config.toml"
 #define SU_CACHE_MUSIC_FILE L"musics.mp"

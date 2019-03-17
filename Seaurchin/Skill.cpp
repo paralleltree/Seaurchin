@@ -1,4 +1,4 @@
-#include "Skill.h"
+﻿#include "Skill.h"
 #include "Setting.h"
 #include "Misc.h"
 #include "ExecutionManager.h"
@@ -123,42 +123,37 @@ void SkillManager::LoadFromToml(boost::filesystem::path file)
 }
 
 
-SkillIndicators::SkillIndicators() : callbackFunction(nullptr), callbackObject(nullptr), callbackContext(nullptr), callbackObjectType(nullptr)
+SkillIndicators::SkillIndicators()
+    : callback(nullptr)
 {}
 
 SkillIndicators::~SkillIndicators()
 {
     for (const auto &i : indicatorIcons) i->Release();
-    if (callbackFunction) {
-        auto engine = callbackContext->GetEngine();
-        callbackContext->Release();
-        callbackFunction->Release();
-        engine->ReleaseScriptObject(callbackObject, callbackObjectType);
-        callbackObjectType->Release();
-    }
+    delete callback;
 }
 
 void SkillIndicators::SetCallback(asIScriptFunction *func)
 {
     if (!func || func->GetFuncType() != asFUNC_DELEGATE) return;
 
-    if (callbackFunction) {
-        auto engine = callbackContext->GetEngine();
-        callbackContext->Release();
-        callbackFunction->Release();
-        engine->ReleaseScriptObject(callbackObject, callbackObjectType);
-        callbackObjectType->Release();
+    asIScriptContext *ctx = asGetActiveContext();
+    if (!ctx) return;
+
+    void *p = ctx->GetUserData(SU_UDTYPE_SCENE);
+    ScriptScene* sceneObj = static_cast<ScriptScene*>(p);
+
+    if (!sceneObj) {
+        ScriptSceneWarnOutOf("SkillIndicators::SetCallback", "Scene Class", ctx);
+        return;
     }
 
-    const auto ctx = asGetActiveContext();
-    auto engine = ctx->GetEngine();
-    callbackContext = engine->CreateContext();
-    callbackFunction = func->GetDelegateFunction();
-    callbackFunction->AddRef();
-    callbackObject = static_cast<asIScriptObject*>(func->GetDelegateObject());
-    callbackObject->AddRef();
-    callbackObjectType = func->GetDelegateObjectType();
-    callbackObjectType->AddRef();
+    delete callback;
+
+    func->AddRef();
+    callback = new CallbackObject(func);
+    callback->Context->SetUserData(sceneObj, SU_UDTYPE_SCENE);
+    sceneObj->RegistDisposalCallback(callback);
 
     func->Release();
 }
@@ -174,13 +169,13 @@ int SkillIndicators::AddSkillIndicator(const string &icon)
 
 void SkillIndicators::TriggerSkillIndicator(const int index) const
 {
-    if (callbackFunction) {
-        callbackContext->Prepare(callbackFunction);
-        callbackContext->SetObject(callbackObject);
-        callbackContext->SetArgDWord(0, index);
-        callbackContext->Execute();
-        callbackContext->Unprepare();
-    }
+    if (!callback || !callback->Exists) return;
+
+    callback->Context->Prepare(callback->Function);
+    callback->Context->SetObject(callback->Object);
+    callback->Context->SetArgDWord(0, index);
+    callback->Context->Execute();
+    callback->Context->Unprepare();
 }
 
 uint32_t SkillIndicators::GetSkillIndicatorCount() const

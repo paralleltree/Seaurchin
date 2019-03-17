@@ -1,4 +1,4 @@
-#include "Scene.h"
+﻿#include "Scene.h"
 /*
 Scene
 シーンだよ
@@ -29,4 +29,7 @@ bool Scene::IsDead()
 }
 
 void Scene::Disappear()
+{}
+
+void Scene::Dispose()
 {}

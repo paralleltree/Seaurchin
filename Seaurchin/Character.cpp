@@ -1,4 +1,4 @@
-#include "Character.h"
+﻿#include "Character.h"
 #include "ExecutionManager.h"
 #include "Misc.h"
 #include "Setting.h"

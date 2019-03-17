@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #define SU_NOTE_LONG_MASK  0b00000000001110000000
 #define SU_NOTE_SHORT_MASK 0b00000000000001111110
