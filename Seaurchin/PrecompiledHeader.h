@@ -75,8 +75,6 @@
 #include <scriptdictionary\scriptdictionary.h>
 #include "wscriptbuilder.h"
 
-#include <WacomMultiTouch.h>
-
 #include <ft2build.h>
 #include FT_FREETYPE_H
 

@@ -243,7 +243,6 @@ dlSource "http://us.un4seen.com/files/bassmix24.zip" "bass24_mix" "bass24_mix"
 
 dlSourceRename "https://github.com/mayah/tinytoml/archive/master.zip" "tinytoml" "tinytoml-master"
 dlSource "https://github.com/g-truc/glm/releases/download/$GLM_VER/glm-$GLM_VER.zip" "glm"
-dlSourceRename "https://github.com/denisidoro/xWacom/archive/master.zip" "wacom" "xWacom-master"# Wacom機能が廃止されるまで臨時措置
 
 Write-Host "* ビルドが完了しました。Seaurchin.slnをダブルクリックして開いてください。"
 

@@ -1,9 +1,6 @@
-﻿#include "Misc.h"
-#include "Controller.h"
+﻿#include "Controller.h"
 
 using namespace std;
-
-static int WacomFingerCallback(WacomMTFingerCollection *fingerPacket, void *userData);
 
 void ControlState::Initialize()
 {
@@ -35,19 +32,10 @@ void ControlState::Initialize()
     airStringKeyboardInputCombinations[size_t(AirControlSource::AirDown)] = { KEY_INPUT_PGDN };
     airStringKeyboardInputCombinations[size_t(AirControlSource::AirHold)] = { KEY_INPUT_HOME };
     airStringKeyboardInputCombinations[size_t(AirControlSource::AirAction)] = { KEY_INPUT_END };
-
-    InitializeWacomTouchDevice();
 }
 
 void ControlState::Terminate()
 {
-    if (isWacomDeviceAvailable) {
-        WacomMTUnRegisterFingerReadCallback(wacomDeviceIds[0], nullptr, WMTProcessingModeNone, this);
-        WacomMTQuit();
-        UnloadWacomMTLib();
-        delete[] wacomDeviceCapabilities;
-        delete[] wacomDeviceIds;
-    }
 }
 
 void ControlState::Update()
@@ -73,7 +61,7 @@ void ControlState::Update()
 
         // トリガー判定は1個でも入力キーが増えればよしとする
         // <=> last で 0 のビットが current で 1 になっているものがある場合 true
-        const uint32_t diff = sliderKeyboardCurrent[snum] ^ sliderKeyboardPrevious[snum];
+        const auto diff = sliderKeyboardCurrent[snum] ^ sliderKeyboardPrevious[snum];
         sliderKeyboardTrigger[snum] = !!(diff & ~sliderKeyboardPrevious[snum]);
         ++snum;
     }
@@ -177,94 +165,4 @@ void ControlState::SetAirStringKeyCombination(const int airNumber, const vector<
     if (airNumber < 0 || airNumber >= 4) return;
     if (keys.size() > 8) return;
     airStringKeyboardInputCombinations[airNumber] = keys;
-}
-
-void ControlState::InitializeWacomTouchDevice()
-{
-    auto log = spdlog::get("main");
-    isWacomDeviceAvailable = false;
-    log->info(u8"Wacomタブレットは0.43.0から一時的に機能を削除しています");
-    /*
-    if (!LoadWacomMTLib()) {
-        log->info(u8"Wacomドライバがありませんでした");
-        return;
-    }
-    if (WacomMTInitialize(WACOM_MULTI_TOUCH_API_VERSION)) {
-        log->warn(u8"Wacomドライバの初期化に失敗しました");
-        return;
-    }
-    log->info(u8"Wacomドライバ利用可能");
-
-    const auto devices = WacomMTGetAttachedDeviceIDs(nullptr, 0);
-    if (devices <= 0) {
-        log->info(u8"Wacomデバイスがありませんでした");
-        return;
-    }
-    wacomDeviceIds = new int[devices];
-    wacomDeviceCapabilities = new WacomMTCapability[devices];
-    WacomMTGetAttachedDeviceIDs(wacomDeviceIds, devices * sizeof(int));
-    for (auto i = 0; i < devices; i++) {
-        WacomMTCapability cap = { 0 };
-        WacomMTGetDeviceCapabilities(wacomDeviceIds[i], &cap);
-        wacomDeviceCapabilities[i] = cap;
-
-        log->info(u8"デバイスID {0:2d}: {1:d}", wacomDeviceIds[i], wacomDeviceCapabilities[i].CapabilityFlags);
-    }
-
-    WacomMTRegisterFingerReadCallback(wacomDeviceIds[0], nullptr, WMTProcessingModeNone, WacomFingerCallback, this);
-    isWacomDeviceAvailable = true;
-    */
-}
-
-// 0.43.0で一旦削除したので呼ばれない
-void ControlState::UpdateWacomTouchDeviceFinger(WacomMTFingerCollection *fingers)
-{
-    const auto cap = wacomDeviceCapabilities[0];
-    for (auto i = 0; i < fingers->FingerCount; i++) {
-        const auto finger = fingers->Fingers[i];
-        if (!finger.Confidence) continue;
-        switch (finger.TouchState) {
-            case WMTFingerStateNone:
-                break;
-            case WMTFingerStateDown: {
-                lock_guard<mutex> lock(fingerMutex);
-                auto data = make_shared<ControllerFingerState>();
-                data->Id = finger.FingerID;
-                data->State = WMTFingerStateDown;
-                data->SliderPosition = SU_TO_INT32(floor(finger.X / cap.LogicalWidth * 16));
-                currentFingers[finger.FingerID] = data;
-                break;
-            }
-            case WMTFingerStateHold: {
-                lock_guard<mutex> lock(fingerMutex);
-                auto data = currentFingers[finger.FingerID];
-                if (!data) {
-                    auto fdata = make_shared<ControllerFingerState>();
-                    fdata->Id = finger.FingerID;
-                    fdata->State = WMTFingerStateDown;
-                    fdata->SliderPosition = SU_TO_INT32(floor(finger.X / cap.LogicalWidth * 16));
-                    currentFingers[finger.FingerID] = fdata;
-                    break;
-                }
-                data->State = WMTFingerStateHold;
-                data->SliderPosition = SU_TO_INT32(floor(finger.X / cap.LogicalWidth * 16));
-                break;
-            }
-            case WMTFingerStateUp: {
-                lock_guard<mutex> lock(fingerMutex);
-                currentFingers.erase(finger.FingerID);
-                break;
-            }
-        }
-    }
-}
-
-// Wacom Multi-Touch Callbacks
-
-// 0.43.0で一旦削除したので呼ばれない
-int WacomFingerCallback(WacomMTFingerCollection *fingerPacket, void *userData)
-{
-    auto controller = static_cast<ControlState*>(userData);
-    controller->UpdateWacomTouchDeviceFinger(fingerPacket);
-    return 0;
 }

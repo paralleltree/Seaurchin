@@ -40,9 +40,6 @@
     <Filter Include="コントローラー">
       <UniqueIdentifier>{6814a1c8-b90e-4020-9381-3099759babcb}</UniqueIdentifier>
     </Filter>
-    <Filter Include="コントローラー\依存">
-      <UniqueIdentifier>{10ac2997-3d62-4b33-bb73-ed4bf0e4431c}</UniqueIdentifier>
-    </Filter>
     <Filter Include="インターフェース\キャラクター">
       <UniqueIdentifier>{5af0c5d5-f49f-4873-b9fb-b663b84c46ab}</UniqueIdentifier>
     </Filter>
@@ -176,9 +173,6 @@
     </ClCompile>
     <ClCompile Include="..\library\angelscript\add_on\scriptstdstring\scriptstdstring_utils.cpp">
       <Filter>AngelScript</Filter>
-    </ClCompile>
-    <ClCompile Include="..\library\wacom\addons\ofxWacomFeelMultiTouch\libs\WacomMultiTouch.cpp">
-      <Filter>コントローラー\依存</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
