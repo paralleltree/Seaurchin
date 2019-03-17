@@ -14,15 +14,7 @@ enum class AirControlSource {
     AirAction,
 };
 
-struct ControllerFingerState {
-    int Id;
-    WacomMTFingerState State;
-    int SliderPosition;
-};
-
 class ControlState final {
-    friend int WacomFingerCallback(WacomMTFingerCollection *fingerPacket, void *userData);
-
 private:
     char keyboardCurrent[256];
     char keyboardLast[256];
@@ -38,14 +30,6 @@ private:
     bool sliderKeyboardTrigger[16];
     std::vector<int> airStringKeyboardInputCombinations[4];
     bool airStringKeyboard[4];
-
-    bool isWacomDeviceAvailable = false;
-    int *wacomDeviceIds = nullptr;
-    WacomMTCapability *wacomDeviceCapabilities = nullptr;
-    std::unordered_map<int, std::shared_ptr<ControllerFingerState>> currentFingers;
-    std::mutex fingerMutex;
-    void InitializeWacomTouchDevice();
-    void UpdateWacomTouchDeviceFinger(WacomMTFingerCollection *fingers);
 
 public:
     void Initialize();
