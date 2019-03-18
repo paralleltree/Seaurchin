@@ -29,7 +29,7 @@ private:
     asIScriptFunction *function;
 };
 
-struct CallbackObject;
+class CallbackObject;
 
 class ScriptScene : public Scene {
     typedef Scene Base;

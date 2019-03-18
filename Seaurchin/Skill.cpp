@@ -130,7 +130,7 @@ SkillIndicators::SkillIndicators()
 SkillIndicators::~SkillIndicators()
 {
     for (const auto &i : indicatorIcons) i->Release();
-    delete callback;
+    if (callback) callback->Release();
 }
 
 void SkillIndicators::SetCallback(asIScriptFunction *func)
@@ -148,11 +148,13 @@ void SkillIndicators::SetCallback(asIScriptFunction *func)
         return;
     }
 
-    delete callback;
+    if (callback) callback->Release();
 
     func->AddRef();
     callback = new CallbackObject(func);
     callback->Context->SetUserData(sceneObj, SU_UDTYPE_SCENE);
+
+    callback->AddRef();
     sceneObj->RegistDisposalCallback(callback);
 
     func->Release();
@@ -169,7 +171,12 @@ int SkillIndicators::AddSkillIndicator(const string &icon)
 
 void SkillIndicators::TriggerSkillIndicator(const int index) const
 {
-    if (!callback || !callback->Exists) return;
+    if (!callback) return;
+    if (!callback->IsExists()) {
+        callback->Release();
+        callback = nullptr;
+        return;
+    }
 
     callback->Context->Prepare(callback->Function);
     callback->Context->SetObject(callback->Object);

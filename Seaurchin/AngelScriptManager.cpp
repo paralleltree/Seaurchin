@@ -94,7 +94,8 @@ int ScriptIncludeCallback(const wchar_t *include, const wchar_t *from, CWScriptB
 }
 
 CallbackObject::CallbackObject(asIScriptFunction *callback)
-    : Exists(true)
+    : exists(true)
+    , refcount(1)
 {
     const auto ctx = asGetActiveContext();
     auto engine = ctx->GetEngine();
@@ -116,7 +117,7 @@ CallbackObject::~CallbackObject()
 
 void CallbackObject::Dispose()
 {
-    if (!Exists) return;
+    if (!exists) return;
 
     auto engine = Context->GetEngine();
     Context->Release();
@@ -124,5 +125,5 @@ void CallbackObject::Dispose()
     engine->ReleaseScriptObject(Object, Type);
     Type->Release();
 
-    Exists = false;
+    exists = false;
 }

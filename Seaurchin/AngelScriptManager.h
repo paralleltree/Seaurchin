@@ -48,20 +48,36 @@ public:
         return type->Implements(engine->GetTypeInfoByName(name.c_str()));
     }
 
-    //asITypeInfoからインスタンス作成 リファレンス無しなのでさっさとAddRefしろ
+    //asITypeInfoからインスタンス作成
     asIScriptObject* InstantiateObject(asITypeInfo *type) const;
 };
 
 // コールバックを管理する
 // デストラクタで開放するから心配いらない…はず
-struct CallbackObject {
+class CallbackObject {
+public:
+    asIScriptContext *Context;
     asIScriptObject *Object;
     asIScriptFunction *Function;
     asITypeInfo *Type;
-    asIScriptContext *Context;
-    bool Exists;
+private:
+    bool exists;
+    int refcount;
 
+public:
     explicit CallbackObject(asIScriptFunction *callback);
     ~CallbackObject();
+
+    void AddRef() { refcount++; }
+    void Release() { if (--refcount == 0) delete this; }
+    int GetRefCount() const { return refcount; }
+
+    // オブジェクトが所有しているデリゲート「のみ」を解放する、オブジェクトそのものが解放されるわけではない
+    // これを呼び出すとContext等は解放されるので参照しては行けない状態になる
     void Dispose();
+
+    // オブジェクトが所有しているデリゲートが有効かどうかを返す
+    // trueを返している間は登録したデリゲートを呼び出してよい
+    // falseを返したなら速やかにこのオブジェクトをReleaseすることが望まれる(二重開放しないよう注意)
+    bool IsExists() { return exists; }
 };

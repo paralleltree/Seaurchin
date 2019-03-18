@@ -135,6 +135,7 @@ void ScriptScene::Dispose()
 {
     for (auto it = callbacks.begin(); it != callbacks.end(); ++it)         {
         (*it)->Dispose();
+        (*it)->Release();
     }
     callbacks.clear();
 }

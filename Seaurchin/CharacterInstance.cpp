@@ -6,21 +6,20 @@
 
 using namespace std;
 
-CharacterInstance::CharacterInstance(const shared_ptr<CharacterParameter>& character, const shared_ptr<SkillParameter>& skill, const shared_ptr<AngelScript>& script, const shared_ptr<Result>& result) :
-    imageSet(nullptr)
-{
-    characterSource = character;
-    skillSource = skill;
-    targetResult = result;
-    scriptInterface = script;
-    judgeCallback = nullptr;
-    indicators = make_shared<SkillIndicators>();
-    context = script->GetEngine()->CreateContext();
-}
+CharacterInstance::CharacterInstance(const shared_ptr<CharacterParameter>& character, const shared_ptr<SkillParameter>& skill, const shared_ptr<AngelScript>& script, const shared_ptr<Result>& result)
+    : scriptInterface(script)
+    , characterSource(character)
+    , skillSource(skill)
+    , imageSet(nullptr)
+    , indicators(new SkillIndicators())
+    , targetResult(result)
+    , context(script->GetEngine()->CreateContext())
+    , judgeCallback(nullptr)
+{}
 
 CharacterInstance::~CharacterInstance()
 {
-    delete judgeCallback;
+    if (judgeCallback) judgeCallback->Release();
     context->Release();
     for (const auto &t : abilityTypes) t->Release();
     for (const auto &o : abilities) o->Release();
@@ -163,7 +162,12 @@ void CharacterInstance::CallEventFunction(asIScriptObject *obj, asIScriptFunctio
 
 void CharacterInstance::CallJudgeCallback(const AbilityJudgeType judge, const JudgeInformation &info, const string& extra) const
 {
-    if (!judgeCallback || !judgeCallback->Exists) return;
+    if (!judgeCallback) return;
+    if (!judgeCallback->IsExists()) {
+        judgeCallback->Release();
+        judgeCallback = nullptr;
+        return;
+    }
 
     auto message = extra;
     auto infoClone = info;
@@ -238,11 +242,13 @@ void CharacterInstance::OnMiss(const JudgeInformation &info, const string& extra
 void CharacterInstance::SetCallback(asIScriptFunction *func, ScriptScene *sceneObj)
 {
     if (!func || func->GetFuncType() != asFUNC_DELEGATE) return;
-    delete judgeCallback;
+    if (judgeCallback) judgeCallback->Release();
 
     func->AddRef();
     judgeCallback = new CallbackObject(func);
     judgeCallback->Context->SetUserData(sceneObj, SU_UDTYPE_SCENE);
+
+    judgeCallback->AddRef();
     sceneObj->RegistDisposalCallback(judgeCallback);
 
     func->Release();
