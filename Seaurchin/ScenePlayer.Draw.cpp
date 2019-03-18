@@ -438,7 +438,7 @@ void ScenePlayer::DrawShortNotes(const shared_ptr<SusDrawableNoteData>& note) co
 
     //64*3 x 64 を描画するから1/2でやる必要がある
 
-    if (handleToDraw) DrawTap(slane, length, relpos, handleToDraw->GetHandle());
+    if (handleToDraw) DrawTap(slane, SU_TO_INT32(length), relpos, handleToDraw->GetHandle());
 }
 
 void ScenePlayer::DrawAirNotes(const AirDrawQuery &query) const
@@ -552,14 +552,16 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
         if (ex->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ノーツがAttack以上の判定*/) continue;
 
         const auto relendpos = 1.0 - ex->ModifiedPosition / seenDuration;
+        const int len = SU_TO_INT32(length);
         if (ex->Type.test(size_t(SusNoteType::Start))) {
-            DrawTap(slane, length, relendpos, imageHold->GetHandle());
+            DrawTap(slane, len, relendpos, imageHold->GetHandle());
         } else {
-            DrawTap(slane, length, relendpos, imageHoldStep->GetHandle());
+            DrawTap(slane, len, relendpos, imageHoldStep->GetHandle());
         }
     }
     if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ノーツがAttack以上の判定*/)) {
-        DrawTap(slane, length, relpos, imageHold->GetHandle());
+        const int len = SU_TO_INT32(length);
+        DrawTap(slane, len, relpos, imageHold->GetHandle());
     }
 }
 
@@ -828,15 +830,17 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 
         const auto currentStepRelativeY = 1.0 - slideElement->ModifiedPosition / seenDuration;
         if (currentStepRelativeY >= 0 && currentStepRelativeY < cullingLimit) {
+            const int length = SU_TO_INT32(slideElement->Length);
             if (slideElement->Type.test(size_t(SusNoteType::Start))) {
-                DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlide->GetHandle());
+                DrawTap(slideElement->StartLane, length, currentStepRelativeY, imageSlide->GetHandle());
             } else {
-                DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlideStep->GetHandle());
+                DrawTap(slideElement->StartLane, length, currentStepRelativeY, imageSlideStep->GetHandle());
             }
         }
     }
     if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ノーツがAttack以上の判定*/)) {
-        DrawTap(note->StartLane, note->Length, 1.0 - note->ModifiedPosition / seenDuration, imageSlide->GetHandle());
+        const int length = SU_TO_INT32(note->Length);
+        DrawTap(note->StartLane, length, 1.0 - note->ModifiedPosition / seenDuration, imageSlide->GetHandle());
     }
 }
 
