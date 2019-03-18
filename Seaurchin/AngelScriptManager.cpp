@@ -93,6 +93,19 @@ int ScriptIncludeCallback(const wchar_t *include, const wchar_t *from, CWScriptB
     return as->IncludeFile(include, from) ? 1 : -1;
 }
 
+MethodObject::MethodObject(asIScriptEngine *engine, asIScriptObject *object, asIScriptFunction *method)
+    : Context(engine->CreateContext())
+    , Object(object)
+    , Function(method)
+{}
+
+MethodObject::~MethodObject()
+{
+    Context->Release();
+    Object->Release();
+    Function->Release();
+}
+
 CallbackObject::CallbackObject(asIScriptFunction *callback)
     : exists(true)
     , refcount(1)

@@ -29,21 +29,24 @@ private:
     asIScriptFunction *function;
 };
 
+class MethodObject;
 class CallbackObject;
 
 class ScriptScene : public Scene {
     typedef Scene Base;
 protected:
-    asIScriptContext * const context;
     asIScriptObject * const sceneObject;
-    asITypeInfo * const sceneType;
+
+    MethodObject* initMethod;
+    MethodObject* mainMethod;
+    MethodObject* eventMethod;
 
     std::multiset<SSprite*, SSprite::Comparator> sprites;
     std::vector<SSprite*> spritesPending;
     std::list<Coroutine*> coroutines;
     std::list<Coroutine*> coroutinesPending;
     std::vector<CallbackObject*> callbacks;
-    bool finished = false;
+    bool finished;
 
     void TickCoroutine(double delta);
     void TickSprite(double delta);
@@ -53,9 +56,7 @@ public:
     ScriptScene(asIScriptObject *scene);
     virtual ~ScriptScene();
 
-    asIScriptObject* GetSceneObject() const { return sceneObject; }
-    asITypeInfo* GetSceneType() const { return sceneType; }
-    asIScriptFunction* GetMainMethod() override;
+    const char* GetMainMethodDecl() const override { return "void Tick(double)"; }
 
     void Initialize() override;
 
@@ -81,7 +82,9 @@ public:
     ScriptCoroutineScene(asIScriptObject *scene);
     virtual ~ScriptCoroutineScene();
 
-    asIScriptFunction* GetMainMethod() override;
+    const char* GetMainMethodDecl() const override { return "void Run()"; }
+
+    void Initialize() override;
 
     void Tick(double delta) override;
 };

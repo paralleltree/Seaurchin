@@ -52,6 +52,18 @@ public:
     asIScriptObject* InstantiateObject(asITypeInfo *type) const;
 };
 
+// メンバ関数を管理する
+class MethodObject {
+public:
+    asIScriptContext *Context;
+    asIScriptObject *Object;
+    asIScriptFunction *Function;
+
+public:
+    explicit MethodObject(asIScriptEngine *engine, asIScriptObject *object, asIScriptFunction *method);
+    ~MethodObject();
+};
+
 // コールバックを管理する
 // デストラクタで開放するから心配いらない…はず
 class CallbackObject {
