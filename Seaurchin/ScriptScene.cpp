@@ -159,7 +159,7 @@ void ScriptScene::Disappear()
 
 void ScriptScene::Dispose()
 {
-    for (auto it = callbacks.begin(); it != callbacks.end(); ++it)         {
+    for (auto it = callbacks.begin(); it != callbacks.end(); ++it) {
         (*it)->Dispose();
         (*it)->Release();
     }
@@ -175,7 +175,7 @@ void ScriptScene::TickCoroutine(const double delta)
 {
     if (!coroutinesPending.empty()) {
         for (auto& coroutine : coroutinesPending) {
-            coroutine->SetSceneInstance(this);
+            coroutine->SetUserData(this, SU_UDTYPE_SCENE);
             coroutines.push_back(coroutine);
         }
         coroutinesPending.clear();
@@ -185,7 +185,7 @@ void ScriptScene::TickCoroutine(const double delta)
     while (i != coroutines.end()) {
         auto c = *i;
 
-        if (c->Wait.Tick(delta)) {
+        if (c->Tick(delta)) {
             ++i;
             continue;
         }
@@ -400,33 +400,30 @@ void ScriptSceneDisappear()
 
 
 Coroutine::Coroutine(const std::string &name, const asIScriptFunction* cofunc, asIScriptEngine* engine)
-    : Name(name)
+    : context(engine->CreateContext())
+    , object(static_cast<asIScriptObject*>(cofunc->GetDelegateObject()))
+    , function(cofunc->GetDelegateFunction())
+    , type(cofunc->GetDelegateObjectType())
+    , Name(name)
     , Wait(CoroutineWait { WaitType::Time, 0 })
 {
-    BOOST_ASSERT(cofunc);
     BOOST_ASSERT(cofunc->GetFuncType() == asFUNC_DELEGATE);
 
-    function = cofunc->GetDelegateFunction();
     function->AddRef();
-
-    object = cofunc->GetDelegateObject();
-    static_cast<asIScriptObject*>(object)->AddRef();
-
-    type = cofunc->GetDelegateObjectType();
+    object->AddRef();
     type->AddRef();
 
-    context = engine->CreateContext();
-    context->SetUserData(&Wait, SU_UDTYPE_WAIT);
-    context->Prepare(function);
-    context->SetObject(object);
+    Prepare();
+    SetUserData(&Wait, SU_UDTYPE_WAIT);
 
     cofunc->Release();
 }
 
 Coroutine::~Coroutine()
 {
+    Unprepare();
+
     auto e = context->GetEngine();
-    context->Unprepare();
     context->Release();
     function->Release();
     e->ReleaseScriptObject(object, type);
