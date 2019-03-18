@@ -152,7 +152,7 @@ void SkillIndicators::SetCallback(asIScriptFunction *func)
 
     func->AddRef();
     callback = new CallbackObject(func);
-    callback->Context->SetUserData(sceneObj, SU_UDTYPE_SCENE);
+    callback->SetUserData(sceneObj, SU_UDTYPE_SCENE);
 
     callback->AddRef();
     sceneObj->RegistDisposalCallback(callback);
@@ -178,11 +178,10 @@ void SkillIndicators::TriggerSkillIndicator(const int index) const
         return;
     }
 
-    callback->Context->Prepare(callback->Function);
-    callback->Context->SetObject(callback->Object);
-    callback->Context->SetArgDWord(0, index);
-    callback->Context->Execute();
-    callback->Context->Unprepare();
+    callback->Prepare();
+    callback->SetArg(0, index);
+    callback->Execute();
+    callback->Unprepare();
 }
 
 uint32_t SkillIndicators::GetSkillIndicatorCount() const

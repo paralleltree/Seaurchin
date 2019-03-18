@@ -44,7 +44,7 @@ void ScriptScene::Initialize()
             sceneObject->AddRef();
             func->AddRef();
             initMethod = new MethodObject(engine, sceneObject, func);
-            initMethod->Context->SetUserData(this, SU_UDTYPE_SCENE);
+            initMethod->SetUserData(this, SU_UDTYPE_SCENE);
         }
     }
 
@@ -54,7 +54,7 @@ void ScriptScene::Initialize()
             sceneObject->AddRef();
             func->AddRef();
             mainMethod = new MethodObject(engine, sceneObject, func);
-            mainMethod->Context->SetUserData(this, SU_UDTYPE_SCENE);
+            mainMethod->SetUserData(this, SU_UDTYPE_SCENE);
         }
     }
 
@@ -64,16 +64,15 @@ void ScriptScene::Initialize()
             sceneObject->AddRef();
             func->AddRef();
             eventMethod = new MethodObject(engine, sceneObject, func);
-            eventMethod->Context->SetUserData(this, SU_UDTYPE_SCENE);
+            eventMethod->SetUserData(this, SU_UDTYPE_SCENE);
         }
     }
 
     if (!initMethod) return;
 
-    initMethod->Context->Prepare(initMethod->Function);
-    initMethod->Context->SetObject(initMethod->Object);
-    initMethod->Context->Execute();
-    initMethod->Context->Unprepare();
+    initMethod->Prepare();
+    initMethod->Execute();
+    initMethod->Unprepare();
 }
 
 void ScriptScene::AddSprite(SSprite *sprite)
@@ -124,11 +123,10 @@ void ScriptScene::Tick(const double delta)
 
     if (!mainMethod) return;
 
-    mainMethod->Context->Prepare(mainMethod->Function);
-    mainMethod->Context->SetObject(mainMethod->Object);
-    mainMethod->Context->SetArgDouble(0, delta);
-    mainMethod->Context->Execute();
-    mainMethod->Context->Unprepare();
+    mainMethod->Prepare();
+    mainMethod->SetArg(0, delta);
+    mainMethod->Execute();
+    mainMethod->Unprepare();
 }
 
 void ScriptScene::OnEvent(const string &message)
@@ -136,11 +134,10 @@ void ScriptScene::OnEvent(const string &message)
     if (!eventMethod) return;
 
     auto msg = message;
-    eventMethod->Context->Prepare(eventMethod->Function);
-    eventMethod->Context->SetObject(eventMethod->Object);
-    eventMethod->Context->SetArgAddress(0, static_cast<void*>(&msg));
-    eventMethod->Context->Execute();
-    eventMethod->Context->Unprepare();
+    eventMethod->Prepare();
+    eventMethod->SetArg(0, &msg);
+    eventMethod->Execute();
+    eventMethod->Unprepare();
 }
 
 void ScriptScene::Draw()
@@ -240,16 +237,15 @@ ScriptCoroutineScene::ScriptCoroutineScene(asIScriptObject *scene)
 
 ScriptCoroutineScene::~ScriptCoroutineScene()
 {
-    mainMethod->Context->Unprepare();
+    mainMethod->Unprepare();
 }
 
 void ScriptCoroutineScene::Initialize()
 {
     Base::Initialize();
 
-    mainMethod->Context->SetUserData(&wait, SU_UDTYPE_WAIT);
-    mainMethod->Context->Prepare(mainMethod->Function);
-    mainMethod->Context->SetObject(mainMethod->Object);
+    mainMethod->SetUserData(&wait, SU_UDTYPE_WAIT);
+    mainMethod->Prepare();
 }
 
 void ScriptCoroutineScene::Tick(const double delta)
@@ -265,9 +261,9 @@ void ScriptCoroutineScene::Tick(const double delta)
         return;
     }
 
-    const auto result = mainMethod->Context->Execute();
+    const auto result = mainMethod->Execute();
     if (result != asEXECUTION_SUSPENDED) {
-        mainMethod->Context->Unprepare();
+        mainMethod->Unprepare();
         finished = true;
     }
 }

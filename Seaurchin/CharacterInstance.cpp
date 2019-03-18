@@ -172,13 +172,12 @@ void CharacterInstance::CallJudgeCallback(const AbilityJudgeType judge, const Ju
     auto message = extra;
     auto infoClone = info;
 
-    judgeCallback->Context->Prepare(judgeCallback->Function);
-    judgeCallback->Context->SetObject(judgeCallback->Object);
-    judgeCallback->Context->SetArgDWord(0, asDWORD(judge));
-    judgeCallback->Context->SetArgObject(1, static_cast<void*>(&infoClone));
-    judgeCallback->Context->SetArgObject(2, static_cast<void*>(&message));
-    judgeCallback->Context->Execute();
-    judgeCallback->Context->Unprepare();
+    judgeCallback->Prepare();
+    judgeCallback->SetArg(0, SU_TO_INT32(judge));
+    judgeCallback->SetArgObject(1, &infoClone);
+    judgeCallback->SetArgObject(2, &message);
+    judgeCallback->Execute();
+    judgeCallback->Unprepare();
 }
 
 void CharacterInstance::OnStart()
@@ -246,7 +245,7 @@ void CharacterInstance::SetCallback(asIScriptFunction *func, ScriptScene *sceneO
 
     func->AddRef();
     judgeCallback = new CallbackObject(func);
-    judgeCallback->Context->SetUserData(sceneObj, SU_UDTYPE_SCENE);
+    judgeCallback->SetUserData(sceneObj, SU_UDTYPE_SCENE);
 
     judgeCallback->AddRef();
     sceneObj->RegistDisposalCallback(judgeCallback);
