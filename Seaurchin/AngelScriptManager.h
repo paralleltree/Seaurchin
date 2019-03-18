@@ -82,39 +82,38 @@ public:
 // メンバ関数を管理する
 class MethodObject {
 private:
-    asIScriptContext *Context;
-    asIScriptObject *Object;
-    asIScriptFunction *Function;
+    asIScriptContext *context;
+    asIScriptObject *object;
+    asIScriptFunction *function;
 
 public:
     explicit MethodObject(asIScriptEngine *engine, asIScriptObject *object, asIScriptFunction *method);
     ~MethodObject();
 
-    void *SetUserData(void *data, asPWORD type) { return Context->SetUserData(data, type); }
+    void *SetUserData(void *data, asPWORD type) { return context->SetUserData(data, type); }
 
     int Prepare()
     {
-        const auto r1 = Context->Prepare(Function);
+        const auto r1 = context->Prepare(function);
         if (r1 != asSUCCESS) return r1;
-        return Context->SetObject(Object);
+        return context->SetObject(object);
     }
 
-    int Execute() { return Context->Execute(); }
-    int Unprepare() { return Context->Unprepare(); }
+    int Execute() { return context->Execute(); }
+    int Unprepare() { return context->Unprepare(); }
 
     SU_DEF_SETARG_BEGIN;
-    SU_DEF_SETARG_ALL(Context);
+    SU_DEF_SETARG_ALL(context);
     SU_DEF_SETARG_END;
 };
 
 // コールバックを管理する
-// デストラクタで開放するから心配いらない…はず
 class CallbackObject {
 private:
-    asIScriptContext *Context;
-    asIScriptObject *Object;
-    asIScriptFunction *Function;
-    asITypeInfo *Type;
+    asIScriptContext *context;
+    asIScriptObject *object;
+    asIScriptFunction *function;
+    asITypeInfo *type;
     bool exists;
     int refcount;
 
@@ -126,17 +125,29 @@ public:
     void Release() { if (--refcount == 0) delete this; }
     int GetRefCount() const { return refcount; }
 
-    void *SetUserData(void *data, asPWORD type) { return Context->SetUserData(data, type); }
+    void *SetUserData(void *data, asPWORD type) {
+        BOOST_ASSERT(IsExists());
+        return context->SetUserData(data, type);
+    }
 
     int Prepare()
     {
-        const auto r1 = Context->Prepare(Function);
+        BOOST_ASSERT(IsExists());
+        const auto r1 = context->Prepare(function);
         if (r1 != asSUCCESS) return r1;
-        return Context->SetObject(Object);
+        return context->SetObject(object);
     }
 
-    int Execute() { return Context->Execute(); }
-    int Unprepare() { return Context->Unprepare(); }
+    int Execute()
+    {
+        BOOST_ASSERT(IsExists());
+        return context->Execute();
+    }
+
+    int Unprepare() {
+        BOOST_ASSERT(IsExists());
+        return context->Unprepare();
+    }
 
     // オブジェクトが所有しているデリゲート「のみ」を解放する、オブジェクトそのものが解放されるわけではない
     // これを呼び出すとContext等は解放されるので参照しては行けない状態になる
@@ -145,9 +156,9 @@ public:
     // オブジェクトが所有しているデリゲートが有効かどうかを返す
     // trueを返している間は登録したデリゲートを呼び出してよい
     // falseを返したなら速やかにこのオブジェクトをReleaseすることが望まれる(二重開放しないよう注意)
-    bool IsExists() { return exists; }
+    bool IsExists() const { return exists; }
 
     SU_DEF_SETARG_BEGIN;
-    SU_DEF_SETARG_ALL(Context);
+    SU_DEF_SETARG_ALL(context);
     SU_DEF_SETARG_END;
 };

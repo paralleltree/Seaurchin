@@ -94,16 +94,16 @@ int ScriptIncludeCallback(const wchar_t *include, const wchar_t *from, CWScriptB
 }
 
 MethodObject::MethodObject(asIScriptEngine *engine, asIScriptObject *object, asIScriptFunction *method)
-    : Context(engine->CreateContext())
-    , Object(object)
-    , Function(method)
+    : context(engine->CreateContext())
+    , object(object)
+    , function(method)
 {}
 
 MethodObject::~MethodObject()
 {
-    Context->Release();
-    Object->Release();
-    Function->Release();
+    context->Release();
+    object->Release();
+    function->Release();
 }
 
 CallbackObject::CallbackObject(asIScriptFunction *callback)
@@ -112,13 +112,13 @@ CallbackObject::CallbackObject(asIScriptFunction *callback)
 {
     const auto ctx = asGetActiveContext();
     auto engine = ctx->GetEngine();
-    Context = engine->CreateContext();
-    Function = callback->GetDelegateFunction();
-    Function->AddRef();
-    Object = static_cast<asIScriptObject*>(callback->GetDelegateObject());
-    Object->AddRef();
-    Type = callback->GetDelegateObjectType();
-    Type->AddRef();
+    context = engine->CreateContext();
+    function = callback->GetDelegateFunction();
+    function->AddRef();
+    object = static_cast<asIScriptObject*>(callback->GetDelegateObject());
+    object->AddRef();
+    type = callback->GetDelegateObjectType();
+    type->AddRef();
 
     callback->Release();
 }
@@ -132,11 +132,11 @@ void CallbackObject::Dispose()
 {
     if (!exists) return;
 
-    auto engine = Context->GetEngine();
-    Context->Release();
-    Function->Release();
-    engine->ReleaseScriptObject(Object, Type);
-    Type->Release();
+    auto engine = context->GetEngine();
+    context->Release();
+    function->Release();
+    engine->ReleaseScriptObject(object, type);
+    type->Release();
 
     exists = false;
 }

@@ -26,6 +26,8 @@ ScriptScene::~ScriptScene()
 
     KillCoroutine("");
 
+    if (mainMethod) mainMethod->Unprepare();
+
     delete initMethod;
     delete mainMethod;
     delete eventMethod;
@@ -55,6 +57,7 @@ void ScriptScene::Initialize()
             func->AddRef();
             mainMethod = new MethodObject(engine, sceneObject, func);
             mainMethod->SetUserData(this, SU_UDTYPE_SCENE);
+            mainMethod->Prepare();
         }
     }
 
@@ -123,10 +126,9 @@ void ScriptScene::Tick(const double delta)
 
     if (!mainMethod) return;
 
-    mainMethod->Prepare();
     mainMethod->SetArg(0, delta);
     mainMethod->Execute();
-    mainMethod->Unprepare();
+    
 }
 
 void ScriptScene::OnEvent(const string &message)
@@ -236,16 +238,13 @@ ScriptCoroutineScene::ScriptCoroutineScene(asIScriptObject *scene)
 {}
 
 ScriptCoroutineScene::~ScriptCoroutineScene()
-{
-    mainMethod->Unprepare();
-}
+{}
 
 void ScriptCoroutineScene::Initialize()
 {
     Base::Initialize();
 
-    mainMethod->SetUserData(&wait, SU_UDTYPE_WAIT);
-    mainMethod->Prepare();
+    if (mainMethod) mainMethod->SetUserData(&wait, SU_UDTYPE_WAIT);
 }
 
 void ScriptCoroutineScene::Tick(const double delta)
@@ -263,7 +262,6 @@ void ScriptCoroutineScene::Tick(const double delta)
 
     const auto result = mainMethod->Execute();
     if (result != asEXECUTION_SUSPENDED) {
-        mainMethod->Unprepare();
         finished = true;
     }
 }
