@@ -1,15 +1,19 @@
-﻿#include "Main.h"
+﻿#include "Misc.h"
+#include "Main.h"
 #include "resource.h"
 #include "Debug.h"
 #include "Setting.h"
 #include "ExecutionManager.h"
 #include "SceneDebug.h"
+#include "MoverFunctionExpression.h"
+#include "Easing.h"
+#include "ScriptSpriteMover.h"
 
 using namespace std;
 using namespace std::chrono;
 
 void PreInitialize(HINSTANCE hInstance);
-void Initialize();
+bool Initialize();
 void Run();
 void Terminate();
 LRESULT CALLBACK CustomWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -23,7 +27,10 @@ HWND hDxlibWnd;
 int WINAPI WinMain(const HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
     PreInitialize(hInstance);
-    Initialize();
+    if (!Initialize()) {
+        Terminate();
+        return -1;
+    }
 
     Run();
 
@@ -52,7 +59,7 @@ void PreInitialize(HINSTANCE hInstance)
     SetFullSceneAntiAliasingMode(2, 2);
 }
 
-void Initialize()
+bool Initialize()
 {
     if (DxLib_Init() == -1) abort();
     logger->LogInfo(u8"DxLib初期化OK");
@@ -66,8 +73,16 @@ void Initialize()
     SetWriteZBuffer3D(TRUE);
     SetDrawScreen(DX_SCREEN_BACK);
 
+    MoverFunctionExpressionManager::Initialize();
+    if (!easing::RegistDefaultMoverFunctionExpressions()) {
+        // TODO: ログ
+        return false;
+    }
+
     manager = make_unique<ExecutionManager>(setting);
     manager->Initialize();
+
+    SSpriteMover::StrTypeId = manager->GetScriptInterfaceUnsafe()->GetEngine()->GetTypeIdByDecl("string");
 }
 
 void Run()
@@ -94,12 +109,13 @@ void Run()
 
 void Terminate()
 {
-    manager->Shutdown();
+    if(manager) manager->Shutdown();
     manager.reset(nullptr);
-    setting->Save();
-    setting.reset();
+    MoverFunctionExpressionManager::Finalize();
+    if(setting) setting->Save();
+    if(setting) setting.reset();
     DxLib_End();
-    logger->Terminate();
+    if(logger) logger->Terminate();
 }
 
 LRESULT CALLBACK CustomWindowProc(const HWND hWnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)

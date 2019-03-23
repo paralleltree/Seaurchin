@@ -87,6 +87,7 @@ struct ScenePlayerMetrics {
 };
 
 class ExecutionManager;
+class MoverObject;
 class ScenePlayer : public SSprite {
     friend class ScoreProcessor;
     friend class AutoPlayerProcessor;
@@ -145,6 +146,7 @@ protected:
     SAnimatedImage *animeTap {}, *animeExTap {}, *animeSlideTap {}, *animeSlideLoop {}, *animeAirAction {};
     STextSprite *textCombo {}; // コンボ数フォント こいつだけLoadResourcesで自力で生成、Finalizeで自力で破棄する
     double textScale {};       // コンボ数フォント拡大率 textComboに設定したフォントサイズで計算し保持する
+    MoverObject* pTextComboMover;
 
     // LoadResourcesで初期化 (設定ファイルから取得)
     unsigned int slideLineColor = GetColor(0, 200, 255);        // Slide中心線色

@@ -1,5 +1,6 @@
 ﻿#include "ScenePlayer.h"
 #include "ScriptSprite.h"
+#include "ScriptSpriteMover.h"
 #include "ExecutionManager.h"
 #include "Setting.h"
 #include "Config.h"
@@ -102,10 +103,11 @@ void ScenePlayer::LoadResources()
         const auto fontSize = fontCombo->GetSize();
         textScale = 320.0 / ((fontSize <= 0.0) ? 1.0 : fontSize);
     }
-    ostringstream app;
-    app << setprecision(5);
-    app << "x:512, y:3200, " << "scaleX:" << textScale << ", scaleY:" << textScale;
-    textCombo->Apply(app.str());
+    textCombo->SetPosition(512, 3200);
+    textCombo->SetScale(textScale);
+
+    pTextComboMover->Apply("end", textScale);
+    pTextComboMover->Apply("time:0.2, func:out_quad");
 }
 
 void ScenePlayer::AddSprite(SSprite *sprite)
@@ -248,16 +250,9 @@ void ScenePlayer::DrawAerialNotes(const vector<shared_ptr<SusDrawableNoteData>>&
 
 void ScenePlayer::RefreshComboText() const
 {
-    ostringstream app;
     textCombo->AbortMove(true);
-
-    app << setprecision(5);
-    app << "scaleX:" << textScale * 1.05 << ", scaleY:" << textScale * 1.05;
-    textCombo->Apply(app.str());
-    app.str("");
-    app << setprecision(5);
-    app << "scale_to(" << "x:" << textScale << ", y:" << textScale << ", time: 0.2, ease:out_quad)";
-    textCombo->AddMove(app.str());
+    textCombo->SetScale(textScale * 1.05);
+    textCombo->AddMove("scale", pTextComboMover->Clone());
 }
 
 // position は 0 ~ 16

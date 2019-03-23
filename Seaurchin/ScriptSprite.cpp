@@ -1,83 +1,18 @@
 ﻿#include "ScriptSprite.h"
+#include "ScriptSpriteMover.h"
 #include "ExecutionManager.h"
 #include "Misc.h"
+#include "FormatStringParseHelper.h"
 
 using namespace std;
 using namespace crc32_constexpr;
 // 一般
 
-namespace {
-    // SSprite::Applyに与える文字列形式をパースする
-    // パース失敗(不正な形式の場合)は即時終了、falseを返す
-    // パース成功でtrueを返す
-    inline bool ParseApplyFormatString(const string &dict, vector<pair<const string, double>> &retProps)
-    {
-#define SKIP_SP() do { while (it != end && *it == sp) ++it; } while(0)
-#define CHECK_END() do { if (it == end) return false; } while(0)
-
-        auto it = dict.begin();
-        const auto end = dict.end();
-        const auto sp = ' ';
-        const auto comma = ',';
-        const auto colon = ':';
-        do {
-            SKIP_SP();
-            CHECK_END();
-
-            const auto keyHead = it;
-
-            if (*it == comma || *it == colon) return false;
-
-            while (it != end && *it != sp && *it != comma && *it != colon) ++it;
-            CHECK_END();
-
-            const auto keyTail = it;
-
-            SKIP_SP();
-            CHECK_END();
-
-            if (*it != colon) return false;
-            ++it;
-
-            SKIP_SP();
-            CHECK_END();
-
-            if (*it == comma || *it == colon) return false;
-
-            auto value = 0.0;
-            auto sign = false;
-            {
-                auto base = 1.0;
-                unsigned char ch;
-
-                it = *it == '-' ? (sign = true, ++it) : it;
-                while (it != end && (ch = *it - '0') <= 9u) value = value * 10 + ch, ++it;
-                if (it != end && *it == '.') {
-                    ++it;
-                    while (it != end && (ch = *it - '0') <= 9u) value += (base *= 0.1) * ch, ++it;
-                }
-            }
-
-            SKIP_SP();
-
-            retProps.emplace_back(string(keyHead, keyTail), sign ? -value : value);
-
-            if (it != end && *it == comma) {
-                ++it;
-            } else {
-                break;
-            }
-        } while (true);
-
-        return true;
-#undef SKIP_SP
-#undef CHECK_END
-    }
-}
-
 void RegisterScriptSprite(ExecutionManager *exm)
 {
     const auto engine = exm->GetScriptInterfaceUnsafe()->GetEngine();
+
+    MoverObject::RegisterType(engine);
 
     SSprite::RegisterType(engine);
     SShape::RegisterType(engine);
@@ -89,6 +24,90 @@ void RegisterScriptSprite(ExecutionManager *exm)
 }
 
 //SSprite ------------------
+
+bool SSprite::GetField(const SSprite* pSprite, FieldID id, double &value)
+{
+    if (!pSprite) return false;
+
+    const SShape *pShape = dynamic_cast<const SShape*>(pSprite);
+    const SClippingSprite *pClip = dynamic_cast<const SClippingSprite*>(pSprite);
+    const SAnimeSprite *pAnim = dynamic_cast<const SAnimeSprite*>(pSprite);
+
+    switch (id)
+    {
+    case FieldID::X: value = SU_TO_DOUBLE(pSprite->Transform.X); return true;
+    case FieldID::Y: value = SU_TO_DOUBLE(pSprite->Transform.Y); return true;
+    case FieldID::Z: value = SU_TO_DOUBLE(pSprite->ZIndex); return true;
+    case FieldID::OriginX: value = SU_TO_DOUBLE(pSprite->Transform.OriginX); return true;
+    case FieldID::OriginY: value = SU_TO_DOUBLE(pSprite->Transform.OriginY); return true;
+    case FieldID::Angle: value = SU_TO_DOUBLE(pSprite->Transform.Angle); return true;
+    case FieldID::Scale: value = SU_TO_DOUBLE(pSprite->Transform.ScaleX + pSprite->Transform.ScaleY) / 2.0; return true;
+    case FieldID::ScaleX: value = SU_TO_DOUBLE(pSprite->Transform.ScaleX); return true;
+    case FieldID::ScaleY: value = SU_TO_DOUBLE(pSprite->Transform.ScaleY); return true;
+    case FieldID::Alpha: value = SU_TO_DOUBLE(pSprite->Color.A / 255.0); return true;
+    case FieldID::R: value = SU_TO_DOUBLE(pSprite->Color.R); return true;
+    case FieldID::G: value = SU_TO_DOUBLE(pSprite->Color.G); return true;
+    case FieldID::B: value = SU_TO_DOUBLE(pSprite->Color.B); return true;
+
+    case FieldID::Death: value = pSprite->IsDead ? 1.0 : 0.0; return true;
+
+    case FieldID::Width: if (!pShape) return false; value = SU_TO_DOUBLE(pShape->Width); return true;
+    case FieldID::Height: if (!pShape) return false; value = SU_TO_DOUBLE(pShape->Height); return true;
+
+    case FieldID::U1: if (!pClip) return false; value = pClip->GetU1(); return true;
+    case FieldID::V1: if (!pClip) return false; value = pClip->GetV1(); return true;
+    case FieldID::U2: if (!pClip) return false; value = pClip->GetU2(); return true;
+    case FieldID::V2: if (!pClip) return false; value = pClip->GetV2(); return true;
+
+    case FieldID::LoopCount: if (!pAnim) return false; value = pAnim->GetLoopCount(); return true;
+    case FieldID::Speed: if (!pAnim) return false; value = pAnim->GetSpeed(); return true;
+
+    default: return false;
+    }
+}
+
+bool SSprite::SetField(SSprite* pSprite, FieldID id, double value)
+{
+    if (!pSprite) {
+        spdlog::get("main")->critical(u8"なんで");
+        return false;
+    }
+
+    SShape *pShape = dynamic_cast<SShape*>(pSprite);
+    SClippingSprite *pClip = dynamic_cast<SClippingSprite*>(pSprite);
+    SAnimeSprite *pAnim = dynamic_cast<SAnimeSprite*>(pSprite);
+
+    switch (id) {
+    case FieldID::X: return pSprite->SetPosX(value);
+    case FieldID::Y: return pSprite->SetPosY(value);
+    case FieldID::Z: return pSprite->SetZIndex(value);
+    case FieldID::OriginX: return pSprite->SetOriginX(value);
+    case FieldID::OriginY: return pSprite->SetOriginY(value);
+    case FieldID::Angle: return pSprite->SetAngle(value);
+    case FieldID::Scale: return pSprite->SetScale(value);
+    case FieldID::ScaleX: return pSprite->SetScaleX(value);
+    case FieldID::ScaleY: return pSprite->SetScaleY(value);
+    case FieldID::Alpha: return pSprite->SetAlpha(value);
+    case FieldID::R: return pSprite->SetColorR(value);
+    case FieldID::G: return pSprite->SetColorG(value);
+    case FieldID::B: return pSprite->SetColorB(value);
+
+    case FieldID::Death: pSprite->Dismiss(); return true;
+
+    case FieldID::Width: if (!pShape) return false; return pShape->SetWidth(value);
+    case FieldID::Height: if (!pShape) return false; return pShape->SetHeight(value);
+
+    case FieldID::U1: if (!pClip) return false; return pClip->SetU1(value);
+    case FieldID::V1: if (!pClip) return false; return pClip->SetV1(value);
+    case FieldID::U2: if (!pClip) return false; return pClip->SetU2(value);
+    case FieldID::V2: if (!pClip) return false; return pClip->SetV2(value);
+
+    case FieldID::LoopCount: if (!pAnim) return false; return pAnim->SetLoopCount(value);
+    case FieldID::Speed: if (!pAnim) return false; return pAnim->SetSpeed(value);
+
+    default: return false;
+    }
+}
 
 void SSprite::CopyParameterFrom(SSprite * original)
 {
@@ -113,7 +132,7 @@ const SImage *SSprite::GetImage() const
 
 SSprite::SSprite()
     : reference(0)
-    , mover(new ScriptSpriteMover2(this)) // NOTE: this渡すのはちょっと危ない気もする
+    , pMover(new SSpriteMover(this)) // NOTE: this渡すのはちょっと怖いけど
     , ZIndex(0)
     , Color(Colors::white)
     , IsDead(false)
@@ -126,7 +145,7 @@ SSprite::~SSprite()
 {
     if (Image) Image->Release();
     Image = nullptr;
-    delete mover;
+    delete pMover;
 }
 
 void SSprite::AddRef()
@@ -139,26 +158,18 @@ void SSprite::Release()
     if (--reference == 0) delete this;
 }
 
-mover_function::Action SSprite::GetCustomAction(const string & name)
+bool SSprite::Apply(FieldID id, const double value)
 {
-    return nullptr;
-}
-
-void SSprite::AddMove(const string & move) const
-{
-    mover->AddMove(move);
-}
-
-void SSprite::AbortMove(const bool terminate) const
-{
-    mover->Abort(terminate);
+    return SSprite::SetField(this, id, value);
 }
 
 void SSprite::Apply(const string & dict)
 {
-    vector<pair<const string, double>> props;
-    if(!ParseApplyFormatString(dict, props)) spdlog::get("main")->warn(u8"パースに失敗しました。 : \"{0}\"", dict);
-    Apply(props);
+    if (!FormatStringParseHelper::Apply(dict.c_str(), this)) {
+        return;
+    }
+
+    return;
 }
 
 void SSprite::Apply(const CScriptDictionary *dict)
@@ -166,120 +177,54 @@ void SSprite::Apply(const CScriptDictionary *dict)
     auto i = dict->begin();
     while (i != dict->end()) {
         const auto key = i.GetKey();
+        const auto id = SSprite::GetFieldId(key);
         double dv = 0;
-        if(i.GetValue(dv)) if(!Apply(key, dv)) spdlog::get("main")->warn(u8"プロパティに \"{0}\" は設定できません。", key);
+        if(i.GetValue(dv)) if(!Apply(id, dv)) spdlog::get("main")->warn(u8"プロパティに \"{0}\" は設定できません。", key);
         ++i;
     }
 
     dict->Release();
 }
 
-bool SSprite::Apply(const string &key, const double value)
+void SSprite::AddMove(const string & dict)
 {
-    switch (Crc32Rec(0xffffffff, key.c_str())) {
-    case "x"_crc32:
-        Transform.X = SU_TO_FLOAT(value);
-        break;
-    case "y"_crc32:
-        Transform.Y = SU_TO_FLOAT(value);
-        break;
-    case "z"_crc32:
-        ZIndex = SU_TO_INT32(value);
-        break;
-    case "origX"_crc32:
-        Transform.OriginX = SU_TO_FLOAT(value);
-        break;
-    case "origY"_crc32:
-        Transform.OriginY = SU_TO_FLOAT(value);
-        break;
-    case "scaleX"_crc32:
-        Transform.ScaleX = SU_TO_FLOAT(value);
-        break;
-    case "scaleY"_crc32:
-        Transform.ScaleY = SU_TO_FLOAT(value);
-        break;
-    case "angle"_crc32:
-        Transform.Angle = SU_TO_FLOAT(value);
-        break;
-    case "alpha"_crc32:
-        Color.A = SU_TO_UINT8(value * 255.0);
-        break;
-    case "r"_crc32:
-        Color.R = SU_TO_UINT8(value);
-        break;
-    case "g"_crc32:
-        Color.G = SU_TO_UINT8(value);
-        break;
-    case "b"_crc32:
-        Color.B = SU_TO_UINT8(value);
-        break;
-    default:
-        return false;
+    pMover->AddMove(dict);
+}
+
+void SSprite::AddMove(const string &key, const CScriptDictionary *dict)
+{
+    dict->AddRef();
+    pMover->AddMove(key, dict);
+
+    dict->Release();
+}
+
+void SSprite::AddMove(const string &key, MoverObject *pMoverObj)
+{
+    if (!pMoverObj) return;
+
+    MoverObject* pClone = pMoverObj->Clone();
+
+    SSprite::FieldID id = SSprite::GetFieldId(key);
+    if (!pClone->RegistTargetField(id)) {
+        pClone->Release();
+        pMoverObj->Release();
+        return;
     }
-    return true;
+
+    pMover->AddMove(pClone);
+
+    pMoverObj->Release();
 }
 
-void SSprite::Apply(vector<pair<const string, double>> &props)
+void SSprite::AbortMove(const bool terminate)
 {
-    auto it = props.begin();
-    while (it != props.end()) {
-        if (!Apply(it->first, it->second)) spdlog::get("main")->warn(u8"プロパティに \"{0}\" は設定できません。", it->first);
-        ++it;
-    }
-}
-
-void SSprite::SetPosition(const double x, const double y)
-{
-    Transform.X = SU_TO_FLOAT(x);
-    Transform.Y = SU_TO_FLOAT(y);
-}
-
-void SSprite::SetOrigin(const double x, const double y)
-{
-    Transform.OriginX = SU_TO_FLOAT(x);
-    Transform.OriginY = SU_TO_FLOAT(y);
-}
-
-void SSprite::SetAngle(const double rad)
-{
-    Transform.Angle = SU_TO_FLOAT(rad);
-}
-
-void SSprite::SetScale(const double scale)
-{
-    Transform.ScaleX = SU_TO_FLOAT(scale);
-    Transform.ScaleY = SU_TO_FLOAT(scale);
-}
-
-void SSprite::SetScale(const double scaleX, const double scaleY)
-{
-    Transform.ScaleX = SU_TO_FLOAT(scaleX);
-    Transform.ScaleY = SU_TO_FLOAT(scaleY);
-}
-
-void SSprite::SetAlpha(const double alpha)
-{
-    Color.A = SU_TO_UINT8(alpha * 256);
-}
-
-void SSprite::SetColor(const uint8_t r, const uint8_t g, const uint8_t b)
-{
-    Color.R = r;
-    Color.G = g;
-    Color.B = b;
-}
-
-void SSprite::SetColor(const double a, const uint8_t r, const uint8_t g, const uint8_t b)
-{
-    Color.A = SU_TO_UINT8(a * 256);
-    Color.R = r;
-    Color.G = g;
-    Color.B = b;
+    pMover->Abort(terminate);
 }
 
 void SSprite::Tick(const double delta)
 {
-    mover->Tick(delta);
+    pMover->Tick(delta);
 }
 
 void SSprite::Draw()
@@ -404,28 +349,6 @@ SShape::SShape()
     , Width(32)
     , Height(32)
 {
-}
-
-bool SShape::Apply(const std::string &key, const double value)
-{
-    if (!Base::Apply(key, value)) {
-        switch (Crc32Rec(0xffffffff, key.c_str())) {
-        // TODO: SShapeTypeをApplyするのどうしよう
-        //case "Type"_crc32:
-        //    Type = SShapeType::BoxFill;
-        //    break;
-        case "width"_crc32:
-            Width = value;
-            break;
-        case "height"_crc32:
-            Height = value;
-            break;
-        default:
-            return false;
-        }
-    }
-
-    return true;
 }
 
 void SShape::DrawBy(const Transform2D & tf, const ColorTint & ct)
@@ -1010,63 +933,11 @@ void SClippingSprite::DrawBy(const Transform2D & tf, const ColorTint & ct)
         HasAlpha ? TRUE : FALSE, FALSE);
 }
 
-bool SClippingSprite::ActionMoveRangeTo(SSprite *thisObj, SpriteMoverArgument &args, SpriteMoverData &data, const double delta)
-{
-    const auto target = dynamic_cast<SClippingSprite*>(thisObj);
-    if (delta == 0) {
-        data.Extra1 = SU_TO_FLOAT(target->u2);
-        data.Extra2 = SU_TO_FLOAT(target->v2);
-        return false;
-    }
-    if (delta >= 0) {
-        target->u2 = args.Ease(data.Now, args.Duration, data.Extra1, args.X - data.Extra1);
-        target->v2 = args.Ease(data.Now, args.Duration, data.Extra2, args.Y - data.Extra2);
-        return false;
-    }
-    target->u2 = args.X;
-    target->v2 = args.Y;
-    return true;
-}
-
 SClippingSprite::SClippingSprite(const int w, const int h)
     : SSynthSprite(w, h)
     , u1(0), v1(0)
     , u2(1), v2(0)
 {}
-
-bool SClippingSprite::Apply(const std::string &key, const double value)
-{
-    if (!Base::Apply(key, value)) {
-        switch (Crc32Rec(0xffffffff, key.c_str())) {
-        case "u1"_crc32:
-            u1 = value;
-            break;
-        case "v1"_crc32:
-            v1 = value;
-            break;
-        case "u2"_crc32:
-            u2 = value;
-            break;
-        case "v2"_crc32:
-            v2 = value;
-            break;
-        default:
-            return false;
-        }
-    }
-
-    return true;
-}
-
-mover_function::Action SClippingSprite::GetCustomAction(const string & name)
-{
-    switch (Crc32Rec(0xffffffff, name.c_str())) {
-        case "range_size"_crc32:
-            return ActionMoveRangeTo;
-        default: break;
-    }
-    return nullptr;
-}
 
 void SClippingSprite::SetRange(const double tx, const double ty, const double w, const double h)
 {
@@ -1164,24 +1035,6 @@ SAnimeSprite::~SAnimeSprite()
     if (images) images->Release();
 }
 
-bool SAnimeSprite::Apply(const std::string &key, const double value)
-{
-    if (!Base::Apply(key, value)) {
-        switch (Crc32Rec(0xffffffff, key.c_str())) {
-        case "loop"_crc32:
-            loopCount = SU_TO_INT32(value);
-            break;
-        case "speed"_crc32:
-            speed = value;
-            break;
-        default:
-            return false;
-        }
-    }
-
-    return true;
-}
-
 void SAnimeSprite::Draw()
 {
     DrawBy(Transform, Color);
@@ -1196,6 +1049,8 @@ void SAnimeSprite::Draw(const Transform2D &parent, const ColorTint &color)
 
 void SAnimeSprite::Tick(const double delta)
 {
+    pMover->Tick(delta);
+
     time -= delta * speed;
     if (time > 0) return;
     if (loopCount > 0 && ++count == loopCount) Dismiss();
@@ -1215,16 +1070,6 @@ SAnimeSprite *SAnimeSprite::Clone()
 
     BOOST_ASSERT(clone->GetRefCount() == 1);
     return clone;
-}
-
-void SAnimeSprite::SetSpeed(const double nspeed)
-{
-    speed = nspeed;
-}
-
-void SAnimeSprite::SetLoopCount(const int lc)
-{
-    loopCount = lc;
 }
 
 SAnimeSprite * SAnimeSprite::Factory(SAnimatedImage *image)
@@ -1272,7 +1117,7 @@ void SContainer::Dismiss()
 
 void SContainer::Tick(const double delta)
 {
-    mover->Tick(delta);
+    pMover->Tick(delta);
     for (const auto &s : children) s->Tick(delta);
 }
 

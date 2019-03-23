@@ -1,5 +1,6 @@
 ﻿#include "ScenePlayer.h"
 #include "ScriptSprite.h"
+#include "ScriptSpriteMover.h"
 #include "ExecutionManager.h"
 #include "Result.h"
 #include "Character.h"
@@ -51,18 +52,18 @@ void RegisterPlayerScene(ExecutionManager * manager)
 
 namespace
 {
-ScoreProcessor* CreateScoreProcessor(ExecutionManager *pMng, ScenePlayer *src)
-{
-    if (pMng == nullptr) return nullptr;
+    ScoreProcessor* CreateScoreProcessor(ExecutionManager *pMng, ScenePlayer *src)
+    {
+        if (pMng == nullptr) return nullptr;
 
-    switch (pMng->GetData<int>("AutoPlay", 1)) {
+        switch (pMng->GetData<int>("AutoPlay", 1)) {
         case 0: return new PlayableProcessor(src);
         case 1: return new AutoPlayerProcessor(src);
         case 2: return new PlayableProcessor(src, true);
         default: return nullptr;
-    }
+        }
 
-}
+    }
 }
 
 ScenePlayer::ScenePlayer(ExecutionManager *exm)
@@ -76,6 +77,7 @@ ScenePlayer::ScenePlayer(ExecutionManager *exm)
     , hispeedMultiplier(exm->GetSettingInstanceSafe()->ReadValue<double>("Play", "Hispeed", 6))
     , soundBufferingLatency(manager->GetSettingInstanceSafe()->ReadValue<int>("Sound", "BufferLatency", 30) / 1000.0)
     , airRollSpeed(manager->GetSettingInstanceSafe()->ReadValue<double>("Play", "AirRollMultiplier", 1.5))
+    , pTextComboMover(new MoverObject())
 {
     judgeSoundThread = thread([this]() {
         ProcessSoundQueue();
@@ -131,6 +133,7 @@ void ScenePlayer::Finalize()
     delete processor;
     delete bgmStream;
 
+    pTextComboMover->Release();
     textCombo->Release();
     DeleteGraph(hGroundBuffer);
     if (movieBackground) DeleteGraph(movieBackground);

@@ -2,7 +2,7 @@
 class SettingScene : CoroutineScene {
   Font@ font32, font64;
   Image@ imgWhite, imgCursor;
-  
+
   array<string> groups = {
     "一般",
     "グラフィック",
@@ -10,8 +10,8 @@ class SettingScene : CoroutineScene {
     "プレイ"
   };
   array<array<SettingItem@>> settings = {
-    { 
-      
+    {
+
     },
     {
       GetSettingItem("Graphic", "WaitVSync"),
@@ -40,34 +40,34 @@ class SettingScene : CoroutineScene {
       GetSettingItem("Play", "ShowAirActionJudgeLine")
     }
   };
-  
+
   Sprite@ spBack, spCursor;
   array<TextSprite@> spDescriptions(10);
   array<TextSprite@> spValues(10);
   TextSprite@ spGroup;
-  
+
   array<SettingItem@>@ target;
   int availableCount = 0;
   bool isSelectingGroup = true;
   int selected = 0;
   int selGroup = 0;
-  
+
   void Initialize() {
     LoadResources();
-    
+
     @spBack = Sprite(imgWhite);
     spBack.Apply("z:-10");
     AddSprite(spBack);
-    
+
     @spGroup = TextSprite(font64, "");
     spGroup.Apply("r:0, g:0, b:0, x:640, y:16, z:1");
     spGroup.SetAlignment(TextAlign::Center, TextAlign::Top);
     AddSprite(spGroup);
-    
+
     @spCursor = Sprite(imgCursor);
     spCursor.Apply("x:640, y:108, origX:512, origY:20, z:-1");
     AddSprite(spCursor);
-    
+
     for(int i = 0; i < 10; i++) {
       int y = 108 + 4 + 48 * i;
       @spDescriptions[i] = TextSprite(font32, "");
@@ -80,7 +80,7 @@ class SettingScene : CoroutineScene {
       AddSprite(spValues[i]);
     }
   }
-  
+
   void LoadResources() {
     Skin@ skin = GetSkin();
     @font32 = skin.GetFont("Normal32");
@@ -88,7 +88,7 @@ class SettingScene : CoroutineScene {
     @imgWhite = skin.GetImage("White");
     @imgCursor = skin.GetImage("CursorSetting");
   }
-  
+
   void Draw() { }
   void Run() {
     UpdateCursorState();
@@ -96,7 +96,7 @@ class SettingScene : CoroutineScene {
     RunCoroutine(Coroutine(KeyInput), "Setting:KeyInput");
     while(true) YieldTime(1);
   }
-  
+
   void LoadSettingGroup(int index) {
     @target = @settings[index];
     availableCount = target.length();
@@ -107,19 +107,19 @@ class SettingScene : CoroutineScene {
     }
     if (availableCount == 0) spDescriptions[0].SetText("設定項目なし");
   }
-  
+
   void UpdateCursorState() {
     if (isSelectingGroup) {
-      spCursor.AddMove("alpha(x:1, y:0, time:0.2)");
+      spCursor.AddMove("alpha:{begin:1, end:0, time:0.2}");
       spGroup.Apply("b:255");
       spGroup.SetText("← " + groups[selGroup] + " →");
     } else {
-      spCursor.AddMove("alpha(x:0, y:1, time:0.2)");
+      spCursor.AddMove("alpha:{begin:0, end:1, time:0.2}");
       spGroup.Apply("b:0");
       spGroup.SetText(groups[selGroup]);
     }
   }
-  
+
   void KeyInput() {
     while(true) {
       if (IsKeyTriggered(Key::INPUT_UP)) {
@@ -130,7 +130,8 @@ class SettingScene : CoroutineScene {
         } else {
           selected--;
           int cy = 108 + 48 * selected;
-          spCursor.AddMove("move_to(x:640, y:" + cy + ", time:0.2, ease:out_sine)");
+          spCursor.AddMove("x:{end:640, time:0.2, func:out_sine}");
+          spCursor.AddMove("y:{end:" + cy + ", time:0.2, func:out_sine}");
         }
       }
       if (IsKeyTriggered(Key::INPUT_DOWN)) {
@@ -141,7 +142,8 @@ class SettingScene : CoroutineScene {
         } else {
           if (++selected >= availableCount) selected--;
           int cy = 108 + 48 * selected;
-          spCursor.AddMove("move_to(x:640, y:" + cy + ", time:0.2, ease:out_sine)");
+          spCursor.AddMove("x:{end:640, time:0.2, func:out_sine}");
+          spCursor.AddMove("y:{end:" + cy + ", time:0.2, func:out_sine}");
         }
       }
       if (IsKeyTriggered(Key::INPUT_LEFT)) {

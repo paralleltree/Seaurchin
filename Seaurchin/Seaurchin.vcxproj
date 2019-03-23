@@ -134,7 +134,6 @@
     <ClCompile Include="Interfaces.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Misc.cpp" />
-    <ClCompile Include="MoverFunction.cpp" />
     <ClCompile Include="MusicsManager.cpp" />
     <ClCompile Include="PlayableProcessor.cpp" />
     <ClCompile Include="ExtensionManager.cpp" />
@@ -154,12 +153,13 @@
     <ClCompile Include="ScriptResource.cpp" />
     <ClCompile Include="ScriptScene.cpp" />
     <ClCompile Include="ScriptSprite.cpp" />
-    <ClCompile Include="ScriptSpriteMover2.cpp" />
+    <ClCompile Include="ScriptSpriteMover.cpp" />
     <ClCompile Include="Setting.cpp" />
     <ClCompile Include="Skill.cpp" />
     <ClCompile Include="SkinHolder.cpp" />
     <ClCompile Include="SoundManager.cpp" />
     <ClCompile Include="ScriptFunction.cpp" />
+    <ClCompile Include="MoverFunctionExpression.cpp" />
     <ClCompile Include="SusAnalyzer.cpp" />
     <ClCompile Include="wscriptbuilder.cpp" />
   </ItemGroup>
@@ -177,8 +177,8 @@
     <ClInclude Include="CharacterInstance.h" />
     <ClInclude Include="Crc32.h" />
     <ClInclude Include="ExtensionManager.h" />
-    <ClInclude Include="MoverFunction.h" />
-    <ClInclude Include="ScriptSpriteMover2.h" />
+    <ClInclude Include="FormatStringParseHelper.h" />
+    <ClInclude Include="ScriptSpriteMover.h" />
     <ClInclude Include="SeaurchinExtension.h" />
     <ClInclude Include="AngelScriptManager.h" />
     <ClInclude Include="Character.h" />
@@ -209,6 +209,7 @@
     <ClInclude Include="SoundManager.h" />
     <ClInclude Include="ScriptFunction.h" />
     <ClInclude Include="ScriptSpriteMisc.h" />
+    <ClInclude Include="MoverFunctionExpression.h" />
     <ClInclude Include="SusAnalyzer.h" />
     <ClInclude Include="wscriptbuilder.h" />
   </ItemGroup>
