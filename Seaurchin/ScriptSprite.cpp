@@ -2,10 +2,59 @@
 #include "ScriptSpriteMover.h"
 #include "ExecutionManager.h"
 #include "Misc.h"
-#include "FormatStringParseHelper.h"
+
+#define BOOST_RESULT_OF_USE_DECLTYPE
+#define BOOST_SPIRIT_USE_PHOENIX_V3
+
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix.hpp>
 
 using namespace std;
 using namespace crc32_constexpr;
+
+// Applyのパーサ
+namespace parser_impl {
+    using namespace boost::spirit;
+    namespace phx = boost::phoenix;
+
+    // NOTE: キー:値 のペアを一度vectorにするのではなく逐次適用させようと試行錯誤した結果こうなってしまった
+    // マルチスレッドで確実に死ぬ、そうでなくとも外部から触れてしまうのでまずい
+    // TODO: グローバル変数になってしまったこのポインタを何とかする
+    SSprite* pSprite;
+    void Apply(SSprite::FieldID id, double value)
+    {
+        if (!pSprite->Apply(id, value)) {
+            // NOTE: Applyがログ出すからそれでいいかな
+        }
+    }
+
+    template<typename Iterator>
+    struct expr_grammer
+        : qi::grammar<Iterator, bool(), ascii::space_type>
+    {
+        qi::rule<Iterator, SSprite::FieldID(), ascii::space_type> field;
+        qi::rule<Iterator, bool(), ascii::space_type> pair, apply;
+
+        expr_grammer() : expr_grammer::base_type(apply)
+        {
+            field = qi::as_string[qi::alpha >> *qi::alnum][qi::_val = phx::bind(&SSprite::GetFieldId, qi::_1)];
+            pair = (field >> ':' >> qi::double_)[phx::bind(&Apply, qi::_1, qi::_2)];
+            apply = pair >> *(',' >> pair);
+        }
+    };
+
+    parser_impl::expr_grammer<std::string::const_iterator> p;
+    bool Parse(const std::string &expression, SSprite *pSprite)
+    {
+        bool dummy;
+        parser_impl::pSprite = pSprite;
+        bool result = boost::spirit::qi::phrase_parse(expression.begin(), expression.end(), p, boost::spirit::ascii::space, dummy);
+        parser_impl::pSprite = nullptr;
+        pSprite->Release();
+        return result;
+    }
+}
+
 // 一般
 
 void RegisterScriptSprite(ExecutionManager *exm)
@@ -165,9 +214,8 @@ bool SSprite::Apply(FieldID id, const double value)
 
 void SSprite::Apply(const string & dict)
 {
-    if (!FormatStringParseHelper::Apply(dict.c_str(), this)) {
-        return;
-    }
+    this->AddRef();
+    bool result = parser_impl::Parse(dict, this);
 
     return;
 }

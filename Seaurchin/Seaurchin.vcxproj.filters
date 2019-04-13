@@ -317,9 +317,6 @@
     <ClInclude Include="ScriptSpriteMover.h">
       <Filter>インターフェース\描画システム</Filter>
     </ClInclude>
-    <ClInclude Include="FormatStringParseHelper.h">
-      <Filter>ヘッダー ファイル</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Seaurchin.rc">

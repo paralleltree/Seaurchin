@@ -177,7 +177,6 @@
     <ClInclude Include="CharacterInstance.h" />
     <ClInclude Include="Crc32.h" />
     <ClInclude Include="ExtensionManager.h" />
-    <ClInclude Include="FormatStringParseHelper.h" />
     <ClInclude Include="ScriptSpriteMover.h" />
     <ClInclude Include="SeaurchinExtension.h" />
     <ClInclude Include="AngelScriptManager.h" />

@@ -2,10 +2,100 @@
 #include "ScriptSpriteMover.h"
 #include "ScriptSprite.h"
 #include "MoverFunctionExpression.h"
-#include "FormatStringParseHelper.h"
+
+#define BOOST_RESULT_OF_USE_DECLTYPE
+#define BOOST_SPIRIT_USE_PHOENIX_V3
+
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix.hpp>
 
 using namespace std;
 using namespace crc32_constexpr;
+
+// AddMoveのパーサ
+namespace parser_impl {
+    using namespace boost::spirit;
+    namespace phx = boost::phoenix;
+
+    // NOTE: キー:値 のペアを一度vectorにするのではなく逐次適用させようと試行錯誤した結果こうなってしまった
+    // マルチスレッドで確実に死ぬ、そうでなくとも外部から触れてしまうのでまずい
+    // TODO: グローバル変数になってしまったこのポインタを何とかする
+    MoverObject* pMoverObj;
+    SSpriteMover* pSpriteMover;
+    void ApplyMoverDoubleValue(const string &key, double value)
+    {
+        if (!pMoverObj->Apply(key, value)) {
+            // NOTE: Applyがログ出すからそれでいいかな
+        }
+    }
+    void ApplyMoverStringValue(const string &key, const string &value)
+    {
+        if (!pMoverObj->Apply(key, value)) {
+            // NOTE: Applyがログ出すからそれでいいかな
+        }
+    }
+    void ApplyMoverId(SSprite::FieldID id)
+    {
+        pMoverObj->RegisterTargetField(id);
+        pMoverObj->AddRef();
+        pSpriteMover->AddMove(pMoverObj);
+    }
+
+    template<typename Iterator>
+    struct moverobj_grammer
+        : qi::grammar<Iterator, bool(), ascii::space_type>
+    {
+        qi::rule<Iterator, bool(), ascii::space_type> pair, props;
+
+        moverobj_grammer() : moverobj_grammer::base_type(props)
+        {
+            pair = (qi::as_string[+(qi::alpha | qi::char_('@'))] >> ':' >> qi::double_)[phx::bind(&ApplyMoverDoubleValue, qi::_1, qi::_2)]
+                | (qi::as_string[+(qi::alpha | qi::char_('@'))] >> ':' >> qi::as_string[+(qi::alpha | qi::char_('_'))])[phx::bind(&ApplyMoverStringValue, qi::_1, qi::_2)];
+            props = pair >> *(',' >> pair);
+        }
+    };
+
+    template<typename Iterator>
+    struct mover_grammer
+        : qi::grammar<Iterator, bool(), ascii::space_type>
+    {
+        qi::rule<Iterator, SSprite::FieldID(), ascii::space_type> field;
+        qi::rule<Iterator, bool(), ascii::space_type> pair, props, obj;
+
+        mover_grammer() : mover_grammer::base_type(obj)
+        {
+            pair = (qi::as_string[+(qi::alpha | qi::char_('@'))] >> ':' >> qi::double_)[phx::bind(&ApplyMoverDoubleValue, qi::_1, qi::_2)]
+                | (qi::as_string[+(qi::alpha | qi::char_('@'))] >> ':' >> qi::as_string[+(qi::alpha | qi::char_('_'))])[phx::bind(&ApplyMoverStringValue, qi::_1, qi::_2)];
+            props = pair >> *(',' >> pair);
+            field = qi::as_string[qi::alpha >> *qi::alnum][qi::_val = phx::bind(&SSprite::GetFieldId, qi::_1)];
+            obj = (field >> ':' >> '{' >> props >> '}')[phx::bind(&ApplyMoverId, qi::_1)];
+        }
+    };
+
+    parser_impl::moverobj_grammer<std::string::const_iterator> gMoverObj;
+    parser_impl::mover_grammer<std::string::const_iterator> gMover;
+    bool ParseMoverObj(const std::string &expression, MoverObject *pMoverObj)
+    {
+        bool dummy;
+        parser_impl::pMoverObj = pMoverObj;
+        bool result = boost::spirit::qi::phrase_parse(expression.begin(), expression.end(), gMoverObj, boost::spirit::ascii::space, dummy);
+        parser_impl::pMoverObj = nullptr;
+        pMoverObj->Release();
+        return result;
+    }
+
+    bool ParseMover(const std::string &expression, SSpriteMover *pSpriteMover)
+    {
+        bool dummy;
+        parser_impl::pMoverObj = new MoverObject();
+        parser_impl::pSpriteMover = pSpriteMover;
+        bool result = boost::spirit::qi::phrase_parse(expression.begin(), expression.end(), gMover, boost::spirit::ascii::space, dummy);
+        parser_impl::pMoverObj->Release();
+        parser_impl::pSpriteMover = nullptr;
+        parser_impl::pMoverObj = nullptr;
+        return result;
+    }
+}
 
 
 bool MoverObject::RegisterType(asIScriptEngine *engine)
@@ -75,12 +165,10 @@ bool MoverObject::InitVariables()
 
 bool MoverObject::Apply(const string &dict)
 {
-    const char *seeked;
-    if (!FormatStringParseHelper::AddMoveObject(dict.c_str(), &seeked, this)) {
-        return false;
-    }
+    this->AddRef();
+    bool result = parser_impl::ParseMoverObj(dict, this);
 
-    return *seeked == '\0'; // NOTE: 未解析文字列が残ってるならfalse
+    return result;
 }
 
 bool MoverObject::Apply(const string &key, double value)
@@ -238,7 +326,7 @@ void SSpriteMover::Tick(const double delta)
 
 bool SSpriteMover::AddMove(const std::string &dict)
 {
-    if (!FormatStringParseHelper::AddMove(dict.c_str(), this)) {
+    if (!parser_impl::ParseMover(dict, this)) {
         spdlog::get("main")->warn(u8"AddMoveのパースに失敗しました。 : \"{0}\"", dict);
         return false;
     }
