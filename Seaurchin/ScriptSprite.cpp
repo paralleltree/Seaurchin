@@ -206,7 +206,7 @@ void SSprite::AddMove(const string &key, MoverObject *pMoverObj)
     MoverObject* pClone = pMoverObj->Clone();
 
     SSprite::FieldID id = SSprite::GetFieldId(key);
-    if (!pClone->RegistTargetField(id)) {
+    if (!pClone->RegisterTargetField(id)) {
         pClone->Release();
         pMoverObj->Release();
         return;

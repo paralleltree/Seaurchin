@@ -251,7 +251,7 @@ bool SSpriteMover::AddMove(const std::string &key, const CScriptDictionary *dict
     BOOST_ASSERT(target);
     MoverObject *pMover = new MoverObject();
 
-    pMover->RegistTargetField(SSprite::GetFieldId(key));
+    pMover->RegisterTargetField(SSprite::GetFieldId(key));
 
     auto i = dict->begin();
     while (i != dict->end()) {

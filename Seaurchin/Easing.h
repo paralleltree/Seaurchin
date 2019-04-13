@@ -7,7 +7,7 @@ class name ## MoverFunctionExpression : public MoverFunctionExpression \
 { \
 public: \
     name ## MoverFunctionExpression() {} \
-    double Execute(const MoverFunctionExpressionVariables& var) override { expression; } \
+    double Execute(const MoverFunctionExpressionVariables& var) const override { expression; } \
 }
 
 namespace easing
@@ -61,5 +61,5 @@ namespace easing
     SU_DEF_EASING_MOVER_FUNCTION_EXPRESSION(OutBounce, return bounce(var.Begin, var.Diff, var.Progress));
     SU_DEF_EASING_MOVER_FUNCTION_EXPRESSION(InOutBounce, return var.Begin + 0.5 * (var.Diff + (var.Progress < 0.5) ? -bounce(0, var.Diff, -var.Progress * 2.0 + 1) : bounce(0, var.Diff, var.Progress * 2.0 - 1)));
 
-    bool RegistDefaultMoverFunctionExpressions();
+    bool RegisterDefaultMoverFunctionExpressions();
 }

@@ -52,7 +52,7 @@ public:
     bool HasFunction() { return !!pFunction; }
     StateID GetState() { return state; }
 
-    bool RegistTargetField(SSprite::FieldID id) { fieldID = id; return true; }
+    bool RegisterTargetField(SSprite::FieldID id) { fieldID = id; return true; }
 
     bool InitVariables();
     bool Apply(const std::string &dict);

@@ -25,7 +25,7 @@ class MoverFunctionExpression
 public:
     MoverFunctionExpression() {};
     virtual ~MoverFunctionExpression() {};
-    virtual double Execute(const MoverFunctionExpressionVariables& var) { return 0.0; };
+    virtual double Execute(const MoverFunctionExpressionVariables& var) const = 0;
 };
 
 typedef std::shared_ptr<MoverFunctionExpression> MoverFunctionExpressionSharedPtr;
@@ -52,11 +52,9 @@ public:
     static bool Initialize();
     static bool Finalize();
 
-    static bool Regist(const std::string &key, const std::string &expression);
-    bool Regist(const std::string &key, MoverFunctionExpression *pFunction);
-    bool Regist(const std::string &key, const MoverFunctionExpressionSharedPtr &pFunction);
+    static bool Register(const std::string &key, const std::string &expression);
+    bool Register(const std::string &key, MoverFunctionExpression *pFunction);
+    bool Register(const std::string &key, const MoverFunctionExpressionSharedPtr &pFunction);
 
     bool Find(const std::string &key, MoverFunctionExpressionSharedPtr &pFunction);
 };
-
-bool ParseMoverFunctionExpression(MoverFunctionExpressionSharedPtr &root, const char *expression);

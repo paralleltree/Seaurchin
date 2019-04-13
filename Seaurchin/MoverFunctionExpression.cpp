@@ -7,22 +7,24 @@
 #include <ctype.h>
 #include <string.h>
 
+#include "Misc.h"
 #include "Crc32.h"
 using namespace crc32_constexpr;
 
 
 namespace {
     std::random_device rnd;
+    std::mt19937 mt(rnd());
 
     double rand(double min, double max) {
         if (min > max) {
-            double t = min;
+            const double t = min;
             min = max;
             max = t;
         }
-        double r = rnd();
-        double d = max - min;
-        return min + (d > 0.0)? fmod(r, d) : 0.0;
+        const double r = SU_TO_DOUBLE(mt()) / SU_TO_DOUBLE(mt.max());
+        const double d = max - min;
+        return min + r * d;
     }
 }
 
@@ -32,7 +34,7 @@ namespace {
 class name ## MoverFunctionExpression : public MoverFunctionExpression \
 { \
 public: \
-	double Execute(const MoverFunctionExpressionVariables& var) override { return var.value; } \
+	double Execute(const MoverFunctionExpressionVariables& var) const override { return var.value; } \
 }
 
 SU_DEF_VARIABLE_MOVER_FUNCTION_EXPRESSION(Begin, Begin);
@@ -47,14 +49,14 @@ private:
     double value;
 public:
     LiteralMoverFunctionExpression(double value) : value(value) {}
-    double Execute(const MoverFunctionExpressionVariables& var) override { return value; }
+    double Execute(const MoverFunctionExpressionVariables& var) const override { return value; }
 };
 
 #define SU_DEF_CONST_LITERAL_MOVER_FUNCTION_EXPRESSION(name, value) \
 class name ## MoverFunctionExpression : public MoverFunctionExpression \
 { \
 public: \
-	double Execute(const MoverFunctionExpressionVariables& var) override { return value; } \
+	double Execute(const MoverFunctionExpressionVariables& var) const override { return value; } \
 }
 
 SU_DEF_CONST_LITERAL_MOVER_FUNCTION_EXPRESSION(E, M_E);
@@ -78,7 +80,7 @@ private: \
 	MoverFunctionExpressionSharedPtr pOp; \
 public: \
 	name ## MoverFunctionExpression(MoverFunctionExpressionSharedPtr &pOp) : pOp(pOp) {} \
-	double Execute(const MoverFunctionExpressionVariables& var) override { return op pOp->Execute(var); } \
+	double Execute(const MoverFunctionExpressionVariables& var) const override { return op pOp->Execute(var); } \
 }
 
 SU_DEF_SINGLE_OPERAND_MOVER_FUNCTION_EXPRESSION(Positive, +);
@@ -91,7 +93,7 @@ private: \
 	MoverFunctionExpressionSharedPtr pLop, pRop; \
 public: \
 	name ## MoverFunctionExpression(MoverFunctionExpressionSharedPtr &pLop, MoverFunctionExpressionSharedPtr &pRop) : pLop(pLop), pRop(pRop) {} \
-	double Execute(const MoverFunctionExpressionVariables& var) override { return pLop->Execute(var) op pRop->Execute(var); } \
+	double Execute(const MoverFunctionExpressionVariables& var) const override { return pLop->Execute(var) op pRop->Execute(var); } \
 }
 
 SU_DEF_DOUBLE_OPERAND_MOVER_FUNCTION_EXPRESSION(Add, +);
@@ -106,7 +108,7 @@ private: \
 	MoverFunctionExpressionSharedPtr pLop, pRop; \
 public: \
 	name ## MoverFunctionExpression(MoverFunctionExpressionSharedPtr &pLop, MoverFunctionExpressionSharedPtr &pRop) : pLop(pLop), pRop(pRop) {} \
-	double Execute(const MoverFunctionExpressionVariables& var) override { return func (pLop->Execute(var), pRop->Execute(var)); } \
+	double Execute(const MoverFunctionExpressionVariables& var) const override { return func (pLop->Execute(var), pRop->Execute(var)); } \
 }
 
 SU_DEF_DOUBLE_ARGUMENT_MOVER_FUNCTION_EXPRESSION(Mod, fmod);
@@ -122,7 +124,7 @@ private: \
 	MoverFunctionExpressionSharedPtr pArg; \
 public: \
 	name ## MoverFunctionExpression(MoverFunctionExpressionSharedPtr &pArg) : pArg(pArg) {} \
-	double Execute(const MoverFunctionExpressionVariables& var) override { return func (pArg->Execute(var)); } \
+	double Execute(const MoverFunctionExpressionVariables& var) const override { return func (pArg->Execute(var)); } \
 }
 
 SU_DEF_SINGLE_ARGUMENT_MOVER_FUNCTION_EXPRESSION(Abs, fabs);
@@ -141,6 +143,9 @@ SU_DEF_SINGLE_ARGUMENT_MOVER_FUNCTION_EXPRESSION(Atan, atan);
 SU_DEF_SINGLE_ARGUMENT_MOVER_FUNCTION_EXPRESSION(Sinh, sinh);
 SU_DEF_SINGLE_ARGUMENT_MOVER_FUNCTION_EXPRESSION(Cosh, cosh);
 SU_DEF_SINGLE_ARGUMENT_MOVER_FUNCTION_EXPRESSION(Tanh, tanh);
+
+
+bool ParseMoverFunctionExpression(MoverFunctionExpressionSharedPtr &root, const std::string &);
 
 
 MoverFunctionExpressionManager * MoverFunctionExpressionManager::inst;
@@ -166,24 +171,24 @@ bool MoverFunctionExpressionManager::Finalize()
     return !inst;
 }
 
-bool MoverFunctionExpressionManager::Regist(const std::string &key, const std::string &expression)
+bool MoverFunctionExpressionManager::Register(const std::string &key, const std::string &expression)
 {
     MoverFunctionExpressionSharedPtr pFunction;
-    if (!ParseMoverFunctionExpression(pFunction, expression.c_str()) || !pFunction) {
+    if (!ParseMoverFunctionExpression(pFunction, expression) || !pFunction) {
         spdlog::get("main")->error(u8"\"{0}\" 関数 (\"{1}\") の登録に失敗しました。", expression);
         return false;
     }
 
-    return GetInstance().Regist(key, pFunction);
+    return GetInstance().Register(key, pFunction);
 }
 
-bool MoverFunctionExpressionManager::Regist(const std::string &key, MoverFunctionExpression *pFunction)
+bool MoverFunctionExpressionManager::Register(const std::string &key, MoverFunctionExpression *pFunction)
 {
     const MoverFunctionExpressionSharedPtr ptr(pFunction);
-    return Regist(key, ptr);
+    return Register(key, ptr);
 }
 
-bool MoverFunctionExpressionManager::Regist(const std::string &key, const MoverFunctionExpressionSharedPtr &pFunction)
+bool MoverFunctionExpressionManager::Register(const std::string &key, const MoverFunctionExpressionSharedPtr &pFunction)
 {
     BOOST_ASSERT(!!inst);
     if (!inst) return false;
@@ -625,8 +630,110 @@ bool GetNode(MoverFunctionExpressionSharedPtr &ret, const char *expression, cons
     return false;
 }
 
-bool ParseMoverFunctionExpression(MoverFunctionExpressionSharedPtr &root, const char *expression)
+
+#define BOOST_RESULT_OF_USE_DECLTYPE
+#define BOOST_SPIRIT_USE_PHOENIX_V3
+
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/phoenix.hpp>
+
+template<typename T>
+MoverFunctionExpressionSharedPtr MakeExp()
 {
-    const char *p = expression;
-    return GetExpression(root, expression, &p) && *p == '\0';
+    return std::make_shared<T>();
+}
+
+template<typename T>
+MoverFunctionExpressionSharedPtr MakeExp_double(double val)
+{
+    return std::make_shared<T>(val);
+}
+
+template<typename T>
+MoverFunctionExpressionSharedPtr MakeExp_Ptr(MoverFunctionExpressionSharedPtr lop)
+{
+    return std::make_shared<T>(lop);
+}
+
+template<typename T>
+MoverFunctionExpressionSharedPtr MakeExp_Ptr_Ptr(MoverFunctionExpressionSharedPtr lop, MoverFunctionExpressionSharedPtr rop)
+{
+    return std::make_shared<T>(lop, rop);
+}
+
+namespace parser_impl {
+    using namespace boost::spirit;
+    namespace phx = boost::phoenix;
+
+    template<typename Iterator>
+    struct expr_grammer
+        : qi::grammar<Iterator, MoverFunctionExpressionSharedPtr(), ascii::space_type>
+    {
+        qi::rule<Iterator, MoverFunctionExpressionSharedPtr(), ascii::space_type> expr, term, fctr;
+
+        expr_grammer() : expr_grammer::base_type(expr)
+        {
+            expr =           term[qi::_val = qi::_1]
+                >> *(('+' >> term[qi::_val = phx::bind(&MakeExp_Ptr_Ptr<AddMoverFunctionExpression>, qi::_val, qi::_1)])
+                   | ('-' >> term[qi::_val = phx::bind(&MakeExp_Ptr_Ptr<SubMoverFunctionExpression>, qi::_val, qi::_1)]));
+            term =           fctr[qi::_val = qi::_1]
+                >> *(('*' >> fctr[qi::_val = phx::bind(&MakeExp_Ptr_Ptr<MulMoverFunctionExpression>, qi::_val, qi::_1)])
+                   | ('/' >> fctr[qi::_val = phx::bind(&MakeExp_Ptr_Ptr<DivMoverFunctionExpression>, qi::_val, qi::_1)]));
+            fctr = qi::double_        [qi::_val = phx::bind(&MakeExp_double<LiteralMoverFunctionExpression>, qi::_1)]
+                | ('(' >> expr >> ')')[qi::_val = qi::_1]
+                | qi::lit("begin")       [qi::_val = phx::bind(&MakeExp<BeginMoverFunctionExpression>)]
+                | qi::lit("end")         [qi::_val = phx::bind(&MakeExp<EndMoverFunctionExpression>)]
+                | qi::lit("diff")        [qi::_val = phx::bind(&MakeExp<DiffMoverFunctionExpression>)]
+                | qi::lit("current")     [qi::_val = phx::bind(&MakeExp<CurrentMoverFunctionExpression>)]
+                | qi::lit("progress")    [qi::_val = phx::bind(&MakeExp<ProgressMoverFunctionExpression>)]
+                | qi::lit('e')           [qi::_val = phx::bind(&MakeExp<EMoverFunctionExpression>)]
+                | qi::lit("log2e")       [qi::_val = phx::bind(&MakeExp<LOG2EMoverFunctionExpression>)]
+                | qi::lit("log10e")      [qi::_val = phx::bind(&MakeExp<LOG10EMoverFunctionExpression>)]
+                | qi::lit("ln2")         [qi::_val = phx::bind(&MakeExp<LN2MoverFunctionExpression>)]
+                | qi::lit("ln10")        [qi::_val = phx::bind(&MakeExp<LN10MoverFunctionExpression>)]
+                | qi::lit("pi")          [qi::_val = phx::bind(&MakeExp<PIMoverFunctionExpression>)]
+                | qi::lit("pi_2")        [qi::_val = phx::bind(&MakeExp<PI_2MoverFunctionExpression>)]
+                | qi::lit("pi_4")        [qi::_val = phx::bind(&MakeExp<PI_4MoverFunctionExpression>)]
+                | qi::lit("inv_pi")      [qi::_val = phx::bind(&MakeExp<INV_PIMoverFunctionExpression>)]
+                | qi::lit("inv_pi_2")    [qi::_val = phx::bind(&MakeExp<INV_PI_2MoverFunctionExpression>)]
+                | qi::lit("inv_sqrtpi_2")[qi::_val = phx::bind(&MakeExp<INV_SQRTPI_2MoverFunctionExpression>)]
+                | qi::lit("sqrt2")       [qi::_val = phx::bind(&MakeExp<SQRT2MoverFunctionExpression>)]
+                | qi::lit("inv_sqrt2")   [qi::_val = phx::bind(&MakeExp<INV_SQRT2MoverFunctionExpression>)]
+                | (qi::lit("abs")   >> '(' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr<AbsMoverFunctionExpression>,   qi::_1)]
+                | (qi::lit("round") >> '(' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr<RoundMoverFunctionExpression>, qi::_1)]
+                | (qi::lit("ceil")  >> '(' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr<CeilMoverFunctionExpression>,  qi::_1)]
+                | (qi::lit("floor") >> '(' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr<FloorMoverFunctionExpression>, qi::_1)]
+                | (qi::lit("exp")   >> '(' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr<ExpMoverFunctionExpression>,   qi::_1)]
+                | (qi::lit("ln")    >> '(' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr<LnMoverFunctionExpression>,    qi::_1)]
+                | (qi::lit("log")   >> '(' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr<LogMoverFunctionExpression>,   qi::_1)]
+                | (qi::lit("sin")   >> '(' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr<CosMoverFunctionExpression>,   qi::_1)]
+                | (qi::lit("cos")   >> '(' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr<SinMoverFunctionExpression>,   qi::_1)]
+                | (qi::lit("tan")   >> '(' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr<TanMoverFunctionExpression>,   qi::_1)]
+                | (qi::lit("asin")  >> '(' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr<AsinMoverFunctionExpression>,  qi::_1)]
+                | (qi::lit("acos")  >> '(' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr<AcosMoverFunctionExpression>,  qi::_1)]
+                | (qi::lit("atan")  >> '(' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr<AtanMoverFunctionExpression>,  qi::_1)]
+                | (qi::lit("sinh")  >> '(' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr<SinhMoverFunctionExpression>,  qi::_1)]
+                | (qi::lit("cosh")  >> '(' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr<CoshMoverFunctionExpression>,  qi::_1)]
+                | (qi::lit("tanh")  >> '(' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr<TanhMoverFunctionExpression>,  qi::_1)]
+                | (qi::lit("add")   >> '(' >> expr >> ',' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr_Ptr<AddMoverFunctionExpression>,  qi::_1, qi::_2)]
+                | (qi::lit("sub")   >> '(' >> expr >> ',' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr_Ptr<SubMoverFunctionExpression>,  qi::_1, qi::_2)]
+                | (qi::lit("mul")   >> '(' >> expr >> ',' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr_Ptr<MulMoverFunctionExpression>,  qi::_1, qi::_2)]
+                | (qi::lit("div")   >> '(' >> expr >> ',' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr_Ptr<DivMoverFunctionExpression>,  qi::_1, qi::_2)]
+                | (qi::lit("mod")   >> '(' >> expr >> ',' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr_Ptr<ModMoverFunctionExpression>,  qi::_1, qi::_2)]
+                | (qi::lit("pow")   >> '(' >> expr >> ',' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr_Ptr<PowMoverFunctionExpression>,  qi::_1, qi::_2)]
+                | (qi::lit("min")   >> '(' >> expr >> ',' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr_Ptr<MinMoverFunctionExpression>,  qi::_1, qi::_2)]
+                | (qi::lit("max")   >> '(' >> expr >> ',' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr_Ptr<MaxMoverFunctionExpression>,  qi::_1, qi::_2)]
+                | (qi::lit("rand")  >> '(' >> expr >> ',' >> expr >> ')')[qi::_val = phx::bind(&MakeExp_Ptr_Ptr<RandMoverFunctionExpression>, qi::_1, qi::_2)];
+        }
+    };
+}
+
+bool ParseMoverFunctionExpression(MoverFunctionExpressionSharedPtr &root, const std::string &expression)
+{
+    parser_impl::expr_grammer<decltype(expression.begin())> p;
+    if (boost::spirit::qi::phrase_parse(expression.begin(), expression.end(), p, boost::spirit::ascii::space, root)) {
+        return true;
+    } else {
+        return false;
+    }
 }

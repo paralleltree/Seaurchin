@@ -287,7 +287,7 @@ namespace FormatStringParseHelper {
         for (auto it = fields.begin(); it != fields.end(); ++it) {
             // TODO: 同じパラメータを持つ異なるフィールドのMoverObjectを複数登録するのではなく、MoverObjectが複数のフィールドを一括制御できるようにする
             MoverObject *pTmpMoverObj = pMoverObject->Clone();
-            pTmpMoverObj->RegistTargetField(*it);
+            pTmpMoverObj->RegisterTargetField(*it);
             pMover->AddMove(pTmpMoverObj);
         }
         pMoverObject->Release();
