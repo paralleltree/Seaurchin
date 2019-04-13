@@ -57,7 +57,6 @@ void ScriptScene::Initialize()
             func->AddRef();
             mainMethod = new MethodObject(engine, sceneObject, func);
             mainMethod->SetUserData(this, SU_UDTYPE_SCENE);
-            mainMethod->Prepare();
         }
     }
 
@@ -126,9 +125,11 @@ void ScriptScene::Tick(const double delta)
 
     if (!mainMethod) return;
 
+    mainMethod->Prepare();
     mainMethod->SetArg(0, delta);
     mainMethod->Execute();
-    
+    mainMethod->Unprepare();
+
 }
 
 void ScriptScene::OnEvent(const string &message)
@@ -244,7 +245,10 @@ void ScriptCoroutineScene::Initialize()
 {
     Base::Initialize();
 
-    if (mainMethod) mainMethod->SetUserData(&wait, SU_UDTYPE_WAIT);
+    if (mainMethod) {
+        mainMethod->SetUserData(&wait, SU_UDTYPE_WAIT);
+        mainMethod->Prepare();
+    }
 }
 
 void ScriptCoroutineScene::Tick(const double delta)
