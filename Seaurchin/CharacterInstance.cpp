@@ -248,7 +248,7 @@ void CharacterInstance::SetCallback(asIScriptFunction *func, ScriptScene *sceneO
     judgeCallback->SetUserData(sceneObj, SU_UDTYPE_SCENE);
 
     judgeCallback->AddRef();
-    sceneObj->RegistDisposalCallback(judgeCallback);
+    sceneObj->RegisterDisposalCallback(judgeCallback);
 
     func->Release();
 }

@@ -74,7 +74,7 @@ bool Initialize()
     SetDrawScreen(DX_SCREEN_BACK);
 
     MoverFunctionExpressionManager::Initialize();
-    if (!easing::RegistDefaultMoverFunctionExpressions()) {
+    if (!easing::RegisterDefaultMoverFunctionExpressions()) {
         // TODO: ログ
         return false;
     }

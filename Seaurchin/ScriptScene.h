@@ -84,7 +84,7 @@ public:
     void Disappear() override;
     void Dispose() override;
 
-    void RegistDisposalCallback(CallbackObject *callback);
+    void RegisterDisposalCallback(CallbackObject *callback);
 };
 
 class ScriptCoroutineScene : public ScriptScene {

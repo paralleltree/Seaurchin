@@ -155,7 +155,7 @@ void SkillIndicators::SetCallback(asIScriptFunction *func)
     callback->SetUserData(sceneObj, SU_UDTYPE_SCENE);
 
     callback->AddRef();
-    sceneObj->RegistDisposalCallback(callback);
+    sceneObj->RegisterDisposalCallback(callback);
 
     func->Release();
 }

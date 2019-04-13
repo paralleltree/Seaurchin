@@ -166,7 +166,7 @@ void ScriptScene::Dispose()
     callbacks.clear();
 }
 
-void ScriptScene::RegistDisposalCallback(CallbackObject *callback)
+void ScriptScene::RegisterDisposalCallback(CallbackObject *callback)
 {
     callbacks.push_back(callback);
 }
