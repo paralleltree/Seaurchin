@@ -29,13 +29,13 @@ namespace parser_impl {
     }
 
     template<typename Iterator>
-    struct expr_grammer
+    struct apply_grammer
         : qi::grammar<Iterator, bool(), ascii::space_type>
     {
         qi::rule<Iterator, SSprite::FieldID(), ascii::space_type> field;
         qi::rule<Iterator, bool(), ascii::space_type> pair, apply;
 
-        expr_grammer() : expr_grammer::base_type(apply)
+        apply_grammer() : apply_grammer::base_type(apply)
         {
             field = qi::as_string[qi::alpha >> *qi::alnum][qi::_val = phx::bind(&SSprite::GetFieldId, qi::_1)];
             pair = (field >> ':' >> qi::double_)[phx::bind(&Apply, qi::_1, qi::_2)];
@@ -43,12 +43,12 @@ namespace parser_impl {
         }
     };
 
-    parser_impl::expr_grammer<std::string::const_iterator> p;
+    parser_impl::apply_grammer<std::string::const_iterator> gApply;
     bool Parse(const std::string &expression, SSprite *pSprite)
     {
         bool dummy;
         parser_impl::pSprite = pSprite;
-        bool result = boost::spirit::qi::phrase_parse(expression.begin(), expression.end(), p, boost::spirit::ascii::space, dummy);
+        bool result = boost::spirit::qi::phrase_parse(expression.begin(), expression.end(), gApply, boost::spirit::ascii::space, dummy);
         parser_impl::pSprite = nullptr;
         pSprite->Release();
         return result;
