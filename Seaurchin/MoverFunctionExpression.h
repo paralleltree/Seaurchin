@@ -56,5 +56,7 @@ public:
     bool Register(const std::string &key, MoverFunctionExpression *pFunction);
     bool Register(const std::string &key, const MoverFunctionExpressionSharedPtr &pFunction);
 
-    bool Find(const std::string &key, MoverFunctionExpressionSharedPtr &pFunction);
+    static bool IsRegistered(const std::string &key);
+
+    bool Find(const std::string &key, MoverFunctionExpressionSharedPtr &pFunction) const;
 };

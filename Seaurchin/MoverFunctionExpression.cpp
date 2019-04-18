@@ -173,6 +173,9 @@ bool MoverFunctionExpressionManager::Finalize()
 
 bool MoverFunctionExpressionManager::Register(const std::string &key, const std::string &expression)
 {
+    BOOST_ASSERT(!!inst);
+    if (!inst) return false;
+
     MoverFunctionExpressionSharedPtr pFunction;
     if (!ParseMoverFunctionExpression(pFunction, expression) || !pFunction) {
         spdlog::get("main")->error(u8"\"{0}\" 関数 (\"{1}\") の登録に失敗しました。", key, expression);
@@ -190,9 +193,6 @@ bool MoverFunctionExpressionManager::Register(const std::string &key, MoverFunct
 
 bool MoverFunctionExpressionManager::Register(const std::string &key, const MoverFunctionExpressionSharedPtr &pFunction)
 {
-    BOOST_ASSERT(!!inst);
-    if (!inst) return false;
-
     if (list.find(key) != list.end()) {
         spdlog::get("main")->warn(u8"\"{0}\" 関数は既に登録されています。", key);
         return false;
@@ -203,11 +203,18 @@ bool MoverFunctionExpressionManager::Register(const std::string &key, const Move
     return true;
 }
 
-bool MoverFunctionExpressionManager::Find(const std::string &key, MoverFunctionExpressionSharedPtr &pFunction)
+bool MoverFunctionExpressionManager::IsRegistered(const std::string &key)
 {
     BOOST_ASSERT(!!inst);
     if (!inst) return false;
 
+    MoverFunctionExpressionSharedPtr pFunction;
+    const bool retVal = GetInstance().Find(key, pFunction);
+    return retVal && pFunction;
+}
+
+bool MoverFunctionExpressionManager::Find(const std::string &key, MoverFunctionExpressionSharedPtr &pFunction) const
+{
     const auto it = list.find(key);
     if (it == list.end()) return false;
 
