@@ -118,10 +118,6 @@ protected:
     double cameraZ = -340, cameraY = 620, cameraTargetZ = 580;  // カメラ位置 (スキンから設定可にしてるけどぶっちゃけconstで良い気がする)
     const float laneBufferX = 1024.0f;                          // 背景バッファ横幅
     const float laneBufferY = laneBufferX * SU_LANE_ASPECT;     // 背景バッファ縦幅
-#ifdef SU_ENABLE_BACKGROUND_ROLLING
-    double laneBackgroundRoll = 0;                              // 背景ローリング量
-    double laneBackgroundSpeed = 0;                             // 背景ローリング速度
-#endif
     const float widthPerLane = laneBufferX / 16;                // 最小ノーツ幅
     const float cullingLimit = SU_LANE_ASPECT_EXT / SU_LANE_ASPECT; // 判定線位置 (y座標)
     const float noteImageBlockX = 64.0f;                        // ショートノーツ描画単位 (幅)
@@ -144,9 +140,9 @@ protected:
     SImage *imageSlide {}, *imageSlideStep {}, *imageSlideStrut {};
     SImage *imageAirAction {};
     SAnimatedImage *animeTap {}, *animeExTap {}, *animeSlideTap {}, *animeSlideLoop {}, *animeAirAction {};
-    STextSprite *textCombo {}; // コンボ数フォント こいつだけLoadResourcesで自力で生成、Finalizeで自力で破棄する
-    double textScale {};       // コンボ数フォント拡大率 textComboに設定したフォントサイズで計算し保持する
-    MoverObject* pTextComboMover;
+
+    // レーンスプライト
+    SSprite *spriteLane {};
 
     // LoadResourcesで初期化 (設定ファイルから取得)
     unsigned int slideLineColor = GetColor(0, 200, 255);        // Slide中心線色
@@ -207,9 +203,6 @@ protected:
     void DrawAirActionCover(const AirDrawQuery &query);
     void DrawTap(float lane, int length, double relpos, int handle) const;
     void DrawMeasureLine(const std::shared_ptr<SusDrawableNoteData>& note) const;
-    void DrawLaneDivisionLines() const;
-    void DrawLaneBackground() const;
-    void RefreshComboText() const;
     void Prepare3DDrawCall() const;
     void DrawAerialNotes(const std::vector<std::shared_ptr<SusDrawableNoteData>>& notes);
 
@@ -227,6 +220,7 @@ public:
     void AdjustCamera(double cy, double cz, double ctz);
     void GetMetrics(ScenePlayerMetrics *metrics);
     void SetPlayerResource(const std::string &name, SResource *resource);
+    void SetLaneSprite(SSprite *spriteLane);
     void Tick(double delta) override;
     void Draw() override;
     void Finalize();
