@@ -43,7 +43,9 @@ class Play : CoroutineScene {
     @imgJ = skin.GetImage("Justice");
     @imgA = skin.GetImage("Attack");
     @imgM = skin.GetImage("Miss");
-    RegisterMoverFunction("txtCombo_scale", "1.63265*(1.0625-pow(progress - 0.5, 4))");
+    if(!IsMoverFunctionRegistered("txtCombo_scale")) {
+      RegisterMoverFunction("txtCombo_scale", "1.63265*(1.0625-pow(progress - 0.5, 4))");
+    }
   }
 
   void SetPlayerResource() {
@@ -103,7 +105,7 @@ class Play : CoroutineScene {
         { "width", 2 },
         { "height", 4224 }
       };
-      int divcnt = 8;
+      int divcnt = parseInt(GetSettingItem("Graphic", "DivisionLine").GetItemText());
       for(int i=0; i<=divcnt; ++i) {
         Shape@ line = Shape();
         line.Apply(dict);
@@ -114,8 +116,11 @@ class Play : CoroutineScene {
     }
 
     {
-      Sprite@ sp = Sprite(skin.GetImage("*Lane-JudgeLine"));
-      sp.Apply("x:0, y:0, z:3");
+	    ScenePlayerMetrics metrics;
+	    player.GetMetrics(metrics);
+	    Image@ imgLine = skin.GetImage("*Lane-JudgeLine");
+      Sprite@ sp = Sprite(imgLine);
+      sp.Apply("x:0, y:3840, z:3, origY:"+(imgLine.Height/2));
       ctnLane.AddChild(sp);
     }
   }
@@ -235,6 +240,8 @@ class Play : CoroutineScene {
     AddSprite(spBarFront);
 
     DrawableResult dsNow, dsPrev;
+    MoverObject @txtComboMover = MoverObject();
+    txtComboMover.Apply("time:0.2, func:txtCombo_scale");
     while(true) {
       player.GetCurrentResult(dsNow);
       if (dsNow.FulfilledGauges > dsPrev.FulfilledGauges) {
@@ -257,8 +264,9 @@ class Play : CoroutineScene {
       if (dsNow.Combo > dsPrev.Combo && dsNow.Combo >= 5) {
         txtCombo.SetText("" + dsNow.Combo);
         txtCombo.AbortMove(true);
-        txtCombo.AddMove("scale:{time:0.2, func:txtCombo_scale}");
+        txtCombo.AddMove("scale", txtComboMover);
       }
+
 
       spCounts[0].SetText("" + dsNow.JusticeCritical);
       spCounts[1].SetText("" + dsNow.Justice);

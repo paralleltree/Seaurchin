@@ -15,7 +15,11 @@ class SettingScene : CoroutineScene {
     },
     {
       GetSettingItem("Graphic", "WaitVSync"),
-      GetSettingItem("Graphic", "Fullscreen")
+      GetSettingItem("Graphic", "Fullscreen"),
+      GetSettingItem("Graphic", "DivisionLine"),
+      GetSettingItem("Graphic", "ShowSlideLine"),
+      GetSettingItem("Graphic", "SlideLineThickness"),
+      GetSettingItem("Graphic", "ShowAirActionJudgeLine")
     },
     {
       GetSettingItem("Sound", "BufferLatency"),
@@ -34,10 +38,7 @@ class SettingScene : CoroutineScene {
       GetSettingItem("Play", "JudgeMultiplierSlider"),
       GetSettingItem("Play", "AirRollMultiplier"),
       GetSettingItem("Play", "JudgeAdjustAirString"),
-      GetSettingItem("Play", "JudgeMultiplierAirString"),
-      GetSettingItem("Play", "ShowSlideLine"),
-      GetSettingItem("Play", "SlideLineThickness"),
-      GetSettingItem("Play", "ShowAirActionJudgeLine")
+      GetSettingItem("Play", "JudgeMultiplierAirString")
     }
   };
 

@@ -9,7 +9,6 @@ class Title : CoroutineScene {
   bool introWorking;
 
   void Initialize() {
-//    RegisterMoverFunction("my_func", "rand(begin - 20, begin + 20)");
     LoadResources();
     AddSprite(Sprite(imgWhite));
   }
@@ -67,9 +66,6 @@ class Title : CoroutineScene {
 
     @moverList[2] = MoverObject();
     moverList[2].Apply("wait", 4);
-
-//    @moverList[3] = MoverObject();
-//    moverList[3].Apply("time:3, func:my_func");
 
     array<string> moverKeyList = { "alpha", "alpha", "death", "x" };
 
