@@ -83,6 +83,8 @@ bool Initialize()
     manager->Initialize();
 
     SSpriteMover::StrTypeId = manager->GetScriptInterfaceUnsafe()->GetEngine()->GetTypeIdByDecl("string");
+
+    return true;
 }
 
 void Run()
