@@ -28,6 +28,7 @@ int WINAPI WinMain(const HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpC
 {
     PreInitialize(hInstance);
     if (!Initialize()) {
+        logger->LogError(u8"初期化処理に失敗しました。強制終了します。");
         Terminate();
         return -1;
     }
@@ -42,6 +43,7 @@ void PreInitialize(HINSTANCE hInstance)
 {
     logger = make_shared<Logger>();
     logger->Initialize();
+    logger->LogDebug(u8"ロガー起動");
 
     setting = make_shared<Setting>(hInstance);
     setting->Load(SU_SETTING_FILE);
@@ -57,10 +59,13 @@ void PreInitialize(HINSTANCE hInstance)
     SetUseFPUPreserveFlag(TRUE);
     SetGraphMode(SU_RES_WIDTH, SU_RES_HEIGHT, 32);
     SetFullSceneAntiAliasingMode(2, 2);
+
+    logger->LogDebug(u8"PreInitialize完了");
 }
 
 bool Initialize()
 {
+    logger->LogDebug(u8"DxLib初期化開始");
     if (DxLib_Init() == -1) abort();
     logger->LogInfo(u8"DxLib初期化OK");
 
@@ -75,7 +80,7 @@ bool Initialize()
 
     MoverFunctionExpressionManager::Initialize();
     if (!easing::RegisterDefaultMoverFunctionExpressions()) {
-        // TODO: ログ
+        logger->LogError(u8"デフォルトのMoverFunctionの登録に失敗しました。");
         return false;
     }
 
@@ -83,6 +88,8 @@ bool Initialize()
     manager->Initialize();
 
     SSpriteMover::StrTypeId = manager->GetScriptInterfaceUnsafe()->GetEngine()->GetTypeIdByDecl("string");
+
+    logger->LogDebug(u8"Initialize完了");
 
     return true;
 }
@@ -92,8 +99,11 @@ void Run()
     if (CheckHitKey(KEY_INPUT_F2)) {
         manager->ExecuteSystemMenu();
     } else {
+        logger->LogDebug(u8"スキン列挙開始");
         manager->EnumerateSkins();
+        logger->LogDebug(u8"Skin.as起動");
         manager->ExecuteSkin();
+        logger->LogDebug(u8"Skin.as終了");
     }
     manager->AddScene(static_pointer_cast<Scene>(make_shared<SceneDebug>()));
 
