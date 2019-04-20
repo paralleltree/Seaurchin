@@ -100,6 +100,7 @@ protected:
     boost::lockfree::queue<JudgeSoundType> judgeSoundQueue;
     std::thread judgeSoundThread;
     std::mutex asyncMutex;
+    std::thread loadWorkerThread;
     const std::unique_ptr<SusAnalyzer> analyzer;
     std::multiset<SSprite*, SSprite::Comparator> sprites;
     std::vector<SSprite*> spritesPending;

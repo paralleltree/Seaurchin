@@ -119,6 +119,7 @@ void ScenePlayer::EnqueueJudgeSound(const JudgeSoundType type)
 void ScenePlayer::Finalize()
 {
     isTerminating = true;
+    if (loadWorkerThread.joinable()) loadWorkerThread.join();
     SoundManager::StopGlobal(soundHoldLoop->GetSample());
     SoundManager::StopGlobal(soundSlideLoop->GetSample());
     SoundManager::StopGlobal(soundAirLoop->GetSample());
@@ -436,9 +437,13 @@ void ScenePlayer::ProcessSoundQueue()
 
 void ScenePlayer::Load()
 {
+    if (loadWorkerThread.joinable()) {
+        spdlog::get("main")->error(u8"ScenePlayer::Loadは実行中です。");
+        return;
+    }
+
     thread loadThread([&] { LoadWorker(); });
-    loadThread.detach();
-    //LoadWorker();
+    loadWorkerThread.swap(loadThread);
 }
 
 bool ScenePlayer::IsLoadCompleted()
