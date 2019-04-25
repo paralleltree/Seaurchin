@@ -131,10 +131,6 @@ void ScenePlayer::AddSprite(SSprite *sprite)
 void ScenePlayer::TickGraphics(const double delta)
 {
     UpdateSlideEffect();
-
-#ifdef SU_ENABLE_BACKGROUND_ROLLING
-    laneBackgroundRoll += laneBackgroundSpeed * delta;
-#endif
 }
 
 void ScenePlayer::Draw()
