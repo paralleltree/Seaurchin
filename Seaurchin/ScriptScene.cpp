@@ -9,12 +9,12 @@ using namespace boost::filesystem;
 
 ScriptScene::ScriptScene(asIScriptObject *scene)
     : sceneObject(scene)
-    , sceneType(scene->GetObjectType())
-    , context(scene->GetEngine()->CreateContext())
+    , initMethod(nullptr)
+    , mainMethod(nullptr)
+    , eventMethod(nullptr)
+    , finished(false)
 {
     sceneObject->AddRef();
-    sceneType->AddRef();
-    context->SetUserData(this, SU_UDTYPE_SCENE);
 }
 
 ScriptScene::~ScriptScene()
@@ -26,30 +26,55 @@ ScriptScene::~ScriptScene()
 
     KillCoroutine("");
 
-    context->Release();
-    sceneType->Release();
-    sceneObject->Release();
-}
+    if (mainMethod) mainMethod->Unprepare();
 
-asIScriptFunction* ScriptScene::GetMainMethod()
-{
-    return sceneType->GetMethodByDecl("void Tick(double)");
+    delete initMethod;
+    delete mainMethod;
+    delete eventMethod;
+
+    sceneObject->Release();
 }
 
 void ScriptScene::Initialize()
 {
+    const auto sceneType = sceneObject->GetObjectType();
+    auto engine = sceneObject->GetEngine();
+
     {
-        const auto func = sceneType->GetMethodByDecl("void Initialize()");
-        context->Prepare(func);
-        context->SetObject(sceneObject);
-        context->Execute();
+        auto func = sceneType->GetMethodByDecl("void Initialize()");
+        if (func) {
+            sceneObject->AddRef();
+            func->AddRef();
+            initMethod = new MethodObject(engine, sceneObject, func);
+            initMethod->SetUserData(this, SU_UDTYPE_SCENE);
+        }
     }
 
     {
-        const auto func = this->GetMainMethod();
-        context->Prepare(func);
-        context->SetObject(sceneObject);
+        auto func = sceneType->GetMethodByDecl(this->GetMainMethodDecl());
+        if (func) {
+            sceneObject->AddRef();
+            func->AddRef();
+            mainMethod = new MethodObject(engine, sceneObject, func);
+            mainMethod->SetUserData(this, SU_UDTYPE_SCENE);
+        }
     }
+
+    {
+        auto func = sceneType->GetMethodByDecl("void OnEvent(const string &in)");
+        if (func) {
+            sceneObject->AddRef();
+            func->AddRef();
+            eventMethod = new MethodObject(engine, sceneObject, func);
+            eventMethod->SetUserData(this, SU_UDTYPE_SCENE);
+        }
+    }
+
+    if (!initMethod) return;
+
+    initMethod->Prepare();
+    initMethod->Execute();
+    initMethod->Unprepare();
 }
 
 void ScriptScene::AddSprite(SSprite *sprite)
@@ -97,23 +122,25 @@ void ScriptScene::Tick(const double delta)
 {
     TickSprite(delta);
     TickCoroutine(delta);
-    context->SetArgDouble(0, delta);
-    context->Execute();
+
+    if (!mainMethod) return;
+
+    mainMethod->Prepare();
+    mainMethod->SetArg(0, delta);
+    mainMethod->Execute();
+    mainMethod->Unprepare();
+
 }
 
 void ScriptScene::OnEvent(const string &message)
 {
+    if (!eventMethod) return;
+
     auto msg = message;
-    const auto func = sceneType->GetMethodByDecl("void OnEvent(const string &in)");
-    if (!func) return;
-    auto evc = manager->GetScriptInterfaceUnsafe()->GetEngine()->CreateContext();
-    evc->Prepare(func);
-    evc->SetUserData(this, SU_UDTYPE_SCENE);
-    evc->SetObject(sceneObject);
-    evc->SetArgAddress(0, static_cast<void*>(&msg));
-    evc->Execute();
-    evc->Unprepare();
-    evc->Release();
+    eventMethod->Prepare();
+    eventMethod->SetArg(0, &msg);
+    eventMethod->Execute();
+    eventMethod->Unprepare();
 }
 
 void ScriptScene::Draw()
@@ -133,30 +160,33 @@ void ScriptScene::Disappear()
 
 void ScriptScene::Dispose()
 {
-    for (auto it = callbacks.begin(); it != callbacks.end(); ++it)         {
+    for (auto it = callbacks.begin(); it != callbacks.end(); ++it) {
         (*it)->Dispose();
+        (*it)->Release();
     }
     callbacks.clear();
 }
 
-void ScriptScene::RegistDisposalCallback(CallbackObject *callback)
+void ScriptScene::RegisterDisposalCallback(CallbackObject *callback)
 {
     callbacks.push_back(callback);
 }
 
 void ScriptScene::TickCoroutine(const double delta)
 {
-    for (auto& coroutine : coroutinesPending) {
-        coroutine->SetSceneInstance(this);
-        coroutines.push_back(coroutine);
+    if (!coroutinesPending.empty()) {
+        for (auto& coroutine : coroutinesPending) {
+            coroutine->SetUserData(this, SU_UDTYPE_SCENE);
+            coroutines.push_back(coroutine);
+        }
+        coroutinesPending.clear();
     }
-    coroutinesPending.clear();
 
     auto i = coroutines.begin();
     while (i != coroutines.end()) {
         auto c = *i;
 
-        if (c->Wait.Tick(delta)) {
+        if (c->Tick(delta)) {
             ++i;
             continue;
         }
@@ -180,8 +210,11 @@ void ScriptScene::TickCoroutine(const double delta)
 
 void ScriptScene::TickSprite(const double delta)
 {
-    for (auto& sprite : spritesPending) sprites.emplace(sprite);
-    spritesPending.clear();
+    if (!spritesPending.empty()) {
+        for (auto& sprite : spritesPending) sprites.emplace(sprite);
+        spritesPending.clear();
+    }
+
     auto i = sprites.begin();
     while (i != sprites.end()) {
         (*i)->Tick(delta);
@@ -199,20 +232,23 @@ void ScriptScene::DrawSprite()
     for (auto& i : sprites) i->Draw();
 }
 
+
 ScriptCoroutineScene::ScriptCoroutineScene(asIScriptObject *scene)
     : Base(scene)
     , wait(CoroutineWait{ WaitType::Time, 0 })
-{
-    context->SetUserData(&wait, SU_UDTYPE_WAIT);
-}
+{}
 
 ScriptCoroutineScene::~ScriptCoroutineScene()
-{
-}
+{}
 
-asIScriptFunction* ScriptCoroutineScene::GetMainMethod()
+void ScriptCoroutineScene::Initialize()
 {
-    return sceneType->GetMethodByDecl("void Run()");
+    Base::Initialize();
+
+    if (mainMethod) {
+        mainMethod->SetUserData(&wait, SU_UDTYPE_WAIT);
+        mainMethod->Prepare();
+    }
 }
 
 void ScriptCoroutineScene::Tick(const double delta)
@@ -223,9 +259,15 @@ void ScriptCoroutineScene::Tick(const double delta)
     //Run()
     if (wait.Tick(delta)) return;
 
-    const auto result = context->Execute();
-    if (result != asEXECUTION_SUSPENDED)
+    if (!mainMethod) {
         finished = true;
+        return;
+    }
+
+    const auto result = mainMethod->Execute();
+    if (result != asEXECUTION_SUSPENDED) {
+        finished = true;
+    }
 }
 
 void RegisterScriptScene(ExecutionManager *exm)
@@ -362,33 +404,30 @@ void ScriptSceneDisappear()
 
 
 Coroutine::Coroutine(const std::string &name, const asIScriptFunction* cofunc, asIScriptEngine* engine)
-    : Name(name)
+    : context(engine->CreateContext())
+    , object(static_cast<asIScriptObject*>(cofunc->GetDelegateObject()))
+    , function(cofunc->GetDelegateFunction())
+    , type(cofunc->GetDelegateObjectType())
+    , Name(name)
     , Wait(CoroutineWait { WaitType::Time, 0 })
 {
-    BOOST_ASSERT(cofunc);
     BOOST_ASSERT(cofunc->GetFuncType() == asFUNC_DELEGATE);
 
-    function = cofunc->GetDelegateFunction();
     function->AddRef();
-
-    object = cofunc->GetDelegateObject();
-    static_cast<asIScriptObject*>(object)->AddRef();
-
-    type = cofunc->GetDelegateObjectType();
+    object->AddRef();
     type->AddRef();
 
-    context = engine->CreateContext();
-    context->SetUserData(&Wait, SU_UDTYPE_WAIT);
-    context->Prepare(function);
-    context->SetObject(object);
+    Prepare();
+    SetUserData(&Wait, SU_UDTYPE_WAIT);
 
     cofunc->Release();
 }
 
 Coroutine::~Coroutine()
 {
+    Unprepare();
+
     auto e = context->GetEngine();
-    context->Unprepare();
     context->Release();
     function->Release();
     e->ReleaseScriptObject(object, type);

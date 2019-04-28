@@ -147,13 +147,7 @@
     <ClCompile Include="CharacterInstance.cpp">
       <Filter>インターフェース\キャラクター</Filter>
     </ClCompile>
-    <ClCompile Include="ScriptSpriteMover2.cpp">
-      <Filter>インターフェース\描画システム</Filter>
-    </ClCompile>
     <ClCompile Include="Easing.cpp">
-      <Filter>インターフェース\描画システム</Filter>
-    </ClCompile>
-    <ClCompile Include="MoverFunction.cpp">
       <Filter>インターフェース\描画システム</Filter>
     </ClCompile>
     <ClCompile Include="..\library\angelscript\add_on\scriptarray\scriptarray.cpp">
@@ -173,6 +167,12 @@
     </ClCompile>
     <ClCompile Include="..\library\angelscript\add_on\scriptstdstring\scriptstdstring_utils.cpp">
       <Filter>AngelScript</Filter>
+    </ClCompile>
+    <ClCompile Include="MoverFunctionExpression.cpp">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptSpriteMover.cpp">
+      <Filter>インターフェース\描画システム</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -278,13 +278,7 @@
     <ClInclude Include="Crc32.h">
       <Filter>ヘッダー ファイル\ライブラリ</Filter>
     </ClInclude>
-    <ClInclude Include="ScriptSpriteMover2.h">
-      <Filter>インターフェース\描画システム</Filter>
-    </ClInclude>
     <ClInclude Include="Easing.h">
-      <Filter>インターフェース\描画システム</Filter>
-    </ClInclude>
-    <ClInclude Include="MoverFunction.h">
       <Filter>インターフェース\描画システム</Filter>
     </ClInclude>
     <ClInclude Include="..\library\dxlib\include\DxCompileConfig.h">
@@ -316,6 +310,12 @@
     </ClInclude>
     <ClInclude Include="..\library\angelscript\add_on\scriptstdstring\scriptstdstring.h">
       <Filter>AngelScript</Filter>
+    </ClInclude>
+    <ClInclude Include="MoverFunctionExpression.h">
+      <Filter>インターフェース\描画システム</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptSpriteMover.h">
+      <Filter>インターフェース\描画システム</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

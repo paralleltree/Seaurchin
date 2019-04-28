@@ -6,6 +6,7 @@ class Play : CoroutineScene {
   Font@ font32, font64, fontLatin;
   ScenePlayer@ player;
   CharacterInfo charinfo;
+  TextSprite@ txtCombo;
 
   double judgeLineBegin, judgeLineWidth;
   double judgeLineY;
@@ -42,13 +43,13 @@ class Play : CoroutineScene {
     @imgJ = skin.GetImage("Justice");
     @imgA = skin.GetImage("Attack");
     @imgM = skin.GetImage("Miss");
+    if(!IsMoverFunctionRegistered("txtCombo_scale")) {
+      RegisterMoverFunction("txtCombo_scale", "1.63265*(1.0625-pow(progress - 0.5, 4))");
+    }
   }
 
   void SetPlayerResource() {
-    player.SetResource("LaneGround", skin.GetImage("*Lane-Ground"));
-    player.SetResource("LaneJudgeLine", skin.GetImage("*Lane-JudgeLine"));
     player.SetResource("LaneHoldLight", skin.GetImage("*Lane-HoldLight"));
-    player.SetResource("FontCombo", skin.GetFont("Combo192"));
     player.SetResource("Tap", skin.GetImage("*Note-Tap"));
     player.SetResource("ExTap", skin.GetImage("*Note-ExTap"));
     player.SetResource("Air", skin.GetImage("*Note-Air"));
@@ -80,6 +81,48 @@ class Play : CoroutineScene {
     player.SetResource("EffectAirAction", skin.GetAnime("*Anime-AirAction"));
     player.SetResource("EffectSlideTap", skin.GetAnime("*Anime-SlideTap"));
     player.SetResource("EffectSlideLoop", skin.GetAnime("*Anime-SlideLoop"));
+
+    Container@ ctnLane = Container();
+    player.SetLaneSprite(ctnLane);
+
+    {
+      Sprite@ sp = Sprite(skin.GetImage("*Lane-Ground"));
+      sp.Apply("x:0, y:0, z:0");
+      ctnLane.AddChild(sp);
+    }
+
+    @txtCombo = TextSprite(skin.GetFont("Combo192"), "");
+    txtCombo.Apply("x:512, y:3200, z:1, r:255, g:255, b:255");
+    txtCombo.SetAlignment(TextAlign::Center, TextAlign::Center);
+    ctnLane.AddChild(txtCombo);
+
+    {
+      dictionary dict = {
+        { "z", 1 },
+        { "r", 255 },
+        { "g", 255 },
+        { "b", 255 },
+        { "width", 2 },
+        { "height", 4224 }
+      };
+      int divcnt = parseInt(GetSettingItem("Graphic", "DivisionLine").GetItemText());
+      for(int i=0; i<=divcnt; ++i) {
+        Shape@ line = Shape();
+        line.Apply(dict);
+        line.Type = ShapeType::BoxFill;
+        line.SetPosition(1024*i/divcnt, 2112);
+        ctnLane.AddChild(line);
+      }
+    }
+
+    {
+	    ScenePlayerMetrics metrics;
+	    player.GetMetrics(metrics);
+	    Image@ imgLine = skin.GetImage("*Lane-JudgeLine");
+      Sprite@ sp = Sprite(imgLine);
+      sp.Apply("x:0, y:3840, z:3, origY:"+(imgLine.Height/2));
+      ctnLane.AddChild(sp);
+    }
   }
 
   void RunPlayer() {
@@ -87,12 +130,11 @@ class Play : CoroutineScene {
     SetPlayerResource();
     player.Initialize();
 
-	ScenePlayerMetrics metrics;
-	player.GetMetrics(metrics);
-	judgeLineBegin = metrics.JudgeLineLeftX + (1280 / 2);
-	judgeLineWidth = metrics.JudgeLineRightX - metrics.JudgeLineLeftX;
-	judgeLineY = metrics.JudgeLineLeftY;
-	WriteLog("begin : " + judgeLineBegin + ", width :" + judgeLineWidth + ", Y : " + judgeLineY);
+	  ScenePlayerMetrics metrics;
+	  player.GetMetrics(metrics);
+	  judgeLineBegin = metrics.JudgeLineLeftX + (1280 / 2);
+	  judgeLineWidth = metrics.JudgeLineRightX - metrics.JudgeLineLeftX;
+	  judgeLineY = metrics.JudgeLineLeftY;
 
     player.SetJudgeCallback(JudgeCallback(OnJudge));
     charinfo.InitInfo(player.GetCharacterInstance());
@@ -198,24 +240,33 @@ class Play : CoroutineScene {
     AddSprite(spBarFront);
 
     DrawableResult dsNow, dsPrev;
+    MoverObject @txtComboMover = MoverObject();
+    txtComboMover.Apply("time:0.2, func:txtCombo_scale");
     while(true) {
       player.GetCurrentResult(dsNow);
       if (dsNow.FulfilledGauges > dsPrev.FulfilledGauges) {
         if (dsNow.FulfilledGauges > 10) {
           // TODO: 満杯のときの処理
         } else {
-          for(int i = dsPrev.FulfilledGauges; i < dsNow.FulfilledGauges; i++) {
+          for(uint i = dsPrev.FulfilledGauges; i < dsNow.FulfilledGauges; i++) {
             spGaugeCounts[i].SetImage(imgGCFull);
             spGaugeCounts[i].Apply("scaleX:0.8");
-            spGaugeCounts[i].AddMove("scale_to(x:0.5, y:0.3, time:0.3)");
+            spGaugeCounts[i].AddMove("scaleX:{end:0.5, time:0.3}");
+            spGaugeCounts[i].AddMove("scaleY:{end:0.3, time:0.3}");
           }
         }
       }
       if (dsNow.CurrentGaugeRatio != dsPrev.CurrentGaugeRatio) {
-        spBarFill.AddMove("range_size(x:" + formatFloat(dsNow.CurrentGaugeRatio, '', 1, 4) + ", y:1, time:0.1, ease:out_sine)");
+        spBarFill.AddMove("u2:{end:" + dsNow.CurrentGaugeRatio + ", time:0.1, func:out_sine}");
         txtScore.SetText(formatInt(dsNow.Score, "", 8));
       }
       if (dsNow.MaxCombo != dsPrev.MaxCombo) txtMaxCombo.SetText(formatInt(dsNow.MaxCombo, "", 5));
+      if (dsNow.Combo > dsPrev.Combo && dsNow.Combo >= 5) {
+        txtCombo.SetText("" + dsNow.Combo);
+        txtCombo.AbortMove(true);
+        txtCombo.AddMove("scale", txtComboMover);
+      }
+
 
       spCounts[0].SetText("" + dsNow.JusticeCritical);
       spCounts[1].SetText("" + dsNow.Justice);
@@ -275,9 +326,9 @@ class Play : CoroutineScene {
       spCustomBack.Apply("z:-29");
 
       AddSprite(spCustomBack);
-      spBack.AddMove("alpha(x:1, y:0, time:1)");
-      spCustomBack.AddMove("alpha(x:0, y:1, time:1)");
-      spBack.AddMove("death(wait:1)");
+      spBack.AddMove("alpha:{begin:1, end:0, time:1}");
+      spCustomBack.AddMove("alpha:{begin:0, end:1, time:1}");
+      spBack.AddMove("death:{wait:1}");
     }
   }
 
@@ -310,9 +361,9 @@ class Play : CoroutineScene {
       { "scaleY", 0.5 },
       { "alpha", 0 }
     });
-  	sp.AddMove("move_by(y:-150, time:0.5, ease:out_sine)");
-  	sp.AddMove("alpha(x:0.0, y:1.0, time:0.5)");
-  	sp.AddMove("death(wait:0.6)");
+  	sp.AddMove("y:{@end:-150, time:0.5, func:out_sine}");
+  	sp.AddMove("alpha:{begin:0.0, end:1.0, time:0.5}");
+  	sp.AddMove("death:{wait:0.6}");
   	AddSprite(sp);
   }
 }
@@ -393,14 +444,14 @@ class CharacterInfo : CoroutineScene {
   }
 
   void ReadyString() {
-    spReady.AddMove("scale_to(x:1.4, y:1.4, time:0.3, wait:0.7, ease:out_back)");
-    spReady.AddMove("scale_to(x:1.4, y:0, time:0.1, wait:2.0, ease:out_sine)");
+    spReady.AddMove("scale:{end:1.4, time:0.3, wait:0.7, func:out_back}");
+    spReady.AddMove("scaleY:{end:0, time:0.1, wait:2.0, func:out_sine}");
     YieldTime(2.1);
     spReady.SetText("START!");
-    spReady.AddMove("scale_to(x:1.4, y:1.4, time:0.3, wait:0.7, ease:out_back)");
-    spReady.AddMove("scale_to(x:4, y:1.4, time:0.5, wait:2, ease:out_sine)");
-    spReady.AddMove("alpha(x:1, y:0, time:0.5, wait:2)");
-    spReady.AddMove("death(wait:2.5)");
+    spReady.AddMove("scale:{end:1.4, time:0.3, wait:0.7, func:out_back}");
+    spReady.AddMove("scaleY:{end:1.4, time:0.5, wait:2, func:out_sine}");
+    spReady.AddMove("alpha:{begin:1, end:0, time:0.5, wait:2}");
+    spReady.AddMove("death:{wait:2.5}");
   }
 
   void Run() {
@@ -415,21 +466,21 @@ class CharacterInfo : CoroutineScene {
     auto target = icons[index];
     target.AbortMove(true);
     target.Apply("scaleX:0.3, scaleY: 0.3");
-    target.AddMove("scale_to(x:0.25, y:0.25, time: 0.2)");
+    target.AddMove("scale:{end:0.25, time: 0.2}");
   }
 
   void OnEvent(const string &in event) {
     if (event == "Player:End") Disappear();
     if (event == "Player:Ready") {
-      container.AddMove("move_by(x:296, time:0.5, ease:out_quad)");
-      spReadyBack.AddMove("scale_to(x:1, y:1, time:0.3, ease:out_sine)");
-      spReadyFront.AddMove("move_by(x:1280, time:0.5, wait:0.3, ease:out_sine)");
+      container.AddMove("x:{@end:296, time:0.5, func:out_quad}");
+      spReadyBack.AddMove("scale:{end:1, time:0.3, func:out_sine}");
+      spReadyFront.AddMove("x:{@end:1280, time:0.5, wait:0.3, func:out_sine}");
       RunCoroutine(Coroutine(ReadyString), "CharInfo:Ready");
       // 4.1秒後にフェードアウト開始
-      spReadyBack.AddMove("scale_to(x:1, y:0, time:0.3, wait:4.1, ease:in_back)");
-      spReadyFront.AddMove("alpha(x:1, y:0, time:0.3, wait:4.1)");
-      spReadyBack.AddMove("death(wait:4.4)");
-      spReadyFront.AddMove("death(wait:4.4)");
+      spReadyBack.AddMove("scaleY:{end:0, time:0.3, wait:4.1, func:in_back}");
+      spReadyFront.AddMove("alpha:{begin:1, end:0, time:0.3, wait:4.1}");
+      spReadyBack.AddMove("death:{wait:4.4}");
+      spReadyFront.AddMove("death:{wait:4.4}");
     }
   }
 }

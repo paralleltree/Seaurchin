@@ -1,5 +1,6 @@
 ﻿#include "ScenePlayer.h"
 #include "ScriptSprite.h"
+#include "ScriptSpriteMover.h"
 #include "ExecutionManager.h"
 #include "Result.h"
 #include "Character.h"
@@ -32,6 +33,7 @@ void RegisterPlayerScene(ExecutionManager * manager)
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void SetResource(const string &in, " SU_IF_FONT "@)", asMETHOD(ScenePlayer, SetPlayerResource), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void SetResource(const string &in, " SU_IF_SOUND "@)", asMETHOD(ScenePlayer, SetPlayerResource), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void SetResource(const string &in, " SU_IF_ANIMEIMAGE "@)", asMETHOD(ScenePlayer, SetPlayerResource), asCALL_THISCALL);
+    engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void SetLaneSprite(" SU_IF_SPRITE "@)", asMETHOD(ScenePlayer, SetLaneSprite), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void Load()", asMETHOD(ScenePlayer, Load), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "bool IsLoadCompleted()", asMETHOD(ScenePlayer, IsLoadCompleted), asCALL_THISCALL);
     engine->RegisterObjectMethod(SU_IF_SCENE_PLAYER, "void GetReady()", asMETHOD(ScenePlayer, GetReady), asCALL_THISCALL);
@@ -51,18 +53,18 @@ void RegisterPlayerScene(ExecutionManager * manager)
 
 namespace
 {
-ScoreProcessor* CreateScoreProcessor(ExecutionManager *pMng, ScenePlayer *src)
-{
-    if (pMng == nullptr) return nullptr;
+    ScoreProcessor* CreateScoreProcessor(ExecutionManager *pMng, ScenePlayer *src)
+    {
+        if (pMng == nullptr) return nullptr;
 
-    switch (pMng->GetData<int>("AutoPlay", 1)) {
+        switch (pMng->GetData<int>("AutoPlay", 1)) {
         case 0: return new PlayableProcessor(src);
         case 1: return new AutoPlayerProcessor(src);
         case 2: return new PlayableProcessor(src, true);
         default: return nullptr;
-    }
+        }
 
-}
+    }
 }
 
 ScenePlayer::ScenePlayer(ExecutionManager *exm)
@@ -117,10 +119,12 @@ void ScenePlayer::EnqueueJudgeSound(const JudgeSoundType type)
 void ScenePlayer::Finalize()
 {
     isTerminating = true;
+    if (loadWorkerThread.joinable()) loadWorkerThread.join();
     SoundManager::StopGlobal(soundHoldLoop->GetSample());
     SoundManager::StopGlobal(soundSlideLoop->GetSample());
     SoundManager::StopGlobal(soundAirLoop->GetSample());
     for (auto& res : resources) if (res.second) res.second->Release();
+    if (spriteLane) spriteLane->Release();
     for (auto &i : sprites) i->Release();
     sprites.clear();
     for (auto &i : spritesPending) i->Release();
@@ -131,7 +135,6 @@ void ScenePlayer::Finalize()
     delete processor;
     delete bgmStream;
 
-    textCombo->Release();
     DeleteGraph(hGroundBuffer);
     if (movieBackground) DeleteGraph(movieBackground);
     judgeSoundThread.join();
@@ -254,8 +257,6 @@ void ScenePlayer::CalculateNotes(double time, double duration, double preced)
 
 void ScenePlayer::Tick(const double delta)
 {
-    textCombo->Tick(delta);
-
     for (auto& sprite : spritesPending) sprites.emplace(sprite);
     spritesPending.clear();
     auto i = sprites.begin();
@@ -267,6 +268,10 @@ void ScenePlayer::Tick(const double delta)
         } else {
             ++i;
         }
+    }
+
+    if (spriteLane) {
+        spriteLane->Tick(delta);
     }
 
     if (state != PlayingState::Paused) {
@@ -432,9 +437,13 @@ void ScenePlayer::ProcessSoundQueue()
 
 void ScenePlayer::Load()
 {
+    if (loadWorkerThread.joinable()) {
+        spdlog::get("main")->error(u8"ScenePlayer::Loadは実行中です。");
+        return;
+    }
+
     thread loadThread([&] { LoadWorker(); });
-    loadThread.detach();
-    //LoadWorker();
+    loadWorkerThread.swap(loadThread);
 }
 
 bool ScenePlayer::IsLoadCompleted()
@@ -469,6 +478,15 @@ void ScenePlayer::SetPlayerResource(const string & name, SResource * resource)
 {
     if (resources.find(name) != resources.end()) resources[name]->Release();
     resources[name] = resource;
+}
+
+void ScenePlayer::SetLaneSprite(SSprite *spriteLane)
+{
+    if (this->spriteLane) {
+        this->spriteLane->Release();
+    }
+
+    this->spriteLane = spriteLane;
 }
 
 void ScenePlayer::Play()
