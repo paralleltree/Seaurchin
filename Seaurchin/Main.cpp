@@ -1,15 +1,19 @@
-﻿#include "Main.h"
+﻿#include "Misc.h"
+#include "Main.h"
 #include "resource.h"
 #include "Debug.h"
 #include "Setting.h"
 #include "ExecutionManager.h"
 #include "SceneDebug.h"
+#include "MoverFunctionExpression.h"
+#include "Easing.h"
+#include "ScriptSpriteMover.h"
 
 using namespace std;
 using namespace std::chrono;
 
 void PreInitialize(HINSTANCE hInstance);
-void Initialize();
+bool Initialize();
 void Run();
 void Terminate();
 LRESULT CALLBACK CustomWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -23,7 +27,11 @@ HWND hDxlibWnd;
 int WINAPI WinMain(const HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
     PreInitialize(hInstance);
-    Initialize();
+    if (!Initialize()) {
+        logger->LogError(u8"初期化処理に失敗しました。強制終了します。");
+        Terminate();
+        return -1;
+    }
 
     Run();
 
@@ -35,6 +43,7 @@ void PreInitialize(HINSTANCE hInstance)
 {
     logger = make_shared<Logger>();
     logger->Initialize();
+    logger->LogDebug(u8"ロガー起動");
 
     setting = make_shared<Setting>(hInstance);
     setting->Load(SU_SETTING_FILE);
@@ -50,10 +59,13 @@ void PreInitialize(HINSTANCE hInstance)
     SetUseFPUPreserveFlag(TRUE);
     SetGraphMode(SU_RES_WIDTH, SU_RES_HEIGHT, 32);
     SetFullSceneAntiAliasingMode(2, 2);
+
+    logger->LogDebug(u8"PreInitialize完了");
 }
 
-void Initialize()
+bool Initialize()
 {
+    logger->LogDebug(u8"DxLib初期化開始");
     if (DxLib_Init() == -1) abort();
     logger->LogInfo(u8"DxLib初期化OK");
 
@@ -66,8 +78,20 @@ void Initialize()
     SetWriteZBuffer3D(TRUE);
     SetDrawScreen(DX_SCREEN_BACK);
 
+    MoverFunctionExpressionManager::Initialize();
+    if (!easing::RegisterDefaultMoverFunctionExpressions()) {
+        logger->LogError(u8"デフォルトのMoverFunctionの登録に失敗しました。");
+        return false;
+    }
+
     manager = make_unique<ExecutionManager>(setting);
     manager->Initialize();
+
+    SSpriteMover::StrTypeId = manager->GetScriptInterfaceUnsafe()->GetEngine()->GetTypeIdByDecl("string");
+
+    logger->LogDebug(u8"Initialize完了");
+
+    return true;
 }
 
 void Run()
@@ -75,8 +99,11 @@ void Run()
     if (CheckHitKey(KEY_INPUT_F2)) {
         manager->ExecuteSystemMenu();
     } else {
+        logger->LogDebug(u8"スキン列挙開始");
         manager->EnumerateSkins();
+        logger->LogDebug(u8"Skin.as起動");
         manager->ExecuteSkin();
+        logger->LogDebug(u8"Skin.as終了");
     }
     manager->AddScene(static_pointer_cast<Scene>(make_shared<SceneDebug>()));
 
@@ -94,12 +121,13 @@ void Run()
 
 void Terminate()
 {
-    manager->Shutdown();
+    if(manager) manager->Shutdown();
     manager.reset(nullptr);
-    setting->Save();
-    setting.reset();
+    MoverFunctionExpressionManager::Finalize();
+    if(setting) setting->Save();
+    if(setting) setting.reset();
     DxLib_End();
-    logger->Terminate();
+    if(logger) logger->Terminate();
 }
 
 LRESULT CALLBACK CustomWindowProc(const HWND hWnd, const UINT msg, const WPARAM wParam, const LPARAM lParam)

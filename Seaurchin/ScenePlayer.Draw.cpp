@@ -1,5 +1,6 @@
 ﻿#include "ScenePlayer.h"
 #include "ScriptSprite.h"
+#include "ScriptSpriteMover.h"
 #include "ExecutionManager.h"
 #include "Setting.h"
 #include "Config.h"
@@ -52,8 +53,6 @@ void ScenePlayer::LoadResources()
     soundHoldStep = dynamic_cast<SSound*>(resources["SoundHoldStep"]);
     soundMetronome = dynamic_cast<SSound*>(resources["Metronome"]);
 
-    const auto fontCombo = dynamic_cast<SFont*>(resources["FontCombo"]);
-
     const auto setting = manager->GetSettingInstanceSafe();
     if (soundHoldLoop) soundHoldLoop->SetLoop(true);
     if (soundSlideLoop) soundSlideLoop->SetLoop(true);
@@ -91,21 +90,37 @@ void ScenePlayer::LoadResources()
     while (exty > bufferY) bufferY *= 2.0f;
     const auto bufferV = SU_TO_FLOAT(exty / bufferY);
     for (auto i = 2; i < 4; i++) groundVertices[i].v = bufferV;
+    if (hGroundBuffer) DeleteGraph(hGroundBuffer);
     hGroundBuffer = MakeScreen(SU_TO_INT32(laneBufferX), SU_TO_INT32(bufferY), TRUE);
 
-    if (fontCombo) fontCombo->AddRef();
-    textCombo = STextSprite::Factory(fontCombo, "");
-    textCombo->SetAlignment(STextAlign::Center, STextAlign::Center);
-    if (fontCombo == nullptr) {
-        textScale = 0.0;
-    } else {
-        const auto fontSize = fontCombo->GetSize();
-        textScale = 320.0 / ((fontSize <= 0.0) ? 1.0 : fontSize);
+    if (!spriteLane) {
+        SSynthSprite *pSynthSprite = SSynthSprite::Factory(1024, 4224);
+
+        if (imageLaneGround) {
+            imageLaneGround->AddRef();
+            pSynthSprite->Transfer(imageLaneGround, 0.0, 0.0);
+        }
+        if (imageLaneJudgeLine) {
+            imageLaneJudgeLine->AddRef();
+            pSynthSprite->Transfer(imageLaneJudgeLine, 0.0, laneBufferY);
+        }
+
+        SShape *pShape = SShape::Factory();
+        pShape->Type = SShapeType::BoxFill;
+        pShape->SetColor(255, 255, 255);
+        pShape->SetWidth(1);
+        pShape->SetHeight(laneBufferY*cullingLimit);
+        pShape->SetPosY(laneBufferY * cullingLimit / 2.0);
+        const auto division = 8;
+        for (auto i = 1; i < division; i++) {
+            pShape->SetPosX(laneBufferX / division * i);
+            pShape->AddRef();
+            pSynthSprite->Transfer(pShape);
+        }
+        pShape->Release();
+
+        spriteLane = pSynthSprite;
     }
-    ostringstream app;
-    app << setprecision(5);
-    app << "x:512, y:3200, " << "scaleX:" << textScale << ", scaleY:" << textScale;
-    textCombo->Apply(app.str());
 }
 
 void ScenePlayer::AddSprite(SSprite *sprite)
@@ -115,28 +130,20 @@ void ScenePlayer::AddSprite(SSprite *sprite)
 
 void ScenePlayer::TickGraphics(const double delta)
 {
-    if (status.Combo > previousStatus.Combo) RefreshComboText();
     UpdateSlideEffect();
-
-#ifdef SU_ENABLE_BACKGROUND_ROLLING
-    laneBackgroundRoll += laneBackgroundSpeed * delta;
-#endif
 }
 
 void ScenePlayer::Draw()
 {
-    ostringstream combo;
-    combo << status.Combo;
-    textCombo->SetText(combo.str());
-
     if (movieBackground) DrawExtendGraph(0, 0, SU_RES_WIDTH, SU_RES_HEIGHT, movieBackground, FALSE);
 
     BEGIN_DRAW_TRANSACTION(hGroundBuffer);
     ClearDrawScreen();
 
     // 背景部
-    DrawLaneBackground();
-    DrawLaneDivisionLines();
+    spriteLane->Draw();
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
+    SetDrawBright(255, 255, 255);
     for (auto& note : seenData) {
         auto &type = note->Type;
         if (type[size_t(SusNoteType::MeasureLine)]) DrawMeasureLine(note);
@@ -244,20 +251,6 @@ void ScenePlayer::DrawAerialNotes(const vector<shared_ptr<SusDrawableNoteData>>&
     for (const auto &query : airdraws) {
         if (query.Type == AirDrawType::AirActionStep) DrawAirActionStepBox(query);
     }
-}
-
-void ScenePlayer::RefreshComboText() const
-{
-    ostringstream app;
-    textCombo->AbortMove(true);
-
-    app << setprecision(5);
-    app << "scaleX:" << textScale * 1.05 << ", scaleY:" << textScale * 1.05;
-    textCombo->Apply(app.str());
-    app.str("");
-    app << setprecision(5);
-    app << "scale_to(" << "x:" << textScale << ", y:" << textScale << ", time: 0.2, ease:out_quad)";
-    textCombo->AddMove(app.str());
 }
 
 // position は 0 ~ 16
@@ -438,7 +431,7 @@ void ScenePlayer::DrawShortNotes(const shared_ptr<SusDrawableNoteData>& note) co
 
     //64*3 x 64 を描画するから1/2でやる必要がある
 
-    if (handleToDraw) DrawTap(slane, length, relpos, handleToDraw->GetHandle());
+    if (handleToDraw) DrawTap(slane, SU_TO_INT32(length), relpos, handleToDraw->GetHandle());
 }
 
 void ScenePlayer::DrawAirNotes(const AirDrawQuery &query) const
@@ -552,14 +545,16 @@ void ScenePlayer::DrawHoldNotes(const shared_ptr<SusDrawableNoteData>& note) con
         if (ex->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ノーツがAttack以上の判定*/) continue;
 
         const auto relendpos = 1.0 - ex->ModifiedPosition / seenDuration;
+        const int len = SU_TO_INT32(length);
         if (ex->Type.test(size_t(SusNoteType::Start))) {
-            DrawTap(slane, length, relendpos, imageHold->GetHandle());
+            DrawTap(slane, len, relendpos, imageHold->GetHandle());
         } else {
-            DrawTap(slane, length, relendpos, imageHoldStep->GetHandle());
+            DrawTap(slane, len, relendpos, imageHoldStep->GetHandle());
         }
     }
     if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ノーツがAttack以上の判定*/)) {
-        DrawTap(slane, length, relpos, imageHold->GetHandle());
+        const int len = SU_TO_INT32(length);
+        DrawTap(slane, len, relpos, imageHold->GetHandle());
     }
 }
 
@@ -828,15 +823,17 @@ void ScenePlayer::DrawSlideNotes(const shared_ptr<SusDrawableNoteData>& note)
 
         const auto currentStepRelativeY = 1.0 - slideElement->ModifiedPosition / seenDuration;
         if (currentStepRelativeY >= 0 && currentStepRelativeY < cullingLimit) {
+            const int length = SU_TO_INT32(slideElement->Length);
             if (slideElement->Type.test(size_t(SusNoteType::Start))) {
-                DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlide->GetHandle());
+                DrawTap(slideElement->StartLane, length, currentStepRelativeY, imageSlide->GetHandle());
             } else {
-                DrawTap(slideElement->StartLane, slideElement->Length, currentStepRelativeY, imageSlideStep->GetHandle());
+                DrawTap(slideElement->StartLane, length, currentStepRelativeY, imageSlideStep->GetHandle());
             }
         }
     }
     if (!(note->OnTheFlyData[size_t(NoteAttribute::Finished)]/* && ノーツがAttack以上の判定*/)) {
-        DrawTap(note->StartLane, note->Length, 1.0 - note->ModifiedPosition / seenDuration, imageSlide->GetHandle());
+        const int length = SU_TO_INT32(note->Length);
+        DrawTap(note->StartLane, length, 1.0 - note->ModifiedPosition / seenDuration, imageSlide->GetHandle());
     }
 }
 
@@ -1067,50 +1064,6 @@ void ScenePlayer::DrawMeasureLine(const shared_ptr<SusDrawableNoteData>& note) c
 {
     const auto relpos = SU_TO_FLOAT(1.0 - note->ModifiedPosition / seenDuration);
     DrawLineAA(0, relpos * laneBufferY, laneBufferX, relpos * laneBufferY, GetColor(255, 255, 255), 6);
-}
-
-void ScenePlayer::DrawLaneDivisionLines() const
-{
-    const auto division = 8;
-    for (auto i = 1; i < division; i++) {
-        DrawLineAA(
-            laneBufferX / division * i, 0,
-            laneBufferX / division * i, laneBufferY * cullingLimit,
-            GetColor(255, 255, 255), 3
-        );
-    }
-}
-
-void ScenePlayer::DrawLaneBackground() const
-{
-    // bg
-#ifdef SU_ENABLE_BACKGROUND_ROLLING
-    const int exty = laneBufferX * SU_LANE_ASPECT_EXT;
-    const auto bgiw = imageLaneGround->GetWidth();
-    const auto scale = laneBufferX / bgiw;
-    auto cy = laneBackgroundRoll;
-    while (cy > 0) cy -= imageLaneGround->GetHeight() * scale;
-
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    while (cy <= exty) {
-        DrawRotaGraph2F(0, cy, 0, 0, scale, 0, imageLaneGround->GetHandle(), TRUE, FALSE);
-        cy += imageLaneGround->GetHeight() * scale;
-    }
-#else
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 255);
-    DrawGraph(0, 0, imageLaneGround->GetHandle(), TRUE);
-#endif
-
-    SetDrawBlendMode(DX_BLENDMODE_ADD, 255);
-    DrawRectRotaGraph3F(
-        0, SU_TO_FLOAT(laneBufferY),
-        0, 0,
-        imageLaneJudgeLine->GetWidth(), imageLaneJudgeLine->GetHeight(),
-        0, imageLaneJudgeLine->GetHeight() / 2.0f,
-        1, 1, 0,
-        imageLaneJudgeLine->GetHandle(), TRUE, FALSE);
-    processor->Draw();
-    textCombo->Draw();
 }
 
 void ScenePlayer::Prepare3DDrawCall() const

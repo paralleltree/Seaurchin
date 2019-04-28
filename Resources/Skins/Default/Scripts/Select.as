@@ -154,7 +154,7 @@ class Title : CoroutineScene {
     UpdateInfoAt(flew, adjust * 2);
 
     center = (5 + center + adjust) % 5;
-    for(int i = 0; i < 5; i++) musics[i].AddMove("move_by(x:" + (480 * -adjust) + ", time:0.2, ease:out_quad)");
+    for(int i = 0; i < 5; i++) musics[i].AddMove("x:{@end:" + (480 * -adjust) + ", time:0.2, func:out_quad}");
   }
 
   bool isEnabled = true;
@@ -239,9 +239,9 @@ class Title : CoroutineScene {
   void ShowMessage(string mes) {
     TextSprite@ spmes = TextSprite(font32, mes);
     spmes.Apply("y:720, z:20, r:0, g:0, b:0");
-    spmes.AddMove("move_by(y:-32, time:0.5, ease:out_sine)");
-    spmes.AddMove("move_by(y:32, time:0.5, wait:1.0, ease:in_sine)");
-    spmes.AddMove("death(wait:2.0)");
+    spmes.AddMove("y:{@end:-32, time:0.5, func:out_sine}");
+    spmes.AddMove("y:{@end:32, time:0.5, wait:1.0, func:in_sine}");
+    spmes.AddMove("death:{wait:2.0}");
     AddSprite(spmes);
   }
 }
@@ -343,10 +343,10 @@ class CharacterSelect : CoroutineScene {
       if (IsKeyTriggered(Key::INPUT_TAB)) {
         if (isEnabled) {
           Fire("Select:Enable");
-          container.AddMove("move_to(x:-1280, time:0.5, ease:out_sine)");
+          container.AddMove("x:{end:-1280, time:0.5, func:out_sine}");
         } else {
           Fire("Select:Disable");
-          container.AddMove("move_to(x:0, time:0.5, ease:out_sine)");
+          container.AddMove("x:{end:0, time:0.5, func:out_sine}");
         }
         isEnabled = !isEnabled;
       }
@@ -373,23 +373,23 @@ class CharacterSelect : CoroutineScene {
   }
 
   void FadeChar() {
-    spName.AddMove("alpha(x:1, y:0, time:0.2)");
-    spImage.AddMove("alpha(x:1, y:0, time:0.2)");
+    spName.AddMove("alpha:{begin:1, end:0, time:0.2}");
+    spImage.AddMove("alpha:{begin:1, end:0, time:0.2}");
     YieldTime(0.2);
     UpdateInfo();
-    spName.AddMove("alpha(x:0, y:1, time:0.2)");
-    spImage.AddMove("alpha(x:0, y:1, time:0.2)");
+    spName.AddMove("alpha:{begin:0, end:1, time:0.2}");
+    spImage.AddMove("alpha:{begin:0, end:1, time:0.2}");
   }
 
   void FadeSkill() {
-    spIcon.AddMove("alpha(x:1, y:0, time:0.2)");
-    spSkill.AddMove("alpha(x:1, y:0, time:0.2)");
-    spDescription.AddMove("alpha(x:1, y:0, time:0.2)");
+    spIcon.AddMove("alpha:{begin:1, end:0, time:0.2}");
+    spSkill.AddMove("alpha:{begin:1, end:0, time:0.2}");
+    spDescription.AddMove("alpha:{begin:1, end:0, time:0.2}");
     YieldTime(0.2);
     UpdateSkill();
-    spIcon.AddMove("alpha(x:0, y:1, time:0.2)");
-    spSkill.AddMove("alpha(x:0, y:1, time:0.2)");
-    spDescription.AddMove("alpha(x:0, y:1, time:0.2)");
+    spIcon.AddMove("alpha:{begin:0, end:1, time:0.2}");
+    spSkill.AddMove("alpha:{begin:0, end:1, time:0.2}");
+    spDescription.AddMove("alpha:{begin:0, end:1, time:0.2}");
   }
 
   void OnEvent(const string &in event) {

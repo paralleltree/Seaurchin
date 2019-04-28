@@ -10,40 +10,57 @@
 #define SU_IF_COROUTINE "Coroutine"
 
 class Coroutine {
-public:
-    Coroutine(const std::string &name, const asIScriptFunction* cofunc, asIScriptEngine* engine);
-    ~Coroutine();
-
-    asIScriptContext* GetContext() const { return context; }
-    void SetSceneInstance(Scene* scene) { context->SetUserData(scene, SU_UDTYPE_SCENE); }
-    int Execute() { return context->Execute(); }
+private:
+    asIScriptContext *context;
+    asIScriptObject *object;
+    asIScriptFunction *function;
+    asITypeInfo *type;
 
 public:
     std::string Name;
     CoroutineWait Wait;
 
+public:
+    Coroutine(const std::string &name, const asIScriptFunction* cofunc, asIScriptEngine* engine);
+    ~Coroutine();
+
+    asIScriptContext* GetContext() const { return context; }
+
+    void *SetUserData(void *data, asPWORD type) { return context->SetUserData(data, type); }
+
+    int Execute() { return context->Execute(); }
+
 private:
-    asIScriptContext *context;
-    void *object;
-    asITypeInfo *type;
-    asIScriptFunction *function;
+    int Prepare()
+    {
+        const auto r1 = context->Prepare(function);
+        if (r1 != asSUCCESS) return r1;
+        return context->SetObject(object);
+    }
+    int Unprepare() { return context->Unprepare(); }
+
+public:
+    bool Tick(double delta) { return Wait.Tick(delta); }
 };
 
-struct CallbackObject;
+class MethodObject;
+class CallbackObject;
 
 class ScriptScene : public Scene {
     typedef Scene Base;
 protected:
-    asIScriptContext * const context;
     asIScriptObject * const sceneObject;
-    asITypeInfo * const sceneType;
+
+    MethodObject* initMethod;
+    MethodObject* mainMethod;
+    MethodObject* eventMethod;
 
     std::multiset<SSprite*, SSprite::Comparator> sprites;
     std::vector<SSprite*> spritesPending;
     std::list<Coroutine*> coroutines;
     std::list<Coroutine*> coroutinesPending;
     std::vector<CallbackObject*> callbacks;
-    bool finished = false;
+    bool finished;
 
     void TickCoroutine(double delta);
     void TickSprite(double delta);
@@ -53,9 +70,7 @@ public:
     ScriptScene(asIScriptObject *scene);
     virtual ~ScriptScene();
 
-    asIScriptObject* GetSceneObject() const { return sceneObject; }
-    asITypeInfo* GetSceneType() const { return sceneType; }
-    asIScriptFunction* GetMainMethod() override;
+    const char* GetMainMethodDecl() const override { return "void Tick(double)"; }
 
     void Initialize() override;
 
@@ -69,7 +84,7 @@ public:
     void Disappear() override;
     void Dispose() override;
 
-    void RegistDisposalCallback(CallbackObject *callback);
+    void RegisterDisposalCallback(CallbackObject *callback);
 };
 
 class ScriptCoroutineScene : public ScriptScene {
@@ -81,7 +96,9 @@ public:
     ScriptCoroutineScene(asIScriptObject *scene);
     virtual ~ScriptCoroutineScene();
 
-    asIScriptFunction* GetMainMethod() override;
+    const char* GetMainMethodDecl() const override { return "void Run()"; }
+
+    void Initialize() override;
 
     void Tick(double delta) override;
 };

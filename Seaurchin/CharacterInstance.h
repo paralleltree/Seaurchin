@@ -44,7 +44,7 @@ private:
     std::vector<asITypeInfo*> abilityTypes;
     std::vector<AbilityFunctions> abilityEvents;
     asIScriptContext *context;
-    CallbackObject *judgeCallback;
+    mutable CallbackObject *judgeCallback;
 
     void LoadAbilities();
     void CreateImageSet();

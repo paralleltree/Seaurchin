@@ -728,7 +728,7 @@ tuple<uint32_t, uint32_t> SusAnalyzer::NormalizeRelativeTime(const uint32_t meas
 {
     auto nm = meas;
     auto nt = tick;
-    while (nt >= GetBeatsAt(nm) * ticksPerBeat) nt -= GetBeatsAt(nm++) * ticksPerBeat;
+    while (nt >= GetBeatsAt(nm) * ticksPerBeat) nt -= SU_TO_UINT32(GetBeatsAt(nm++) * ticksPerBeat);
     return make_tuple(nm, nt);
 }
 
@@ -961,7 +961,7 @@ void SusAnalyzer::RenderScoreData(DrawableNotesList &data, NoteCurvesList &curve
                             const auto t = (extra->StartTime - lst) / (cst - lst);
                             const auto x = glm::mix(get<1>(lastSegmentPosition), get<1>(segmentPosition), t);
                             const auto center = x * 16.0;
-                            extra->StartLane = center - width / 2.0;
+                            extra->StartLane = SU_TO_FLOAT(center - width / 2.0);
                             extra->Length = width;
                             break;
                         }

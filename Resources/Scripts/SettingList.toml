@@ -15,6 +15,39 @@ Values = [ "有効", "無効" ]
 Default = false
 
 [[SettingItems]]
+Group = "Graphic"
+Key = "DivisionLine"
+Description = "レーン分割数"
+Type = "IntegerSelect"
+Values = [ 1, 2, 4, 8, 16 ]
+Default = 8
+
+[[SettingItems]]
+Group = "Graphic"
+Key = "ShowSlideLine"
+Description = "スライド中心線"
+Type = "Boolean"
+Values = [ "表示する", "表示しない" ]
+Default = true
+
+[[SettingItems]]
+Group = "Graphic"
+Key = "SlideLineThickness"
+Description = "スライド中心線幅"
+Type = "Float"
+Range = [ 0.0, 32.0 ]
+Step = 0.5
+Default = 16.0
+
+[[SettingItems]]
+Group = "Graphic"
+Key = "ShowAirActionJudgeLine"
+Description = "エアー入力線"
+Type = "Boolean"
+Values = [ "表示する", "表示しない" ]
+Default = true
+
+[[SettingItems]]
 Group = "Play"
 Key = "EnableAutoPlay"
 Description = "オートプレイ"
@@ -75,31 +108,6 @@ Type = "Float"
 Range = [ 1.0, 20.0 ]
 Step = 0.1
 Default = 4.0
-
-[[SettingItems]]
-Group = "Play"
-Key = "ShowSlideLine"
-Description = "スライド中心線"
-Type = "Boolean"
-Values = [ "表示する", "表示しない" ]
-Default = true
-
-[[SettingItems]]
-Group = "Play"
-Key = "SlideLineThickness"
-Description = "スライド中心線幅"
-Type = "Float"
-Range = [ 0.0, 32.0 ]
-Step = 0.5
-Default = 16.0
-
-[[SettingItems]]
-Group = "Play"
-Key = "ShowAirActionJudgeLine"
-Description = "エアー入力線"
-Type = "Boolean"
-Values = [ "表示する", "表示しない" ]
-Default = true
 
 [[SettingItems]]
 Group = "Sound"

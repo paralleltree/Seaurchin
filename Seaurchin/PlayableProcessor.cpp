@@ -240,7 +240,8 @@ bool PlayableProcessor::CheckJudgement(const shared_ptr<SusDrawableNoteData>& no
         }
         return false;
     }
-    for (int i = note->StartLane; i < note->StartLane + note->Length; i++) {
+    const int left = SU_TO_INT32(note->StartLane), right = SU_TO_INT32(note->StartLane + note->Length);
+    for (int i = left; i < right; i++) {
         if (!currentState->GetTriggerState(ControllerSource::IntegratedSliders, i)) continue;
         if (note->Type[size_t(SusNoteType::ExTap)]) {
             IncrementComboEx(note, "");
@@ -276,7 +277,8 @@ bool PlayableProcessor::CheckHellJudgement(const shared_ptr<SusDrawableNoteData>
         return true;
     }
 
-    for (int i = note->StartLane; i < note->StartLane + note->Length; i++) {
+    const int left = SU_TO_INT32(note->StartLane), right = SU_TO_INT32(note->StartLane + note->Length);
+    for (int i = left; i < right; i++) {
         /* 押しっぱなしにしていた時にJC出るのは違う気がした */
         if (!currentState->GetCurrentState(ControllerSource::IntegratedSliders, i)) continue;
         IncrementComboHell(note, 1, "");
@@ -320,11 +322,12 @@ bool PlayableProcessor::CheckHoldJudgement(const shared_ptr<SusDrawableNoteData>
     if (note->OnTheFlyData[size_t(NoteAttribute::Completed)]) return false;
 
     //現在の判定位置を調べる
-    const int left = note->StartLane;
+    const auto left = note->StartLane;
     const auto right = left + note->Length;
     // left <= i < right で判定
     auto held = false, trigger = false, release = false;
-    for (auto i = left; i < right; i++) {
+    const int l = SU_TO_INT32(left), r = SU_TO_INT32(right);
+    for (auto i = l; i < r; i++) {
         held |= currentState->GetCurrentState(ControllerSource::IntegratedSliders, i);
         trigger |= currentState->GetTriggerState(ControllerSource::IntegratedSliders, i);
         release |= currentState->GetLastState(ControllerSource::IntegratedSliders, i) && !currentState->GetCurrentState(ControllerSource::IntegratedSliders, i);
@@ -402,7 +405,7 @@ bool PlayableProcessor::CheckSlideJudgement(const shared_ptr<SusDrawableNoteData
     //現在の判定位置を調べる
     auto lastStep = note;
     auto refNote = note;
-    int left, right;
+    float left, right;
     for (const auto &extra : note->ExtraData) {
         if (extra->Type[size_t(SusNoteType::Control)]) continue;
         if (extra->Type[size_t(SusNoteType::Injection)]) continue;
@@ -435,15 +438,16 @@ bool PlayableProcessor::CheckSlideJudgement(const shared_ptr<SusDrawableNoteData
         }
         const auto center = glm::mix(get<1>(start), get<1>(next), (timeInBlock - get<0>(start)) / (get<0>(next) - get<0>(start))) * 16;
         const auto width = glm::mix(lastStep->Length, refNote->Length, timeInBlock / (refNote->StartTime - lastStep->StartTime));
-        left = SU_TO_INT32(floor(center - width / 2.0));
-        right = SU_TO_INT32(ceil(center + width / 2.0));
+        left = SU_TO_FLOAT(floor(center - width / 2.0));
+        right = SU_TO_FLOAT(ceil(center + width / 2.0));
         ostringstream ss;
         // ss << "Curve: " << left << ", " << right << endl;
         // WriteDebugConsole(ss.str().c_str());
     }
     // left <= i < right で判定
     auto held = false, trigger = false, release = false;
-    for (auto i = left; i < right; i++) {
+    const int l = SU_TO_INT32(left), r = SU_TO_INT32(right);
+    for (auto i = l; i < r; i++) {
         held |= currentState->GetCurrentState(ControllerSource::IntegratedSliders, i);
         trigger |= currentState->GetTriggerState(ControllerSource::IntegratedSliders, i);
         release |= currentState->GetLastState(ControllerSource::IntegratedSliders, i) && !currentState->GetCurrentState(ControllerSource::IntegratedSliders, i);
