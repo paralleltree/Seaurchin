@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Ched.Components;
+using Ched.Core;
 using Ched.Plugins;
 
 namespace Cheddeaurchin
@@ -15,9 +15,9 @@ namespace Cheddeaurchin
     {
         public string DisplayName => "コンボ計算 (Seaurchin仕様)";
 
-        public void Run(Score score)
+        public void Run(IScorePluginArgs args)
         {
-            var csc = new ChedScoreConverter(score);
+            var csc = new ChedScoreConverter(args.GetCurrentScore());
             var suNotes = csc.GenerateSusNotesList();
 
             var allNotes = 0;

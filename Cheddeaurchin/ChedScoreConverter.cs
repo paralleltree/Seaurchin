@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Ched.Components;
-using Ched.Components.Notes;
-using Ched.Components.Events;
+using Ched.Core;
+using Ched.Core.Notes;
+using Ched.Core.Events;
 
 namespace Cheddeaurchin
 {
@@ -361,10 +361,10 @@ namespace Cheddeaurchin
 
         private void InitializeBpmChanges(Score chedScore)
         {
-            foreach (var bc in chedScore.Events.BPMChangeEvents)
+            foreach (var bc in chedScore.Events.BpmChangeEvents)
             {
                 var time = GetRelativeTimeFromTicks((uint)bc.Tick);
-                bpmChanges.Add(Tuple.Create(time, (double)bc.BPM));
+                bpmChanges.Add(Tuple.Create(time, bc.Bpm));
             }
         }
     }
